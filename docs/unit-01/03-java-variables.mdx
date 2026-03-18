@@ -1,0 +1,223 @@
+---
+id: java-variables
+title: "Lesson 3: Java Variables & Data Types"
+sidebar_label: "3 · Variables & Data Types"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 3: Java Variables & Data Types
+
+---
+
+## Explanation
+
+### What is a Variable?
+
+A **variable** is a named container in memory that holds a value. Think of it like a labeled box — you give it a name, put something in it, and refer to it by name later in your code.
+
+In Java, every variable must declare its **type** before you can use it. The type tells Java what kind of data the box can hold and how much memory to set aside for it.
+
+```java
+int teamNumber = 16072;
+double motorPower = 0.75;
+boolean isPressed = false;
+String teamName = "Sharp Face Robotics";
+```
+
+---
+
+### The Four Types You'll Use in FTC
+
+#### `int` — Whole numbers
+
+Use `int` for anything that doesn't have a decimal: encoder tick counts, loop counters, team numbers, element counts.
+
+```java
+int tickCount = 2880;
+int lapNumber = 3;
+```
+
+#### `double` — Decimal numbers
+
+Use `double` for anything that needs precision: motor power (-1.0 to 1.0), sensor voltages, distances, angles. In FTC, `double` is far more common than `int` for hardware values.
+
+```java
+double power = 0.5;
+double heading = 180.0;
+double voltage = 3.3;
+```
+
+:::tip Why not float?
+Java has both `float` and `double` for decimals. The FTC SDK uses `double` everywhere, so always use `double` to stay consistent with SDK method signatures.
+:::
+
+#### `boolean` — True or false
+
+Use `boolean` for any on/off state: button presses, sensor states, flags that track whether something has happened.
+
+```java
+boolean isButtonPressed = false;
+boolean hasReachedTarget = true;
+```
+
+#### `String` — Text
+
+Use `String` for labels, names, and any text you display via telemetry. Note that `String` is capitalized — that's because it's a class, not a primitive type.
+
+```java
+String status = "Initialized";
+String teamName = "Sharp Face Robotics";
+telemetry.addData("Status", status);
+```
+
+---
+
+### Declaring vs Assigning
+
+**Declaration** is when you create the variable and specify its type. **Assignment** is when you give it a value. You can do both at once, or separately:
+
+```java
+// Declare and assign at the same time
+int wheels = 4;
+
+// Declare first, assign later
+double power;
+power = 0.75;
+
+// Reassign a new value later
+power = 0.0;
+```
+
+Once declared, you never write the type again when using the variable — just its name.
+
+---
+
+### Naming Conventions
+
+Java uses **camelCase** for variable names: start with a lowercase letter, capitalize the first letter of each subsequent word.
+
+```java
+// Good — camelCase
+double leftMotorPower;
+int encoderTickCount;
+boolean isTouchSensorPressed;
+
+// Bad — don't do these
+double LeftMotorPower;   // starts with capital (that's for classes)
+int encoder_tick_count;  // underscores (that's Python style)
+double lmp;              // too short, unreadable
+```
+
+Variable names should be descriptive. `power` is okay; `leftDrivePower` is better. Future-you will thank present-you.
+
+---
+
+### Variable Scope
+
+A variable only exists within the **block** (the `{}` braces) it was declared in. This is called **scope**.
+
+```java
+public void runOpMode() {
+    int outerVar = 10; // visible everywhere in runOpMode
+
+    while (opModeIsActive()) {
+        int innerVar = 5; // only visible inside this while loop
+        outerVar = outerVar + 1; // fine — outerVar is in scope
+    }
+
+    // innerVar doesn't exist here — would cause a compile error
+}
+```
+
+In FTC, hardware variables like motors and sensors are usually declared at the **class level** (above `runOpMode`) so they're accessible from any method.
+
+---
+
+### Math with Variables
+
+Java supports standard arithmetic operators:
+
+```java
+double a = 10.0;
+double b = 3.0;
+
+double sum        = a + b;   // 13.0
+double difference = a - b;   // 7.0
+double product    = a * b;   // 30.0
+double quotient   = a / b;   // 3.333...
+```
+
+:::warning Integer division gotcha
+If both operands are `int`, division truncates the decimal:
+
+```java
+int result = 5 / 2;  // result is 2, not 2.5!
+```
+
+To get a decimal result, make at least one operand a `double`:
+
+```java
+double result = 5.0 / 2;  // result is 2.5
+```
+
+This trips up almost every FTC beginner at least once.
+:::
+
+---
+
+## Quiz
+
+**Q1. Which data type would you use to store a motor's power level?**
+
+<details>
+<summary>Show answer</summary>
+
+`double` — motor power ranges from -1.0 to 1.0, which requires decimal precision.
+
+</details>
+
+---
+
+**Q2. What is wrong with this code?**
+
+```java
+int ticks = 1440;
+ticks = 2880;
+int ticks = 4320;
+```
+
+<details>
+<summary>Show answer</summary>
+
+The third line re-declares `ticks` with `int` — you can only declare a variable once. It should just be `ticks = 4320;` without the `int`.
+
+</details>
+
+---
+
+**Q3. What is the result of `7 / 2` in Java?**
+
+<details>
+<summary>Show answer</summary>
+
+`3` — not `3.5`. Both operands are integers, so Java performs integer division and discards the remainder. To get `3.5`, write `7.0 / 2` or `(double) 7 / 2`.
+
+</details>
+
+---
+
+**Q4. Why is `String` capitalized but `int`, `double`, and `boolean` are not?**
+
+<details>
+<summary>Show answer</summary>
+
+`int`, `double`, and `boolean` are **primitive types** — they're built directly into Java. `String` is a **class**, and in Java, class names always start with a capital letter.
+
+</details>
+
+<MarkComplete
+  nextUnit="/docs/unit-01/conditionals"
+  nextUnitName="Lesson 4: Conditionals"
+/>

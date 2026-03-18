@@ -1,0 +1,190 @@
+---
+id: conditionals
+title: "Lesson 4: Conditionals"
+sidebar_label: "4 · Conditionals"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 4: Conditionals
+
+---
+
+## Explanation
+
+### Making Decisions in Code
+
+A robot that does the same thing every time regardless of input isn't very useful. **Conditionals** are how you give your robot the ability to make decisions — "if this is true, do that; otherwise, do something else."
+
+---
+
+### The `if` Statement
+
+The most basic conditional. The code inside the braces only runs if the condition is `true`.
+
+```java
+if (gamepad1.a) {
+    telemetry.addData("Button", "A is pressed");
+}
+```
+
+`gamepad1.a` returns a `boolean` — `true` when the A button is held down, `false` when it's not. If it's `false`, the block is skipped entirely.
+
+---
+
+### `if` / `else`
+
+Add an `else` block to run different code when the condition is `false`.
+
+```java
+if (gamepad1.a) {
+    telemetry.addData("Button", "A is pressed");
+} else {
+    telemetry.addData("Button", "A is not pressed");
+}
+```
+
+Exactly one of the two blocks will run — never both, never neither.
+
+---
+
+### `if` / `else if` / `else`
+
+Chain multiple conditions together. Java checks them in order and runs only the first block whose condition is `true`. If none match, the `else` block runs.
+
+```java
+double power = gamepad1.right_trigger;
+
+if (power > 0.75) {
+    telemetry.addData("Speed", "Fast");
+} else if (power > 0.25) {
+    telemetry.addData("Speed", "Medium");
+} else if (power > 0.0) {
+    telemetry.addData("Speed", "Slow");
+} else {
+    telemetry.addData("Speed", "Stopped");
+}
+```
+
+:::tip Order matters
+Java stops checking as soon as it finds a true condition. Put your most specific conditions first and your most general ones last.
+:::
+
+---
+
+### Comparison Operators
+
+These operators compare two values and return a `boolean`:
+
+| Operator | Meaning | Example |
+|---|---|---|
+| `==` | Equal to | `ticks == 2880` |
+| `!=` | Not equal to | `status != "done"` |
+| `>` | Greater than | `power > 0.5` |
+| `<` | Less than | `angle < 90` |
+| `>=` | Greater than or equal | `ticks >= 1440` |
+| `<=` | Less than or equal | `voltage <= 3.3` |
+
+:::danger Common mistake
+`=` is assignment. `==` is comparison. Writing `if (x = 5)` instead of `if (x == 5)` is a bug that will cause a compile error — or worse, unexpected behavior.
+:::
+
+---
+
+### Logical Operators
+
+Combine multiple boolean conditions into one:
+
+| Operator | Meaning | Example |
+|---|---|---|
+| `&&` | AND — both must be true | `gamepad1.a && gamepad1.b` |
+| `\|\|` | OR — at least one must be true | `gamepad1.a \|\| gamepad1.b` |
+| `!` | NOT — flips true/false | `!gamepad1.a` |
+
+```java
+// Only run if BOTH bumpers are held
+if (gamepad1.left_bumper && gamepad1.right_bumper) {
+    // slow mode
+    motorPower = motorPower * 0.25;
+}
+
+// Run if EITHER trigger is pressed
+if (gamepad1.left_trigger > 0.1 || gamepad1.right_trigger > 0.1) {
+    telemetry.addData("Trigger", "Active");
+}
+```
+
+---
+
+### A Real FTC Example
+
+Here's a full conditionals-based TeleOp snippet that controls an intake motor:
+
+```java
+while (opModeIsActive()) {
+    if (gamepad1.right_bumper) {
+        intakeMotor.setPower(1.0);   // intake in
+    } else if (gamepad1.left_bumper) {
+        intakeMotor.setPower(-1.0);  // outtake
+    } else {
+        intakeMotor.setPower(0.0);   // stopped
+    }
+
+    telemetry.addData("Intake Power", intakeMotor.getPower());
+    telemetry.update();
+}
+```
+
+This pattern — check a button, set power, fallback to zero — is one of the most common patterns in all of FTC TeleOp code.
+
+---
+
+## Quiz
+
+**Q1. What is the difference between `=` and `==`?**
+
+<details>
+<summary>Show answer</summary>
+
+`=` is the **assignment** operator — it sets a variable's value. `==` is the **comparison** operator — it checks whether two values are equal and returns a boolean.
+
+</details>
+
+---
+
+**Q2. In an `if / else if / else` chain, how many blocks will run?**
+
+<details>
+<summary>Show answer</summary>
+
+Exactly one — whichever condition is true first. If no condition is true and there's an `else`, that runs. Java stops checking as soon as it finds a match.
+
+</details>
+
+---
+
+**Q3. What does the `!` operator do?**
+
+<details>
+<summary>Show answer</summary>
+
+It negates (flips) a boolean. `!true` becomes `false`, and `!false` becomes `true`. In FTC it's commonly used because some sensors return `true` when inactive and `false` when triggered, so you write `if (!sensor.getState())` to check for activation.
+
+</details>
+
+---
+
+**Q4. What does `&&` require to return `true`?**
+
+<details>
+<summary>Show answer</summary>
+
+Both conditions on either side must be `true`. If either one is `false`, the whole expression is `false`.
+
+</details>
+
+<MarkComplete
+  nextUnit="/docs/unit-01/loops"
+  nextUnitName="Lesson 5: Loops"
+/>

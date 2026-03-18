@@ -1,0 +1,224 @@
+---
+id: functions
+title: "Lesson 7: Functions & Methods"
+sidebar_label: "7 · Functions & Methods"
+sidebar_position: 7
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 7: Functions & Methods
+
+---
+
+## Explanation
+
+### What is a Method?
+
+In Java, a **method** is a named block of code that you can call by name to run it. You've already been using methods — `telemetry.addData()`, `motor.setPower()`, and `waitForStart()` are all method calls.
+
+Now you'll learn to write your own. Methods let you:
+
+- Avoid repeating the same code in multiple places
+- Break a large `runOpMode()` into smaller, readable chunks
+- Give meaningful names to what your code is doing
+
+---
+
+### Method Syntax
+
+```java
+returnType methodName(parameterType parameterName) {
+    // method body
+    return value; // only needed if returnType isn't void
+}
+```
+
+A method that doesn't return anything uses `void`:
+
+```java
+void driveForward(double power) {
+    leftMotor.setPower(power);
+    rightMotor.setPower(power);
+}
+```
+
+Call it like this:
+
+```java
+driveForward(0.5);  // both motors at 50%
+driveForward(1.0);  // both motors at full speed
+```
+
+---
+
+### Parameters and Arguments
+
+**Parameters** are the inputs your method accepts, declared in the parentheses. **Arguments** are the actual values you pass in when calling the method.
+
+```java
+// 'power' and 'duration' are parameters
+void driveForward(double power, long duration) {
+    leftMotor.setPower(power);
+    rightMotor.setPower(power);
+    sleep(duration);
+    leftMotor.setPower(0);
+    rightMotor.setPower(0);
+}
+
+// 0.75 and 2000 are arguments
+driveForward(0.75, 2000);
+```
+
+---
+
+### Return Values
+
+A method can compute something and send the result back to the caller using `return`:
+
+```java
+double averagePower(double left, double right) {
+    return (left + right) / 2.0;
+}
+
+// Use it like this:
+double avg = averagePower(0.6, 0.8);  // avg = 0.7
+telemetry.addData("Average Power", avg);
+```
+
+The return type must match what you actually return. If you declare `double`, return a `double`. If you declare `void`, don't return anything.
+
+---
+
+### Cleaning Up `runOpMode()`
+
+The biggest practical benefit of methods in FTC is keeping `runOpMode()` readable. Compare these two:
+
+**Without methods — hard to follow:**
+
+```java
+public void runOpMode() {
+    leftMotor = hardwareMap.get(DcMotor.class, "left");
+    rightMotor = hardwareMap.get(DcMotor.class, "right");
+    leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+    imu.initialize(new IMU.Parameters(...));
+    telemetry.addData("Status", "Initialized");
+    telemetry.update();
+    waitForStart();
+    while (opModeIsActive()) {
+        double drive = -gamepad1.left_stick_y;
+        double turn = gamepad1.right_stick_x;
+        leftMotor.setPower(drive + turn);
+        rightMotor.setPower(drive - turn);
+        telemetry.addData("Drive", drive);
+        telemetry.addData("Turn", turn);
+        telemetry.update();
+    }
+}
+```
+
+**With methods — clear and readable:**
+
+```java
+public void runOpMode() {
+    initHardware();
+    waitForStart();
+
+    while (opModeIsActive()) {
+        drive();
+        updateTelemetry();
+    }
+}
+
+void initHardware() {
+    leftMotor = hardwareMap.get(DcMotor.class, "left");
+    rightMotor = hardwareMap.get(DcMotor.class, "right");
+    leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+}
+
+void drive() {
+    double drive = -gamepad1.left_stick_y;
+    double turn  = gamepad1.right_stick_x;
+    leftMotor.setPower(drive + turn);
+    rightMotor.setPower(drive - turn);
+}
+
+void updateTelemetry() {
+    telemetry.addData("Status", "Running");
+    telemetry.update();
+}
+```
+
+The second version is dramatically easier to read, debug, and modify. This is the structure most competitive FTC teams use.
+
+---
+
+### The `@Override` Annotation
+
+You've seen `@Override` above `runOpMode()`. This tells Java you're intentionally replacing a method from a parent class (in this case, `LinearOpMode`). The compiler will warn you if you make a typo in the method name — without `@Override`, a typo would silently create a new method instead of overriding the intended one.
+
+```java
+@Override
+public void runOpMode() {
+    // your code here
+}
+```
+
+Always include `@Override` when overriding a parent class method.
+
+---
+
+## Quiz
+
+**Q1. What is the difference between a parameter and an argument?**
+
+<details>
+<summary>Show answer</summary>
+
+A **parameter** is the variable declared in the method signature (e.g., `double power`). An **argument** is the actual value passed in when calling the method (e.g., `0.75`). Parameters are defined once; arguments are provided each time you call the method.
+
+</details>
+
+---
+
+**Q2. What return type do you use for a method that doesn't return a value?**
+
+<details>
+<summary>Show answer</summary>
+
+`void` — it signals that the method performs an action but doesn't produce a result to hand back to the caller.
+
+</details>
+
+---
+
+**Q3. What does `@Override` do and why should you use it?**
+
+<details>
+<summary>Show answer</summary>
+
+It tells the compiler you're intentionally replacing a method from a parent class. Without it, a typo in the method name would silently create a new unrelated method instead of replacing the intended one — a bug that can be very hard to find.
+
+</details>
+
+---
+
+**Q4. Why is breaking code into methods better than writing everything inside `runOpMode()`?**
+
+<details>
+<summary>Show answer</summary>
+
+Methods make code readable, reusable, and easier to debug. If something breaks in `drive()`, you know exactly where to look. If everything is in one 200-line `runOpMode()`, finding the problem is much harder. Methods also let you reuse the same logic (like `driveForward()`) without copy-pasting code.
+
+</details>
+
+---
+
+## Unit 1 Complete
+
+You've covered the full foundation of FTC Java programming — tools, OpMode structure, variables, conditionals, loops, state machines, and methods. Unit 2 moves into the robot itself: motors, servos, sensors, and hardware mapping.
+
+<MarkComplete
+  nextUnit="/docs/unit-02/intro"
+  nextUnitName="Unit 2: Into the Robot"
+/>

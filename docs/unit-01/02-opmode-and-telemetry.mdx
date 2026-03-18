@@ -1,0 +1,200 @@
+---
+id: opmode-and-telemetry
+title: "Lesson 2: OpMode Structure & Telemetry"
+sidebar_label: "2 · OpMode & Telemetry"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 2: OpMode Structure & Telemetry
+
+:::info Prerequisite
+Complete Lesson 1 before starting here.
+:::
+
+---
+
+## Explanation
+
+### What is an OpMode?
+
+An **OpMode** (Operational Mode) is the Java program that tells your robot what to do. Every program you write in FTC is an OpMode. There are two types:
+
+- **TeleOp** — driver-controlled. Runs while a human operates the gamepad.
+- **Autonomous** — self-running. The robot acts on its own for the first 30 seconds of a match.
+
+You tell Docusaurus — er, the Driver Station — which type your OpMode is by adding an **annotation** directly above your class definition.
+
+---
+
+### Annotations
+
+An annotation is a special tag that starts with `@`. In FTC, annotations tell the Driver Station app how to categorize and display your OpMode in its menu.
+
+```java
+@TeleOp
+public class MyDrive extends LinearOpMode { ... }
+```
+
+```java
+@Autonomous
+public class MyAuto extends LinearOpMode { ... }
+```
+
+You can also add a `name` and `group` to keep things organized in the menu:
+
+```java
+@TeleOp(name = "Tank Drive", group = "Competition")
+public class TankDrive extends LinearOpMode { ... }
+```
+
+If you want to temporarily hide an OpMode from the Driver Station without deleting it, add `@Disabled` above the class:
+
+```java
+@Disabled
+@TeleOp(name = "Test Drive")
+public class TestDrive extends LinearOpMode { ... }
+```
+
+---
+
+### LinearOpMode vs OpMode
+
+You'll extend one of two base classes. For almost all modern FTC code you'll use **LinearOpMode**, which runs code sequentially from top to bottom. The older **OpMode** class uses `init()` and `loop()` methods that the SDK calls repeatedly — it's still valid but less intuitive for beginners.
+
+**LinearOpMode structure:**
+
+```java
+@TeleOp(name = "My First OpMode")
+public class MyFirstOpMode extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+
+        // 1. Everything here runs when INIT is pressed
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
+        // 2. Wait here until the driver presses PLAY
+        waitForStart();
+
+        // 3. Everything here runs after PLAY is pressed
+        while (opModeIsActive()) {
+            // This loop runs repeatedly until STOP is pressed
+            telemetry.addData("Status", "Running");
+            telemetry.update();
+        }
+    }
+}
+```
+
+The three phases are important to understand:
+
+| Phase | Trigger | What happens |
+|---|---|---|
+| Init | Driver presses INIT | Hardware setup, sensor calibration |
+| Wait | After init, before start | Robot sits idle waiting |
+| Run | Driver presses PLAY | Main code executes in a loop |
+
+---
+
+### Telemetry
+
+**Telemetry** is how your robot talks back to you. It sends text to the Driver Station screen so you can see what your robot is thinking — sensor values, motor states, debug messages, anything you want.
+
+There are two key methods:
+
+```java
+telemetry.addData("Label", value);  // Queue a line of data
+telemetry.update();                 // Send everything to the Driver Station
+```
+
+`addData` takes a **caption** (the label on the left) and a **value** (what's shown on the right). The value can be a String, int, double, or boolean.
+
+```java
+telemetry.addData("Motor Power", 0.75);
+telemetry.addData("Button Pressed", true);
+telemetry.addData("Team Number", 16072);
+telemetry.update();
+```
+
+This would display on the Driver Station as:
+
+```
+Motor Power : 0.75
+Button Pressed : true
+Team Number : 16072
+```
+
+:::warning Important
+In a LinearOpMode, **nothing appears on the Driver Station until you call `telemetry.update()`**. Calling `addData` alone queues the data but doesn't send it. Always call `update()` at the end of your loop.
+:::
+
+You can also use `telemetry.addLine()` to add a blank separator line, or format numbers with `String.format()`:
+
+```java
+telemetry.addData("Heading", String.format("%.2f degrees", heading));
+```
+
+---
+
+## Quiz
+
+**Q1. What annotation makes an OpMode appear under the TeleOp menu on the Driver Station?**
+
+<details>
+<summary>Show answer</summary>
+
+`@TeleOp` — placed directly above the class definition.
+
+</details>
+
+---
+
+**Q2. What does `@Disabled` do?**
+
+<details>
+<summary>Show answer</summary>
+
+It hides the OpMode from the Driver Station menu without deleting the code. Useful for test programs you don't want cluttering the menu during competition.
+
+</details>
+
+---
+
+**Q3. In a LinearOpMode, what method contains all your robot's code?**
+
+<details>
+<summary>Show answer</summary>
+
+`runOpMode()` — it's the single method you override, and it runs sequentially from top to bottom.
+
+</details>
+
+---
+
+**Q4. Why must you always call `telemetry.update()` in a LinearOpMode?**
+
+<details>
+<summary>Show answer</summary>
+
+Because `addData()` only queues data internally — it doesn't send anything to the Driver Station. The actual transmission happens when you call `update()`. Without it, your Driver Station screen stays blank.
+
+</details>
+
+---
+
+**Q5. What does `waitForStart()` do?**
+
+<details>
+<summary>Show answer</summary>
+
+It pauses the OpMode at that line and waits until the driver presses the PLAY button on the Driver Station. Code above it runs during INIT; code below it runs after PLAY.
+
+</details>
+
+<MarkComplete
+  nextUnit="/docs/unit-01/java-variables"
+  nextUnitName="Lesson 3: Java Variables & Data Types"
+/>
