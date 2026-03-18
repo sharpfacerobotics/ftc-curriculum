@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcake_recipes=globalThis.webpackChunkcake_recipes||[]).push([[903],{1912(c){c.exports=JSON.parse('{"blogBasePath":"/ftc-curriculum/blog","blogTitle":"Blog","authorsListPath":"/ftc-curriculum/blog/authors"}')}}]);
