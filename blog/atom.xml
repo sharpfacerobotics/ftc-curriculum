@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="atom.xsl"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sharpfacerobotics.github.io/ftc-curriculum/blog</id>
-    <title>My Site Blog</title>
+    <title>Master FTC Programming | Sharp Face Robotics Blog</title>
     <updated>2021-08-26T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sharpfacerobotics.github.io/ftc-curriculum/blog"/>
-    <subtitle>My Site Blog</subtitle>
-    <icon>https://sharpfacerobotics.github.io/ftc-curriculum/img/favicon.ico</icon>
+    <subtitle>Master FTC Programming | Sharp Face Robotics Blog</subtitle>
+    <icon>https://sharpfacerobotics.github.io/ftc-curriculum/img/ehs-logo.png</icon>
     <entry>
         <title type="html"><![CDATA[Welcome]]></title>
         <id>https://sharpfacerobotics.github.io/ftc-curriculum/blog/welcome</id>
