@@ -1,0 +1,202 @@
+---
+id: intro
+title: "Unit 1: Choosing Your Programming Tool"
+sidebar_label: "Unit 1: Choosing Your Tool"
+---
+
+import MarkComplete from '@site/src/components/MarkComplete';
+
+# Unit 1: Choosing Your Programming Tool
+
+:::info Prerequisites
+No prior programming experience required. Just bring curiosity.
+:::
+
+---
+
+## What You'll Learn
+
+By the end of this unit you'll be able to:
+
+- Name the three FTC programming tools and what makes each one different
+- Explain when you'd choose one tool over another
+- Understand where your code actually runs on the robot
+
+---
+
+## Explanation
+
+FTC gives you three ways to program your robot. They all produce the same result — a robot that moves — but they're designed for different skill levels and workflows.
+
+### Blocks
+
+Blocks is a **visual, drag-and-drop** programming environment that runs in a web browser connected to your Control Hub. You don't type any code — instead you snap together puzzle pieces that represent commands. It's the fastest way to get a robot moving, and it requires zero prior programming experience.
+
+**Best for:** First-time programmers, quick prototyping, or younger team members getting started.
+
+**Limitation:** As your robot gets more complex, Blocks becomes harder to manage. There's no easy way to use advanced Java features.
+
+---
+
+### OnBot Java
+
+OnBot Java is a **text-based editor** that also runs in a web browser connected to the Control Hub. You write actual Java code, and it compiles and deploys directly on the robot — no laptop software needed beyond a browser.
+
+**Best for:** Teams learning Java for the first time, or anyone who's outgrown Blocks but doesn't want to set up Android Studio.
+
+**Advantage over Blocks:** Full access to Java features — loops, classes, libraries.
+
+**Advantage over Android Studio:** No installation required. Works from any device on the same WiFi network as the robot.
+
+---
+
+### Android Studio
+
+Android Studio is a **professional-grade IDE** (Integrated Development Environment) — the same tool used by Android app developers. It runs on a dedicated laptop, not in a browser. It offers advanced features like a full debugger, code completion, and version control integration.
+
+**Best for:** Advanced teams, or anyone writing complex autonomous code with vision processing and pathing libraries.
+
+**Limitation:** Requires a dedicated laptop at the field, more setup time, and a steeper learning curve.
+
+---
+
+### Quick Comparison
+
+| Feature | Blocks | OnBot Java | Android Studio |
+|---|---|---|---|
+| Requires coding? | No | Yes (Java) | Yes (Java) |
+| Runs in browser? | Yes | Yes | No |
+| Needs a laptop? | No | No | Yes |
+| Advanced debugging? | No | Limited | Full |
+| Best for | Beginners | Learners | Experts |
+
+---
+
+## Practice Problems
+
+These are fill-in-the-blank style — work them out on paper or in your head before checking.
+
+**Problem 1 — Fill in the blank:**
+```java
+// You want professional debugging and offline access.
+// You want to use advanced pathing libraries.
+// The recommended tool is:
+String recommendedTool = "__________";
+```
+
+**Problem 2 — Fill in the blank:**
+```java
+// You're a first-year programmer with no Java experience.
+// You want to get the robot moving as fast as possible.
+// The recommended tool is:
+String recommendedTool = "__________";
+```
+
+**Problem 3 — Short answer:**
+
+Write 2–3 sentences comparing OnBot Java and Android Studio. Name one specific advantage each has over the other.
+
+:::tip Answers
+**Problem 1:** `"Android Studio"`
+
+**Problem 2:** `"Blocks"`
+
+**Problem 3:** Sample answer — OnBot Java runs in a browser so no laptop installation is required, making it more accessible on the fly. Android Studio offers a full debugger and offline access, which is critical for complex autonomous development where you need to step through code line by line.
+:::
+
+---
+
+## Simulator
+
+Try the FTC Virtual Robot Simulator below. For this unit, just explore the interface — don't worry about writing correct code yet. The goal is to get familiar with what an OpMode looks like in practice.
+
+<div style={{
+  position: 'relative',
+  width: '100%',
+  paddingBottom: '56.25%',
+  marginBottom: '2rem',
+  border: '1px solid rgba(0, 191, 255, 0.25)',
+  background: '#07070f',
+}}>
+  <iframe
+    src="https://ftc-virtual-robot-simulator.github.io/"
+    style={{
+      position: 'absolute',
+      top: 0, left: 0,
+      width: '100%',
+      height: '100%',
+      border: 'none',
+    }}
+    title="FTC Virtual Robot Simulator"
+    allowFullScreen
+  />
+</div>
+
+:::note Simulator tip
+If the simulator doesn't load, open it directly at [ftc-virtual-robot-simulator.github.io](https://ftc-virtual-robot-simulator.github.io/) in a new tab.
+:::
+
+---
+
+## Mini Quiz
+
+Test yourself before moving on. Cover the answers and try each one honestly.
+
+**Q1. Which tool is described as "the fastest way to get started"?**
+
+<details>
+<summary>Show answer</summary>
+
+**B — Blocks.** It requires no prior coding experience and runs directly in the browser.
+
+</details>
+
+---
+
+**Q2. Which tool is recommended only for advanced users?**
+
+<details>
+<summary>Show answer</summary>
+
+**B — Android Studio.** It requires a dedicated laptop, Java knowledge, and significantly more setup.
+
+</details>
+
+---
+
+**Q3. Do you need a web browser to use OnBot Java?**
+
+<details>
+<summary>Show answer</summary>
+
+**A — Yes.** OnBot Java is entirely browser-based. You access it by connecting to the Control Hub's WiFi network and navigating to its IP address.
+
+</details>
+
+---
+
+**Q4. What is the key limitation of Blocks compared to OnBot Java?**
+
+<details>
+<summary>Show answer</summary>
+
+Blocks doesn't give you access to the full Java language. As robot code grows more complex — custom classes, advanced math, vision processing — Blocks becomes difficult or impossible to work with.
+
+</details>
+
+---
+
+## Reflection
+
+Before marking this unit complete, ask yourself:
+
+- Can I name all three tools without looking?
+- Do I understand *why* a team would choose Android Studio over OnBot Java?
+- Could I explain the difference to a new team member?
+
+If you answered yes to all three, you're ready.
+
+<MarkComplete
+  nextUnit="/docs/unit-02/intro"
+  nextUnitName="Unit 2: OpMode Structure"
+/>

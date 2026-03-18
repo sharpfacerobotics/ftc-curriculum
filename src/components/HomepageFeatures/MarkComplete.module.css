@@ -1,0 +1,147 @@
+/* MarkComplete.module.css */
+
+/* ── Idle state ───────────────────────────────────────────── */
+.completeBox {
+  margin: 3rem 0 1rem;
+  border: 1px solid rgba(0, 191, 255, 0.25);
+  background: rgba(0, 191, 255, 0.04);
+  padding: 1.75rem 2rem;
+  position: relative;
+}
+
+.completeBox::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 20px; height: 20px;
+  border-top: 2px solid #00BFFF;
+  border-left: 2px solid #00BFFF;
+}
+
+.completeBox::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 20px; height: 20px;
+  border-bottom: 2px solid #39FF14;
+  border-right: 2px solid #39FF14;
+}
+
+.completeInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.completeTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #e8f4ff;
+  margin: 0 0 6px;
+}
+
+.completeDesc {
+  font-size: 13px;
+  color: rgba(232, 244, 255, 0.5);
+  margin: 0;
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+.completeBtn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  background: transparent;
+  color: #00BFFF;
+  border: 1px solid #00BFFF;
+  cursor: pointer;
+  white-space: nowrap;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.completeBtn:hover {
+  background: rgba(0, 191, 255, 0.12);
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.25);
+}
+
+/* ── Success state ────────────────────────────────────────── */
+.successBox {
+  margin: 3rem 0 1rem;
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  background: rgba(57, 255, 20, 0.05);
+  padding: 1.75rem 2rem;
+  position: relative;
+}
+
+.successBox::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 20px; height: 20px;
+  border-top: 2px solid #39FF14;
+  border-left: 2px solid #39FF14;
+}
+
+.successBox::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 20px; height: 20px;
+  border-bottom: 2px solid #39FF14;
+  border-right: 2px solid #39FF14;
+}
+
+.successHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.successIcon {
+  font-size: 16px;
+  color: #39FF14;
+  font-family: monospace;
+}
+
+.successTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #39FF14;
+}
+
+.successMsg {
+  font-size: 13px;
+  color: rgba(232, 244, 255, 0.55);
+  margin: 0 0 1.25rem;
+  line-height: 1.6;
+}
+
+.nextBtn {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #39FF14, #00c411);
+  color: #07070f !important;
+  text-decoration: none;
+  font-weight: 700;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: box-shadow 0.2s;
+}
+
+.nextBtn:hover {
+  box-shadow: 0 0 24px rgba(57, 255, 20, 0.4);
+  text-decoration: none;
+  color: #07070f;
+}
