@@ -1,0 +1,149 @@
+/* ============================================
+   EHS ROBOTICS — FTC CURRICULUM THEME
+   Dragon colors: cyan-blue + neon green
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono&display=swap');
+
+:root {
+  --ifm-color-primary: #00BFFF;
+  --ifm-color-primary-dark: #00a8e0;
+  --ifm-color-primary-darker: #009fd4;
+  --ifm-color-primary-darkest: #0083af;
+  --ifm-color-primary-light: #1ac8ff;
+  --ifm-color-primary-lighter: #26cbff;
+  --ifm-color-primary-lightest: #4dd4ff;
+
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: 'Inter', 'Segoe UI', sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Dark mode overrides — this is the primary mode */
+[data-theme='dark'] {
+  --ifm-color-primary: #00BFFF;
+  --ifm-background-color: #0a0a0f;
+  --ifm-background-surface-color: #111122;
+  --ifm-navbar-background-color: #0d0d1a;
+  --ifm-footer-background-color: #080810;
+  --ifm-toc-border-color: #00BFFF33;
+  --ifm-color-emphasis-300: #39FF1455;
+}
+
+/* ---- NAVBAR ---- */
+.navbar {
+  border-bottom: 2px solid #00BFFF44;
+  background: linear-gradient(90deg, #0d0d1a 0%, #0a1628 100%);
+  box-shadow: 0 2px 20px #00BFFF22;
+}
+
+.navbar__title {
+  font-weight: 700;
+  background: linear-gradient(90deg, #00BFFF, #39FF14);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- SIDEBAR ---- */
+.menu {
+  background: #0d0d1a;
+  border-right: 1px solid #00BFFF22;
+}
+
+.menu__link--active {
+  color: #00BFFF !important;
+  border-left: 3px solid #39FF14;
+  background: #00BFFF11;
+}
+
+.menu__link:hover {
+  color: #00BFFF;
+  background: #00BFFF0d;
+}
+
+/* ---- MAIN CONTENT AREA ---- */
+.main-wrapper {
+  background: #0a0a0f;
+}
+
+article {
+  background: #0f0f1e;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid #00BFFF1a;
+}
+
+/* ---- HEADINGS with dragon glow ---- */
+h1 {
+  background: linear-gradient(90deg, #00BFFF, #39FF14);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+h2 {
+  color: #00BFFF;
+  border-bottom: 1px solid #00BFFF33;
+  padding-bottom: 0.3rem;
+}
+
+h3 {
+  color: #39FF14;
+}
+
+/* ---- CODE BLOCKS ---- */
+.prism-code {
+  background: #06060f !important;
+  border: 1px solid #00BFFF33;
+  border-radius: 8px;
+}
+
+code {
+  background: #1a1a2e;
+  color: #39FF14;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.88em;
+}
+
+/* ---- BUTTONS (Gatekeeper, etc.) ---- */
+.button--primary {
+  background: linear-gradient(135deg, #00BFFF, #0080ff);
+  border: none;
+  box-shadow: 0 0 16px #00BFFF55;
+  transition: box-shadow 0.2s ease;
+}
+
+.button--primary:hover {
+  box-shadow: 0 0 28px #00BFFFaa;
+  background: linear-gradient(135deg, #1ac8ff, #0090ff);
+}
+
+/* ---- ADMONITIONS (tip/warning boxes) ---- */
+.alert--info {
+  border-left: 4px solid #00BFFF;
+  background: #00BFFF11;
+}
+
+.alert--success {
+  border-left: 4px solid #39FF14;
+  background: #39FF1411;
+}
+
+/* ---- FOOTER ---- */
+.footer {
+  border-top: 1px solid #00BFFF33;
+}
+
+.footer__title {
+  color: #00BFFF;
+}
+
+/* ---- SCROLLBAR (nice touch) ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#00BFFF, #39FF14);
+  border-radius: 3px;
+}

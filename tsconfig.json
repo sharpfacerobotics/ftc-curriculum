@@ -1,0 +1,9 @@
+{
+  "extends": "@docusaurus/tsconfig",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "types": ["node", "react", "react-dom"]
+  },
+  "exclude": [".docusaurus", "build"]
+}

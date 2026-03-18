@@ -1,0 +1,576 @@
+/* ============================================================
+   EHS ROBOTICS — index.module.css
+   Drop this next to src/pages/index.tsx
+   ============================================================ */
+
+/* ── Reset & root ─────────────────────────────────────────── */
+.lp {
+  font-family: 'Exo 2', sans-serif;
+  background: #07070f;
+  color: #e8f4ff;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── Fixed decorative backgrounds ────────────────────────── */
+.gridBg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 191, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 191, 255, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.scanline {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Corner accents ──────────────────────────────────────── */
+.cornerAccent {
+  position: fixed;
+  width: 72px;
+  height: 72px;
+  pointer-events: none;
+  z-index: 2;
+}
+.tl { top: 0; left: 0;   border-top:    2px solid #00BFFF; border-left:  2px solid #00BFFF; }
+.tr { top: 0; right: 0;  border-top:    2px solid #39FF14; border-right: 2px solid #39FF14; }
+.bl { bottom: 0; left: 0;  border-bottom: 2px solid #39FF14; border-left:  2px solid #39FF14; }
+.br { bottom: 0; right: 0; border-bottom: 2px solid #00BFFF; border-right: 2px solid #00BFFF; }
+
+/* ── All page content sits above the fixed layers ───────── */
+.navbar,
+.hero,
+.statsBar,
+.divider,
+.section,
+.ctaSection,
+.footer {
+  position: relative;
+  z-index: 3;
+}
+
+/* ── Navbar ──────────────────────────────────────────────── */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid rgba(0, 191, 255, 0.2);
+  background: rgba(7, 7, 15, 0.92);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.navBrandText {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #00BFFF, #39FF14);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.navLinks {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLinks a {
+  color: rgba(232, 244, 255, 0.55);
+  text-decoration: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.navLinks a:hover { color: #00BFFF; }
+
+.navCta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 22px;
+  border: 1px solid #00BFFF;
+  color: #00BFFF;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.navCta:hover {
+  background: rgba(0, 191, 255, 0.12);
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.25);
+  color: #00BFFF;
+  text-decoration: none;
+}
+
+/* ── Hero ────────────────────────────────────────────────── */
+.hero {
+  min-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(57, 255, 20, 0.07);
+  border: 1px solid rgba(57, 255, 20, 0.28);
+  border-radius: 2px;
+  padding: 6px 16px;
+  margin-bottom: 2rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #39FF14;
+  animation: fadeInDown 0.6s ease both;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  background: #39FF14;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+
+.heroTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: clamp(52px, 9vw, 92px);
+  line-height: 0.95;
+  letter-spacing: -1px;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease both 0.1s;
+}
+
+.titleLine1 {
+  display: block;
+  color: #e8f4ff;
+}
+
+.titleLine2 {
+  display: block;
+  background: linear-gradient(90deg, #00BFFF 0%, #39FF14 55%, #00BFFF 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 0%   center; }
+  100% { background-position: 200% center; }
+}
+
+.heroSub {
+  font-size: 17px;
+  font-weight: 300;
+  color: rgba(232, 244, 255, 0.58);
+  max-width: 560px;
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 0.8s ease both 0.2s;
+}
+
+.terminalLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: #39FF14;
+  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid rgba(57, 255, 20, 0.18);
+  padding: 10px 20px;
+  border-radius: 2px;
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 0.8s ease both 0.25s;
+}
+
+.terminalPrompt { color: rgba(57, 255, 20, 0.45); }
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: #39FF14;
+  vertical-align: middle;
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.heroActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeInUp 0.8s ease both 0.3s;
+}
+
+/* ── Shared button styles ────────────────────────────────── */
+.btnPrimary {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 38px;
+  background: linear-gradient(135deg, #00BFFF, #0075d4);
+  color: #fff !important;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: inline-block;
+}
+.btnPrimary:hover {
+  box-shadow: 0 0 32px rgba(0, 191, 255, 0.45);
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: #fff;
+}
+
+.btnSecondary {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 30px;
+  background: transparent;
+  color: rgba(232, 244, 255, 0.65) !important;
+  border: 1px solid rgba(232, 244, 255, 0.2);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btnSecondary:hover {
+  border-color: rgba(232, 244, 255, 0.5);
+  color: #e8f4ff !important;
+  text-decoration: none;
+}
+
+/* ── Stats bar ───────────────────────────────────────────── */
+.statsBar {
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid rgba(0, 191, 255, 0.14);
+  border-bottom: 1px solid rgba(0, 191, 255, 0.14);
+  background: rgba(0, 191, 255, 0.025);
+  animation: fadeInUp 0.8s ease both 0.4s;
+}
+
+.statItem {
+  padding: 1.5rem 3rem;
+  text-align: center;
+  border-right: 1px solid rgba(0, 191, 255, 0.14);
+  flex: 1;
+}
+.statItem:last-child { border-right: none; }
+
+.statNum {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  background: linear-gradient(90deg, #00BFFF, #39FF14);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+
+.statLabel {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(232, 244, 255, 0.38);
+  margin-top: 4px;
+  display: block;
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0 2rem;
+  opacity: 0.28;
+}
+.dividerLine    { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #00BFFF, transparent); }
+.dividerDiamond { width: 6px; height: 6px; background: #00BFFF; transform: rotate(45deg); flex-shrink: 0; }
+
+/* ── Generic section wrapper ─────────────────────────────── */
+.section {
+  padding: 5rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.sectionLabel {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #00BFFF;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: #e8f4ff;
+}
+
+.sectionDesc {
+  color: rgba(232, 244, 255, 0.52);
+  font-size: 16px;
+  max-width: 520px;
+  line-height: 1.75;
+  margin-bottom: 3rem;
+}
+
+/* ── Curriculum grid ─────────────────────────────────────── */
+.curriculumGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(0, 191, 255, 0.1);
+  border: 1px solid rgba(0, 191, 255, 0.1);
+}
+
+.unitCard {
+  background: #0d0d1e;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+.unitCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, #00BFFF, #39FF14);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.unitCard:hover              { background: #121230; text-decoration: none; color: inherit; }
+.unitCard:hover::before      { opacity: 1; }
+
+.unitNum {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #39FF14;
+  margin-bottom: 8px;
+}
+
+.unitTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: #e8f4ff;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.unitDesc {
+  font-size: 12px;
+  color: rgba(232, 244, 255, 0.38);
+  line-height: 1.5;
+}
+
+.unitTag {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 1px;
+  text-transform: uppercase;
+}
+
+.tagBasic { background: rgba(0, 191, 255, 0.1);  color: #00BFFF; border: 1px solid rgba(0, 191, 255, 0.3);  }
+.tagInter { background: rgba(57, 255, 20, 0.1);  color: #39FF14; border: 1px solid rgba(57, 255, 20, 0.3);  }
+.tagAdv   { background: rgba(255, 128, 64, 0.1); color: #ff8040; border: 1px solid rgba(255, 128, 64, 0.3); }
+
+/* ── Features grid ───────────────────────────────────────── */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.featureCard {
+  background: rgba(0, 191, 255, 0.03);
+  border: 1px solid rgba(0, 191, 255, 0.11);
+  padding: 2rem;
+  transition: border-color 0.2s;
+}
+.featureCard:hover { border-color: rgba(0, 191, 255, 0.32); }
+
+.featureIcon  { margin-bottom: 1rem; }
+
+.featureTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #e8f4ff;
+}
+
+.featureDesc {
+  font-size: 13px;
+  color: rgba(232, 244, 255, 0.48);
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── CTA section ─────────────────────────────────────────── */
+.ctaSection {
+  text-align: center;
+  padding: 5rem 2rem 6rem;
+}
+
+.ctaBox {
+  max-width: 640px;
+  margin: 0 auto;
+  border: 1px solid rgba(0, 191, 255, 0.22);
+  padding: 4rem 3rem;
+  background: rgba(0, 191, 255, 0.03);
+  position: relative;
+}
+
+/* Corner flourishes on the CTA box */
+.ctaBox::before,
+.ctaBox::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+}
+.ctaBox::before { top: -1px;    left: -1px;  border-top:    2px solid #00BFFF; border-left:  2px solid #00BFFF; }
+.ctaBox::after  { bottom: -1px; right: -1px; border-bottom: 2px solid #39FF14; border-right: 2px solid #39FF14; }
+
+.ctaTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: #e8f4ff;
+}
+
+.ctaSub {
+  color: rgba(232, 244, 255, 0.5);
+  font-size: 15px;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid rgba(0, 191, 255, 0.14);
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(232, 244, 255, 0.28);
+  text-transform: uppercase;
+}
+
+.footerRight { color: #39FF14; }
+
+/* ── Keyframe animations ──────────────────────────────────── */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .navLinks         { display: none; }
+  .curriculumGrid   { grid-template-columns: repeat(2, 1fr); }
+  .featuresGrid     { grid-template-columns: 1fr; }
+  .statsBar         { flex-wrap: wrap; }
+  .statItem         { flex: 1 1 50%; border-right: none; border-bottom: 1px solid rgba(0,191,255,0.14); }
+  .ctaBox           { padding: 2.5rem 1.5rem; }
+  .footer           { flex-direction: column; gap: 0.5rem; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .curriculumGrid   { grid-template-columns: 1fr; }
+  .statItem         { flex: 1 1 100%; }
+}
