@@ -41,7 +41,7 @@ export default function MarkComplete({
           </p>
         </div>
         <button className={styles.completeBtn} onClick={() => setDone(true)}>
-          Mark Unit 1 Complete
+          Mark as Complete
         </button>
       </div>
     </div>
