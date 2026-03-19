@@ -57,7 +57,7 @@ export function useProgress(user: User | null) {
       };
 
       const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
-      await updateDoc(ref, updated);
+      await updateDoc(ref, updated as unknown as Record<string, unknown>);
       setProgress(updated);
     },
     [user, progress],

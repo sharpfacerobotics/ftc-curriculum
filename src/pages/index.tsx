@@ -3,6 +3,9 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
+import { signInWithPopup, signOut } from 'firebase/auth';
+import { auth, provider } from '../telemark/firebase';
+import { useAuth } from '../telemark/useAuth';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -301,6 +304,7 @@ function CtaSection(): React.JSX.Element {
 
 export default function Home(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
+  const { user } = useAuth();
 
   return (
     <Layout
@@ -347,9 +351,23 @@ export default function Home(): React.JSX.Element {
             <li><Link to="/docs/team">Team</Link></li>
           </ul>
 
-          <Link to="/docs/unit-01/choosing-your-tool" className={styles.navCta}>
-            Start Learning
-          </Link>
+          {user ? (
+            <div className={styles.navUser}>
+              <Link to="/dashboard" className={styles.navCta}>
+                Dashboard
+              </Link>
+              <button
+                className={styles.navSignOut}
+                onClick={() => signOut(auth)}
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className={styles.navCta}>
+              Sign In
+            </Link>
+          )}
         </nav>
 
         {/* ── Sections ── */}

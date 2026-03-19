@@ -259,6 +259,31 @@
   animation: fadeInUp 0.8s ease both 0.3s;
 }
 
+
+.navUser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navSignOut {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  background: transparent;
+  color: rgba(232, 244, 255, 0.35);
+  border: 1px solid rgba(232, 244, 255, 0.15);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.navSignOut:hover {
+  color: rgba(232, 244, 255, 0.7);
+  border-color: rgba(232, 244, 255, 0.35);
+}
+
 /* ── Shared button styles ────────────────────────────────── */
 .btnPrimary {
   font-family: 'Rajdhani', sans-serif;
