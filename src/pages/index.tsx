@@ -353,7 +353,7 @@ export default function Home(): React.JSX.Element {
 
           {user ? (
             <div className={styles.navUser}>
-              <Link to="/dashboard" className={styles.navCta}>
+              <Link to="/src/pages/dashboard" className={styles.navCta}>
                 Dashboard
               </Link>
               <button
