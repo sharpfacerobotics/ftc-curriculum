@@ -364,7 +364,7 @@ export default function Home(): React.JSX.Element {
               </button>
             </div>
           ) : (
-            <Link to="/login" className={styles.navCta}>
+            <Link to="/src/pages/login" className={styles.navCta}>
               Sign In
             </Link>
           )}
