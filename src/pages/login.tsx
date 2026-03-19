@@ -13,14 +13,14 @@ export default function LoginPage(): React.JSX.Element {
   // Redirect to dashboard if already signed in
   useEffect(() => {
     if (!loading && user) {
-      history.push('/dashboard');
+      history.push('/ftc-curriculum/dashboard');
     }
   }, [user, loading, history]);
 
   async function handleSignIn() {
     try {
       await signInWithPopup(auth, provider);
-      history.push('/dashboard');
+      history.push('/ftc-curriculum/dashboard');
     } catch (e) {
       console.error(e);
     }

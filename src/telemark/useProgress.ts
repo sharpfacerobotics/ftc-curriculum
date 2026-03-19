@@ -50,15 +50,22 @@ export function useProgress(user: User | null) {
       if (!user || !progress) return;
       if (progress.completedLessons.includes(lessonId)) return;
 
-      const updated: ProgressData = {
-        completedLessons: [...progress.completedLessons, lessonId],
+      const newCompleted = [...progress.completedLessons, lessonId];
+
+      // Send to Firestore with server timestamp
+      const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
+      await updateDoc(ref, {
+        completedLessons: newCompleted,
         lastLesson: lessonId,
         updatedAt: serverTimestamp(),
-      };
+      } as unknown as Record<string, unknown>);
 
-      const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
-      await updateDoc(ref, updated as unknown as Record<string, unknown>);
-      setProgress(updated);
+      // Update local state without the sentinel value
+      setProgress({
+        completedLessons: newCompleted,
+        lastLesson: lessonId,
+        updatedAt: null,
+      });
     },
     [user, progress],
   );

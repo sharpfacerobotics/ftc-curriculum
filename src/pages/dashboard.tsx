@@ -37,7 +37,7 @@ export default function DashboardPage(): React.JSX.Element {
   // Redirect to login if not signed in
   useEffect(() => {
     if (!loading && !user) {
-      history.push('/login');
+      history.push('/ftc-curriculum/login');
     }
   }, [user, loading, history]);
 
@@ -62,7 +62,7 @@ export default function DashboardPage(): React.JSX.Element {
 
   async function handleSignOut() {
     await signOut(auth);
-    history.push('/');
+    history.push('/ftc-curriculum/');
   }
 
   return (
