@@ -97,30 +97,11 @@ const TIER_CLASS: Record<Tier, string> = {
 
 function NavLogo(): React.JSX.Element {
   return (
-    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-label="EHS hex logo">
-      <path
-        d="M18 2L32 10V26L18 34L4 26V10L18 2Z"
-        stroke="url(#navGrad)"
-        strokeWidth="1.5"
-        fill="rgba(0,191,255,0.05)"
-      />
-      <text
-        x="18" y="22"
-        textAnchor="middle"
-        fontFamily="Rajdhani, sans-serif"
-        fontWeight="700"
-        fontSize="11"
-        fill="#00BFFF"
-      >
-        EHS
-      </text>
-      <defs>
-        <linearGradient id="navGrad" x1="4" y1="2" x2="32" y2="34">
-          <stop stopColor="#00BFFF" />
-          <stop offset="1" stopColor="#39FF14" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <img
+      src="/ftc-curriculum/img/telemark.png"
+      alt="Telemark Logo"
+      style={{ width: '36px', height: '36px', borderRadius: '50%' }}
+    />
   );
 }
 

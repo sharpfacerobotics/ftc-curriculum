@@ -77,8 +77,8 @@ const config: Config = {
     navbar: {
       title: 'EHS Robotics | Telemark',
       logo: {
-        alt: 'EHS Dragon Logo',
-        src: 'img/ehs-logo.png', // we'll place your logo here next
+        alt: 'Telemark Logo',
+        src: 'img/telemark.png', // we'll place your logo here next
       },
       style: 'dark',
     },
