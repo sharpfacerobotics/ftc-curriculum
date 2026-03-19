@@ -1,6 +1,6 @@
 /* MarkComplete.module.css */
 
-/* ── Idle state ───────────────────────────────────────────── */
+/* ── Idle / not signed in ────────────────────────────────── */
 .completeBox {
   margin: 3rem 0 1rem;
   border: 1px solid rgba(0, 191, 255, 0.25);
@@ -35,6 +35,8 @@
   flex-wrap: wrap;
 }
 
+.completeText { flex: 1; }
+
 .completeTitle {
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
@@ -48,25 +50,68 @@
   color: rgba(232, 244, 255, 0.5);
   margin: 0;
   line-height: 1.6;
-  max-width: 480px;
+}
+
+.completeActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.signInBtn {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #00BFFF, #0075d4);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: box-shadow 0.2s;
+}
+
+.signInBtn:hover {
+  box-shadow: 0 0 24px rgba(0, 191, 255, 0.4);
 }
 
 .completeBtn {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  padding: 12px 28px;
+  padding: 10px 22px;
   background: transparent;
-  color: #00BFFF;
-  border: 1px solid #00BFFF;
+  color: rgba(232, 244, 255, 0.5);
+  border: 1px solid rgba(232, 244, 255, 0.2);
   cursor: pointer;
   white-space: nowrap;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-  transition: background 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 
-.completeBtn:hover {
+.completeBtn:hover:not(:disabled) {
+  border-color: rgba(232, 244, 255, 0.5);
+  color: #e8f4ff;
+}
+
+.completeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* When signed in, the primary button gets the cyan treatment */
+.completeBox:not(:has(.signInBtn)) .completeBtn {
+  color: #00BFFF;
+  border-color: #00BFFF;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.completeBox:not(:has(.signInBtn)) .completeBtn:hover:not(:disabled) {
   background: rgba(0, 191, 255, 0.12);
   box-shadow: 0 0 20px rgba(0, 191, 255, 0.25);
 }
@@ -103,6 +148,7 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 
 .successIcon {
@@ -116,6 +162,18 @@
   font-weight: 700;
   font-size: 18px;
   color: #39FF14;
+}
+
+.savedBadge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  background: rgba(57, 255, 20, 0.1);
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  color: #39FF14;
+  border-radius: 1px;
 }
 
 .successMsg {
