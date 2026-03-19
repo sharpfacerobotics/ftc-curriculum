@@ -353,7 +353,7 @@ export default function Home(): React.JSX.Element {
 
           {user ? (
             <div className={styles.navUser}>
-              <Link to="/src/pages/dashboard" className={styles.navCta}>
+              <Link to="/dashboard" className={styles.navCta}>
                 Dashboard
               </Link>
               <button
@@ -364,7 +364,7 @@ export default function Home(): React.JSX.Element {
               </button>
             </div>
           ) : (
-            <Link to="/src/pages/login" className={styles.navCta}>
+            <Link to="/login" className={styles.navCta}>
               Sign In
             </Link>
           )}
