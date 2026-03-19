@@ -24,9 +24,16 @@ export default function MarkComplete({
 
   async function handleComplete() {
     setSaving(true);
-    await markComplete(lessonId);
-    setSaving(false);
-    setDone(true);
+    try {
+      await markComplete(lessonId);
+      setDone(true);
+    } catch (e) {
+      console.error('Telemark save failed:', e);
+      // Still let the user proceed even if save fails
+      setDone(true);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleSignIn() {
@@ -36,7 +43,7 @@ export default function MarkComplete({
       console.error(e);
     }
   }
-
+  
   // ── Completed ─────────────────────────────────────────────
   if (done) {
     return (

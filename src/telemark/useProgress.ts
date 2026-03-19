@@ -35,7 +35,7 @@ export function useProgress(user: User | null) {
         const initial: ProgressData = {
           completedLessons: [],
           lastLesson: null,
-          updatedAt: serverTimestamp(),
+          updatedAt: null,
         };
         setDoc(ref, initial);
         setProgress(initial);
@@ -57,7 +57,6 @@ export function useProgress(user: User | null) {
       await updateDoc(ref, {
         completedLessons: newCompleted,
         lastLesson: lessonId,
-        updatedAt: serverTimestamp(),
       } as unknown as Record<string, unknown>);
 
       // Update local state without the sentinel value
@@ -75,7 +74,9 @@ export function useProgress(user: User | null) {
     async (lessonId: string) => {
       if (!user || !progress) return;
       const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
-      await updateDoc(ref, { lastLesson: lessonId, updatedAt: serverTimestamp() });
+      await updateDoc(ref, {
+        lastLesson: lessonId,
+      } as unknown as Record<string, unknown>);
       setProgress((prev) => prev ? { ...prev, lastLesson: lessonId } : prev);
     },
     [user, progress],
