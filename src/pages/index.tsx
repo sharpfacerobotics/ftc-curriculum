@@ -341,7 +341,7 @@ export default function Home(): React.JSX.Element {
             <li><Link to="/docs/simulator">Simulator</Link></li>
             <li>
               <a
-                href="https://github.com/YOUR_ORG/ftc-curriculum"
+                href="https://github.com/sharpfacerobotics/ftc-curriculum"
                 target="_blank"
                 rel="noreferrer"
               >
