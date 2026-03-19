@@ -35,12 +35,13 @@ export function useProgress(user: User | null) {
     const newCompleted = [...progress.completedLessons, lessonId];
     const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
 
-    await setDoc(
-      ref,
-      { completedLessons: newCompleted, lastLesson: lessonId },
-      { merge: true }
-    );
-
+    // Strip any undefined values before sending to Firestore
+    const payload = JSON.parse(JSON.stringify({
+      completedLessons: newCompleted,
+      lastLesson: lessonId,
+    }));
+    console.log('Saving to Firestore:', payload);
+    await setDoc(ref, payload, { merge: true });
     setProgress({ completedLessons: newCompleted, lastLesson: lessonId });
   }, [user, progress]);
 
