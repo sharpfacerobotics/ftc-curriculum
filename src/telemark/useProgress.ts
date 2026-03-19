@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db } from './firebase';
 
@@ -31,13 +31,17 @@ export function useProgress(user: User | null) {
   const markComplete = useCallback(async (lessonId: string) => {
     if (!user || !progress) return;
     if (progress.completedLessons.includes(lessonId)) return;
-    const updated: ProgressData = {
-      completedLessons: [...progress.completedLessons, lessonId],
-      lastLesson: lessonId,
-    };
+
+    const newCompleted = [...progress.completedLessons, lessonId];
     const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
-    await updateDoc(ref, { ...updated });
-    setProgress(updated);
+
+    await setDoc(
+      ref,
+      { completedLessons: newCompleted, lastLesson: lessonId },
+      { merge: true }
+    );
+
+    setProgress({ completedLessons: newCompleted, lastLesson: lessonId });
   }, [user, progress]);
 
   const isComplete = useCallback(
