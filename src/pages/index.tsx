@@ -305,7 +305,7 @@ export default function Home(): React.JSX.Element {
   return (
     <Layout
       title={siteConfig.title}
-      description="FTC programming curriculum by EHS Robotics — level-gated, open source, built by students."
+      description="Telemark by EHS Robotics — level-gated, open source, built by students."
       noFooter
     >
       {/* Google Fonts — non-blocking preconnect */}
@@ -363,7 +363,7 @@ export default function Home(): React.JSX.Element {
 
         {/* ── Footer ── */}
         <footer className={styles.footer}>
-          <span>EHS ROBOTICS · FTC CURRICULUM · OPEN SOURCE</span>
+          <span>EHS ROBOTICS · TELEMARK · OPEN SOURCE</span>
           <span className={styles.footerRight}>BUILT WITH DOCUSAURUS V3</span>
         </footer>
       </main>
