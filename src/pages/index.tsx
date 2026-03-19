@@ -200,7 +200,7 @@ function HeroSection(): React.JSX.Element {
       </div>
 
       <div className={styles.heroActions}>
-        <Link to="/docs/unit-01/intro" className={styles.btnPrimary}>
+        <Link to="/docs/unit-01/choosing-your-tool" className={styles.btnPrimary}>
           Begin Unit 1
         </Link>
         <Link to="/docs/intro" className={styles.btnSecondary}>
@@ -289,7 +289,7 @@ function CtaSection(): React.JSX.Element {
           Unit 15, you'll be writing autonomous routines with Bézier curve
           pathing.
         </p>
-        <Link to="/docs/unit-01/intro" className={styles.btnPrimary}>
+        <Link to="/docs/unit-01/choosing-your-tool" className={styles.btnPrimary}>
           Launch Unit 1 →
         </Link>
       </div>
@@ -347,7 +347,7 @@ export default function Home(): React.JSX.Element {
             <li><Link to="/docs/team">Team</Link></li>
           </ul>
 
-          <Link to="/docs/unit-01/intro" className={styles.navCta}>
+          <Link to="/docs/unit-01/choosing-your-tool" className={styles.navCta}>
             Start Learning
           </Link>
         </nav>
