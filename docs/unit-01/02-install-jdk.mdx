@@ -1,0 +1,65 @@
+---
+id: install-jdk
+title: "Section 2: Installing JDK 17"
+sidebar_label: "2 · Installing JDK 17"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 2: Installing JDK 17
+
+:::info Order matters
+Install JDK 17 **before** Android Studio. Android Studio's setup wizard will ask you to configure a JDK path, and having JDK 17 already installed makes that step one click instead of a diagnostic session.
+:::
+
+---
+
+## Step 2.1 — Download JDK 17
+
+Go to: [https://adoptium.net/temurin/releases/](https://adoptium.net/temurin/releases/)
+
+Select:
+- **Version:** 17
+- **OS:** Your operating system
+- **Architecture:** x64 (most laptops) or aarch64 (Apple Silicon Macs)
+- **Package Type:** JDK
+
+Download the installer (`.msi` on Windows, `.pkg` on macOS, `.deb`/`.rpm` on Linux).
+
+---
+
+## Step 2.2 — Install JDK 17
+
+Run the installer with default settings. Do not change the installation directory. Write down the path where it installs — you will need this exact path in Section 4.
+
+| OS | Default install path |
+|---|---|
+| Windows | `C:\Program Files\Eclipse Adoptium\jdk-17.x.x.x-hotspot\` |
+| macOS | `/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home` |
+| Linux | `/usr/lib/jvm/temurin-17/` |
+
+---
+
+## Step 2.3 — Verify the Installation
+
+Open a terminal (Command Prompt on Windows, Terminal on macOS/Linux) and run:
+
+```bash
+java -version
+```
+
+You should see output similar to:
+
+```
+openjdk version "17.0.x" 2024-xx-xx
+OpenJDK Runtime Environment Temurin-17.x.x+x
+```
+
+If you see version 21 or higher, you have multiple JDKs installed. That is fine — Android Studio will be pointed to version 17 specifically in Section 4.
+
+<MarkComplete
+  lessonId="unit-01/install-jdk"
+  nextUnit="/docs/unit-01/install-android-studio"
+  nextUnitName="Section 3: Installing Android Studio"
+/>

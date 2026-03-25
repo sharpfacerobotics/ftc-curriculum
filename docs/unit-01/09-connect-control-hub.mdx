@@ -1,0 +1,27 @@
+---
+id: connect-control-hub
+title: "Section 9: Connecting to the Control Hub"
+sidebar_label: "9 · Connect to Control Hub"
+sidebar_position: 9
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 9: Connecting to the Control Hub (Quick Reference)
+
+:::info
+This is covered in depth in later units. For now, verify the physical connection works.
+:::
+
+---
+
+1. Power on the Control Hub. Wait for the LED to turn solid green (approximately 30 seconds).
+2. On your laptop, connect to the Control Hub's Wi-Fi network. The network name is on a sticker on the Hub, typically formatted as `FTC-XXXX`.
+3. Open a browser and navigate to `192.168.43.1:8080`. If the OnBot Java page loads, the network connection is working.
+4. In Android Studio, enable Wireless ADB: **Run → Edit Configurations** → add the Hub's IP as a deployment target. This is covered fully in the connection protocol lesson.
+
+<MarkComplete
+  lessonId="unit-01/connect-control-hub"
+  nextUnit="/docs/unit-01/verification-checklist"
+  nextUnitName="Section 10: Environment Verification Checklist"
+/>

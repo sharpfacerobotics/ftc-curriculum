@@ -1,5 +1,7 @@
 {
-  "label": "Unit 1: The Basics",
+  "label": "Unit 1: Environment Setup",
   "position": 1,
-  "collapsed": false
+  "link": {
+    "type": "generated-index"
+  }
 }

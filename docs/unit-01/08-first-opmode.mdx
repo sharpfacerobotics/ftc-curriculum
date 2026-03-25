@@ -1,0 +1,52 @@
+---
+id: first-opmode
+title: "Section 8: Writing Your First OpMode"
+sidebar_label: "8 · First OpMode"
+sidebar_position: 8
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 8: Writing Your First OpMode
+
+Your robot code belongs in:
+
+```
+TeamCode/src/main/java/org/firstinspires/ftc/teamcode/
+```
+
+Right-click this folder → **New → Java Class**. Name it `DiagnosticOpMode`.
+
+Replace the generated content with the following. This is the minimum valid OpMode that proves your environment is working:
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+@TeleOp(name = "Diagnostic", group = "Setup")
+public class DiagnosticOpMode extends OpMode {
+
+    @Override
+    public void init() {
+        telemetry.addData("Build", "Successful");
+        telemetry.addData("JDK", System.getProperty("java.version"));
+    }
+
+    @Override
+    public void loop() {
+        telemetry.addData("Runtime", getRuntime());
+    }
+}
+```
+
+Press the green **Build** button (hammer icon, top toolbar). You should see `BUILD SUCCESSFUL` in the Build panel.
+
+If the build succeeds, your environment is correctly configured. Unit 1 is complete.
+
+<MarkComplete
+  lessonId="unit-01/first-opmode"
+  nextUnit="/docs/unit-01/connect-control-hub"
+  nextUnitName="Section 9: Connecting to the Control Hub"
+/>

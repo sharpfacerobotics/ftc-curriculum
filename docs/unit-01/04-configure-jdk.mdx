@@ -1,0 +1,53 @@
+---
+id: configure-jdk
+title: "Section 4: Pointing Android Studio to JDK 17"
+sidebar_label: "4 · Configure JDK"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 4: Pointing Android Studio to JDK 17
+
+:::info This is the most important configuration step
+Android Studio Ladybug ships with a bundled JDK that may be version 21. The FTC SDK requires JDK 17 for a stable build. You must manually redirect Android Studio.
+:::
+
+---
+
+## Step 4.1 — Open Project Structure
+
+With Android Studio open (no project loaded yet):
+
+- **Windows/Linux:** File → Project Structure → SDK Location
+- **macOS:** Android Studio → Settings → Build, Execution, Deployment → Build Tools → Gradle
+
+---
+
+## Step 4.2 — Set the Gradle JDK
+
+In the Gradle JDK dropdown, select **"Add JDK."**
+
+Navigate to the JDK 17 path you noted in Step 2.2. Select the root folder of the JDK installation (the folder that contains the `bin` directory).
+
+Once selected, the dropdown will show something like:
+
+```
+17 | Eclipse Temurin 17.0.x
+```
+
+Click "OK" or "Apply."
+
+---
+
+:::danger Critical Warning
+If Android Studio shows a prompt reading **"Upgrade Gradle Plugin?"** or **"Update Android Gradle Plugin?"** at any point after opening the FTC project — click **"Don't Remind Me Again"** or dismiss it. Do not upgrade.
+
+The FTC SDK's Gradle plugin version is pinned deliberately. Upgrading it breaks the Control Hub deployment pipeline and requires manual XML edits to recover.
+:::
+
+<MarkComplete
+  lessonId="unit-01/configure-jdk"
+  nextUnit="/docs/unit-01/get-ftc-sdk"
+  nextUnitName="Section 5: Getting the FTC SDK"
+/>

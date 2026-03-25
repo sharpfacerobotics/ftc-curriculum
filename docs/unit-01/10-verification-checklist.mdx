@@ -1,0 +1,30 @@
+---
+id: verification-checklist
+title: "Section 10: Environment Verification Checklist"
+sidebar_label: "10 · Verification Checklist"
+sidebar_position: 10
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 10: Environment Verification Checklist
+
+Before proceeding to Unit 2, confirm every item below. If any box cannot be checked, return to the corresponding section and resolve it before continuing.
+
+---
+
+- [ ] JDK 17 installed and verified with: `java -version`
+- [ ] Android Studio Ladybug installed and setup wizard completed
+- [ ] Gradle JDK set to JDK 17 in Android Studio settings
+- [ ] FTC SDK cloned from GitHub and Gradle sync shows `BUILD SUCCESSFUL`
+- [ ] `build.gradle` shows: `compileSdk 34`, `minSdk 24`, `targetSdk 28`, `VERSION_17`
+- [ ] `DiagnosticOpMode` builds successfully
+- [ ] "Upgrade Gradle Plugin" prompt dismissed permanently
+
+If all boxes are checked, your environment is stable for the 2025–2026 season.
+
+<MarkComplete
+  lessonId="unit-01/verification-checklist"
+  nextUnit="/docs/unit-02/opmode-structure"
+  nextUnitName="Unit 2: OpMode Structure"
+/>

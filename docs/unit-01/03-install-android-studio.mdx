@@ -1,0 +1,52 @@
+---
+id: install-android-studio
+title: "Section 3: Installing Android Studio"
+sidebar_label: "3 · Installing Android Studio"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 3: Installing Android Studio
+
+---
+
+## Step 3.1 — Download Android Studio
+
+Go to: [https://developer.android.com/studio](https://developer.android.com/studio)
+
+Download Android Studio Ladybug (2024.2.1) or the latest stable release. Do not download a "Canary" or "Beta" build — use the stable channel only.
+
+---
+
+## Step 3.2 — Run the Installer
+
+**Windows:** Run the `.exe` installer. Accept all defaults. When asked about installation components, ensure "Android Studio" and "Android SDK" are both checked. Do not change the installation path unless your C: drive has less than 5 GB free.
+
+**macOS:** Open the `.dmg` file and drag Android Studio to Applications. The first launch will complete the installation.
+
+**Linux:** Unpack the `.tar.gz` to `/opt/android-studio/`. Run `/opt/android-studio/bin/studio.sh` to launch.
+
+---
+
+## Step 3.3 — First Launch Setup Wizard
+
+When Android Studio launches for the first time, it runs a setup wizard. Navigate it as follows:
+
+| Step | Action |
+|---|---|
+| Welcome screen | Click "Next." |
+| Install type | Select "Standard." Click "Next." |
+| UI theme | Choose either. Click "Next." |
+| SDK Components | Ensure "Android SDK" is checked. The download is approximately 1–2 GB. Let it complete. |
+| Verify Settings | Click "Finish." |
+
+:::caution
+Do not close Android Studio after the wizard completes. Proceed to Section 4 immediately.
+:::
+
+<MarkComplete
+  lessonId="unit-01/install-android-studio"
+  nextUnit="/docs/unit-01/configure-jdk"
+  nextUnitName="Section 4: Pointing Android Studio to JDK 17"
+/>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
+import Head from '@docusaurus/Head';
 import styles from './index.module.css';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { auth, provider } from '../telemark/firebase';
@@ -20,7 +20,7 @@ interface Unit {
 }
 
 const UNITS: Unit[] = [
-  { id: 'UNIT_01', title: 'Choosing Your Tool',        desc: 'Blocks vs OnBot Java vs Android Studio',     tier: 'Beginner',     slug: 'unit-01' },
+  { id: 'UNIT_01', title: 'Environment Setup',        desc: 'Installing Android Studio, JDK 17, FTC SDK',     tier: 'Beginner',     slug: 'unit-01' },
   { id: 'UNIT_02', title: 'OpMode Structure',           desc: 'Annotations, init(), loop() lifecycle',      tier: 'Beginner',     slug: 'unit-02' },
   { id: 'UNIT_03', title: 'Java Variables',             desc: 'int, double, boolean, String types',         tier: 'Beginner',     slug: 'unit-03' },
   { id: 'UNIT_04', title: 'Gamepad Input',              desc: 'Reading buttons, joysticks & triggers',      tier: 'Beginner',     slug: 'unit-04' },
@@ -173,8 +173,7 @@ function HeroSection(): React.JSX.Element {
 
       <p className={styles.heroSub}>
         A structured, level-gated curriculum built by student engineers.
-        From Blocks to Bézier curves — every concept hands-on, every unit
-        unlocked by proof of understanding.
+        From Blocks to Bézier curves — every concept hands-on.
       </p>
 
       <div className={styles.terminalLine} aria-hidden="true">
@@ -184,7 +183,7 @@ function HeroSection(): React.JSX.Element {
       </div>
 
       <div className={styles.heroActions}>
-        <Link to="/docs/unit-01/choosing-your-tool" className={styles.btnPrimary}>
+        <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
           Begin Unit 1
         </Link>
         <Link to="/docs/intro" className={styles.btnSecondary}>
@@ -210,10 +209,6 @@ function CurriculumSection(): React.JSX.Element {
     <section className={styles.section}>
       <p className={styles.sectionLabel}>// curriculum.units[]</p>
       <h2 className={styles.sectionTitle}>15 Units. Zero Fluff.</h2>
-      <p className={styles.sectionDesc}>
-        Each unit gates the next. Submit the correct validation code to advance
-        — just like FTC auto-scores.
-      </p>
 
       <div className={styles.curriculumGrid}>
         {UNITS.map((unit) => (
@@ -273,7 +268,7 @@ function CtaSection(): React.JSX.Element {
           Unit 15, you'll be writing autonomous routines with Bézier curve
           pathing.
         </p>
-        <Link to="/docs/unit-01/choosing-your-tool" className={styles.btnPrimary}>
+        <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
           Launch Unit 1 →
         </Link>
       </div>
@@ -288,11 +283,13 @@ export default function Home(): React.JSX.Element {
   const { user } = useAuth();
 
   return (
-    <Layout
-      title={siteConfig.title}
-      description="Telemark by EHS Robotics — level-gated, open source, built by students."
-      noFooter
-    >
+    <>
+      <Head>  
+        title={siteConfig.title}
+        description="Telemark by EHS Robotics — level-gated, open source, built by students."
+        noFooter
+      </Head>
+    
       {/* Google Fonts — non-blocking preconnect */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -314,7 +311,7 @@ export default function Home(): React.JSX.Element {
         <nav className={styles.navbar} aria-label="Site navigation">
           <div className={styles.navBrand}>
             <NavLogo />
-            <span className={styles.navBrandText}>EHS Robotics</span>
+            <span className={styles.navBrandText}>Telemark</span>
           </div>
 
           <ul className={styles.navLinks}>
@@ -362,10 +359,10 @@ export default function Home(): React.JSX.Element {
 
         {/* ── Footer ── */}
         <footer className={styles.footer}>
-          <span>EHS ROBOTICS · TELEMARK · OPEN SOURCE</span>
+          <span>TEAM 30450 · TELEMARK · OPEN SOURCE</span>
           <span className={styles.footerRight}>BUILT WITH DOCUSAURUS V3</span>
         </footer>
       </main>
-    </Layout>
+    </>
   );
 }

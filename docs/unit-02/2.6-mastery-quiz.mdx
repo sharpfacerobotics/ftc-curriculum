@@ -1,0 +1,134 @@
+---
+id: mastery-quiz
+title: "Unit 2 Mastery Quiz: OpMode Structure"
+sidebar_label: "Unit 2 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 2 Mastery Quiz: OpMode Structure
+
+---
+
+## I. Conceptual Questions
+
+**1. Registry Mechanics:** Why is a Java class that properly extends `OpMode` still "invisible" to the Driver Station if it lacks the `@TeleOp` or `@Autonomous` annotation?
+
+<details>
+<summary>Show answer</summary>
+
+The Robot Controller app scans the TeamCode package specifically for these metadata tags to register the class into the internal SDK registry. Without them, the software has no instruction to include the program in the selectable menu — the class compiles successfully but is never registered.
+
+</details>
+
+---
+
+**2. Resource Efficiency:** Why is it considered an engineering failure to place `hardwareMap.get()` calls inside the `loop()` method instead of the `init()` method?
+
+<details>
+<summary>Show answer</summary>
+
+The `init()` method executes once to instantiate hardware links. Because `loop()` runs at ~50Hz, repeatedly searching the Hardware Map registry for the same motor or sensor consumes unnecessary CPU cycles and can introduce latency in robot response times.
+
+</details>
+
+---
+
+**3. Sensor Calibration:** In what specific hardware scenario would a programmer utilize `init_loop()` rather than placing all setup logic in `init()`?
+
+<details>
+<summary>Show answer</summary>
+
+`init_loop()` is critical for components that require a "warm-up" or stationary period, such as IMU (Gyro) calibration or VisionPortal stream initialization. It allows the robot to poll sensor readiness and provide telemetry feedback to the drivers while the robot is still in the "waiting" state before the match starts.
+
+</details>
+
+---
+
+**4. Responsiveness and Blocking:** Explain the technical risk of using a `while` loop or `Thread.sleep()` inside the `loop()` method of a standard `OpMode`.
+
+<details>
+<summary>Show answer</summary>
+
+`OpMode` is designed to be non-blocking. If a method takes too long to return, the Robot Controller cannot send its required "heartbeat" signal to the Driver Station, which may result in a communication timeout and an emergency safety stop of the robot.
+
+</details>
+
+---
+
+**5. Hardware Fail-Safes:** Why should a programmer implement the `stop()` method when controlling high-momentum mechanisms like a flywheel or a heavy lift?
+
+<details>
+<summary>Show answer</summary>
+
+The `stop()` method is a mandatory cleanup callback executed when the match ends. It ensures that even if the code logic was mid-execution, the programmer can force all motors to a zero-power state (`DcMotor.ZeroPowerBehavior.BRAKE`), preventing mechanical damage or safety hazards after the program terminates.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is intended to be a driver-controlled program that monitors a lift motor's position. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="TeleOp_Main", group="Production")
+public class LiftMonitor extends OpMode {
+
+    DcMotor lift;
+
+    @Override
+    public void init() {
+        lift = hardwareMap.get(DcMotor.class, "lift_motor")
+        lift.setPower(0.8);
+    }
+
+    @Override
+    public void loop() {
+        telemetry.addData("Lift Pos", lift.getCurrentPosition());
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 — Syntax Error:**
+The line `lift = hardwareMap.get(DcMotor.class, "lift_motor")` is missing a semicolon (`;`) at the end. In Java, every statement must terminate with a semicolon.
+
+```java
+lift = hardwareMap.get(DcMotor.class, "lift_motor"); // ← semicolon added
+```
+
+**Error 2 — Logic Error:**
+The programmer used `@Autonomous` for a program named `"TeleOp_Main"` — the wrong annotation for a driver-controlled program. Additionally, `lift.setPower(0.8)` is placed inside `init()`. This is a critical safety failure: as soon as the driver presses "Init", the lift will immediately activate at 80% power before the match has begun. Hardware movement commands must be restricted to `start()` or `loop()`.
+
+```java
+@TeleOp(name="TeleOp_Main", group="Production") // ← correct annotation
+
+@Override
+public void init() {
+    lift = hardwareMap.get(DcMotor.class, "lift_motor"); // map only — no power
+}
+
+@Override
+public void loop() {
+    lift.setPower(0.8); // ← power commands belong here
+    telemetry.addData("Lift Pos", lift.getCurrentPosition());
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-02/mastery-quiz"
+  nextUnit="/docs/unit-03/string-literals"
+  nextUnitName="Unit 3: Java Variables"
+/>

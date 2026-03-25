@@ -1,0 +1,113 @@
+---
+id: loop-lifecycle
+title: "Lesson 2.3: Executing Real-time Logic inside the loop() Lifecycle"
+sidebar_label: "2.3 · loop() Lifecycle"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 2.3: Executing Real-time Logic inside the loop() Lifecycle
+
+---
+
+## Technical Context
+
+The `loop()` method controls the robot's performance during the match. Because it runs at a high frequency (approximately **50 times per second**), it allows for smooth movement and rapid sensor polling. Efficiency in this method is critical — any "blocking" code (like a sleep command) will freeze the robot and cause a communication timeout with the Driver Station.
+
+---
+
+## The Deep Dive
+
+In an `OpMode`, the `loop()` method is executed repeatedly after the driver presses the "Play" button and until they press "Stop". It follows a **sensing → thinking → acting** cycle: it reads the latest values from the Gamepads or sensors, calculates the necessary power adjustments, and commands the Control Hub's motor controllers to update voltage outputs.
+
+Since `loop()` is non-blocking, it is ideal for TeleOp where driver inputs are changing in real-time.
+
+---
+
+## Annotated Code
+
+```java
+@TeleOp(name="Loop_Demo")
+public class LoopDemo extends OpMode {
+
+    @Override
+    public void init() {
+        telemetry.addData("Status", "Ready to Play");
+    }
+
+    @Override
+    public void loop() {
+        // This logic runs ~50x a second to check for driver input
+        double drivePower = -gamepad1.left_stick_y;
+
+        // Streaming hardware data back to the DS for real-time monitoring
+        telemetry.addData("Motor Command", drivePower);
+        telemetry.addData("Cycle Time", getRuntime());
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The `loop()` method runs repeatedly at a frequency of approximately `__________` times per second.
+2. If you put a long delay inside `loop()`, you risk losing connection to the `__________` Station.
+3. The robot stops executing the `loop()` method once the driver presses the `__________` button.
+
+<details>
+<summary>Show answers</summary>
+
+1. **50**
+2. **Driver** Station
+3. **Stop**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You need to create a simple diagnostic that shows the status of the "A" button on `gamepad1` during the entire match.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name="Input_Monitor")
+public class InputMonitor extends OpMode {
+
+    @Override
+    public void init() {
+        telemetry.addData("Diagnostic", "Press Start to monitor input");
+    }
+
+    @Override
+    public void loop() {
+        // USE TELEMETRY TO SHOW THE BOOLEAN STATE OF gamepad1.a
+        // INSERT CODE HERE
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    telemetry.addData("Button A", gamepad1.a);
+    telemetry.update();
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-02/loop-lifecycle"
+  nextUnit="/docs/unit-02/start-and-stop"
+  nextUnitName="Lesson 2.4: Utilizing start() and stop() for One-time Hardware Transitions"
+/>

@@ -1,0 +1,80 @@
+---
+id: open-project
+title: "Section 6: Opening the Project in Android Studio"
+sidebar_label: "6 · Open the Project"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 6: Opening the Project in Android Studio
+
+---
+
+## Step 6.1 — Open the Project
+
+In Android Studio: **File → Open**
+
+Navigate to the `FtcRobotController` folder you just cloned. Select the **folder itself** (not any file inside it). Click "OK."
+
+Android Studio will load the project and immediately begin a Gradle sync. A progress bar appears at the bottom of the screen. Do not click anything until it completes.
+
+---
+
+## Step 6.2 — What a Successful Sync Looks Like
+
+In the bottom "Build" panel, you will see a sequence of messages ending with:
+
+```
+BUILD SUCCESSFUL in Xs
+```
+
+If you see `BUILD SUCCESSFUL`, skip to Section 7.
+
+If you see `BUILD FAILED`, continue to Step 6.3.
+
+---
+
+## Step 6.3 — Common Gradle Sync Errors and Exact Fixes
+
+**Error A — "Could not resolve com.qualcomm.ftcrobotcontroller"**
+
+Gradle cannot download the SDK libraries.
+
+*Cause:* No internet connection, or a corporate/school firewall blocking Maven repositories.
+
+*Fix:* Connect to a different network. If you are on a school network, try a mobile hotspot.
+
+---
+
+**Error B — "Unsupported Java. Your build is currently configured to use Java 21"**
+
+The Gradle JDK was not set correctly in Section 4.
+
+*Fix:* Return to Step 4.2. Verify that the selected JDK shows version 17, not 21.
+
+---
+
+**Error C — "The minCompileSdk (34) specified in a dependency's AAR metadata"**
+
+This is expected on a fresh SDK install and resolves itself. If it persists after one sync, verify your `build.gradle` settings in Section 7.
+
+---
+
+**Error D — "Android Gradle plugin requires Java 11 to run"**
+
+Android Studio is using its bundled JRE to run Gradle, not the JDK you configured.
+
+*Fix:* In Settings → Build, Execution, Deployment → Build Tools → Gradle, check both the "Gradle JDK" dropdown **and** the "Use Gradle from" setting. Both must point to JDK 17.
+
+---
+
+**Error E — "SDK location not found. Define location with sdk.dir in the local.properties file"**
+
+*Fix:* This file is not in the repository (it is in `.gitignore`). Android Studio creates it automatically on first sync. If the sync failed before creating it, run **File → Sync Project with Gradle Files** once more.
+
+<MarkComplete
+  lessonId="unit-01/open-project"
+  nextUnit="/docs/unit-01/verify-build-config"
+  nextUnitName="Section 7: Verifying the Build Configuration"
+/>

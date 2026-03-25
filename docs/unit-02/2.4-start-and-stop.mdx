@@ -1,0 +1,131 @@
+---
+id: start-and-stop
+title: "Lesson 2.4: Utilizing start() and stop() for One-time Hardware Transitions"
+sidebar_label: "2.4 · start() & stop()"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 2.4: Utilizing start() and stop() for One-time Hardware Transitions
+
+---
+
+## Technical Context
+
+`start()` and `stop()` improve robot reliability by handling transitions. `start()` is often used to reset the `getRuntime()` timer exactly when the match begins, ensuring autonomous timing is accurate. `stop()` acts as a fail-safe, allowing you to force motors to zero power or close files when the match ends, preventing hardware damage or data corruption.
+
+---
+
+## The Deep Dive
+
+While `init()` and `loop()` are required, `start()` and `stop()` are **optional** lifecycle methods.
+
+`start()` is called once the instant the "Play" button is pressed, making it more precise than `init()` for resetting counters.
+
+`stop()` is called once when the "Stop" button is hit or the match timer expires. This is the professional way to handle cleanup logic, such as ensuring a high-speed flywheel is commanded to `setPower(0)` before the program terminates.
+
+---
+
+## Annotated Code
+
+```java
+@Autonomous(name="Transition_Demo")
+public class TransitionDemo extends OpMode {
+
+    @Override
+    public void init() {
+        telemetry.addData("Hub", "Standby");
+    }
+
+    @Override
+    public void start() {
+        // Resetting the internal clock the moment the match begins
+        resetRuntime();
+    }
+
+    @Override
+    public void loop() {
+        telemetry.addData("Match Time", getRuntime());
+    }
+
+    @Override
+    public void stop() {
+        // Cleanup: Ensures no logic persists after the program ends
+        telemetry.addData("Match", "Complete");
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The `__________` method is called exactly once when the driver presses the "Play" button.
+2. To ensure all motors are deactivated at the end of a match, logic should be placed in the `__________` method.
+3. The method that runs repeatedly between the "Init" and "Play" buttons being pressed is `__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`start()`**
+2. **`stop()`**
+3. **`init_loop()`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your team needs to reset the robot's timer at the start of the match and display a "Robot Shutdown" message when the program is stopped.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+@Autonomous(name="Lifecycle_Challenge")
+public class LifecycleChallenge extends OpMode {
+
+    @Override
+    public void init() {
+        telemetry.addData("Status", "Init Pressed");
+    }
+
+    // IMPLEMENT THE START METHOD TO RESET THE RUNTIME
+    // INSERT CODE HERE
+
+    @Override
+    public void loop() {
+        telemetry.addData("Elapsed", getRuntime());
+    }
+
+    // IMPLEMENT THE STOP METHOD TO PRINT "Robot Shutdown"
+    // INSERT CODE HERE
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void start() {
+    resetRuntime();
+}
+
+@Override
+public void stop() {
+    telemetry.addData("Status", "Robot Shutdown");
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-02/start-and-stop"
+  nextUnit="/docs/unit-02/health-check-challenge"
+  nextUnitName="Lesson 2.5: Health-Check OpMode Challenge"
+/>

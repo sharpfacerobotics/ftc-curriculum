@@ -1,0 +1,42 @@
+---
+id: get-ftc-sdk
+title: "Section 5: Getting the FTC SDK"
+sidebar_label: "5 · Getting the FTC SDK"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 5: Getting the FTC SDK
+
+---
+
+## Step 5.1 — Install Git
+
+If you do not have Git installed:
+
+- **Windows:** Download from [https://git-scm.com/download/win](https://git-scm.com/download/win). Install with defaults.
+- **macOS:** Run `git --version` in Terminal. If not installed, macOS will prompt you to install Xcode Command Line Tools.
+- **Linux:** Run `sudo apt install git` (Ubuntu/Debian) or `sudo dnf install git` (Fedora).
+
+---
+
+## Step 5.2 — Clone the FTC Robot Controller Repository
+
+Open a terminal and navigate to the folder where you want to store your robot code. Then run:
+
+```bash
+git clone https://github.com/FIRST-Tech-Challenge/FtcRobotController.git
+```
+
+This creates a folder called `FtcRobotController` containing the complete SDK.
+
+:::info Team working together?
+Only **one person** should do this step. They should then push it to your team's private GitHub repository. Every other team member clones from the team's repo, not from FIRST's repo directly.
+:::
+
+<MarkComplete
+  lessonId="unit-01/get-ftc-sdk"
+  nextUnit="/docs/unit-01/open-project"
+  nextUnitName="Section 6: Opening the Project in Android Studio"
+/>

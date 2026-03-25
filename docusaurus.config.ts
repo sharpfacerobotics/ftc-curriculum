@@ -7,7 +7,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Telemark | Sharp Face Robotics',
   tagline: 'A structured, level-gated curriculum built by student engineers.',
-  favicon: 'img/ehs-logo.png',
+  favicon: 'img/telemark.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -75,7 +75,7 @@ const config: Config = {
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'EHS Robotics | Telemark',
+      title: 'Telemark | Team 30450',
       logo: {
         alt: 'Telemark Logo',
         src: 'img/telemark.png', // we'll place your logo here next

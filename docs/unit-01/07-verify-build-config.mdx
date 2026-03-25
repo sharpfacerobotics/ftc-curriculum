@@ -1,0 +1,72 @@
+---
+id: verify-build-config
+title: "Section 7: Verifying the Build Configuration"
+sidebar_label: "7 · Verify Build Config"
+sidebar_position: 7
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Section 7: Verifying the Build Configuration
+
+Your team's custom code goes in the **TeamCode** module. Before writing any robot code, verify that this module's build configuration matches the 2025–2026 season requirements.
+
+---
+
+## Step 7.1 — Open the TeamCode build.gradle
+
+In the Project panel on the left side of Android Studio:
+
+**TeamCode → build.gradle**
+
+Double-click to open it.
+
+---
+
+## Step 7.2 — Verify These Exact Values
+
+Your `build.gradle` file must contain the following. If any value differs, correct it now.
+
+```groovy
+android {
+    compileSdk 34          // ← Must be 34 for 2025–2026 season
+
+    defaultConfig {
+        minSdk 24          // ← Minimum Android API level for Control Hub
+        targetSdk 28       // ← Do not increase this; it changes runtime behavior
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17   // ← Both lines must say VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+```
+
+---
+
+## Step 7.3 — Why These Numbers
+
+**`compileSdk 34`** is the Android API level the SDK was built against for the 2025–2026 season. This number must match the `compileSdkVersion` declared in the FTC SDK's library AAR metadata, or Gradle will fail with Error C from Section 6.3.
+
+**`minSdk 24`** corresponds to Android 7.0. The Control Hub runs Android 7.1.2. Setting this below 24 has no effect. Setting it above 24 may cause deployment failures on older Expansion Hubs.
+
+**`targetSdk 28`** is deliberately kept at Android 9. Higher values activate Android's stricter runtime permissions and background process limits, which can interfere with the Robot Controller's communication threads.
+
+**`JavaVersion.VERSION_17`** is required because the FTC SDK's compiled class files contain Java 17 bytecode features. Targeting `VERSION_11` or lower will cause an `UnsupportedClassVersionError` when the Control Hub's JVM attempts to load your code.
+
+---
+
+## Step 7.4 — Save and Re-Sync
+
+After making any changes to `build.gradle`, save the file and run:
+
+**File → Sync Project with Gradle Files**
+
+Wait for `BUILD SUCCESSFUL`.
+
+<MarkComplete
+  lessonId="unit-01/verify-build-config"
+  nextUnit="/docs/unit-01/first-opmode"
+  nextUnitName="Section 8: Writing Your First OpMode"
+/>
