@@ -413,6 +413,12 @@
   margin-bottom: 3rem;
 }
 
+.simulatorWrapper {
+  border: 1px solid rgba(0, 191, 255, 0.25);
+  background: #07070f;
+  overflow: hidden;
+}
+
 /* ── Curriculum grid ─────────────────────────────────────── */
 .curriculumGrid {
   display: grid;

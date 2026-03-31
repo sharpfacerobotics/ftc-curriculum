@@ -253,6 +253,28 @@ function FeaturesSection(): React.JSX.Element {
   );
 }
 
+function SimulatorSection(): React.JSX.Element {
+  return (
+    <section className={styles.section}>
+      <p className={styles.sectionLabel}>// simulator.live[]</p>
+      <h2 className={styles.sectionTitle}>Try It Right Now</h2>
+      <p className={styles.sectionDesc}>
+        No installation. No setup. Write code and watch your robot move.
+      </p>
+      <div className={styles.simulatorWrapper}>
+        <iframe
+          src="/ftc-curriculum/simulator/index.html"
+          width="100%"
+          height="600"
+          style={{ border: 'none' }}
+          allowFullScreen
+          title="Telemark Simulator"
+        />
+      </div>
+    </section>
+  );
+}
+
 function CtaSection(): React.JSX.Element {
   return (
     <div className={styles.ctaSection}>
@@ -353,6 +375,8 @@ export default function Home(): React.JSX.Element {
         <StatsBar />
         <Divider />
         <CurriculumSection />
+        <Divider />
+        <SimulatorSection />
         <Divider />
         <FeaturesSection />
         <CtaSection />
