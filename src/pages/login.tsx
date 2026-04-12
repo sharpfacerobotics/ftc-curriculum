@@ -75,8 +75,8 @@ export default function LoginPage(): React.JSX.Element {
           <p className={styles.eyebrow}>Powered by</p>
           <h1 className={styles.brand}>Telemark</h1>
           <p className={styles.sub}>
-            Sign in to track your progress across all 15 units and pick up
-            exactly where you left off.
+            Sign in to track your progress across the live curriculum and pick
+            up exactly where you left off.
           </p>
 
           <button className={styles.googleBtn} onClick={handleSignIn}>

@@ -1,0 +1,148 @@
+---
+id: dynamic-power-challenge
+title: "Lesson 3.5: Challenge — Dynamic Power Calculation using Multi-Variable Math Operations"
+sidebar_label: "3.5 · Challenge: Dynamic Power"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 3.5: Challenge — Dynamic Power Calculation using Multi-Variable Math Operations
+
+---
+
+## Technical Context
+
+A competitive robot rarely runs at a static speed. By combining multiple variables (inputs, multipliers, and offsets), you can create dynamic control systems. For instance, scaling joystick input by a "Battery Multiplier" variable ensures consistent robot performance even as the 12V battery voltage drops during a match.
+
+---
+
+## The Deep Dive
+
+This challenge requires manipulating different variable types in a single expression. When an `int` and a `double` are used in the same math operation, Java **"promotes"** the result to a `double` to maintain precision. You must be careful with assignment operators; using `=` updates the variable's value, while using `*=` or `+=` allows you to modify the current value relative to its previous state.
+
+---
+
+## Annotated Code
+
+```java
+@TeleOp(name="Dynamic_Control")
+public class DynamicControl extends OpMode {
+
+    DcMotor drive;
+
+    // Multi-variable setup
+    double baseSpeed       = 0.5;
+    double boostMultiplier = 2.0;
+    int    gearSetting     = 1;
+
+    @Override
+    public void init() {
+        drive = hardwareMap.get(DcMotor.class, "motor");
+    }
+
+    @Override
+    public void loop() {
+        double finalPower;
+
+        if (gamepad1.right_trigger > 0.5) {
+            // Math combining double inputs and multipliers
+            finalPower = baseSpeed * boostMultiplier;
+        } else {
+            finalPower = baseSpeed;
+        }
+
+        drive.setPower(finalPower);
+        telemetry.addData("Gear", gearSetting);
+        telemetry.addData("Output Power", finalPower);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The operator used to assign a new value to a variable is `__________`.
+2. If you multiply an `int` by a `double`, the resulting datatype will be a/an `__________`.
+3. To perform math and update a variable in one step (e.g., adding 5 to the current value), you use the `__________` operator.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`=`**
+2. **`double`** (Java promotes the result to the wider type)
+3. **`+=`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Create a "Precision Mode." If the driver holds the left bumper, the motor power should be exactly half of the joystick input. Use variables for `input`, `scaleFactor`, and `finalPower`.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Precision_Mode_Challenge")
+public class PrecisionMode extends OpMode {
+
+    DcMotor motor;
+    double scaleFactor = 0.5;
+
+    @Override
+    public void init() {
+        motor = hardwareMap.get(DcMotor.class, "motor");
+    }
+
+    @Override
+    public void loop() {
+        // 1. CAPTURE JOYSTICK Y-AXIS INTO A DOUBLE VARIABLE 'input'
+        // INSERT CODE HERE
+
+        double finalPower;
+
+        if (gamepad1.left_bumper) {
+            // 2. CALCULATE finalPower BY MULTIPLYING input BY scaleFactor
+            // INSERT CODE HERE
+        } else {
+            finalPower = input;
+        }
+
+        motor.setPower(finalPower);
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    double input = -gamepad1.left_stick_y;
+
+    double finalPower;
+
+    if (gamepad1.left_bumper) {
+        finalPower = input * scaleFactor;
+    } else {
+        finalPower = input;
+    }
+
+    motor.setPower(finalPower);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-03/dynamic-power-challenge"
+  nextUnit="/docs/unit-03/mastery-quiz"
+  nextUnitName="Unit 3 Mastery Quiz"
+/>

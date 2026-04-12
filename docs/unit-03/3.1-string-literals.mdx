@@ -1,0 +1,124 @@
+---
+id: string-literals
+title: "Lesson 3.1: Using String Literals for Exact Hardware Configuration Names"
+sidebar_label: "3.1 · String Literals"
+sidebar_position: 1
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 3.1: Using String Literals for Exact Hardware Configuration Names
+
+---
+
+## Technical Context
+
+The Control Hub utilizes a registry to link Java objects to physical I/O ports. Using `String` variables to store configuration names prevents **"Device Not Found" errors** caused by typos or case-sensitivity mismatches during the `hardwareMap.get()` call.
+
+---
+
+## The Deep Dive
+
+In Java, a `String` is an object used to hold a sequence of characters. While primitive types like `int` or `double` start with lowercase letters, `String` is capitalized because it is a class within the Java library. When you initialize hardware, the SDK requires a string parameter that must match the name defined in the robot's configuration file **exactly**. Storing these names in variables at the top of your class ensures that if a hardware port name changes, you only need to update it in one location rather than searching through hundreds of lines of code.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="String_Mapping")
+public class StringMapping extends OpMode {
+
+    // Declaring a String variable to hold the hardware configuration name
+    // By convention, hardware names are often stored as String literals
+    String motorName = "drive_motor";
+    DcMotor frontMotor;
+
+    @Override
+    public void init() {
+        // Passing the String variable into the hardwareMap.get method
+        frontMotor = hardwareMap.get(DcMotor.class, motorName);
+        telemetry.addData("Status", "Mapped: " + motorName);
+    }
+
+    @Override
+    public void loop() {}
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. A group of characters used to store text, such as a hardware name, is known as a/an `__________`.
+2. Because it is defined as a class rather than a primitive, the name of this datatype must begin with a/an `__________` letter.
+3. Java is `__________`, meaning the String `"Motor"` is considered a different value than `"motor"`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`String`**
+2. **uppercase** (capital) letter — by Java convention all class names use PascalCase
+3. **case-sensitive**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your team has named a Servo `"claw_servo"` in the configuration app. Create a `String` variable to store this name and use it to map the hardware.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name="Variable_Map_Challenge")
+public class VariableMap extends OpMode {
+
+    // DECLARE A STRING VARIABLE NAMED 'configName' AND ASSIGN IT "claw_servo"
+    // INSERT CODE HERE
+
+    Servo claw;
+
+    @Override
+    public void init() {
+        // USE THE configName VARIABLE TO MAP THE SERVO
+        // INSERT CODE HERE
+        telemetry.addData("Status", "Claw Map Successful");
+    }
+
+    @Override
+    public void loop() {}
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+String configName = "claw_servo";
+
+@Override
+public void init() {
+    claw = hardwareMap.get(Servo.class, configName);
+    telemetry.addData("Status", "Claw Map Successful");
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-03/string-literals"
+  nextUnit="/docs/unit-03/double-precision"
+  nextUnitName="Lesson 3.2: Storing Motor Power Levels with double Precision"
+/>

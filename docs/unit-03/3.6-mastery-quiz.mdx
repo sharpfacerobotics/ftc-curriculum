@@ -1,0 +1,124 @@
+---
+id: mastery-quiz
+title: "Unit 3 Mastery Quiz: Java Variables"
+sidebar_label: "Unit 3 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 3 Mastery Quiz: Java Variables
+
+---
+
+## I. Conceptual Questions
+
+**1. Precision Engineering:** Why must the variable used to store a `DcMotor`'s power level be declared as a `double` rather than an `int`?
+
+<details>
+<summary>Show answer</summary>
+
+The `setPower()` method requires a value between `-1.0` and `1.0`. Because `int` is a 32-bit primitive that only stores whole numbers, it would truncate any decimal power (e.g., `0.5` would become `0`), rendering precise velocity control impossible.
+
+</details>
+
+---
+
+**2. Class vs. Primitive:** Technically, why is the `String` datatype capitalized in Java while `boolean` and `double` are lowercase?
+
+<details>
+<summary>Show answer</summary>
+
+`boolean` and `double` are primitive datatypes built directly into the language. `String` is a class defined in the Java library, and by engineering convention, all class names must utilize PascalCase.
+
+</details>
+
+---
+
+**3. State Capture:** What is the technical advantage of assigning a sensor's state (e.g., `touchSensor.getState()`) to a `boolean` variable at the start of the `loop()` method?
+
+<details>
+<summary>Show answer</summary>
+
+This captures a "snapshot" of the hardware's physical state at a specific point in time. This prevents logic errors where a sensor's state might change mid-cycle, leading to inconsistent decision-making within a single execution of the `loop()`.
+
+</details>
+
+---
+
+**4. Configuration Management:** Why is it considered a professional "Best Practice" to store hardware names (like `"left_drive"`) in a `String` variable at the class level instead of passing a literal string directly into `hardwareMap.get()`?
+
+<details>
+<summary>Show answer</summary>
+
+Storing names in variables creates a **"single source of truth."** If a hardware port name is changed in the Robot Controller configuration, the programmer only needs to update one variable rather than searching for every instance of that literal string throughout the project.
+
+</details>
+
+---
+
+**5. Computational Accuracy:** When calculating motor rotations with the formula `motor.getCurrentPosition() / ticksPerRotation`, why should `ticksPerRotation` be stored as a `double` even if the value is a whole number?
+
+<details>
+<summary>Show answer</summary>
+
+In Java, dividing an `int` by an `int` results in integer division, where the remainder is discarded (e.g., `5 / 2 = 2`). By using a `double`, Java "promotes" the calculation, ensuring the result is a precise decimal value.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is intended to read an analog Potentiometer and scale its voltage to a motor power level. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Variable_Debug")
+public class VariableDebug extends OpMode {
+
+    DcMotor lift;
+    AnalogInput pot;
+
+    int targetPower = 0.75
+
+    @Override
+    public void init() {
+        lift = hardwareMap.get(DcMotor.class, "lift");
+        pot  = hardwareMap.get(AnalogInput.class, "pot");
+    }
+
+    @Override
+    public void loop() {
+        // Logic: Set motor power based on the variable
+        lift.setPower(targetPower);
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 — Syntax Error:**
+The declaration `int targetPower = 0.75` is missing a semicolon (`;`) at the end of the statement. Furthermore, assigning a decimal value (`0.75`) to an `int` will cause a compiler error because an `int` cannot hold fractional data.
+
+**Error 2 — Logic Error:**
+The variable `targetPower` is declared as an `int`. Even if the syntax were corrected, any value assigned to it that is less than `1` (like `0.75`) would be truncated to `0`. The motor would never move because `setPower()` would only ever receive a `0`. The variable must be declared as a `double`:
+
+```java
+double targetPower = 0.75;
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-03/mastery-quiz"
+  nextUnit="/dashboard"
+  nextUnitName="Dashboard"
+/>

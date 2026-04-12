@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Telemark | Sharp Face Robotics',
-  tagline: 'A structured, level-gated curriculum built by student engineers.',
+  tagline: 'A structured, hands-on curriculum built by student engineers.',
   favicon: 'img/telemark.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future

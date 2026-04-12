@@ -3,51 +3,27 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Head from '@docusaurus/Head';
 import styles from './index.module.css';
-import { signInWithPopup, signOut } from 'firebase/auth';
-import { auth, provider } from '../telemark/firebase';
+import { signOut } from 'firebase/auth';
+import { auth } from '../telemark/firebase';
 import { useAuth } from '../telemark/useAuth';
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-type Tier = 'Beginner' | 'Intermediate' | 'Advanced';
-
-interface Unit {
-  id: string;
-  title: string;
-  desc: string;
-  tier: Tier;
-  slug: string;
-}
-
-const UNITS: Unit[] = [
-  { id: 'UNIT_01', title: 'Environment Setup',        desc: 'Installing Android Studio, JDK 17, FTC SDK',     tier: 'Beginner',     slug: 'unit-01' },
-  { id: 'UNIT_02', title: 'OpMode Structure',           desc: 'Annotations, init(), loop() lifecycle',      tier: 'Beginner',     slug: 'unit-02' },
-  { id: 'UNIT_03', title: 'Java Variables',             desc: 'int, double, boolean, String types',         tier: 'Beginner',     slug: 'unit-03' },
-  { id: 'UNIT_04', title: 'Gamepad Input',              desc: 'Reading buttons, joysticks & triggers',      tier: 'Beginner',     slug: 'unit-04' },
-  { id: 'UNIT_05', title: 'Logic & Decisions',          desc: 'if / else if / else chains',                 tier: 'Beginner',     slug: 'unit-05' },
-  { id: 'UNIT_06', title: 'Loops & Iteration',          desc: 'while, for, opModeIsActive()',               tier: 'Beginner',     slug: 'unit-06' },
-  { id: 'UNIT_07', title: 'Hardware Mapping',           desc: 'hardwareMap.get() and configuration',        tier: 'Intermediate', slug: 'unit-07' },
-  { id: 'UNIT_08', title: 'DC Motor Control',           desc: 'setPower, direction, ZeroPowerBehavior',     tier: 'Intermediate', slug: 'unit-08' },
-  { id: 'UNIT_09', title: 'Servo Control',              desc: 'Position, scaleRange, direction',            tier: 'Intermediate', slug: 'unit-09' },
-  { id: 'UNIT_10', title: 'Encoders & Precision',       desc: 'Tick counts, RunMode, RUN_TO_POSITION',      tier: 'Intermediate', slug: 'unit-10' },
-  { id: 'UNIT_11', title: 'Digital & Analog Sensors',   desc: 'Touch sensors, potentiometers, Range.scale', tier: 'Intermediate', slug: 'unit-11' },
-  { id: 'UNIT_12', title: 'IMU & Rotation',             desc: 'Yaw, pitch, roll, AngleUnit',                tier: 'Intermediate', slug: 'unit-12' },
-  { id: 'UNIT_13', title: 'OOP & Inheritance',          desc: 'Classes, objects, extends, @Override',       tier: 'Advanced',     slug: 'unit-13' },
-  { id: 'UNIT_14', title: 'Computer Vision',            desc: 'AprilTags, VisionPortal, detections',        tier: 'Advanced',     slug: 'unit-14' },
-  { id: 'UNIT_15', title: 'Advanced Integration',       desc: 'Limelight, Pedro Pathing, Bézier curves',   tier: 'Advanced',     slug: 'unit-15' },
-];
+import {
+  CURRICULUM_LESSON_COUNT,
+  CURRICULUM_UNIT_COUNT,
+  CURRICULUM_UNITS,
+  type Tier,
+} from '../telemark/curriculum';
 
 const STATS = [
-  { num: '15',      label: 'Curriculum Units'  },
-  { num: '45+',     label: 'Practice Problems' },
-  { num: 'Java',    label: 'Primary Language'  },
-  { num: 'FTC SDK', label: 'Framework'         },
+  { num: String(CURRICULUM_UNIT_COUNT),   label: 'Live Units'        },
+  { num: String(CURRICULUM_LESSON_COUNT), label: 'Lessons'           },
+  { num: 'Java',                          label: 'Primary Language'  },
+  { num: 'FTC SDK',                       label: 'Framework'         },
 ];
 
 const FEATURES = [
   {
     title: 'Embedded Simulator',
-    desc:  'Run FTC code directly in your browser via the Virtual Robot Simulator. No setup, no Android Studio required to start practising.',
+    desc:  'Open the Unity-based robot simulator directly in your browser while you work through the curriculum.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect x="2" y="6" width="28" height="20" rx="2" stroke="#00BFFF" strokeWidth="1.5" />
@@ -56,8 +32,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'Gated Progression',
-    desc:  'Each unit is locked behind a validation code. Solve the challenge, enter the code, unlock the next level — just like FTC scoring.',
+    title: 'Progress Tracking',
+    desc:  'Sign in with Google to save completed lessons and resume the next unfinished page from your dashboard.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#00BFFF" strokeWidth="1.5" />
@@ -172,8 +148,8 @@ function HeroSection(): React.JSX.Element {
       </h1>
 
       <p className={styles.heroSub}>
-        A structured, level-gated curriculum built by student engineers.
-        From Blocks to Bézier curves — every concept hands-on.
+        A structured, hands-on curriculum built by student engineers.
+        From environment setup to OpMode structure to Java variables.
       </p>
 
       <div className={styles.terminalLine} aria-hidden="true">
@@ -186,7 +162,7 @@ function HeroSection(): React.JSX.Element {
         <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
           Begin Unit 1
         </Link>
-        <Link to="/docs/intro" className={styles.btnSecondary}>
+        <Link to="/curriculum" className={styles.btnSecondary}>
           View All Units
         </Link>
       </div>
@@ -206,18 +182,22 @@ function StatsBar(): React.JSX.Element {
 
 function CurriculumSection(): React.JSX.Element {
   return (
-    <section className={styles.section}>
+    <section className={styles.section} id="curriculum">
       <p className={styles.sectionLabel}>// curriculum.units[]</p>
-      <h2 className={styles.sectionTitle}>15 Units. Zero Fluff.</h2>
+      <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} Live Units. Zero Fluff.</h2>
+      <p className={styles.sectionDesc}>
+        The live curriculum currently includes Units 1–3, and the tracker below
+        matches those lessons exactly.
+      </p>
 
       <div className={styles.curriculumGrid}>
-        {UNITS.map((unit) => (
+        {CURRICULUM_UNITS.map((unit) => (
           <Link
-            to={`/docs/${unit.slug}/intro`}
+            to={unit.categoryPath}
             key={unit.id}
             className={styles.unitCard}
           >
-            <div className={styles.unitNum}>{unit.id}</div>
+            <div className={styles.unitNum}>{unit.label}</div>
             <div className={styles.unitTitle}>{unit.title}</div>
             <div className={styles.unitDesc}>{unit.desc}</div>
             <span className={`${styles.unitTag} ${styles[TIER_CLASS[unit.tier]]}`}>
@@ -259,7 +239,8 @@ function SimulatorSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>// simulator.live[]</p>
       <h2 className={styles.sectionTitle}>Try It Right Now</h2>
       <p className={styles.sectionDesc}>
-        No installation. No setup. Write code and watch your robot move.
+        No installation. No setup. Open the simulator and explore robot behavior
+        right in the browser.
       </p>
       <div className={styles.simulatorWrapper}>
         <iframe
@@ -284,9 +265,9 @@ function CtaSection(): React.JSX.Element {
           Your robot won't<br />program itself.
         </h2>
         <p className={styles.ctaSub}>
-          Start with Unit 1 — no prior programming experience required. By
-          Unit 15, you'll be writing autonomous routines with Bézier curve
-          pathing.
+          Start with Unit 1 — no prior programming experience required. The
+          live curriculum currently takes students through environment setup,
+          OpMode structure, and Java variables.
         </p>
         <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
           Launch Unit 1 →
@@ -304,10 +285,12 @@ export default function Home(): React.JSX.Element {
 
   return (
     <>
-      <Head>  
-        title={siteConfig.title}
-        description="Telemark by EHS Robotics — level-gated, open source, built by students."
-        noFooter
+      <Head>
+        <title>{siteConfig.title}</title>
+        <meta
+          name="description"
+          content="Telemark by EHS Robotics — open-source FTC lessons for environment setup, OpMode structure, and Java variables."
+        />
       </Head>
     
       {/* Google Fonts — non-blocking preconnect */}
@@ -335,8 +318,8 @@ export default function Home(): React.JSX.Element {
           </div>
 
           <ul className={styles.navLinks}>
-            <li><Link to="/docs/intro">Curriculum</Link></li>
-            <li><Link to="/docs/simulator">Simulator</Link></li>
+            <li><Link to="/curriculum">Curriculum</Link></li>
+            <li><Link to="/simulator">Simulator</Link></li>
             <li>
               <a
                 href="https://github.com/sharpfacerobotics/ftc-curriculum"
@@ -346,7 +329,6 @@ export default function Home(): React.JSX.Element {
                 GitHub
               </a>
             </li>
-            <li><Link to="/docs/team">Team</Link></li>
           </ul>
 
           {user ? (

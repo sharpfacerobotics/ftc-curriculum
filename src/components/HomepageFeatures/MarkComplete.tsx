@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from '@docusaurus/Link';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@site/src/telemark/firebase';
@@ -7,9 +7,9 @@ import { useProgress } from '@site/src/telemark/useProgress';
 import styles from './MarkComplete.module.css';
 
 interface MarkCompleteProps {
-  lessonId: string;       // e.g. 'unit-01/choosing-your-tool'
-  nextUnit: string;       // e.g. '/docs/unit-01/opmode-and-telemetry'
-  nextUnitName: string;   // e.g. 'Lesson 2: OpMode & Telemetry'
+  lessonId: string;       // e.g. 'unit-01/prerequisites'
+  nextUnit: string;       // e.g. '/docs/unit-01/install-jdk'
+  nextUnitName: string;   // e.g. 'Section 2: Installing JDK 17'
 }
 
 export default function MarkComplete({
@@ -21,6 +21,12 @@ export default function MarkComplete({
   const { isComplete, markComplete } = useProgress(user);
   const [saving, setSaving]          = useState(false);
   const [done, setDone]              = useState(isComplete(lessonId));
+
+  useEffect(() => {
+    if (isComplete(lessonId)) {
+      setDone(true);
+    }
+  }, [isComplete, lessonId]);
 
   async function handleComplete() {
     setSaving(true);

@@ -1,0 +1,131 @@
+---
+id: int-datatypes
+title: "Lesson 3.4: Tracking Mechanism Cycle Counts with int Datatypes"
+sidebar_label: "3.4 · int Datatypes"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 3.4: Tracking Mechanism Cycle Counts with int Datatypes
+
+---
+
+## Technical Context
+
+Counting discrete events — such as the number of game elements scored or the number of times an intake has cycled — requires whole numbers. Using the `int` datatype prevents logic failures where a robot might try to score "2.5 times," which is physically impossible and would crash the program's logic flow.
+
+---
+
+## The Deep Dive
+
+An `int` (integer) is a 32-bit primitive used for whole numbers ranging from approximately −2 billion to +2 billion. In robotics, `int` is essential for indexing through arrays of motors or counting the specific number of encoder ticks reported by a `DcMotor`. Unlike `double`, an `int` does not store decimal information; if you divide `5` by `2` using integers, Java will return `2`, completely discarding the remainder.
+
+---
+
+## Annotated Code
+
+```java
+@TeleOp(name="Cycle_Counter")
+public class CycleCounter extends OpMode {
+
+    // Declaring an int to store the total count of scored items
+    int pixelCount = 0;
+    boolean wasPressed = false;
+
+    @Override
+    public void init() {
+        telemetry.addData("System", "Counter Reset to Zero");
+    }
+
+    @Override
+    public void loop() {
+        // Incrementing the integer count on each new button press
+        if (gamepad1.a && !wasPressed) {
+            pixelCount++; // Shorthand for pixelCount = pixelCount + 1
+        }
+        wasPressed = gamepad1.a;
+        telemetry.addData("Pixels Scored", pixelCount);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The datatype used for whole numbers without any decimal places is `__________`.
+2. When dividing two integers, Java performs `__________` division, where any remainder is discarded.
+3. A standard integer in Java is a/an `__________`-bit signed value.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`int`**
+2. **integer** (truncating) division
+3. **32**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your autonomous requires the robot to keep track of how many "laps" it has completed. Declare an `int` variable and increment it every time the `"B"` button is pressed.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name="Lap_Counter_Challenge")
+public class LapCounter extends OpMode {
+
+    // DECLARE AN INT VARIABLE 'laps' AT THE CLASS LEVEL
+    // INSERT CODE HERE
+
+    @Override
+    public void init() {
+        // INITIALIZE laps TO ZERO
+        // INSERT CODE HERE
+    }
+
+    @Override
+    public void loop() {
+        if (gamepad1.b) {
+            // INCREMENT THE laps VARIABLE
+            // INSERT CODE HERE
+        }
+        telemetry.addData("Laps completed", laps);
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+int laps = 0;
+
+@Override
+public void init() {
+    laps = 0;
+}
+
+@Override
+public void loop() {
+    if (gamepad1.b) {
+        laps++;
+    }
+    telemetry.addData("Laps completed", laps);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-03/int-datatypes"
+  nextUnit="/docs/unit-03/dynamic-power-challenge"
+  nextUnitName="Lesson 3.5: Challenge — Dynamic Power Calculation using Multi-Variable Math Operations"
+/>

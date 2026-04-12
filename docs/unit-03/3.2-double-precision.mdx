@@ -1,0 +1,118 @@
+---
+id: double-precision
+title: "Lesson 3.2: Storing Motor Power Levels with double Precision"
+sidebar_label: "3.2 · double Precision"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 3.2: Storing Motor Power Levels with double Precision
+
+---
+
+## Technical Context
+
+Motor voltage control requires high-precision values to achieve smooth acceleration. Using the `double` datatype allows the robot to handle the fractional values (`-1.0` to `1.0`) required by the `setPower()` method, preventing the jerky movement or rounding errors associated with lower-precision types.
+
+---
+
+## The Deep Dive
+
+The `double` is a 64-bit primitive datatype used for floating-point numbers (decimals). In the FTC SDK, the `setPower()` method specifically expects a `double` parameter. While a `float` also handles decimals, it is only 32-bit; the JVM on the Control Hub defaults to `double` for maximum accuracy when calculating velocity or interpreting analog joystick data. Assigning a power level to a `double` variable allows you to perform math — such as halving the speed for a "Slow Mode" — without losing the decimal remainder.
+
+---
+
+## Annotated Code
+
+```java
+@TeleOp(name="Precision_Power")
+public class PrecisionPower extends OpMode {
+
+    DcMotor drive;
+
+    // Initializing a double variable for fine-grained speed control
+    double targetSpeed = 0.35;
+
+    @Override
+    public void init() {
+        drive = hardwareMap.get(DcMotor.class, "motor");
+    }
+
+    @Override
+    public void loop() {
+        // The SDK setPower method receives the double variable
+        drive.setPower(targetSpeed);
+        telemetry.addData("Current Power", targetSpeed);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To store a number with a decimal point for motor power, you should use the `__________` datatype.
+2. The `double` datatype occupies `__________` bits of memory, making it more accurate than a `float`.
+3. The valid range of values for a motor's `setPower()` method is from `__________` to `1.0`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`double`**
+2. **64**
+3. **-1.0**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your driver wants a specific "Auton Speed" of `0.45`. Create a `double` variable to store this and apply it to a motor.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Double_Speed_Challenge")
+public class DoubleSpeed extends OpMode {
+
+    DcMotor motor;
+
+    @Override
+    public void init() {
+        motor = hardwareMap.get(DcMotor.class, "motor");
+    }
+
+    @Override
+    public void loop() {
+        // DECLARE A DOUBLE VARIABLE 'autonSpeed' AND ASSIGN IT 0.45
+        // INSERT CODE HERE
+
+        motor.setPower(autonSpeed);
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    double autonSpeed = 0.45;
+    motor.setPower(autonSpeed);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-03/double-precision"
+  nextUnit="/docs/unit-03/boolean-flags"
+  nextUnitName="Lesson 3.3: Managing Binary Sensor States using boolean Flags"
+/>
