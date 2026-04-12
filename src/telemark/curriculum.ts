@@ -7,9 +7,13 @@ export interface CurriculumUnit {
   desc: string;
   tier: Tier;
   slug: string;
-  categoryPath: string;
+  overviewPath: string;
   startPath: string;
+  nextPath: string;
+  nextLabel: string;
   lessonCount: number;
+  overview: string;
+  outcomes: string[];
 }
 
 export interface CurriculumLesson {
@@ -30,9 +34,18 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     desc: 'Install JDK 17, Android Studio, and the FTC SDK, then verify the toolchain.',
     tier: 'Beginner',
     slug: 'unit-01',
-    categoryPath: '/docs/category/unit-1-environment-setup',
+    overviewPath: '/docs/unit-01',
     startPath: '/docs/unit-01/prerequisites',
+    nextPath: '/docs/unit-02',
+    nextLabel: 'Unit 2: OpMode Structure',
     lessonCount: 10,
+    overview:
+      'This unit gets every student onto the same stable FTC development setup before any robot code is written.',
+    outcomes: [
+      'Install JDK 17 and Android Studio with the right FTC-compatible settings.',
+      'Clone and open the FTC SDK without Gradle or build configuration issues.',
+      'Verify that your environment can build and deploy a basic diagnostic OpMode.',
+    ],
   },
   {
     id: 'UNIT_02',
@@ -41,9 +54,18 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     desc: 'Learn annotations plus the init(), loop(), start(), and stop() lifecycle.',
     tier: 'Beginner',
     slug: 'unit-02',
-    categoryPath: '/docs/category/unit-2-opmode-structure',
+    overviewPath: '/docs/unit-02',
     startPath: '/docs/unit-02/registering-programs',
+    nextPath: '/docs/unit-03',
+    nextLabel: 'Unit 3: Java Variables',
     lessonCount: 6,
+    overview:
+      'This unit introduces the FTC OpMode lifecycle so students understand where initialization, real-time control, and one-time transitions belong.',
+    outcomes: [
+      'Choose the right annotation so programs appear correctly on the Driver Station.',
+      'Separate setup work from repeated loop logic and one-time start/stop transitions.',
+      'Build a health-check style OpMode that reports robot state clearly through telemetry.',
+    ],
   },
   {
     id: 'UNIT_03',
@@ -52,9 +74,38 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     desc: 'Practice String, double, boolean, and int patterns in FTC robot code.',
     tier: 'Beginner',
     slug: 'unit-03',
-    categoryPath: '/docs/category/unit-3-java-variables',
+    overviewPath: '/docs/unit-03',
     startPath: '/docs/unit-03/string-literals',
+    nextPath: '/docs/unit-04',
+    nextLabel: 'Unit 4: Gamepad Input',
     lessonCount: 6,
+    overview:
+      'This unit focuses on the Java datatypes students will use constantly when mapping hardware, reading sensors, and calculating robot behavior.',
+    outcomes: [
+      'Choose the correct datatype for names, numeric precision, binary state, and whole-number counts.',
+      'Avoid common FTC bugs caused by integer truncation or mismatched hardware identifiers.',
+      'Use variables as a single source of truth instead of scattering magic values through code.',
+    ],
+  },
+  {
+    id: 'UNIT_04',
+    label: 'Unit 4',
+    title: 'Gamepad Input',
+    desc: 'Map buttons, joysticks, and triggers to robot mechanisms with deadzones and sensitivity curves.',
+    tier: 'Beginner',
+    slug: 'unit-04',
+    overviewPath: '/docs/unit-04',
+    startPath: '/docs/unit-04/button-toggles',
+    nextPath: '/dashboard',
+    nextLabel: 'Dashboard',
+    lessonCount: 6,
+    overview:
+      'This unit teaches students how driver input gets translated into robot behavior, from simple button toggles to analog control shaping.',
+    outcomes: [
+      'Use buttons, joysticks, and triggers appropriately based on whether the mechanism needs digital or analog control.',
+      'Implement deadzones and sensitivity shaping so the robot feels stable and intuitive to drive.',
+      'Combine multiple gamepad inputs into a clean arcade-drive style control system.',
+    ],
   },
 ];
 
@@ -257,7 +308,69 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitLabel: 'Unit 3',
     unitTitle: 'Java Variables',
   },
+  {
+    id: 'unit-04/button-toggles',
+    label: '4.1 · Button Toggles',
+    title: 'Lesson 4.1: Mapping gamepad.a and gamepad.b to Direct Mechanism Toggles',
+    path: '/docs/unit-04/button-toggles',
+    unitSlug: 'unit-04',
+    unitLabel: 'Unit 4',
+    unitTitle: 'Gamepad Input',
+  },
+  {
+    id: 'unit-04/joystick-scaling',
+    label: '4.2 · Joystick Scaling',
+    title: 'Lesson 4.2: Scaling Joystick X/Y Analog Values for Differential Drive',
+    path: '/docs/unit-04/joystick-scaling',
+    unitSlug: 'unit-04',
+    unitLabel: 'Unit 4',
+    unitTitle: 'Gamepad Input',
+  },
+  {
+    id: 'unit-04/trigger-inputs',
+    label: '4.3 · Trigger Inputs',
+    title: 'Lesson 4.3: Implementing Progressive Braking via Analog Trigger Inputs',
+    path: '/docs/unit-04/trigger-inputs',
+    unitSlug: 'unit-04',
+    unitLabel: 'Unit 4',
+    unitTitle: 'Gamepad Input',
+  },
+  {
+    id: 'unit-04/sensitivity-curves',
+    label: '4.4 · Sensitivity Curves',
+    title: 'Lesson 4.4: Reducing Stick Sensitivity using the squareInputWithSign() Method',
+    path: '/docs/unit-04/sensitivity-curves',
+    unitSlug: 'unit-04',
+    unitLabel: 'Unit 4',
+    unitTitle: 'Gamepad Input',
+  },
+  {
+    id: 'unit-04/arcade-drive-challenge',
+    label: '4.5 · Challenge: Arcade Drive',
+    title: 'Lesson 4.5: Challenge — Full Arcade Drive Mapping with Custom Deadzones and Sensitivity Curves',
+    path: '/docs/unit-04/arcade-drive-challenge',
+    unitSlug: 'unit-04',
+    unitLabel: 'Unit 4',
+    unitTitle: 'Gamepad Input',
+  },
+  {
+    id: 'unit-04/mastery-quiz',
+    label: 'Unit 4 · Mastery Quiz',
+    title: 'Unit 4 Mastery Quiz: Gamepad Input',
+    path: '/docs/unit-04/mastery-quiz',
+    unitSlug: 'unit-04',
+    unitLabel: 'Unit 4',
+    unitTitle: 'Gamepad Input',
+  },
 ];
 
 export const CURRICULUM_UNIT_COUNT = CURRICULUM_UNITS.length;
 export const CURRICULUM_LESSON_COUNT = CURRICULUM_LESSONS.length;
+
+export function getUnitBySlug(unitSlug: string): CurriculumUnit | undefined {
+  return CURRICULUM_UNITS.find((unit) => unit.slug === unitSlug);
+}
+
+export function getLessonsForUnit(unitSlug: string): CurriculumLesson[] {
+  return CURRICULUM_LESSONS.filter((lesson) => lesson.unitSlug === unitSlug);
+}

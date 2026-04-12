@@ -1,0 +1,112 @@
+---
+id: joystick-scaling
+title: "Lesson 4.2: Scaling Joystick X/Y Analog Values for Differential Drive"
+sidebar_label: "4.2 · Joystick Scaling"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 4.2: Scaling Joystick X/Y Analog Values for Differential Drive
+
+---
+
+## Technical Context
+
+The gamepad joysticks provide a range of motion used for proportional speed control. However, by default, the Y-axis on the gamepad is **negative** when pushed up and **positive** when pushed down. If a programmer fails to negate this value in the Java code, the robot will drive backward when the driver intends to move forward, leading to high-speed collisions and potential drivetrain failure.
+
+---
+
+## The Deep Dive
+
+Joysticks are members of the `gamepad` object and are stored as `double` precision variables with a range of `-1.0` to `1.0`. The center position of the joystick is exactly `0.0`. In a Differential Drive (or Tank Drive) configuration, the Y-axis input is typically used to command the voltage of the DC Motors. To correct the hardware's inverted logical bias, the programmer must perform a simple math operation: `double forwardPower = -gamepad1.left_stick_y;`.
+
+---
+
+## Annotated Code
+
+```java
+@TeleOp(name="Joystick_Scaling", group="Unit4")
+public class JoystickScaling extends OpMode {
+
+    @Override
+    public void init() {
+        telemetry.addData("Status", "Drive Initialized");
+    }
+
+    @Override
+    public void loop() {
+        // Correcting the negative 'up' bias of the Y-axis
+        double drivePower = -gamepad1.left_stick_y;
+
+        // Streaming the raw and scaled data back to the Driver Station
+        telemetry.addData("Raw Stick Y",       gamepad1.left_stick_y);
+        telemetry.addData("Scaled Drive Power", drivePower);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. A gamepad joystick returns values as a/an `__________` datatype.
+2. When a joystick is pushed fully toward the top of the controller, its Y-value is `__________`.
+3. The X-axis of a joystick is `__________` when pushed to the left and positive to the right.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`double`**
+2. **-1.0** (negative — this is the hardware bias that must be corrected)
+3. **negative**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your robot's drivetrain is too fast for a rookie driver. Create a program that scales the joystick's Y-axis input to 50% of its maximum value and negates it so the robot moves forward when the stick is pushed up.
+
+```java
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name="Rookie_Drive_Mode")
+public class RookieDrive extends OpMode {
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void loop() {
+        // 1. CALCULATE 'safePower' BY NEGATING THE STICK Y AND DIVIDING BY 2.0
+        // INSERT CODE HERE
+
+        // 2. USE TELEMETRY TO OUTPUT THE 'safePower' VALUE
+        // INSERT CODE HERE
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    double safePower = -gamepad1.left_stick_y / 2.0;
+    telemetry.addData("Safe Power", safePower);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-04/joystick-scaling"
+  nextUnit="/docs/unit-04/trigger-inputs"
+  nextUnitName="Lesson 4.3: Implementing Progressive Braking via Analog Trigger Inputs"
+/>

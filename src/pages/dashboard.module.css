@@ -231,24 +231,116 @@
   margin: 0 0 1rem;
 }
 
+.unitGroup {
+  margin-bottom: 1.1rem;
+  border: 1px solid rgba(0, 191, 255, 0.12);
+  background: #0d0d1e;
+}
+
+.unitHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  flex-wrap: wrap;
+}
+
+.unitToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.unitToggleIcon {
+  font-family: 'Share Tech Mono', monospace;
+  color: #00BFFF;
+  font-size: 14px;
+}
+
+.unitHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.unitHeaderTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: #e8f4ff;
+  line-height: 1.1;
+}
+
+.unitHeaderMeta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(232, 244, 255, 0.45);
+}
+
+.unitHeaderActions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.unitHeaderLink {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(0, 191, 255, 0.18);
+  color: rgba(232, 244, 255, 0.72);
+  text-decoration: none;
+}
+
+.unitHeaderLink:hover {
+  text-decoration: none;
+  color: #e8f4ff;
+  border-color: rgba(0, 191, 255, 0.4);
+}
+
+.unitProgressTrack {
+  height: 4px;
+  background: rgba(0, 191, 255, 0.1);
+}
+
+.unitProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #00BFFF, #39FF14);
+}
+
+.unitLessonRows {
+  border-top: 1px solid rgba(0, 191, 255, 0.1);
+}
+
 .lessonRow {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  border: 1px solid rgba(0, 191, 255, 0.1);
-  border-top: none;
+  border-top: 1px solid rgba(0, 191, 255, 0.08);
   text-decoration: none;
   color: inherit;
   transition: background 0.15s;
   background: #0d0d1e;
 }
 
-.lessonRow:first-of-type { border-top: 1px solid rgba(0, 191, 255, 0.1); }
 .lessonRow:hover { background: #121230; text-decoration: none; color: inherit; }
 
 .lessonDone { border-left: 3px solid #39FF14; }
-.lessonDone:first-of-type { border-top: 1px solid rgba(0, 191, 255, 0.1); }
 
 .lessonCheck {
   font-family: 'Share Tech Mono', monospace;
@@ -296,4 +388,6 @@
   .overviewGrid { grid-template-columns: 1fr; }
   .header       { flex-direction: column; }
   .headerActions { align-items: flex-start; }
+  .unitHeader { align-items: flex-start; }
+  .unitHeaderActions { width: 100%; }
 }

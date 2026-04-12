@@ -2,6 +2,7 @@
   "label": "Unit 3: Java Variables",
   "position": 3,
   "link": {
-    "type": "generated-index"
+    "type": "doc",
+    "id": "unit-03/overview"
   }
 }

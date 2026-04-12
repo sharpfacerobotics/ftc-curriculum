@@ -1,0 +1,128 @@
+---
+id: arcade-drive-challenge
+title: "Lesson 4.5: Challenge — Full Arcade Drive Mapping with Custom Deadzones and Sensitivity Curves"
+sidebar_label: "4.5 · Challenge: Arcade Drive"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 4.5: Challenge — Full Arcade Drive Mapping with Custom Deadzones and Sensitivity Curves
+
+---
+
+## Technical Context
+
+Professional drivers require a **"Deadzone"** to prevent robot creep caused by joystick drift — a common hardware failure where the physical stick does not return to a perfect `0.0`. Combining deadzones with sensitivity curves creates a robust control system that ignores accidental touches but responds with extreme precision during scoring.
+
+---
+
+## The Deep Dive
+
+This challenge requires integrating nested logic and method calls. A deadzone is implemented using a comparison operator (e.g., `if (Math.abs(input) < 0.1) power = 0;`). By passing only the filtered data to the `squareInputWithSign()` method from Lesson 4.4, you create a professional-grade driver interface. This utilizes **procedural decomposition** by separating the math from the hardware execution, making the code easier to debug when the drive team requests "feel" adjustments during a competition.
+
+---
+
+## Annotated Code
+
+```java
+@TeleOp(name="Pro_Drive_System", group="Challenge")
+public class ProDrive extends OpMode {
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void loop() {
+        double x = gamepad1.left_stick_x;
+        double y = -gamepad1.left_stick_y;
+
+        // Implementation of a 10% Deadzone to prevent motor drift
+        if (Math.abs(x) < 0.1) x = 0;
+        if (Math.abs(y) < 0.1) y = 0;
+
+        // Combining deadzone-filtered values with squared sensitivity
+        double finalX = x * x * Math.signum(x); // preserves the sign of x
+        double finalY = y * y * Math.signum(y);
+
+        telemetry.addData("Status",          "Drive System Active");
+        telemetry.addData("Corrected X/Y",   "X:%.2f Y:%.2f", finalX, finalY);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. A/An `__________` is a range near the center of the joystick where no robot movement occurs to prevent drift.
+2. The `Math.abs()` method is used to find the `__________` value of a number, which is useful for checking thresholds.
+3. Combining multiple inputs like buttons and squared joysticks is known as creating a custom `__________` scheme.
+
+<details>
+<summary>Show answers</summary>
+
+1. **deadzone**
+2. **absolute**
+3. **control** (or sensitivity / input mapping)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Combine everything. Create an OpMode where the `A` button acts as a "Turbo Switch." If `A` is pressed, use the raw joystick values. If `A` is **NOT** pressed, use squared joystick values for precision.
+
+```java
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name="Turbo_Logic_Challenge")
+public class TurboChallenge extends OpMode {
+
+    @Override
+    public void init() {}
+
+    @Override
+    public void loop() {
+        double rawY = -gamepad1.left_stick_y;
+        double finalPower;
+
+        // 1. IF gamepad1.a IS PRESSED, finalPower IS rawY (turbo/raw)
+        // 2. ELSE, finalPower IS rawY * rawY * (SIGN OF rawY) (precision)
+        // INSERT CODE HERE
+
+        telemetry.addData("Drive Power", finalPower);
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    double rawY = -gamepad1.left_stick_y;
+    double finalPower;
+
+    if (gamepad1.a) {
+        finalPower = rawY;
+    } else {
+        finalPower = rawY * rawY * Math.signum(rawY);
+    }
+
+    telemetry.addData("Drive Power", finalPower);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-04/arcade-drive-challenge"
+  nextUnit="/docs/unit-04/mastery-quiz"
+  nextUnitName="Unit 4 Mastery Quiz"
+/>

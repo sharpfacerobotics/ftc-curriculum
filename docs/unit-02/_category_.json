@@ -2,6 +2,7 @@
   "label": "Unit 2: OpMode Structure",
   "position": 2,
   "link": {
-    "type": "generated-index"
+    "type": "doc",
+    "id": "unit-02/overview"
   }
 }

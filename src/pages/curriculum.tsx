@@ -36,7 +36,7 @@ export default function CurriculumPage(): React.JSX.Element {
 
           <div className={pageStyles.curriculumGrid}>
             {CURRICULUM_UNITS.map((unit) => (
-              <Link to={unit.categoryPath} key={unit.id} className={pageStyles.unitCard}>
+              <Link to={unit.overviewPath} key={unit.id} className={pageStyles.unitCard}>
                 <div className={pageStyles.unitNum}>{unit.label}</div>
                 <div className={pageStyles.unitTitle}>{unit.title}</div>
                 <div className={pageStyles.unitDesc}>

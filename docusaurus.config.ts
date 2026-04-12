@@ -80,6 +80,14 @@ const config: Config = {
         alt: 'Telemark Logo',
         src: 'img/telemark.png', // we'll place your logo here next
       },
+      items: [
+        {
+          to: '/dashboard',
+          label: 'Dashboard',
+          position: 'right',
+          className: 'navbar-dashboard-link',
+        },
+      ],
       style: 'dark',
     },
     footer: {

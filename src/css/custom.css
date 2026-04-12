@@ -44,6 +44,20 @@
   background-clip: text;
 }
 
+.navbar-dashboard-link {
+  border: 1px solid #00BFFF44;
+  background: linear-gradient(135deg, rgba(0, 191, 255, 0.16), rgba(57, 255, 20, 0.08));
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.55rem 0.85rem !important;
+}
+
+.navbar-dashboard-link:hover {
+  background: linear-gradient(135deg, rgba(0, 191, 255, 0.22), rgba(57, 255, 20, 0.12));
+}
+
 /* ---- SIDEBAR ---- */
 .menu {
   background: #0d0d1a;

@@ -13,7 +13,11 @@ export function useProgress(user: User | null) {
   const [loading, setLoading]   = useState(false);
 
   useEffect(() => {
-    if (!user) { setProgress(null); return; }
+    if (!user) {
+      setProgress(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
     getDoc(ref).then((snap) => {
@@ -24,6 +28,8 @@ export function useProgress(user: User | null) {
         setDoc(ref, initial);
         setProgress(initial);
       }
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
   }, [user]);
@@ -40,9 +46,26 @@ export function useProgress(user: User | null) {
       completedLessons: newCompleted,
       lastLesson: lessonId,
     }));
-    console.log('Saving to Firestore:', payload);
     await setDoc(ref, payload, { merge: true });
     setProgress({ completedLessons: newCompleted, lastLesson: lessonId });
+  }, [user, progress]);
+
+  const markManyComplete = useCallback(async (lessonIds: string[]) => {
+    if (!user || !progress || lessonIds.length === 0) return;
+
+    const additions = lessonIds.filter((lessonId) => !progress.completedLessons.includes(lessonId));
+    if (additions.length === 0) return;
+
+    const newCompleted = [...progress.completedLessons, ...additions];
+    const lastLesson = lessonIds[lessonIds.length - 1];
+    const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
+    const payload = JSON.parse(JSON.stringify({
+      completedLessons: newCompleted,
+      lastLesson,
+    }));
+
+    await setDoc(ref, payload, { merge: true });
+    setProgress({ completedLessons: newCompleted, lastLesson });
   }, [user, progress]);
 
   const isComplete = useCallback(
@@ -50,5 +73,5 @@ export function useProgress(user: User | null) {
     [progress],
   );
 
-  return { progress, loading, markComplete, isComplete };
+  return { progress, loading, markComplete, markManyComplete, isComplete };
 }

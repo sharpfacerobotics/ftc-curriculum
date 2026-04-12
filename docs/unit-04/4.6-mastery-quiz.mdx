@@ -1,0 +1,126 @@
+---
+id: mastery-quiz
+title: "Unit 4 Mastery Quiz: Gamepad Input"
+sidebar_label: "Unit 4 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 4 Mastery Quiz: Gamepad Input
+
+---
+
+## I. Conceptual Questions
+
+**1. Hardware Logical Bias:** Why is it standard engineering practice in the FTC SDK to negate the `gamepad.left_stick_y` value (e.g., `double pwr = -gamepad1.left_stick_y`) before passing it to a motor?
+
+<details>
+<summary>Show answer</summary>
+
+By hardware default, pushing a joystick "up" returns a negative value, and pushing it "down" returns a positive value. Negation ensures the robot's physical movement aligns with the driver's intuitive expectation of forward and backward.
+
+</details>
+
+---
+
+**2. Sensitivity and Granularity:** From a driver-performance perspective, why is a squared sensitivity curve (e.g., `input * input`) preferred over a standard linear mapping for high-torque drivetrains?
+
+<details>
+<summary>Show answer</summary>
+
+Squaring the input provides greater granularity at lower power levels, allowing the driver to perform precise micro-adjustments near the joystick's center while still maintaining the ability to reach maximum voltage at the stick's full extension.
+
+</details>
+
+---
+
+**3. Mechanical Fail-Safe (Deadzones):** Explain the hardware-focused reason for implementing a "Deadzone" logic check (e.g., `if (Math.abs(input) < 0.1) input = 0;`) in a competition-grade OpMode.
+
+<details>
+<summary>Show answer</summary>
+
+Physical joystick hardware often suffers from "drift," where the spring-loaded stick fails to return to an absolute `0.0` center. A deadzone prevents the robot from "creeping" or drawing unnecessary current when the driver is not touching the controller.
+
+</details>
+
+---
+
+**4. Control Methodology:** Why would an engineer choose to map a variable-speed intake mechanism to a Trigger rather than a Button?
+
+<details>
+<summary>Show answer</summary>
+
+Buttons are digital/binary (`boolean`) and only provide "on" or "off" states. Triggers are analog (`double`) and provide a range from `0.0` to `1.0`, allowing the driver to "feather" the speed to prevent game elements from being ejected or to reduce mechanical shock on the motor gears.
+
+</details>
+
+---
+
+**5. Lifecycle Constraints:** Why is the logic `while(gamepad1.a) { motor.setPower(1); }` considered a critical failure when placed inside the `loop()` method?
+
+<details>
+<summary>Show answer</summary>
+
+The SDK only updates the gamepad object states between executions of the `loop()` method. Using a `while` loop inside `loop()` would "block" the thread, preventing the software from ever seeing the button release and potentially causing a communication timeout with the Robot Controller.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following program is intended to scale a motor's power based on the left joystick with increased sensitivity. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Input_Debug")
+public class InputDebug extends OpMode {
+
+    DcMotor drive;
+
+    @Override
+    public void init() {
+        drive = hardwareMap.get(DcMotor.class, "left_drive")
+    }
+
+    @Override
+    public void loop() {
+        // Implementation: Square the joystick value for better control
+        double power = gamepad1.left_stick_y * gamepad1.left_stick_y;
+        drive.setPower(power);
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 — Syntax Error:**
+The instantiation of the `drive` object in the `init()` method is missing a semicolon (`;`) at the end of the `hardwareMap.get()` call. Java requires every statement to be terminated for the compiler to parse the code.
+
+```java
+drive = hardwareMap.get(DcMotor.class, "left_drive"); // ← semicolon added
+```
+
+**Error 2 — Logic Error:**
+The squaring operation (`gamepad1.left_stick_y * gamepad1.left_stick_y`) destroys the sign of the input. Because a negative times a negative is positive, the robot will drive in the same direction regardless of whether the joystick is pushed up or down. The programmer must negate the input to correct the Y-axis bias and use a sign-preservation method to retain direction:
+
+```java
+double rawInput = -gamepad1.left_stick_y;
+double power    = rawInput * rawInput * Math.signum(rawInput);
+drive.setPower(power);
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-04/mastery-quiz"
+  nextUnit="/dashboard"
+  nextUnitName="Dashboard"
+/>

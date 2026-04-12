@@ -193,7 +193,7 @@ function CurriculumSection(): React.JSX.Element {
       <div className={styles.curriculumGrid}>
         {CURRICULUM_UNITS.map((unit) => (
           <Link
-            to={unit.categoryPath}
+            to={unit.overviewPath}
             key={unit.id}
             className={styles.unitCard}
           >
