@@ -25,18 +25,6 @@ export default function DashboardPage(): React.JSX.Element {
     }
   }, [user, loading, history]);
 
-  if (loading || progressLoading || !user || !progress) {
-    return (
-      <Layout title="Dashboard — Telemark" noFooter>
-        <main className={styles.page}>
-          <div className={styles.loading}>
-            <span className={styles.loadingText}>Loading Telemark...</span>
-          </div>
-        </main>
-      </Layout>
-    );
-  }
-
   const completed  = CURRICULUM_LESSONS.filter((lesson) => isComplete(lesson.id)).length;
   const total      = CURRICULUM_LESSONS.length;
   const percentage = Math.round((completed / total) * 100);
@@ -93,6 +81,18 @@ export default function DashboardPage(): React.JSX.Element {
       ...prev,
       [unitSlug]: nextValue,
     }));
+  }
+
+  if (loading || progressLoading || !user || !progress) {
+    return (
+      <Layout title="Dashboard — Telemark" noFooter>
+        <main className={styles.page}>
+          <div className={styles.loading}>
+            <span className={styles.loadingText}>Loading Telemark...</span>
+          </div>
+        </main>
+      </Layout>
+    );
   }
 
   return (
