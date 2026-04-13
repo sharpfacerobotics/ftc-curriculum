@@ -1,0 +1,128 @@
+---
+id: comparison-operators
+title: "Lesson 5.3: Implementing Hardware Safe-Zones with Comparison Operators"
+sidebar_label: "5.3 · Comparison Operators"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 5.3: Implementing Hardware Safe-Zones with Comparison Operators
+
+---
+
+## Technical Context
+
+Comparison operators allow the robot to interpret analog data — such as encoder ticks or sensor voltage — to enforce physical safety limits. Implementing **"Soft Limits"** via comparison logic prevents the robot from attempting to drive a mechanism past its physical hard-stop, which would otherwise result in stalled motors, stripped gears, or blown fuses on the Control Hub.
+
+---
+
+## The Deep Dive
+
+Hardware sensors return numerical values that must be compared against thresholds. Java provides several conditional operators for this purpose: `==` (equal to), `!=` (not equal to), `<` (less than), `>` (greater than), `<=` (less than or equal to), and `>=` (greater than or equal to). In the case of an arm mechanism, the programmer compares the current `DcMotor` encoder position against a maximum "Safe-Zone" integer. If the position exceeds the limit, the logic overrides driver input to force the power to zero.
+
+---
+
+## Annotated Code
+
+```java
+@Override
+public void loop() {
+    double liftPower = -gamepad1.left_stick_y;
+    int currentPos   = liftMotor.getCurrentPosition();
+
+    // Hardware Protection Logic: Max Height is 2000 ticks
+    if (currentPos > 2000 && liftPower > 0) {
+        // Overriding power to prevent mechanical over-extension
+        liftPower = 0.0;
+        telemetry.addData("Safety", "MAX LIMIT REACHED");
+    }
+
+    liftMotor.setPower(liftPower);
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To test if two numerical hardware values are exactly equal, the `__________` operator must be used.
+2. The `__________` operator is used to check if a sensor value is "not equal" to a specific constant.
+3. A common error is accidentally using the single `=` operator, which is for `__________`, instead of the double `==` operator.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`==`**
+2. **`!=`**
+3. **assignment**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your team is using a Distance Sensor to prevent the robot from hitting walls. If the distance reading is less than `10.0` cm, the motor power should be set to `0.0` immediately.
+
+```java
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+@TeleOp(name="Wall_Safety_Challenge")
+public class WallSafety extends OpMode {
+
+    private DcMotor driveMotor;
+    private DistanceSensor distanceSensor;
+
+    @Override
+    public void init() {
+        driveMotor     = hardwareMap.get(DcMotor.class, "drive");
+        distanceSensor = hardwareMap.get(DistanceSensor.class, "front_sensor");
+    }
+
+    @Override
+    public void loop() {
+        double dist = distanceSensor.getDistance(DistanceUnit.CM);
+
+        // IF THE DISTANCE IS LESS THAN 10.0 cm
+        // INSERT CODE HERE
+        {
+            // COMMAND THE DRIVE MOTOR TO STOP
+            // INSERT CODE HERE
+        }
+        else {
+            driveMotor.setPower(-gamepad1.left_stick_y);
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    double dist = distanceSensor.getDistance(DistanceUnit.CM);
+
+    if (dist < 10.0) {
+        driveMotor.setPower(0.0);
+    } else {
+        driveMotor.setPower(-gamepad1.left_stick_y);
+    }
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-05/comparison-operators"
+  nextUnit="/docs/unit-05/logical-operators"
+  nextUnitName="Lesson 5.4: Combining Sensor Thresholds with Logical AND/OR Operators"
+/>

@@ -1,0 +1,136 @@
+---
+id: intake-logic-challenge
+title: "Lesson 5.5: Challenge — Designing a Multi-Stage Intake Logic Tree for Game Element Sorting"
+sidebar_label: "5.5 · Challenge: Intake Logic"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 5.5: Challenge — Designing a Multi-Stage Intake Logic Tree for Game Element Sorting
+
+---
+
+## Technical Context
+
+A **"Logic Tree"** is a complex arrangement of decisions that allows the robot to handle variable field conditions autonomously. This prevents failures in game element management by creating specific behaviors for different scenarios — such as varying motor power based on whether a Color Sensor detects a friendly or opposing alliance element.
+
+---
+
+## The Deep Dive
+
+This challenge requires nesting `if`/`else` statements within each other, or using a complex `else if` chain, to manage a hardware subsystem. The goal is to implement a **state-dependent controller**. For example, the intake mechanism should run at 100% if empty, 50% if one item is detected, and 0% (Stop) if the distance sensor indicates the intake is full. By structuring this logic correctly, you minimize the driver's cognitive load and maximize the robot's cycle efficiency.
+
+---
+
+## Annotated Code
+
+```java
+@Override
+public void loop() {
+    double dist     = board.getDistance(DistanceUnit.CM);
+    int    redValue = board.getAmountRed();
+
+    if (dist < 5.0) {
+        // Logic Level 1: Intake is full — stop immediately
+        intake.setPower(0.0);
+        telemetry.addData("Intake", "FULL - STOPPED");
+    } else if (redValue > 200) {
+        // Logic Level 2: Wrong alliance element detected — eject
+        intake.setPower(-1.0);
+        telemetry.addData("Intake", "WRONG ELEMENT - EJECTING");
+    } else {
+        // Logic Level 3: Ready to intake — follow driver input
+        intake.setPower(gamepad1.right_trigger);
+        telemetry.addData("Intake", "READY");
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. When one `if` statement is placed inside another `if` statement's block, it is referred to as a/an `__________` conditional.
+2. Building a multi-stage logic tree helps robots handle variable conditions in the `__________` phase of a match.
+3. A well-designed logic tree ensures that the `setPower()` method always receives a/an `__________` value between `-1.0` and `1.0`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **nested**
+2. **autonomous**
+3. **valid** (unambiguous / single)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Create a sorting logic. If the Color Sensor sees Blue (`blue() > 100`), set Servo 1 to `0.0`. If it sees Red (`red() > 100`), set Servo 1 to `1.0`. If it sees neither, set Servo 1 to `0.5`.
+
+```java
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name="Sorter_Challenge")
+public class SorterChallenge extends OpMode {
+
+    private ColorSensor sensor;
+    private Servo       sorter;
+
+    @Override
+    public void init() {
+        sensor = hardwareMap.get(ColorSensor.class, "sensor");
+        sorter = hardwareMap.get(Servo.class, "sorter");
+    }
+
+    @Override
+    public void loop() {
+        // 1. CHECK IF BLUE VALUE IS > 100
+        // INSERT CODE HERE
+        {
+            sorter.setPosition(0.0);
+        }
+        // 2. ELSE CHECK IF RED VALUE IS > 100
+        // INSERT CODE HERE
+        {
+            sorter.setPosition(1.0);
+        }
+        // 3. ELSE (NEITHER SEEN)
+        // INSERT CODE HERE
+        {
+            sorter.setPosition(0.5);
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    if (sensor.blue() > 100) {
+        sorter.setPosition(0.0);
+    } else if (sensor.red() > 100) {
+        sorter.setPosition(1.0);
+    } else {
+        sorter.setPosition(0.5);
+    }
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-05/intake-logic-challenge"
+  nextUnit="/docs/unit-05/mastery-quiz"
+  nextUnitName="Unit 5 Mastery Quiz"
+/>

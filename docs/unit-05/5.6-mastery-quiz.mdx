@@ -1,0 +1,119 @@
+---
+id: mastery-quiz
+title: "Unit 5 Mastery Quiz: Logic & Decisions"
+sidebar_label: "Unit 5 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 5 Mastery Quiz: Logic & Decisions
+
+---
+
+## I. Conceptual Questions
+
+**1. Mutual Exclusion:** Why is it considered an engineering failure to use two independent `if` statements (e.g., `if(gamepad1.a)` and `if(gamepad1.b)`) to control a single motor's power instead of an `else if` chain?
+
+<details>
+<summary>Show answer</summary>
+
+Independent statements allow both conditions to be true simultaneously. If both buttons are pressed, the Control Hub receives two conflicting `setPower()` commands in the same loop cycle, causing high-frequency voltage jitter and mechanical strain on the motor gears.
+
+</details>
+
+---
+
+**2. Threshold Resilience:** Why should you use comparison operators (like `>=` or `<=`) instead of the equality operator (`==`) when checking sensor values like encoder ticks or IMU heading?
+
+<details>
+<summary>Show answer</summary>
+
+Hardware sensors update at high speeds with high precision. Because the robot might move multiple ticks or degrees between loop cycles, it is unlikely to hit an exact integer value. Using a threshold ensures the logic triggers once the robot enters the target zone, rather than waiting for an exact match that may never occur.
+
+</details>
+
+---
+
+**3. Logical Combinations:** What is the technical advantage of using a Logical AND (`&&`) operator over nested `if` statements when creating a hardware safety gate?
+
+<details>
+<summary>Show answer</summary>
+
+Logical operators improve code readability and "self-documentation." A single `if (isArmUp && isClawClosed)` clearly defines the exact hardware state required for execution in one line, whereas nested `if` statements require reading two separate blocks to understand the same condition.
+
+</details>
+
+---
+
+**4. State Recovery:** Why is a final `else` block critical when mapping gamepad buttons to motor power inside the `loop()` method?
+
+<details>
+<summary>Show answer</summary>
+
+Without the catch-all `else` block, once a motor is given power by an `if` statement, it will continue to run at that voltage even after the button is released. The `else` block ensures the hardware returns to a zero-power state every cycle that no button is held.
+
+</details>
+
+---
+
+**5. Control Flow Logic:** Why would an engineer use a `switch` statement with an `enum` instead of a long `if`/`else if` chain for an autonomous state machine?
+
+<details>
+<summary>Show answer</summary>
+
+Using an `enum` allows the compiler to catch typos that would be missed with `String`-based logic. It also makes the code more readable and easier to expand — adding a new autonomous step is as simple as adding a new `enum` value and a corresponding `case` block.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is intended to stop a motor if a Distance Sensor sees a wall closer than 10 cm, otherwise it runs at a speed set by the trigger. **Identify and fix the 2 errors.**
+
+```java
+@Override
+public void loop() {
+    double dist  = sensor.getDistance(DistanceUnit.CM);
+    double power = gamepad1.right_trigger;
+
+    if (dist < 10.0) {
+        motor.setPower(0.0)
+    }
+    if (power > 0.1) {
+        motor.setPower(power);
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 — Syntax Error:**
+The statement `motor.setPower(0.0)` inside the first `if` block is missing a semicolon (`;`). Java requires semicolons to terminate every command.
+
+```java
+motor.setPower(0.0); // ← semicolon added
+```
+
+**Error 2 — Logic Error:**
+The programmer used two independent `if` blocks instead of an `else if` or `else` structure. If the robot is closer than 10 cm **and** the driver is still holding the trigger, the motor will be told to stop and then immediately told to move in the same loop cycle — the trigger logic overrides the safety sensor.
+
+```java
+if (dist < 10.0) {
+    motor.setPower(0.0);
+} else if (power > 0.1) {
+    motor.setPower(power);
+} else {
+    motor.setPower(0.0);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-05/mastery-quiz"
+  nextUnit="/dashboard"
+  nextUnitName="Dashboard"
+/>
