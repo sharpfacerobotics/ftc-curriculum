@@ -1,0 +1,141 @@
+---
+id: runtime-timing
+title: "Lesson 6.3: Managing Timed Transitions using getRuntime() Loop Comparisons"
+sidebar_label: "6.3 · getRuntime() Timing"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 6.3: Managing Timed Transitions using getRuntime() Loop Comparisons
+
+---
+
+## Technical Context
+
+Standard `sleep()` commands block the **entire thread**, preventing the robot from reading sensor data or reacting to gamepad inputs during the sleep period. Comparing loop iterations against `getRuntime()` allows for **"non-blocking"** timing, enabling the robot to perform multiple hardware tasks simultaneously within the same loop cycle.
+
+---
+
+## The Deep Dive
+
+The `getRuntime()` method returns a `double` representing the seconds elapsed since the OpMode was initialized. By capturing a "start time" timestamp and comparing it to the current `getRuntime()` value inside a `while` or `if` statement, the programmer creates a timed window for hardware to operate — without freezing any other logic.
+
+The key pattern is: **capture a target timestamp, then check against it each loop cycle.**
+
+```java
+double targetTime = getRuntime() + 2.0; // 2 seconds from now
+```
+
+The clock increments in sub-milliseconds, so you must use `<` (less than) rather than `==` for the comparison — the current time will almost never land on the exact target value.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Timed_Drive_Demo")
+public class TimedDriveDemo extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor driveMotor = hardwareMap.get(DcMotor.class, "drive");
+
+        waitForStart();
+
+        // Set a timestamp 2 seconds in the future
+        double targetTime = getRuntime() + 2.0;
+
+        // Drive forward until the 2-second window closes
+        while (opModeIsActive() && getRuntime() < targetTime) {
+            driveMotor.setPower(0.5);
+            telemetry.addData("Time Remaining", targetTime - getRuntime());
+            telemetry.update();
+        }
+
+        driveMotor.setPower(0); // Stop cleanly after the timed move
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The `getRuntime()` method returns the time as a `__________` data type.
+2. When comparing time, it is critical to use the `__________` operator instead of `==` because the clock increments in sub-milliseconds.
+3. To reset the internal clock to zero at the start of the match, use the `__________` method.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`double`**
+2. **`<`** (less than)
+3. **`resetRuntime()`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** The robot must run a `"test_motor"` for exactly 1.5 seconds when the user presses the `'X'` button, but it must **not** use `sleep()`.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Non_Blocking_Timer")
+public class NonBlockingTimer extends OpMode {
+
+    private DcMotor test_motor;
+    private double endTime = 0;
+
+    @Override
+    public void init() {
+        test_motor = hardwareMap.get(DcMotor.class, "test_motor");
+    }
+
+    @Override
+    public void loop() {
+        if (gamepad1.x) {
+            // INSERT CODE HERE: Capture the current runtime plus 1.5 seconds into 'endTime'
+        }
+
+        if (getRuntime() < endTime) {
+            test_motor.setPower(1.0);
+        } else {
+            test_motor.setPower(0.0);
+        }
+
+        telemetry.addData("Motor Active", getRuntime() < endTime);
+        telemetry.update();
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+if (gamepad1.x) {
+    endTime = getRuntime() + 1.5;
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-06/runtime-timing"
+  nextUnit="/docs/unit-06/hardware-arrays"
+  nextUnitName="Lesson 6.4: Iterating Hardware Arrays using for..each Syntax"
+/>

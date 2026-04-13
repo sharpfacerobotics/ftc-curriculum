@@ -1,0 +1,138 @@
+---
+id: hardware-arrays
+title: "Lesson 6.4: Iterating Hardware Arrays using for..each Syntax"
+sidebar_label: "6.4 · Hardware Arrays"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 6.4: Iterating Hardware Arrays using for..each Syntax
+
+---
+
+## Technical Context
+
+Complex robots often utilize four drivetrain motors or multiple identical sensors. Iterating through these components individually is inefficient; using a `for..each` loop with a hardware array allows the programmer to apply a single command (like `BRAKE` behavior) to every component simultaneously, reducing the risk of accidentally missing a port.
+
+---
+
+## The Deep Dive
+
+A Java array is instantiated to hold a fixed number of SDK objects (e.g., `DcMotor[] motors = new DcMotor[4]`). The `for..each` syntax — `for (Type variable : array)` — provides a shortcut to access every object in that array without managing an index integer, ensuring every connected component receives the instruction in a clean, readable block.
+
+Two things to remember:
+- Arrays in Java are **zero-indexed** — the first element is at index `0`.
+- The variable type declared in the `for..each` header must match the type stored in the array.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Array_Drive_Demo")
+public class ArrayDriveDemo extends OpMode {
+
+    // Array declaration — holds all four drivetrain motors
+    DcMotor[] allMotors;
+
+    private DcMotor leftFront, rightFront, leftBack, rightBack;
+
+    @Override
+    public void init() {
+        leftFront  = hardwareMap.get(DcMotor.class, "left_front");
+        rightFront = hardwareMap.get(DcMotor.class, "right_front");
+        leftBack   = hardwareMap.get(DcMotor.class, "left_back");
+        rightBack  = hardwareMap.get(DcMotor.class, "right_back");
+
+        // Populate the array after mapping
+        allMotors = new DcMotor[]{ leftFront, rightFront, leftBack, rightBack };
+
+        // Apply BRAKE behavior to every motor in one loop
+        for (DcMotor motor : allMotors) {
+            motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+    }
+
+    @Override
+    public void loop() {
+        // Stop all motors at once using the array
+        for (DcMotor motor : allMotors) {
+            motor.setPower(0.0);
+        }
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To declare an array of DC motors, the syntax is `DcMotor__________ motors;`.
+2. The index of the first element in any Java array is `__________`.
+3. In a `for..each` loop, the variable type must `__________` the type of the objects stored in the array.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`[]`** (e.g., `DcMotor[] motors;`)
+2. **`0`**
+3. **match**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You have an array of four motors named `drivetrain`. Complete the logic to set the `ZeroPowerBehavior` to `BRAKE` for every motor in the array.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Array_Brake_Challenge")
+public class ArrayBrake extends OpMode {
+
+    private DcMotor[] drivetrain;
+
+    @Override
+    public void init() {
+        // Assume the array is already populated with 4 mapped motors here
+
+        // INSERT CODE HERE: Use a for..each loop to iterate through 'drivetrain'
+        {
+            // INSERT CODE HERE: Set each motor's ZeroPowerBehavior to BRAKE
+        }
+    }
+
+    @Override
+    public void loop() {}
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+for (DcMotor motor : drivetrain) {
+    motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-06/hardware-arrays"
+  nextUnit="/docs/unit-06/nonblocking-timer"
+  nextUnitName="Lesson 6.5: Challenge — Building a Non-Blocking Timer Loop for Parallel Mechanism Control"
+/>

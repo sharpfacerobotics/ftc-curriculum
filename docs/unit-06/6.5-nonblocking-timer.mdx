@@ -1,0 +1,152 @@
+---
+id: nonblocking-timer
+title: "Lesson 6.5: Challenge — Building a Non-Blocking Timer Loop for Parallel Mechanism Control"
+sidebar_label: "6.5 · Challenge: Non-Blocking Timer"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 6.5: Challenge — Building a Non-Blocking Timer Loop for Parallel Mechanism Control
+
+---
+
+## Technical Context
+
+"Blocking" code (using `sleep()` or empty `while` loops) prevents a robot from performing parallel tasks. A high-performance robot must be able to drive toward a target while simultaneously raising a lift. A **non-blocking timer loop** allows the program to check multiple conditions — time, sensors, and encoders — in a single loop cycle, enabling true parallel mechanism control.
+
+---
+
+## The Deep Dive
+
+This challenge integrates `while(opModeIsActive())` and `getRuntime()` comparisons from the previous lessons. The key insight is that the loop body runs many times per second. Instead of waiting inside the loop, the code simply **checks** whether a condition is met on each pass and acts accordingly — all other hardware logic continues to run uninterrupted every cycle.
+
+This is the foundation of state machine transitions and parallel autonomous movement, used by championship-level FTC teams.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Parallel_Control_Demo")
+public class ParallelControlDemo extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor driveMotor = hardwareMap.get(DcMotor.class, "drive");
+        DcMotor liftMotor  = hardwareMap.get(DcMotor.class, "lift");
+
+        waitForStart();
+
+        // Set a target time: run the lift for 2 seconds after match starts
+        double liftTargetTime = getRuntime() + 2.0;
+
+        while (opModeIsActive()) {
+            // Action 1: Drive responds to gamepad every cycle — never blocked
+            driveMotor.setPower(-gamepad1.left_stick_y);
+
+            // Action 2: Lift only runs if the timer window is still open
+            if (getRuntime() < liftTargetTime) {
+                liftMotor.setPower(1.0);
+            } else {
+                liftMotor.setPower(0.0);
+            }
+
+            telemetry.addData("Lift Active", getRuntime() < liftTargetTime);
+            telemetry.update();
+        }
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. Using `sleep()` is discouraged because it `__________` the entire program thread from updating other hardware.
+2. A `__________` timer loop is necessary to allow parallel mechanism control.
+3. To trigger an event after 5 seconds without stopping the robot, you would compare `getRuntime()` against a `__________` captured at the start of the event.
+
+<details>
+<summary>Show answers</summary>
+
+1. **blocks**
+2. **non-blocking**
+3. **timestamp** (a `double` variable storing `getRuntime() + 5.0`)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Create a `LinearOpMode` that runs an `"intake"` motor for 3 seconds while simultaneously allowing the robot to move with `gamepad1.left_stick_y` on a `"drive"` motor. Neither mechanism should block the other.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Parallel_Action_Challenge")
+public class ParallelAction extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor drive  = hardwareMap.get(DcMotor.class, "drive");
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+
+        waitForStart();
+
+        // INSERT CODE HERE: Create a timestamp 3 seconds in the future
+        double intakeEnd = // INSERT VALUE HERE
+
+        while (opModeIsActive()) {
+            // INSERT CODE HERE: Set drive power from gamepad1.left_stick_y
+
+            // INSERT CODE HERE: Use an 'if' to run intake ONLY if time remains
+            {
+                intake.setPower(1.0);
+            } else {
+                intake.setPower(0.0);
+            }
+
+            telemetry.update();
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+double intakeEnd = getRuntime() + 3.0;
+
+while (opModeIsActive()) {
+    drive.setPower(-gamepad1.left_stick_y);
+
+    if (getRuntime() < intakeEnd) {
+        intake.setPower(1.0);
+    } else {
+        intake.setPower(0.0);
+    }
+
+    telemetry.update();
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-06/nonblocking-timer"
+  nextUnit="/docs/unit-06/mastery-quiz"
+  nextUnitName="Unit 6 Mastery Quiz"
+/>

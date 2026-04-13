@@ -1,0 +1,126 @@
+---
+id: mastery-quiz
+title: "Unit 6 Mastery Quiz: Loops & Iteration"
+sidebar_label: "Unit 6 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 6 Mastery Quiz: Loops & Iteration
+
+---
+
+## I. Conceptual Questions
+
+**1. Safety & Lifecycle:** Why is it technically dangerous to use a standard `while(true)` loop instead of `while(opModeIsActive())` in a `LinearOpMode`?
+
+<details>
+<summary>Show answer</summary>
+
+`opModeIsActive()` monitors the Robot Controller's status. A `while(true)` loop ignores the "Stop" button on the Driver Station entirely — the loop will never exit, meaning the hardware receives commands even after the match has ended, which can cause mechanical damage or safety violations.
+
+</details>
+
+---
+
+**2. Parallel Execution:** In a high-performance TeleOp, why is using the `sleep()` method considered poor engineering practice compared to `getRuntime()` comparisons?
+
+<details>
+<summary>Show answer</summary>
+
+The `sleep()` method blocks the entire program thread. During the sleep period, the Robot Controller cannot read sensor data, update gamepad state, or send commands to other motors. Using `getRuntime()` comparisons inside the main loop checks the time condition each cycle without halting anything else.
+
+</details>
+
+---
+
+**3. Array Efficiency:** When managing a four-motor drivetrain, why is a `for..each` loop technically superior to accessing each motor variable individually (e.g., `motor1.setPower(0); motor2.setPower(0); ...`)?
+
+<details>
+<summary>Show answer</summary>
+
+A `for..each` loop ensures every motor in the collection receives the command with fewer lines of code, reducing the risk of accidentally omitting a motor or introducing an off-by-one index error. It also makes the code easier to scale — adding a fifth motor only requires adding it to the array, not inserting another manual line.
+
+</details>
+
+---
+
+**4. Floating-Point Precision:** When implementing a non-blocking timer, why must the programmer use the `>=` or `<` comparison operator with `getRuntime()` instead of the `==` equality operator?
+
+<details>
+<summary>Show answer</summary>
+
+The internal clock increments in sub-milliseconds. Because `getRuntime()` returns a `double` that advances continuously, the value will almost certainly never be exactly equal to a stored target. Using `<` creates a range condition that will reliably trigger when the window closes, rather than waiting for an exact match that may never occur.
+
+</details>
+
+---
+
+**5. State Machine Rationale:** Why does the SDK provide the `init_loop()` method, and how does its iterative nature improve autonomous reliability compared to a static `init()`?
+
+<details>
+<summary>Show answer</summary>
+
+`init_loop()` runs repeatedly after the driver presses "Init" but before "Play." This allows the robot to poll sensor readiness over time — for example, waiting for an IMU to finish calibrating or for a vision pipeline to lock onto a target. A static `init()` runs only once and cannot react to hardware that takes a variable amount of time to become ready.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is intended to run an intake motor at full power for exactly 3 seconds after the match starts. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Timed_Intake")
+public class TimedIntake extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake")
+        waitForStart();
+
+        double endTime = getRuntime() + 3.0;
+
+        while (opModeIsActive() && getRuntime() == endTime) {
+            intake.setPower(1.0);
+        }
+
+        intake.setPower(0);
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 — Syntax Error:**
+The `hardwareMap.get()` statement on the first line of `runOpMode()` is missing a semicolon (`;`). Java requires every statement to be terminated with a semicolon for the compiler to parse it correctly.
+
+```java
+DcMotor intake = hardwareMap.get(DcMotor.class, "intake"); // ← semicolon added
+```
+
+**Error 2 — Logic Error:**
+The `while` loop condition uses `==` to compare the runtime against `endTime`. Because `getRuntime()` returns a continuously advancing `double`, it will almost never be exactly equal to the stored target value — the loop will exit immediately (or never enter) without running the motor. The condition must use `<` to create a window:
+
+```java
+while (opModeIsActive() && getRuntime() < endTime) {
+    intake.setPower(1.0);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-06/mastery-quiz"
+  nextUnit="/dashboard"
+  nextUnitName="Dashboard"
+/>
