@@ -1,0 +1,132 @@
+---
+id: mastery-quiz
+title: "Unit 7 Mastery Quiz: Hardware Mapping"
+sidebar_label: "Unit 7 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 7 Mastery Quiz: Hardware Mapping
+
+---
+
+## I. Conceptual Questions
+
+**1. Registry Dependency:** Why does the FTC SDK require the use of the `hardwareMap.get()` method for instantiation rather than allowing a standard Java constructor (e.g., `DcMotor motor = new DcMotor("drive_motor")`)?
+
+<details>
+<summary>Show answer</summary>
+
+The `hardwareMap` acts as a lookup service for the Control Hub's XML configuration. Since the SDK performs dependency injection to link code objects to physical ports, it must consult the registry to find the unique hardware ID assigned by the Robot Controller. A standard `new` constructor has no mechanism to access that port binding — it would create a Java object with no physical connection.
+
+</details>
+
+---
+
+**2. Initialization Timing:** Why is it technically critical to perform all hardware mapping within the `init()` method of the OpMode lifecycle rather than during the `loop()` method?
+
+<details>
+<summary>Show answer</summary>
+
+Hardware mapping is a "heavy" registry lookup operation. Performing it inside `loop()` (which runs at ~50Hz) would cause massive latency per cycle, likely dropping the update frequency far below the threshold needed for smooth motor control. Performing it once in `init()` ensures the hardware is fully ready before the match begins without impacting runtime performance.
+
+</details>
+
+---
+
+**3. Class Type Safety:** When invoking `hardwareMap.get()`, why must you provide the hardware class (e.g., `Servo.class`) as the first parameter? What engineering failure does this prevent?
+
+<details>
+<summary>Show answer</summary>
+
+Providing the `.class` ensures type safety. It tells the SDK exactly what kind of hardware object to return. Without it, the programmer could accidentally assign a `Servo` object to a `DcMotor` variable. Because the types are incompatible, calling `motor.setPower()` on an object that is actually a `Servo` would cause a crash at runtime — the class parameter lets the compiler catch this mismatch before deployment.
+
+</details>
+
+---
+
+**4. Signal Protocol Logic:** Why must a `DigitalChannel` (such as a Touch Sensor) have its `setMode()` explicitly defined as `INPUT` during mapping, whereas an `AnalogInput` (such as a potentiometer) is functional immediately upon registration?
+
+<details>
+<summary>Show answer</summary>
+
+Digital pins on the Control Hub are **bidirectional** — the same physical pin can either send a voltage signal (OUTPUT) or listen for one (INPUT). The SDK needs an explicit declaration to know which direction to configure the pin's signal processing hardware. Analog input ports, by contrast, are dedicated for variable voltage input only and have no bidirectional ambiguity — the SDK can configure them correctly without additional instruction.
+
+</details>
+
+---
+
+**5. Modular Architecture:** In Lesson 7.5, you explored passing `HardwareMap` as a parameter to external mechanism classes. Why is this dependency injection technically superior to hard-coding `hardwareMap.get()` calls directly inside every OpMode file?
+
+<details>
+<summary>Show answer</summary>
+
+Passing `HardwareMap` promotes encapsulation by defining hardware names in exactly one location — the mechanism class. If a motor port name changes in the Robot Controller configuration, you update only the mechanism class, and every OpMode that uses it is automatically corrected. Hard-coding lookups directly in every OpMode creates multiple independent copies of the same string, each of which must be manually found and updated — a process that inevitably introduces mismatches and bugs.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is attempting to map a drivetrain motor named `"left_drive"` and a touch sensor named `"lift_limit"`. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+
+@TeleOp(name="Mapping_Challenge")
+public class MappingChallenge extends LinearOpMode {
+
+    private DcMotor       drive;
+    private DigitalChannel limit;
+
+    @Override
+    public void runOpMode() {
+        drive = hardwareMap.get(DcMotor.class, "left_drive")
+        limit = hardwareMap.get(AnalogInput.class, "lift_limit");
+        limit.setMode(DigitalChannel.Mode.INPUT);
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            drive.setPower(-gamepad1.left_stick_y);
+            if (!limit.getState()) {
+                drive.setPower(0);
+            }
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 — Syntax Error:**
+The `hardwareMap.get()` call for `drive` on the first mapping line is missing a semicolon (`;`) at the end of the statement. Java requires every statement to be terminated with a semicolon.
+
+```java
+drive = hardwareMap.get(DcMotor.class, "left_drive"); // ← semicolon added
+```
+
+**Error 2 — Logic Error:**
+The `limit` variable is declared as a `DigitalChannel`, but it is being instantiated using `AnalogInput.class` in the `get()` call. A touch sensor is a binary (digital) device connected to a digital port — it must be looked up with `DigitalChannel.class`. Using `AnalogInput.class` would either crash at runtime or return an incompatible object, making `limit.getState()` inaccessible.
+
+```java
+limit = hardwareMap.get(DigitalChannel.class, "lift_limit"); // ← correct class
+limit.setMode(DigitalChannel.Mode.INPUT);
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-07/mastery-quiz"
+  nextUnit="/docs/unit-08"
+  nextUnitName="Unit 8: DC Motor Control"
+/>

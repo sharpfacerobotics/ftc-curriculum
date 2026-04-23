@@ -1,0 +1,158 @@
+---
+id: coast-vs-stop
+title: "Lesson 8.4: Utilizing setPower(0.0) for Consistent Coast vs. Stop Behavior"
+sidebar_label: "8.4 · Coast vs. Stop"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 8.4: Utilizing setPower(0.0) for Consistent Coast vs. Stop Behavior
+
+---
+
+## Technical Context
+
+Precision in autonomous and TeleOp depends on **predictable stops**. If a programmer relies on mechanical friction alone to stop a robot, the stopping distance will vary based on battery voltage, field tile material, and the robot's momentum at the moment power cuts. Using `setPower(0.0)` in conjunction with the correct `ZeroPowerBehavior` ensures the robot stops consistently across different match conditions.
+
+---
+
+## The Deep Dive
+
+`setPower(0.0)` is a deliberate command that tells the Control Hub to cease applying voltage to the motor port. Its physical effect is entirely determined by the `ZeroPowerBehavior` established in Lesson 8.3:
+
+| `ZeroPowerBehavior` | Effect of `setPower(0.0)` |
+|---|---|
+| `FLOAT` (default) | Motor terminals disconnected — robot coasts to a stop via friction |
+| `BRAKE` | Motor terminals shorted — robot decelerates rapidly and holds position |
+
+In a high-speed drivetrain, switching to `0.0` power with `FLOAT` behavior can cause the robot to over-travel its target by several inches — enough to miss a scoring zone entirely. `BRAKE` mode reduces this over-travel dramatically, making autonomous navigation far more repeatable.
+
+A common professional pattern is to set `BRAKE` on all drive motors in `init()`, then send `setPower(0.0)` as the last command of every autonomous step to guarantee a clean stop before the next movement begins.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Coast_vs_Stop_Demo")
+public class CoastVsStopDemo extends LinearOpMode {
+
+    private DcMotor driveMotor;
+
+    @Override
+    public void runOpMode() {
+        driveMotor = hardwareMap.get(DcMotor.class, "drive");
+
+        // BRAKE ensures setPower(0.0) stops the robot, not just cuts voltage
+        driveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        waitForStart();
+
+        // Drive forward for 2 seconds
+        driveMotor.setPower(0.6);
+        sleep(2000);
+
+        // This stops the motor AND holds position — not a coast
+        driveMotor.setPower(0.0);
+
+        telemetry.addData("Status", "Stopped at target position");
+        telemetry.update();
+
+        sleep(1000); // Hold stopped state briefly for visibility
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. Sending a power value of `__________` is the standard way to stop a motor in the SDK.
+2. Relying on `__________` alone to stop a robot is inconsistent because it varies with the battery voltage and field surface material.
+3. To stop a motor currently running at full reverse speed, you would change its power from `-1.0` to `__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`0.0`**
+2. **mechanical friction** (or coasting / `FLOAT` behavior)
+3. **`0.0`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You are writing an emergency stop function. If `gamepad1.b` is pressed, all power to `"motor1"` and `"motor2"` must be cut immediately and both motors must resist any further movement.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Emergency_Stop_Challenge")
+public class EmergencyStop extends OpMode {
+
+    private DcMotor motor1;
+    private DcMotor motor2;
+
+    @Override
+    public void init() {
+        motor1 = hardwareMap.get(DcMotor.class, "motor1");
+        motor2 = hardwareMap.get(DcMotor.class, "motor2");
+
+        // INSERT CODE HERE: Set BRAKE behavior on both motors
+    }
+
+    @Override
+    public void loop() {
+        motor1.setPower(-gamepad1.left_stick_y);
+        motor2.setPower(-gamepad1.right_stick_y);
+
+        // INSERT CODE HERE: If gamepad1.b is pressed, set both motors to 0.0
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void init() {
+    motor1 = hardwareMap.get(DcMotor.class, "motor1");
+    motor2 = hardwareMap.get(DcMotor.class, "motor2");
+
+    motor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    motor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+}
+
+@Override
+public void loop() {
+    motor1.setPower(-gamepad1.left_stick_y);
+    motor2.setPower(-gamepad1.right_stick_y);
+
+    if (gamepad1.b) {
+        motor1.setPower(0.0);
+        motor2.setPower(0.0);
+    }
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-08/coast-vs-stop"
+  nextUnit="/docs/unit-08/linear-slide-challenge"
+  nextUnitName="Lesson 8.5: Challenge — Creating a Bidirectional Linear Slide Control with Software Limiters"
+/>

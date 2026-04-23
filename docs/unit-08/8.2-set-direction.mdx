@@ -1,0 +1,140 @@
+---
+id: set-direction
+title: "Lesson 8.2: Reversing Mechanical Bias using setDirection(REVERSE)"
+sidebar_label: "8.2 · setDirection()"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 8.2: Reversing Mechanical Bias using setDirection(REVERSE)
+
+---
+
+## Technical Context
+
+Robots with differential drivetrains — whether two-wheel or four-wheel mecanum — typically have motors mounted in **mirror-image orientations** on the left and right sides. Without software normalization, commanding "forward" power to both sides simultaneously would cause the robot to spin in place, because one side's physical "forward" is the other side's "backward." Correcting this in `init()` ensures every OpMode on the robot shares the same logical motor orientation without any manual math.
+
+---
+
+## The Deep Dive
+
+The `setDirection()` method allows the programmer to flip the **logical orientation** of a `DcMotor` object. By passing `DcMotorSimple.Direction.REVERSE`, all subsequent positive power commands and encoder tick counts are inverted by the SDK before the signal reaches the Control Hub port.
+
+This is technically superior to negating joystick values manually in `loop()` because:
+- It applies universally — every `setPower()` call everywhere in the codebase behaves correctly without needing manual adjustment.
+- It also inverts the **encoder direction**, so `getCurrentPosition()` increments in the expected direction.
+- It documents intent — a teammate reading the code immediately understands the motor is physically reversed.
+
+The default direction for all motors is `DcMotorSimple.Direction.FORWARD`.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+@TeleOp(name="Direction_Demo")
+public class DirectionDemo extends OpMode {
+
+    private DcMotor leftMotor;
+    private DcMotor rightMotor;
+
+    @Override
+    public void init() {
+        leftMotor  = hardwareMap.get(DcMotor.class, "left_drive");
+        rightMotor = hardwareMap.get(DcMotor.class, "right_drive");
+
+        // Normalize the drivetrain: positive power = forward on both sides
+        // Right motor is physically mounted facing opposite direction
+        rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        telemetry.addData("Status", "Drivetrain direction normalized");
+    }
+
+    @Override
+    public void loop() {
+        double power = -gamepad1.left_stick_y;
+
+        // Both motors now respond identically to the same positive power value
+        leftMotor.setPower(power);
+        rightMotor.setPower(power);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To return a motor to its default orientation, you use the parameter `DcMotorSimple.Direction.__________`.
+2. The `setDirection()` method is typically called during the `__________` phase of the OpMode lifecycle.
+3. Reversing a motor's direction also inverts the direction of its `__________` tick count.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`FORWARD`**
+2. **`init()`**
+3. **encoder**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your robot has a 4-motor mecanum drivetrain. Both motors on the left side (`"left_front"` and `"left_back"`) are mounted facing the opposite direction of the right side. Reverse them both in `init()`.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+@TeleOp(name="Direction_Fix_Challenge")
+public class DirectionFix extends OpMode {
+
+    private DcMotor leftFront;
+    private DcMotor leftBack;
+    private DcMotor rightFront;
+    private DcMotor rightBack;
+
+    @Override
+    public void init() {
+        leftFront  = hardwareMap.get(DcMotor.class, "left_front");
+        leftBack   = hardwareMap.get(DcMotor.class, "left_back");
+        rightFront = hardwareMap.get(DcMotor.class, "right_front");
+        rightBack  = hardwareMap.get(DcMotor.class, "right_back");
+
+        // INSERT CODE HERE: Reverse the direction of both left-side motors
+    }
+
+    @Override
+    public void loop() {}
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-08/set-direction"
+  nextUnit="/docs/unit-08/zero-power-behavior"
+  nextUnitName="Lesson 8.3: Managing Backlash with ZeroPowerBehavior.BRAKE"
+/>

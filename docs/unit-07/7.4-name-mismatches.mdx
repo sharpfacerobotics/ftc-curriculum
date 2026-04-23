@@ -1,0 +1,143 @@
+---
+id: name-mismatches
+title: "Lesson 7.4: Troubleshooting Name Mismatches and Configuration Overlays"
+sidebar_label: "7.4 · Name Mismatches"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 7.4: Troubleshooting Name Mismatches and Configuration Overlays
+
+---
+
+## Technical Context
+
+The string literal used in `hardwareMap.get()` must match the configuration name on the Hub **character-for-character**. A single typo — even a difference in capitalization, like `"LeftMotor"` versus `"left_motor"` — will cause the OpMode to crash immediately when the driver presses "Init." In a competition setting, this error costs an entire autonomous run.
+
+---
+
+## The Deep Dive
+
+When the SDK encounters a name mismatch, it cannot find the hardware in the XML registry. The result is that the object remains `null`. Any subsequent call to that object (like `motor.setPower()`) will trigger a `NullPointerException`, which terminates the OpMode instantly.
+
+The professional solution is to store all configuration name strings as `static final String` constants in a dedicated configuration class. This creates a **single source of truth** — if a hardware port name changes in the Robot Controller app, you update exactly one constant and every OpMode that references it is automatically corrected.
+
+Common mismatch causes to watch for:
+- Capitalization differences (`"Arm"` vs `"arm"`)
+- Spaces vs underscores (`"left drive"` vs `"left_drive"`)
+- Trailing spaces (invisible in the config app but deadly in code)
+- Using the Java variable name instead of the Hub config name
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+// A dedicated class storing all hardware configuration names as constants
+// This is the single source of truth for every OpMode on the robot
+public class RobotConfig {
+    public static final String LEFT_DRIVE   = "left_drive";
+    public static final String RIGHT_DRIVE  = "right_drive";
+    public static final String LIFT_MOTOR   = "lift_motor";
+    public static final String LIMIT_SWITCH = "limit_switch";
+}
+```
+
+```java
+// Inside an OpMode's init() method — using the constants instead of literals
+import org.firstinspires.ftc.teamcode.RobotConfig;
+
+leftDrive  = hardwareMap.get(DcMotor.class, RobotConfig.LEFT_DRIVE);
+rightDrive = hardwareMap.get(DcMotor.class, RobotConfig.RIGHT_DRIVE);
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. Hardware lookup strings in the `get()` method are `__________`-sensitive, meaning `"Motor"` and `"motor"` are different configuration names.
+2. If a motor variable is not successfully mapped, it retains a value of `__________`.
+3. To avoid mismatch errors across multiple files, programmers store configuration names as `static final __________` variables in a shared class.
+
+<details>
+<summary>Show answers</summary>
+
+1. **case**
+2. **`null`**
+3. **`String`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your robot has a motor configured on the Hub as `"wrist"` (all lowercase). The code below is crashing — identify the mismatch and correct it. Then refactor the name into a constant inside a `WristConfig` class.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Wrist_Fix_Challenge")
+public class WristFix extends OpMode {
+
+    private DcMotor wrist;
+
+    @Override
+    public void init() {
+        // BUG: Hub configuration name is "wrist" but the string below is wrong
+        wrist = hardwareMap.get(DcMotor.class, "Wrist_Motor");
+    }
+
+    @Override
+    public void loop() {
+        wrist.setPower(gamepad1.right_stick_y);
+    }
+}
+```
+
+Then write a `WristConfig` class:
+
+```java
+// INSERT CODE HERE: Create a class named WristConfig with a
+// static final String constant named WRIST that equals "wrist"
+```
+
+<details>
+<summary>Show answer</summary>
+
+**Fixed init():**
+```java
+@Override
+public void init() {
+    wrist = hardwareMap.get(DcMotor.class, "wrist"); // matches Hub config exactly
+}
+```
+
+**WristConfig class:**
+```java
+public class WristConfig {
+    public static final String WRIST = "wrist";
+}
+```
+
+**Even better — using the constant:**
+```java
+wrist = hardwareMap.get(DcMotor.class, WristConfig.WRIST);
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-07/name-mismatches"
+  nextUnit="/docs/unit-07/mechanism-classes"
+  nextUnitName="Lesson 7.5: Challenge — Synchronizing Hardware Classes Across Multiple OpModes"
+/>

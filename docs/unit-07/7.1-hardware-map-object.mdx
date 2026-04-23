@@ -1,0 +1,125 @@
+---
+id: hardware-map-object
+title: "Lesson 7.1: Accessing the Configuration Registry via the hardwareMap Object"
+sidebar_label: "7.1 · hardwareMap Object"
+sidebar_position: 1
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 7.1: Accessing the Configuration Registry via the hardwareMap Object
+
+---
+
+## Technical Context
+
+The Control Hub maintains an internal XML configuration file that maps physical ports to user-defined strings. If the Java code attempts to instantiate a component that does not exist in this registry, the program will throw a `NullPointerException` or a `MissingHardwareException`, causing the robot to fail during the initialization phase of a match.
+
+---
+
+## The Deep Dive
+
+The `hardwareMap` object is an instance of the `HardwareMap` class provided by the SDK. It acts as a **lookup service**. When you invoke the `get()` method, the SDK searches the configuration registry for a device matching the specified class type and name string. This process performs the dependency injection required to link your logical Java objects to the physical I/O ports on the Control Hub.
+
+The `get()` method requires two parameters:
+1. **The hardware class** — tells the SDK what type of device to return (e.g., `DcMotor.class`)
+2. **The configuration name string** — must match the name defined in the Robot Controller app exactly, character for character
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="HardwareMap_Demo")
+public class HardwareMapDemo extends OpMode {
+
+    private DcMotor armMotor;
+
+    @Override
+    public void init() {
+        // The SDK performs a lookup in the Hub's XML configuration registry
+        // Parameters: (Hardware Class Type, "Exact Configuration Name")
+        armMotor = hardwareMap.get(DcMotor.class, "arm_motor");
+
+        telemetry.addData("Status", "arm_motor mapped successfully");
+    }
+
+    @Override
+    public void loop() {
+        armMotor.setPower(0.5);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The `hardwareMap` object is used to perform a `__________` in the robot's configuration registry.
+2. The `get()` method requires two parameters: the `__________` of the device and the exact string name from the configuration.
+3. Attempting to access a hardware device that is not registered in the configuration will result in a `__________` during OpMode initialization.
+
+<details>
+<summary>Show answers</summary>
+
+1. **lookup** (dependency injection / registry search)
+2. **class type** (e.g., `DcMotor.class`)
+3. **`NullPointerException`** (or `MissingHardwareException`)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You have a new robot build. You need to map a motor that controls a `"lift"` mechanism. The motor is named `"lift_motor"` in the Robot Controller configuration.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Lift_Map_Challenge")
+public class LiftMap extends OpMode {
+
+    private DcMotor lift;
+
+    @Override
+    public void init() {
+        // INSERT CODE HERE: Use hardwareMap to instantiate the lift motor
+        // using the configuration name "lift_motor"
+    }
+
+    @Override
+    public void loop() {
+        lift.setPower(-gamepad1.left_stick_y);
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void init() {
+    lift = hardwareMap.get(DcMotor.class, "lift_motor");
+    telemetry.addData("Status", "Lift motor mapped");
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-07/hardware-map-object"
+  nextUnit="/docs/unit-07/dcmotor-mapping"
+  nextUnitName="Lesson 7.2: Registering DcMotors and Assigning Port-Specific Names"
+/>

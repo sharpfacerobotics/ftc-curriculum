@@ -1,0 +1,127 @@
+---
+id: mastery-quiz
+title: "Unit 8 Mastery Quiz: DC Motor Control"
+sidebar_label: "Unit 8 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 8 Mastery Quiz: DC Motor Control
+
+---
+
+## I. Conceptual Questions
+
+**1. Normalization Logic:** Why is it technically superior to use `motor.setDirection(REVERSE)` in the `init()` phase rather than manually multiplying joystick values by `-1` in the `loop()` method?
+
+<details>
+<summary>Show answer</summary>
+
+Using `setDirection(REVERSE)` creates a "logical forward" for the mechanism at the hardware level. This means every positive power command — regardless of which OpMode, which method, or which team member wrote the code — always correlates to the intended physical direction. Manual negation in `loop()` must be remembered and duplicated in every TeleOp and Autonomous file, introducing the risk of inconsistent behavior when someone forgets to apply it.
+
+</details>
+
+---
+
+**2. Voltage Regulation:** The `setPower()` method accepts a `double` between `-1.0` and `1.0`. What does the SDK do if a calculation accidentally passes a value of `1.2`, and why is this clamping behavior important for hardware safety?
+
+<details>
+<summary>Show answer</summary>
+
+The SDK automatically clamps the value to `1.0`. This prevents the program from attempting to command the Control Hub to provide a voltage level beyond the physical capacity of the 12V system. Without clamping, an out-of-range value could cause undefined behavior on the hardware controller, potentially sending an invalid PWM signal and damaging the port or the motor.
+
+</details>
+
+---
+
+**3. Electronic Resistance:** Why must a high-reach mechanism, such as a scoring lift, be configured with `ZeroPowerBehavior.BRAKE` instead of the default `FLOAT` setting?
+
+<details>
+<summary>Show answer</summary>
+
+`BRAKE` mode electronically shorts the motor terminals together, creating a resistive force that actively opposes gravity and inertia. Without it, the default `FLOAT` mode disconnects the terminals and allows the lift to drift downward freely once power is removed, making it impossible to hold a scoring position and potentially causing the mechanism to crash into the robot or the field.
+
+</details>
+
+---
+
+**4. Consistency in Autonomous:** How does the combination of `setPower(0.0)` and `BRAKE` mode improve autonomous reliability compared to simply letting the robot coast to a stop?
+
+<details>
+<summary>Show answer</summary>
+
+Coasting relies on mechanical friction, which varies with battery voltage (affects motor back-EMF), field tile material, and robot weight distribution. This makes stopping distance inconsistent between runs. `BRAKE` mode ensures stopping distance is determined by electronic resistance rather than these unpredictable physical variables, making autonomous navigation repeatable match after match.
+
+</details>
+
+---
+
+**5. Stall Prevention:** In a software limiter scenario, why is it critical to check the sensor state **before** applying power to the motor, rather than simply stopping the motor after the sensor is triggered?
+
+<details>
+<summary>Show answer</summary>
+
+Checking the sensor first prevents the motor from ever entering a stalled state against a hard stop. Even a brief instant of full power against an immovable limit causes a current spike that damages motor brushes and gearbox teeth. By blocking the power command proactively based on the sensor reading, the motor never generates force in the dangerous direction at all.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is intended to configure a motor named `"climb_motor"` to resist gravity when stopped, and run at full power forward when `gamepad1.y` is pressed. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Climb_Test")
+public class ClimbTest extends OpMode {
+
+    private DcMotor climb;
+
+    @Override
+    public void init() {
+        climb = hardwareMap.get(DcMotor.class, "climb_motor")
+        climb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
+
+    @Override
+    public void loop() {
+        if (gamepad1.y) {
+            climb.setPower(1.0);
+        } else {
+            climb.setPower(0.0);
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 — Syntax Error:**
+The `hardwareMap.get()` statement in `init()` is missing a semicolon (`;`) at the end. Java requires every statement to be terminated for the compiler to parse the code.
+
+```java
+climb = hardwareMap.get(DcMotor.class, "climb_motor"); // ← semicolon added
+```
+
+**Error 2 — Logic Error:**
+The `ZeroPowerBehavior` is set to `FLOAT` instead of `BRAKE`. The goal is to resist gravity and hold the climb motor's position when stopped — `FLOAT` disconnects the terminals and allows the mechanism to drift freely, which is the opposite of the intended behavior.
+
+```java
+climb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // ← BRAKE, not FLOAT
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-08/mastery-quiz"
+  nextUnit="/dashboard"
+  nextUnitName="Dashboard"
+/>

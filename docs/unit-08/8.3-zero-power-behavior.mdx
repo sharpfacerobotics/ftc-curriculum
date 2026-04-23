@@ -1,0 +1,141 @@
+---
+id: zero-power-behavior
+title: "Lesson 8.3: Managing Backlash with ZeroPowerBehavior.BRAKE"
+sidebar_label: "8.3 · ZeroPowerBehavior"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 8.3: Managing Backlash with ZeroPowerBehavior.BRAKE
+
+---
+
+## Technical Context
+
+When power is set to `0.0`, a heavy mechanism — like a lift or a high-momentum drivetrain — may continue to move due to gravity or inertia. In FTC, this is critical for high-reach scoring assemblies: without software braking, a lift will **"drift" downward** as soon as the driver releases the joystick, potentially dropping a game element or crashing into the robot frame.
+
+---
+
+## The Deep Dive
+
+The `setZeroPowerBehavior()` method defines how the Expansion Hub motor controller handles a zero-power state. There are two options:
+
+- **`BRAKE`** — electronically shorts the motor's terminals together, creating a resistive force that opposes any external motion. The motor actively resists gravity and inertia. This draws a small holding current.
+- **`FLOAT`** (the default) — disconnects the motor terminals, allowing the motor shaft to spin freely until mechanical friction brings it to rest. This is also called "coast."
+
+The behavior is set on the **hardware controller**, not just in software — the Control Hub physically changes the circuit configuration of the motor port. This means `BRAKE` still holds its position even during brief communication interruptions.
+
+Set `ZeroPowerBehavior` in `init()` immediately after mapping, so the hardware is always in the correct state before the match begins.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Brake_Demo")
+public class BrakeDemo extends OpMode {
+
+    private DcMotor armMotor;
+
+    @Override
+    public void init() {
+        armMotor = hardwareMap.get(DcMotor.class, "arm_motor");
+
+        // Configure the motor to resist gravity when stopped
+        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armMotor.setPower(0);
+
+        telemetry.addData("Status", "Arm motor — BRAKE mode active");
+    }
+
+    @Override
+    public void loop() {
+        armMotor.setPower(-gamepad1.left_stick_y);
+
+        // When the stick returns to 0, the arm holds its position
+        // instead of drifting downward under gravity
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To allow a robot to coast smoothly to a stop, set the behavior to `DcMotor.ZeroPowerBehavior.__________`.
+2. The `BRAKE` behavior is implemented by the `__________` on the robot, not just the software — the port circuit is physically reconfigured.
+3. If you want a linear slide to hold its position against gravity when the driver releases the joystick, you should use the `__________` behavior.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`FLOAT`**
+2. **Control Hub / Expansion Hub** (the hardware motor controller)
+3. **`BRAKE`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Create a safety configuration for a motor named `"lift"`. If the driver presses `gamepad1.y`, set the behavior to `BRAKE`. If they press `gamepad1.x`, set it back to `FLOAT`. Display the current mode on the Driver Station.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Lift_Safety_Challenge")
+public class LiftSafety extends OpMode {
+
+    private DcMotor lift;
+
+    @Override
+    public void init() {
+        lift = hardwareMap.get(DcMotor.class, "lift");
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    }
+
+    @Override
+    public void loop() {
+        // INSERT CODE HERE: If gamepad1.y is pressed, set behavior to BRAKE
+        // INSERT CODE HERE: If gamepad1.x is pressed, set behavior to FLOAT
+
+        // INSERT CODE HERE: Display the current ZeroPowerBehavior via telemetry
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    if (gamepad1.y) {
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    } else if (gamepad1.x) {
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
+
+    telemetry.addData("Zero Power Behavior", lift.getZeroPowerBehavior());
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-08/zero-power-behavior"
+  nextUnit="/docs/unit-08/coast-vs-stop"
+  nextUnitName="Lesson 8.4: Utilizing setPower(0.0) for Consistent Coast vs. Stop Behavior"
+/>

@@ -149,7 +149,7 @@ function HeroSection(): React.JSX.Element {
 
       <p className={styles.heroSub}>
         A structured, hands-on curriculum built by student engineers.
-        From environment setup to OpMode structure to Java variables.
+        From environment setup through hardware mapping and motor control.
       </p>
 
       <div className={styles.terminalLine} aria-hidden="true">
@@ -186,8 +186,7 @@ function CurriculumSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>// curriculum.units[]</p>
       <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} Live Units. Zero Fluff.</h2>
       <p className={styles.sectionDesc}>
-        The live curriculum currently includes Units 1–3, and the tracker below
-        matches those lessons exactly.
+        Every unit below is live, and the tracker matches the lesson order in the docs.
       </p>
 
       <div className={styles.curriculumGrid}>

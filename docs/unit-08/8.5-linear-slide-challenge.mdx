@@ -1,0 +1,165 @@
+---
+id: linear-slide-challenge
+title: "Lesson 8.5: Challenge — Creating a Bidirectional Linear Slide Control with Software Limiters"
+sidebar_label: "8.5 · Challenge: Linear Slide"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 8.5: Challenge — Creating a Bidirectional Linear Slide Control with Software Limiters
+
+---
+
+## Technical Context
+
+Linear slides are prone to mechanical failure if driven past their physical limits — either bottoming out at the base or over-extending at the top. Using a `DigitalChannel` touch sensor as a **software limiter** prevents the motor from applying power in a direction that would cause hardware damage, protecting the motor from stall current and the mechanism from structural failure.
+
+---
+
+## The Deep Dive
+
+This challenge requires combining concepts from Units 7 and 8. You must:
+
+1. Map both a `DcMotor` and a `DigitalChannel` in `init()`
+2. Read the touch sensor state each loop cycle
+3. Apply conditional logic that **overrides driver input** when the sensor is triggered
+
+A critical hardware nuance: the REV Touch Sensor uses **active-low** logic. `getState()` returns `true` when the sensor is **not** pressed and `false` when it **is** pressed. This means you must use the logical NOT operator (`!`) to invert the signal for intuitive use — `boolean isPressed = !limitSwitch.getState()`.
+
+The limiter logic then becomes: if the driver is commanding the slide downward (negative power) AND the bottom limit is pressed, override the power to `0.0`. Movement upward is still permitted because the limiter only blocks the dangerous direction.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+
+@TeleOp(name="Safe_Slide_Demo")
+public class SafeSlideDemo extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor       liftMotor   = hardwareMap.get(DcMotor.class, "lift_motor");
+        DigitalChannel limitSwitch = hardwareMap.get(DigitalChannel.class, "limit_bottom");
+
+        limitSwitch.setMode(DigitalChannel.Mode.INPUT);
+        liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            double power = -gamepad1.left_stick_y;
+
+            // Active-low: false = pressed, so invert for intuitive logic
+            boolean isAtBottom = !limitSwitch.getState();
+
+            // Block downward movement if the bottom limit is triggered
+            if (isAtBottom && power < 0) {
+                power = 0.0;
+                telemetry.addData("Safety", "BOTTOM LIMIT REACHED");
+            }
+
+            liftMotor.setPower(power);
+            telemetry.addData("Slide Power",   power);
+            telemetry.addData("At Bottom",     isAtBottom);
+            telemetry.update();
+        }
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. A software limiter uses `__________` operators and sensor data to prevent mechanical binding at the physical end of travel.
+2. If a touch sensor returns `false` when physically pressed (active-low logic), you must use the `__________` operator in Java to flip the signal for intuitive use.
+3. Preventing a motor from stalling against a physical limit improves robot `__________` by avoiding the sustained high-current draw that burns out motor windings.
+
+<details>
+<summary>Show answers</summary>
+
+1. **conditional** (comparison / logical)
+2. **`!`** (the logical NOT operator)
+3. **reliability** (longevity / lifespan)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your robot has a lift motor `"lift"` and a touch sensor `"limit"` at the bottom. Allow the driver to move the lift with `gamepad1.left_stick_y`, but stop the motor if the stick is commanded **downward** (negative power after negation) and the limit switch is triggered.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+
+@TeleOp(name="Safe_Lift_Challenge")
+public class SafeLift extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor       lift  = hardwareMap.get(DcMotor.class, "lift");
+        DigitalChannel limit = hardwareMap.get(DigitalChannel.class, "limit");
+
+        limit.setMode(DigitalChannel.Mode.INPUT);
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            double power = -gamepad1.left_stick_y;
+
+            // INSERT CODE HERE: Read the limit switch and invert for active-low
+            boolean pressed = // INSERT CODE HERE
+
+            // INSERT CODE HERE: If pressed AND power is negative, set power to 0
+
+            lift.setPower(power);
+            telemetry.addData("Power",   power);
+            telemetry.addData("Pressed", pressed);
+            telemetry.update();
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+while (opModeIsActive()) {
+    double power = -gamepad1.left_stick_y;
+
+    boolean pressed = !limit.getState(); // Invert active-low signal
+
+    if (pressed && power < 0) {
+        power = 0.0; // Block downward movement at the bottom limit
+    }
+
+    lift.setPower(power);
+    telemetry.addData("Power",   power);
+    telemetry.addData("Pressed", pressed);
+    telemetry.update();
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-08/linear-slide-challenge"
+  nextUnit="/docs/unit-08/mastery-quiz"
+  nextUnitName="Unit 8 Mastery Quiz"
+/>

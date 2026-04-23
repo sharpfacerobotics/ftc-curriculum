@@ -1,0 +1,139 @@
+---
+id: set-power
+title: "Lesson 8.1: Applying Voltage to Motors with the setPower() Method"
+sidebar_label: "8.1 · setPower()"
+sidebar_position: 1
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 8.1: Applying Voltage to Motors with the setPower() Method
+
+---
+
+## Technical Context
+
+The Robot Controller manages motor output by sending **pulse-width modulation (PWM)** signals to the Expansion Hub or Control Hub. Sending power levels allows for variable speed control; however, providing too much power to a stalled mechanism — such as an arm pressed against a hard stop — can lead to motor burnout or stripped gears from sustained high-current draw.
+
+---
+
+## The Deep Dive
+
+The `setPower(double power)` method is the primary tool for commanding hardware motion. It accepts a `double` parameter ranging from `-1.0` (full reverse) to `1.0` (full forward), where `0.0` signifies a stop command.
+
+Important behaviors to understand:
+- **Values above `1.0` or below `-1.0`** are automatically clamped by the SDK — passing `1.5` is treated as `1.0`.
+- **The method does not directly control velocity** — it controls the PWM duty cycle (effectively the voltage fraction). Actual speed depends on battery voltage, load, and the motor's run mode.
+- **The command is held** until another `setPower()` call overrides it — if you never call `setPower(0)`, the motor keeps running after your code finishes that loop cycle.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="SetPower_Demo")
+public class SetPowerDemo extends OpMode {
+
+    private DcMotor intake;
+
+    @Override
+    public void init() {
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intake.setPower(0); // Safe known state before match starts
+        telemetry.addData("Status", "Intake ready");
+    }
+
+    @Override
+    public void loop() {
+        // Capture joystick input and pass it directly to the motor
+        double powerRequest = -gamepad1.left_stick_y;
+        intake.setPower(powerRequest);
+
+        telemetry.addData("Power Sent", powerRequest);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The `setPower()` method accepts a `__________` data type as its parameter.
+2. To command a motor to rotate at half-speed in the reverse direction, you would pass the value `__________` to the method.
+3. If the motor power is set to `1.2` in code, the SDK will clamp the value and treat it as `__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`double`**
+2. **`-0.5`**
+3. **`1.0`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You need to map a motor named `"intake"` and run it at full speed forward whenever the driver holds `gamepad1.right_trigger` past 50%, and stop it otherwise.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Intake_Power_Challenge")
+public class IntakePower extends OpMode {
+
+    private DcMotor intake;
+
+    @Override
+    public void init() {
+        // INSERT CODE HERE: Map "intake" and set its RunMode to RUN_WITHOUT_ENCODER
+    }
+
+    @Override
+    public void loop() {
+        // INSERT CODE HERE: If right_trigger > 0.5, set power to 1.0
+        // Otherwise, set power to 0.0
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void init() {
+    intake = hardwareMap.get(DcMotor.class, "intake");
+    intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    intake.setPower(0);
+}
+
+@Override
+public void loop() {
+    if (gamepad1.right_trigger > 0.5) {
+        intake.setPower(1.0);
+    } else {
+        intake.setPower(0.0);
+    }
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-08/set-power"
+  nextUnit="/docs/unit-08/set-direction"
+  nextUnitName="Lesson 8.2: Reversing Mechanical Bias using setDirection(REVERSE)"
+/>

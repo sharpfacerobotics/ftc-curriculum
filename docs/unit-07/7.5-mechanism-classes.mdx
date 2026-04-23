@@ -1,0 +1,200 @@
+---
+id: mechanism-classes
+title: "Lesson 7.5: Challenge — Synchronizing Hardware Classes Across Multiple OpModes"
+sidebar_label: "7.5 · Challenge: Mechanism Classes"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 7.5: Challenge — Synchronizing Hardware Classes Across Multiple OpModes
+
+---
+
+## Technical Context
+
+As robots become complex, putting all hardware mapping in a single OpMode file leads to unmaintainable "spaghetti code." Creating a dedicated **Hardware Class** (or Mechanism Class) allows you to define your hardware once and share it across every Autonomous and TeleOp program on the robot. If a motor port changes, you update one file — not every OpMode.
+
+---
+
+## The Deep Dive
+
+A mechanism class requires a custom `init()` method that accepts the `HardwareMap` from the parent OpMode as a parameter. This is the key architectural insight: the mechanism class cannot access `hardwareMap` on its own because that object belongs to the OpMode context. By passing it in, you allow the mechanism to perform its own registry lookups while remaining completely portable.
+
+This pattern is known as **dependency injection** — the OpMode "injects" the hardware context that the mechanism class needs. The mechanism class encapsulates the hardware-specific details (names, directions, run modes), shielding the OpMode from them entirely.
+
+---
+
+## Annotated Code
+
+**The mechanism class (separate file):**
+
+```java
+package org.firstinspires.ftc.teamcode.mechanisms;
+
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class IntakeSystem {
+
+    private DcMotor intakeMotor;
+
+    // The OpMode passes its hardwareMap into this method
+    public void init(HardwareMap hwMap) {
+        intakeMotor = hwMap.get(DcMotor.class, "intake");
+        intakeMotor.setDirection(DcMotor.Direction.REVERSE);
+        intakeMotor.setPower(0);
+    }
+
+    // Clean public interface — OpMode never touches the motor directly
+    public void setIntakePower(double power) {
+        intakeMotor.setPower(power);
+    }
+
+    public void stop() {
+        intakeMotor.setPower(0);
+    }
+}
+```
+
+**Using the mechanism inside a TeleOp:**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.mechanisms.IntakeSystem;
+
+@TeleOp(name="Intake_TeleOp")
+public class IntakeTeleOp extends OpMode {
+
+    private IntakeSystem intake = new IntakeSystem();
+
+    @Override
+    public void init() {
+        // Pass the OpMode's hardwareMap into the mechanism
+        intake.init(hardwareMap);
+        telemetry.addData("Status", "Intake ready");
+    }
+
+    @Override
+    public void loop() {
+        intake.setIntakePower(gamepad1.right_trigger);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To share hardware across files, we encapsulate the mapping logic into a `__________` class.
+2. The mechanism's `init()` method must accept a `__________` object as a parameter so it can perform registry lookups.
+3. Encapsulation is a best practice because it isolates hardware "quirks" (like reversed directions) from the `__________` logic.
+
+<details>
+<summary>Show answers</summary>
+
+1. **mechanism** (or hardware) class
+2. **`HardwareMap`**
+3. **main OpMode** (match / driving) logic
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Create a separate `LinearSlide` class. It should map a motor named `"slide_motor"`, set its `ZeroPowerBehavior` to `BRAKE`, and expose a `move(double speed)` method. Then use it inside a TeleOp.
+
+**Step 1 — The mechanism class:**
+
+```java
+package org.firstinspires.ftc.teamcode.mechanisms;
+
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class LinearSlide {
+
+    private DcMotor slideMotor;
+
+    // INSERT CODE HERE: Write an init() method that accepts HardwareMap,
+    // maps "slide_motor", and sets ZeroPowerBehavior to BRAKE
+
+    // INSERT CODE HERE: Write a public move() method that takes a
+    // double 'speed' and applies it to slideMotor
+}
+```
+
+**Step 2 — Using it in a TeleOp:**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.mechanisms.LinearSlide;
+
+@TeleOp(name="Slide_TeleOp_Challenge")
+public class SlideTeleOp extends OpMode {
+
+    // INSERT CODE HERE: Declare and instantiate a LinearSlide object
+
+    @Override
+    public void init() {
+        // INSERT CODE HERE: Initialize the slide using hardwareMap
+    }
+
+    @Override
+    public void loop() {
+        // INSERT CODE HERE: Drive the slide with gamepad1.left_stick_y
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+**LinearSlide.java:**
+```java
+public class LinearSlide {
+
+    private DcMotor slideMotor;
+
+    public void init(HardwareMap hwMap) {
+        slideMotor = hwMap.get(DcMotor.class, "slide_motor");
+        slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slideMotor.setPower(0);
+    }
+
+    public void move(double speed) {
+        slideMotor.setPower(speed);
+    }
+}
+```
+
+**SlideTeleOp.java:**
+```java
+private LinearSlide slide = new LinearSlide();
+
+@Override
+public void init() {
+    slide.init(hardwareMap);
+    telemetry.addData("Status", "Slide ready");
+}
+
+@Override
+public void loop() {
+    slide.move(-gamepad1.left_stick_y);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-07/mechanism-classes"
+  nextUnit="/docs/unit-07/mastery-quiz"
+  nextUnitName="Unit 7 Mastery Quiz"
+/>
