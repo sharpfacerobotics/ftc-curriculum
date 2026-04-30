@@ -11,13 +11,13 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## Technical Context
+## Context
 
 Correct annotation prevents **"Invisible Code"**, where valid Java classes fail to appear on the Driver Station menu. In a competition environment, precise registration ensures the drive team can distinguish between driver-controlled programs and sensor-dependent autonomous routines, preventing the accidental execution of the wrong logic.
 
 ---
 
-## The Deep Dive
+## What Are Annotations?
 
 Annotations in the FTC SDK are metadata tags that start with the `@` symbol. When the Robot Controller app starts, it scans the TeamCode package for classes that extend `OpMode` and possess the `@TeleOp` or `@Autonomous` annotation. This process registers the class into the SDK's internal registry, allowing the Driver Station to build its user interface menu.
 
