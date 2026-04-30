@@ -11,13 +11,13 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## Technical Context
+## Context
 
 `start()` and `stop()` improve robot reliability by handling transitions. `start()` is often used to reset the `getRuntime()` timer exactly when the match begins, ensuring autonomous timing is accurate. `stop()` acts as a fail-safe, allowing you to force motors to zero power or close files when the match ends, preventing hardware damage or data corruption.
 
 ---
 
-## The Deep Dive
+## start() and stop() Functions
 
 While `init()` and `loop()` are required, `start()` and `stop()` are **optional** lifecycle methods.
 
@@ -76,9 +76,9 @@ public class TransitionDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Challenge
 
-**Robot Scenario:** Your team needs to reset the robot's timer at the start of the match and display a "Robot Shutdown" message when the program is stopped.
+Your team needs to reset the robot's timer at the start of the match and display a "Robot Shutdown" message when the program is stopped.
 
 ```java
 package org.firstinspires.ftc.teamcode;
