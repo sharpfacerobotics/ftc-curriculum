@@ -11,13 +11,13 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## Technical Context
+## Context
 
 A "Health-Check" routine prevents match-start failures by providing the drive team with real-time feedback on sensor readiness. By utilizing the full OpMode lifecycle, you can verify that the IMU is calibrated and the Control Hub is communicating before the match begins, reducing the likelihood of a dead robot on the field.
 
 ---
 
-## The Deep Dive
+## Robot Checks
 
 This challenge requires integrating `init()`, `init_loop()`, and `loop()`. The `init_loop()` method is particularly powerful for professional teams — it runs repeatedly after "Init" but **before** "Play". This is where hardware-heavy tasks like IMU calibration or computer vision stream processing should occur. By using telemetry in `init_loop()`, the driver can wait for a "System Ready" message before starting the match.
 
@@ -73,9 +73,9 @@ public class HealthCheck extends OpMode {
 
 ---
 
-## Template Challenge
+## Challenge
 
-**Robot Scenario:** Create a master health-check program. Use `init_loop()` to show the driver the current runtime while they are waiting to press start, and use `stop()` to print "Robot Powering Down".
+Create a master health-check program. Use `init_loop()` to show the driver the current runtime while they are waiting to press start, and use `stop()` to print "Robot Powering Down".
 
 ```java
 package org.firstinspires.ftc.teamcode;
