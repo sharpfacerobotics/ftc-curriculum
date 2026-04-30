@@ -18,13 +18,13 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 <details>
 <summary>Show answer</summary>
 
-The Robot Controller app scans the TeamCode package specifically for these metadata tags to register the class into the internal SDK registry. Without them, the software has no instruction to include the program in the selectable menu — the class compiles successfully but is never registered.
+The Robot Controller app scans the TeamCode package specifically for these metadata tags to register the class into the internal SDK registry. Without them, the software has no instruction to include the program in the selectable menu; the class compiles successfully but is never registered.
 
 </details>
 
 ---
 
-**2. Resource Efficiency:** Why is it considered an engineering failure to place `hardwareMap.get()` calls inside the `loop()` method instead of the `init()` method?
+**2. Resource Efficiency:** Why is it considered bad practice to place `hardwareMap.get()` calls inside the `loop()` method instead of the `init()` method?
 
 <details>
 <summary>Show answer</summary>
@@ -108,7 +108,7 @@ lift = hardwareMap.get(DcMotor.class, "lift_motor"); // ← semicolon added
 ```
 
 **Error 2 — Logic Error:**
-The programmer used `@Autonomous` for a program named `"TeleOp_Main"` — the wrong annotation for a driver-controlled program. Additionally, `lift.setPower(0.8)` is placed inside `init()`. This is a critical safety failure: as soon as the driver presses "Init", the lift will immediately activate at 80% power before the match has begun. Hardware movement commands must be restricted to `start()` or `loop()`.
+The programmer used `@Autonomous` for a program named `"TeleOp_Main"`, the wrong annotation for a driver-controlled program. Additionally, `lift.setPower(0.8)` is placed inside `init()`. This is a critical safety failure: as soon as the driver presses "Init", the lift will immediately activate at 80% power before the match has begun. Hardware movement commands must be restricted to `start()` or `loop()`.
 
 ```java
 @TeleOp(name="TeleOp_Main", group="Production") // ← correct annotation
