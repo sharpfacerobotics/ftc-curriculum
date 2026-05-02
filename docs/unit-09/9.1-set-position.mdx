@@ -1,0 +1,149 @@
+---
+id: set-position
+title: "Lesson 9.1: Commanding Rotational Precision with setPosition()"
+sidebar_label: "9.1 · setPosition()"
+sidebar_position: 1
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 9.1: Commanding Rotational Precision with setPosition()
+
+---
+
+## Technical Context
+
+Servos are used for mechanisms requiring **exact angular positioning** — such as claws, latches, and gate mechanisms — where the motor must reliably reach the same physical location every time a button is pressed. Commanding a servo to a position that is blocked by mechanical hardware can lead to gear stripping or Control Hub port failure from sustained over-current draw.
+
+---
+
+## The Deep Dive
+
+The `setPosition(double position)` method sends a specific **pulse-width modulation (PWM)** signal to the Control Hub to move the servo to a fraction of its total range. It accepts a `double` parameter between `0.0` and `1.0`, where:
+
+- **`0.0`** — the far left of the servo's physical travel
+- **`0.5`** — the center (midpoint) of the servo's range
+- **`1.0`** — the far right of the servo's physical travel
+
+Unlike a `DcMotor`, a servo **holds** its commanded position. Once you call `setPosition(1.0)`, the servo actively drives to and maintains that angle — you do not need to continuously resend the command. This makes servos ideal for mechanisms that need to lock into a position until the driver changes it.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name="SetPosition_Demo")
+public class SetPositionDemo extends OpMode {
+
+    private Servo claw;
+
+    @Override
+    public void init() {
+        // Lookup in configuration registry
+        claw = hardwareMap.get(Servo.class, "claw_servo");
+
+        // Move to a known safe position at initialization
+        claw.setPosition(0.5);
+        telemetry.addData("Claw", "Initialized to center (0.5)");
+    }
+
+    @Override
+    public void loop() {
+        if (gamepad1.a) {
+            claw.setPosition(1.0); // Fully closed
+            telemetry.addData("Claw", "Closed");
+        } else if (gamepad1.b) {
+            claw.setPosition(0.0); // Fully open
+            telemetry.addData("Claw", "Open");
+        } else {
+            telemetry.addData("Claw", "Holding position");
+        }
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The `setPosition()` method requires a `__________` data type to specify the target location.
+2. In the SDK, a value of `__________` typically represents the midpoint of a servo's travel.
+3. To access servo methods, the hardware must be instantiated using the `__________` class.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`double`**
+2. **`0.5`**
+3. **`Servo`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You are programming a `"gate"` servo. When the driver presses `gamepad1.y`, the gate must move to 75% of its range to release a game element. When they press `gamepad1.a`, it returns to fully closed (`0.0`).
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name="Gate_Control_Challenge")
+public class GateControl extends OpMode {
+
+    private Servo gate;
+
+    @Override
+    public void init() {
+        // INSERT CODE HERE: Map "gate" from the hardwareMap
+        // INSERT CODE HERE: Set initial position to 0.0 (closed)
+    }
+
+    @Override
+    public void loop() {
+        // INSERT CODE HERE: Move gate to 0.75 if Y is pressed
+        // INSERT CODE HERE: Move gate to 0.0 if A is pressed
+        telemetry.addData("Gate Position", gate.getPosition());
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void init() {
+    gate = hardwareMap.get(Servo.class, "gate");
+    gate.setPosition(0.0);
+    telemetry.addData("Gate", "Initialized closed");
+}
+
+@Override
+public void loop() {
+    if (gamepad1.y) {
+        gate.setPosition(0.75);
+    } else if (gamepad1.a) {
+        gate.setPosition(0.0);
+    }
+    telemetry.addData("Gate Position", gate.getPosition());
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-09/set-position"
+  nextUnit="/docs/unit-09/scale-range"
+  nextUnitName="Lesson 9.2: Constraining Physical Motion Ranges with scaleRange()"
+/>

@@ -1,0 +1,153 @@
+---
+id: cr-servo
+title: "Lesson 9.4: Mapping Continuous Rotation Servos for Intake Mechanisms"
+sidebar_label: "9.4 · CRServo"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 9.4: Mapping Continuous Rotation Servos for Intake Mechanisms
+
+---
+
+## Technical Context
+
+**Continuous Rotation (CR) servos** are used for high-speed intakes or spinning mechanisms where positional precision is not required. They provide a compact, lighter alternative to a full DC motor when you need continuous rotation but don't have a free motor port — or when the mechanism is small enough that a servo's current draw is acceptable.
+
+---
+
+## The Deep Dive
+
+Unlike standard positional servos, a `CRServo` does not have a target angle. It has **no concept of "position"** — instead, it spins continuously at a speed determined by its power value. For this reason, the SDK exposes it through the `setPower()` method, exactly like a `DcMotor`:
+
+- **`1.0`** — full speed forward
+- **`0.0`** — stopped
+- **`-1.0`** — full speed reverse
+
+Because it uses `setPower()` instead of `setPosition()`, you must also remember that a `CRServo` will **not hold any position** when set to `0.0` — it simply stops spinning. There is no equivalent of `ZeroPowerBehavior.BRAKE` for a CR servo.
+
+The hardware must be instantiated using `CRServo.class` — not `Servo.class`. Attempting to cast a CR servo as a standard `Servo` will compile successfully but crash at runtime when `setPosition()` is called on an incompatible device type.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+
+@TeleOp(name="CRServo_Demo")
+public class CRServoDemo extends OpMode {
+
+    // Must declare as CRServo — not Servo
+    private CRServo intake;
+
+    @Override
+    public void init() {
+        // Must get as CRServo.class from the hardwareMap
+        intake = hardwareMap.get(CRServo.class, "intake_servo");
+        intake.setPower(0);
+        telemetry.addData("CR Intake", "Ready");
+    }
+
+    @Override
+    public void loop() {
+        // Trigger directly drives the servo speed — 0.0 to 1.0
+        intake.setPower(gamepad1.right_trigger);
+
+        // Left trigger runs it in reverse for ejecting
+        if (gamepad1.left_trigger > 0.1) {
+            intake.setPower(-gamepad1.left_trigger);
+        }
+
+        telemetry.addData("Intake Power", intake.getPower());
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. A CR Servo is commanded using the `__________` method instead of `setPosition()`.
+2. To stop a CR Servo, the power must be set to `__________`.
+3. If a CR Servo rotates the wrong direction for an intake, you can invoke the `__________` method to flip it without changing your power logic.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`setPower()`**
+2. **`0.0`**
+3. **`setDirection()`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Your robot uses a `CRServo` named `"spinner"` to move game elements into a scoring container. Run it at 60% power forward when the driver holds the `B` button, and at 60% reverse when they hold the `X` button. It should stop otherwise.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+
+@TeleOp(name="CR_Spinner_Challenge")
+public class CRSpinner extends OpMode {
+
+    private CRServo spinner;
+
+    @Override
+    public void init() {
+        // INSERT CODE HERE: Map "spinner" as a CRServo
+    }
+
+    @Override
+    public void loop() {
+        // INSERT CODE HERE: If B is pressed, set power to 0.6
+        // INSERT CODE HERE: Else if X is pressed, set power to -0.6
+        // INSERT CODE HERE: Otherwise set power to 0.0
+
+        telemetry.addData("Spinner Power", spinner.getPower());
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void init() {
+    spinner = hardwareMap.get(CRServo.class, "spinner");
+    spinner.setPower(0);
+    telemetry.addData("Spinner", "Ready");
+}
+
+@Override
+public void loop() {
+    if (gamepad1.b) {
+        spinner.setPower(0.6);
+    } else if (gamepad1.x) {
+        spinner.setPower(-0.6);
+    } else {
+        spinner.setPower(0.0);
+    }
+    telemetry.addData("Spinner Power", spinner.getPower());
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-09/cr-servo"
+  nextUnit="/docs/unit-09/dual-servo-challenge"
+  nextUnitName="Lesson 9.5: Challenge — Synchronizing Dual-Servo Grippers with Independent Position Offsets"
+/>

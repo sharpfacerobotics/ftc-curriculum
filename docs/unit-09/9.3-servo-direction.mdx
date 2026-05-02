@@ -1,0 +1,160 @@
+---
+id: servo-direction
+title: "Lesson 9.3: Configuring Servo Logical Direction for Inverted Assemblies"
+sidebar_label: "9.3 · Servo Direction"
+sidebar_position: 3
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 9.3: Configuring Servo Logical Direction for Inverted Assemblies
+
+---
+
+## Technical Context
+
+Dual-servo grippers often have servos mounted **mirrored** to each other on opposing sides of the mechanism. Without software inversion, a "close" command would move one servo inward and the other outward, causing the gripper to splay open instead of grip. Correcting this in `init()` allows identical position commands to drive both sides symmetrically.
+
+---
+
+## The Deep Dive
+
+The `setDirection()` method flips the **logical coordinate system** of the servo object. By passing `Servo.Direction.REVERSE`, the SDK ensures that `0.0` maps to the physical "far right" and `1.0` maps to the physical "far left" — the opposite of the default. This allows the programmer to use the exact same position value for both servos in a mirrored assembly.
+
+This is architecturally identical to `DcMotorSimple.Direction.REVERSE` from Unit 8 — both exist so that your code can express intent cleanly (`setPosition(1.0)` always means "close the claw") without any manual inversion math scattered throughout the codebase.
+
+| Setting | `setPosition(0.0)` result | `setPosition(1.0)` result |
+|---|---|---|
+| `Direction.FORWARD` (default) | Physical far-left | Physical far-right |
+| `Direction.REVERSE` | Physical far-right | Physical far-left |
+
+The default direction for all servos is `Servo.Direction.FORWARD`.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name="Servo_Direction_Demo")
+public class ServoDirectionDemo extends OpMode {
+
+    private Servo leftServo;
+    private Servo rightServo;
+
+    @Override
+    public void init() {
+        leftServo  = hardwareMap.get(Servo.class, "left_claw");
+        rightServo = hardwareMap.get(Servo.class, "right_claw");
+
+        // Invert the right servo so both respond identically to "close" commands
+        // Without this, setPosition(1.0) would open one side and close the other
+        rightServo.setDirection(Servo.Direction.REVERSE);
+
+        leftServo.setPosition(0.5);
+        rightServo.setPosition(0.5);
+        telemetry.addData("Claw", "Both servos at center");
+    }
+
+    @Override
+    public void loop() {
+        if (gamepad1.a) {
+            // Both servos move inward — claw closes
+            leftServo.setPosition(1.0);
+            rightServo.setPosition(1.0);
+        } else if (gamepad1.b) {
+            // Both servos move outward — claw opens
+            leftServo.setPosition(0.0);
+            rightServo.setPosition(0.0);
+        }
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To flip the orientation of a servo, we use the parameter `Servo.Direction.__________`.
+2. The default direction for all servos in the SDK is `Servo.Direction.__________`.
+3. Reversing a servo's direction is typically performed during the `__________` method of the OpMode lifecycle.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`REVERSE`**
+2. **`FORWARD`**
+3. **`init()`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You have two servos for a double-gate. The `"left_gate"` is mounted normally, but the `"right_gate"` is mounted upside-down and needs its direction reversed. Both gates should open fully (`1.0`) when `gamepad1.y` is pressed, and close fully (`0.0`) when `gamepad1.a` is pressed.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name="Double_Gate_Challenge")
+public class DoubleGate extends OpMode {
+
+    private Servo leftGate;
+    private Servo rightGate;
+
+    @Override
+    public void init() {
+        leftGate  = hardwareMap.get(Servo.class, "left_gate");
+        rightGate = hardwareMap.get(Servo.class, "right_gate");
+
+        // INSERT CODE HERE: Reverse the direction of rightGate
+        // INSERT CODE HERE: Set both gates to 0.0 initially
+    }
+
+    @Override
+    public void loop() {
+        if (gamepad1.y) {
+            leftGate.setPosition(1.0);
+            rightGate.setPosition(1.0);
+        } else if (gamepad1.a) {
+            leftGate.setPosition(0.0);
+            rightGate.setPosition(0.0);
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void init() {
+    leftGate  = hardwareMap.get(Servo.class, "left_gate");
+    rightGate = hardwareMap.get(Servo.class, "right_gate");
+
+    rightGate.setDirection(Servo.Direction.REVERSE);
+
+    leftGate.setPosition(0.0);
+    rightGate.setPosition(0.0);
+    telemetry.addData("Gates", "Initialized closed");
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-09/servo-direction"
+  nextUnit="/docs/unit-09/cr-servo"
+  nextUnitName="Lesson 9.4: Mapping Continuous Rotation Servos for Intake Mechanisms"
+/>

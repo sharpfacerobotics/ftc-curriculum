@@ -149,7 +149,7 @@ function HeroSection(): React.JSX.Element {
 
       <p className={styles.heroSub}>
         A structured, hands-on curriculum built by student engineers.
-        From environment setup through hardware mapping and motor control.
+        From environment setup through hardware mapping, motor control, and servos.
       </p>
 
       <div className={styles.terminalLine} aria-hidden="true">
@@ -265,8 +265,8 @@ function CtaSection(): React.JSX.Element {
         </h2>
         <p className={styles.ctaSub}>
           Start with Unit 1 — no prior programming experience required. The
-          live curriculum currently takes students through environment setup,
-          OpMode structure, and Java variables.
+          live curriculum now spans {CURRICULUM_UNIT_COUNT} units, from
+          environment setup through hardware mapping and motor control.
         </p>
         <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
           Launch Unit 1 →
@@ -288,7 +288,7 @@ export default function Home(): React.JSX.Element {
         <title>{siteConfig.title}</title>
         <meta
           name="description"
-          content="Telemark by EHS Robotics — open-source FTC lessons for environment setup, OpMode structure, and Java variables."
+          content="Telemark by EHS Robotics — open-source FTC programming lessons from environment setup through hardware mapping, DC motor control, and servo control."
         />
       </Head>
     
