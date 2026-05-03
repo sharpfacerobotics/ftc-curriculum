@@ -1,13 +1,13 @@
 ---
 id: dcmotor-mapping
-title: "Lesson 7.2: Registering DcMotors and Assigning Port-Specific Names"
+title: "Lesson 7.2: Mapping DcMotors with the Right Names and Ports"
 sidebar_label: "7.2 · DcMotor Mapping"
 sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 7.2: Registering DcMotors and Assigning Port-Specific Names
+# Lesson 7.2: Mapping DcMotors with the Right Names and Ports
 
 ---
 
@@ -17,7 +17,7 @@ Motors are high-draw components connected to the 4-pin motor ports on the Contro
 
 ---
 
-## The Deep Dive
+## What Good Motor Mapping Looks Like
 
 In Java, you declare a member variable of type `DcMotor` at the class level. During the `init()` phase, you use `hardwareMap.get(DcMotor.class, "name")` to assign the physical motor to that variable. Once instantiated, the motor object gains access to methods like `setPower()`, `setDirection()`, and `setMode()`.
 

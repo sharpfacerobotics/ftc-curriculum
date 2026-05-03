@@ -1,13 +1,13 @@
 ---
 id: mechanism-classes
-title: "Lesson 7.5: Challenge — Synchronizing Hardware Classes Across Multiple OpModes"
+title: "Lesson 7.5: Challenge — Keep Shared Hardware Classes Consistent Across OpModes"
 sidebar_label: "7.5 · Challenge: Mechanism Classes"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 7.5: Challenge — Synchronizing Hardware Classes Across Multiple OpModes
+# Lesson 7.5: Challenge — Keep Shared Hardware Classes Consistent Across OpModes
 
 ---
 
@@ -17,7 +17,7 @@ As robots become complex, putting all hardware mapping in a single OpMode file l
 
 ---
 
-## The Deep Dive
+## Why Shared Mechanism Classes Save Time
 
 A mechanism class requires a custom `init()` method that accepts the `HardwareMap` from the parent OpMode as a parameter. This is the key architectural insight: the mechanism class cannot access `hardwareMap` on its own because that object belongs to the OpMode context. By passing it in, you allow the mechanism to perform its own registry lookups while remaining completely portable.
 

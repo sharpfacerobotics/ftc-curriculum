@@ -1,13 +1,13 @@
 ---
 id: trigger-inputs
-title: "Lesson 4.3: Implementing Progressive Braking via Analog Trigger Inputs"
+title: "Lesson 4.3: Using Triggers for Gradual Braking Control"
 sidebar_label: "4.3 · Trigger Inputs"
 sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 4.3: Implementing Progressive Braking via Analog Trigger Inputs
+# Lesson 4.3: Using Triggers for Gradual Braking Control
 
 ---
 
@@ -17,7 +17,7 @@ Unlike buttons, the Triggers on the gamepad are **analog**, allowing for graduat
 
 ---
 
-## The Deep Dive
+## Why Triggers Work Well for Fine Control
 
 Triggers are accessed as `gamepad1.left_trigger` and `gamepad1.right_trigger`. Unlike the joysticks, triggers return a `double` ranging only from `0.0` (not pressed) to `1.0` (fully pressed). Because they provide a resolution of fractional values, they are ideal for use as multipliers in drive logic. For example, multiplying the drivetrain's output power by the inverse of a trigger value allows a driver to "feather" the brakes to perform precise alignment with game elements.
 

@@ -1,13 +1,13 @@
 ---
 id: intake-logic-challenge
-title: "Lesson 5.5: Challenge — Designing a Multi-Stage Intake Logic Tree for Game Element Sorting"
+title: "Lesson 5.5: Challenge — Build Intake Logic for Multi-Stage Game Piece Sorting"
 sidebar_label: "5.5 · Challenge: Intake Logic"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 5.5: Challenge — Designing a Multi-Stage Intake Logic Tree for Game Element Sorting
+# Lesson 5.5: Challenge — Build Intake Logic for Multi-Stage Game Piece Sorting
 
 ---
 
@@ -17,7 +17,7 @@ A **"Logic Tree"** is a complex arrangement of decisions that allows the robot t
 
 ---
 
-## The Deep Dive
+## How to Design a Multi-Stage Intake Decision Tree
 
 This challenge requires nesting `if`/`else` statements within each other, or using a complex `else if` chain, to manage a hardware subsystem. The goal is to implement a **state-dependent controller**. For example, the intake mechanism should run at 100% if empty, 50% if one item is detected, and 0% (Stop) if the distance sensor indicates the intake is full. By structuring this logic correctly, you minimize the driver's cognitive load and maximize the robot's cycle efficiency.
 

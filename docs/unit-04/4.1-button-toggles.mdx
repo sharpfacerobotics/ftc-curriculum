@@ -1,13 +1,13 @@
 ---
 id: button-toggles
-title: "Lesson 4.1: Mapping gamepad.a and gamepad.b to Direct Mechanism Toggles"
+title: "Lesson 4.1: Mapping gamepad Buttons to Simple Mechanism Toggles"
 sidebar_label: "4.1 · Button Toggles"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 4.1: Mapping gamepad.a and gamepad.b to Direct Mechanism Toggles
+# Lesson 4.1: Mapping gamepad Buttons to Simple Mechanism Toggles
 
 ---
 
@@ -17,7 +17,7 @@ Binary inputs from the gamepad buttons provide repeatable, discrete commands for
 
 ---
 
-## The Deep Dive
+## Why Button Toggles Feel So Natural for Drivers
 
 The `gamepad1` and `gamepad2` objects are automatically instantiated by the SDK and represent the human interface devices connected to the Driver Station. These objects contain `boolean` member variables for every physical button (e.g., `a`, `b`, `x`, `y`, `left_bumper`). In the Java JVM, these variables are updated with current hardware states precisely between each execution of the `loop()` method. Accessing these members via dot notation (e.g., `gamepad1.a`) allows the programmer to execute conditional logic based on human interaction.
 

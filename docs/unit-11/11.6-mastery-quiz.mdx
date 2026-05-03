@@ -1,0 +1,140 @@
+---
+id: mastery-quiz
+title: "Unit 11 Mastery Quiz: Digital & Analog Sensors"
+sidebar_label: "Unit 11 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 11 Mastery Quiz: Digital & Analog Sensors
+
+---
+
+## I. Conceptual Questions
+
+**1. Signal Direction:** Why must you explicitly call `setMode(DigitalChannel.Mode.INPUT)` when initializing a touch sensor, but no equivalent mode call is required when mapping an `AnalogInput`?
+
+<details>
+<summary>Show answer</summary>
+
+Digital pins on the Control Hub are bidirectional. The same physical pin can be configured to either send a voltage signal as an output or receive one as an input, and the hardware needs to be told which role it should play. Without `setMode(INPUT)`, the SDK may leave the pin in an undefined or output state, which means the touch sensor's physical signal cannot drive it. Analog input ports, by contrast, are dedicated receive-only ports. They have no output capability, so there is no ambiguity for the SDK to resolve and no mode call is necessary.
+
+</details>
+
+---
+
+**2. Reliability of Relative Comparison:** Why is comparing color sensor channels against each other (for example, `red() > blue()`) significantly more reliable for alliance detection than comparing a single channel against an absolute threshold (for example, `red() > 150`)?
+
+<details>
+<summary>Show answer</summary>
+
+The overall brightness seen by the sensor changes with venue lighting, ambient reflections, and sensor proximity to the target. An absolute threshold that is correct in your practice space may be well above or below the actual channel value at a competition venue. Relative comparison eliminates this dependency on overall brightness because all channels scale together when lighting changes. If the object is red, the red channel will always dominate the blue and green channels regardless of whether the raw value is 80 or 200, so the comparison remains valid across environments.
+
+</details>
+
+---
+
+**3. Absolute Versus Relative Position:** Explain why a potentiometer is a better choice than an encoder for providing position feedback on a mechanism that is manually repositioned by the drive team between matches.
+
+<details>
+<summary>Show answer</summary>
+
+An encoder is a relative sensor -- it counts rotation from the moment it was last reset. If the drive team moves the mechanism by hand between matches, the encoder's count no longer reflects the physical position, and the code will operate on incorrect data until a homing sequence re-establishes a reference point. A potentiometer measures an absolute physical angle through a direct voltage relationship, so its reading is always correct the moment power is applied, regardless of what happened to the mechanism while the robot was off. No homing sequence is required, and manual repositioning between matches does not corrupt the sensor's state.
+
+</details>
+
+---
+
+**4. Single Sensor, Two Interfaces:** How does the REV Color/Distance Sensor expose both color and range measurement functionality through the SDK even though it is a single physical component with a single configuration entry?
+
+<details>
+<summary>Show answer</summary>
+
+The SDK's `hardwareMap` performs a type-safe lookup that searches the device registry for a hardware object matching the requested Java interface. The REV sensor's driver implements both the `ColorSensor` interface and the `DistanceSensor` interface on the same underlying object. When you call `hardwareMap.get(ColorSensor.class, "front_sensor")` and then `hardwareMap.get(DistanceSensor.class, "front_sensor")` with the same configuration name, the `hardwareMap` resolves both references to the same device object. Each variable simply views that object through a different interface, giving access to the corresponding subset of methods.
+
+</details>
+
+---
+
+**5. Hysteresis in Practice:** A student implements an intake gate with a single threshold: if the distance is less than 10 cm, run the intake. They notice the motor turns on and off rapidly while a game element sits at 10 cm. Explain why this happens and describe the fix.
+
+<details>
+<summary>Show answer</summary>
+
+The distance sensor reading fluctuates by a few millimeters due to electrical noise and the physical nature of the ToF measurement. When the element is sitting exactly at the threshold, the reading alternates between values just above and just below 10 cm from one loop cycle to the next. Each fluctuation triggers a transition in the `if` condition, causing the motor to switch states at the same frequency as the loop -- which is approximately 50 times per second. This is chatter, and it is destructive to motor hardware.
+
+The fix is to introduce a hysteresis band by using two different threshold values. For example, the intake starts collecting when the distance drops below 8 cm (definitively in range) and only stops when the distance rises above 12 cm (definitively out of range). A state variable tracks whether the intake is currently active. As long as the element stays in the 8-to-12 cm band, the state variable does not toggle and the motor runs steadily.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is intended to create a sensor-gated intake. The intake motor named `"intake"` should run only when the distance sensor sees an object closer than 15 cm and the storage touch sensor named `"limit"` is not triggered. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+@TeleOp(name="Intake_Debug")
+public class IntakeDebug extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor        intake = hardwareMap.get(DcMotor.class,        "intake");
+        DistanceSensor range  = hardwareMap.get(DistanceSensor.class, "range_sensor")
+        DigitalChannel limit  = hardwareMap.get(DigitalChannel.class, "limit");
+        limit.setMode(DigitalChannel.Mode.INPUT);
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            double  dist   = range.getDistance(DistanceUnit.CM);
+            boolean isFull = limit.getState(); // storage is full when this is true
+
+            if (dist < 15.0 && !isFull) {
+                intake.setPower(0.8);
+            } else {
+                intake.setPower(0.0);
+            }
+
+            telemetry.addData("Distance", dist);
+            telemetry.addData("Full",     isFull);
+            telemetry.update();
+        }
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 -- Syntax Error:**
+The `hardwareMap.get()` call for `range` is missing a semicolon at the end of the statement. Java requires every statement to be terminated with a semicolon.
+
+```java
+DistanceSensor range = hardwareMap.get(DistanceSensor.class, "range_sensor"); // semicolon added
+```
+
+**Error 2 -- Logic Error:**
+The line `boolean isFull = limit.getState();` does not account for active-low logic. The REV Touch Sensor returns `true` from `getState()` when it is not pressed (circuit open) and `false` when it is physically pressed (circuit closed). Without inverting the signal, `isFull` is `true` when the sensor is idle and `false` when the storage is actually full. This causes the intake to run when storage is full and stop when the sensor is not triggered -- the exact opposite of the intended behavior. The fix is to apply the `!` operator:
+
+```java
+boolean isFull = !limit.getState(); // correct: true when sensor is physically pressed
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-11/mastery-quiz"
+  nextUnit="/dashboard"
+  nextUnitName="Dashboard"
+/>

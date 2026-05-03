@@ -1,13 +1,13 @@
 ---
 id: coast-vs-stop
-title: "Lesson 8.4: Utilizing setPower(0.0) for Consistent Coast vs. Stop Behavior"
+title: "Lesson 8.4: Choosing Between Coasting and Stopping with setPower(0.0)"
 sidebar_label: "8.4 · Coast vs. Stop"
 sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 8.4: Utilizing setPower(0.0) for Consistent Coast vs. Stop Behavior
+# Lesson 8.4: Choosing Between Coasting and Stopping with setPower(0.0)
 
 ---
 
@@ -17,7 +17,7 @@ Precision in autonomous and TeleOp depends on **predictable stops**. If a progra
 
 ---
 
-## The Deep Dive
+## How Zero Power Changes the Way a Mechanism Settles
 
 `setPower(0.0)` is a deliberate command that tells the Control Hub to cease applying voltage to the motor port. Its physical effect is entirely determined by the `ZeroPowerBehavior` established in Lesson 8.3:
 

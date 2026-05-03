@@ -1,13 +1,13 @@
 ---
 id: set-direction
-title: "Lesson 8.2: Reversing Mechanical Bias using setDirection(REVERSE)"
+title: "Lesson 8.2: Fixing Reversed Mechanisms with setDirection(REVERSE)"
 sidebar_label: "8.2 · setDirection()"
 sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 8.2: Reversing Mechanical Bias using setDirection(REVERSE)
+# Lesson 8.2: Fixing Reversed Mechanisms with setDirection(REVERSE)
 
 ---
 
@@ -17,7 +17,7 @@ Robots with differential drivetrains — whether two-wheel or four-wheel mecanum
 
 ---
 
-## The Deep Dive
+## When setDirection() Fixes the Real Problem
 
 The `setDirection()` method allows the programmer to flip the **logical orientation** of a `DcMotor` object. By passing `DcMotorSimple.Direction.REVERSE`, all subsequent positive power commands and encoder tick counts are inverted by the SDK before the signal reaches the Control Hub port.
 

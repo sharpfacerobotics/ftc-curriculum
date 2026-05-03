@@ -1,13 +1,13 @@
 ---
 id: boolean-flags
-title: "Lesson 3.3: Managing Binary Sensor States using boolean Flags"
+title: "Lesson 3.3: Using boolean Values for On-or-Off Robot State"
 sidebar_label: "3.3 · boolean Flags"
 sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 3.3: Managing Binary Sensor States using boolean Flags
+# Lesson 3.3: Using boolean Values for On-or-Off Robot State
 
 ---
 
@@ -17,7 +17,7 @@ Sensors like Touch Sensors or Limit Switches only have two states: pressed or no
 
 ---
 
-## The Deep Dive
+## How boolean Values Simplify Robot Decisions
 
 A `boolean` is a primitive datatype that can only hold one of two values: `true` or `false`. In the FTC environment, digital sensors and gamepad buttons are inherently boolean. When you call `getState()` on a `DigitalChannel` (like a touch sensor), the SDK returns a `boolean`. Storing this result in a variable allows you to **"capture"** the state at a specific moment in the `loop()` cycle and use it for logic comparisons.
 

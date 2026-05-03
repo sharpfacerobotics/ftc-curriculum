@@ -1,13 +1,13 @@
 ---
 id: servo-direction
-title: "Lesson 9.3: Configuring Servo Logical Direction for Inverted Assemblies"
+title: "Lesson 9.3: Fixing Inverted Servo Setups with Direction Settings"
 sidebar_label: "9.3 · Servo Direction"
 sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 9.3: Configuring Servo Logical Direction for Inverted Assemblies
+# Lesson 9.3: Fixing Inverted Servo Setups with Direction Settings
 
 ---
 
@@ -17,7 +17,7 @@ Dual-servo grippers often have servos mounted **mirrored** to each other on oppo
 
 ---
 
-## The Deep Dive
+## When Servo Direction Is the Cleaner Fix
 
 The `setDirection()` method flips the **logical coordinate system** of the servo object. By passing `Servo.Direction.REVERSE`, the SDK ensures that `0.0` maps to the physical "far right" and `1.0` maps to the physical "far left" — the opposite of the default. This allows the programmer to use the exact same position value for both servos in a mirrored assembly.
 

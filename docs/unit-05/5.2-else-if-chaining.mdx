@@ -1,13 +1,13 @@
 ---
 id: else-if-chaining
-title: "Lesson 5.2: Handling Mutually Exclusive Hardware States with else if Chaining"
+title: "Lesson 5.2: Using else if Chains to Pick One Robot Action at a Time"
 sidebar_label: "5.2 · else if Chaining"
 sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 5.2: Handling Mutually Exclusive Hardware States with else if Chaining
+# Lesson 5.2: Using else if Chains to Pick One Robot Action at a Time
 
 ---
 
@@ -17,7 +17,7 @@ Using `else if` chaining prevents conflicting hardware commands within the same 
 
 ---
 
-## The Deep Dive
+## Why else if Chains Prevent Conflicting Commands
 
 `else if` and `else` clauses allow for the creation of a **priority ladder**. When Java encounters an `if`/`else if` chain, it evaluates conditions from top to bottom and executes only the **first** block that is `true`. The final `else` block acts as a catch-all fail-safe, which is critical for ensuring hardware returns to a "neutral" or "zero-power" state when no inputs are active. This structure ensures that the `DcMotor`'s `setPower()` method receives exactly one unambiguous command per loop.
 

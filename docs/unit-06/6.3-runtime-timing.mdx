@@ -1,13 +1,13 @@
 ---
 id: runtime-timing
-title: "Lesson 6.3: Managing Timed Transitions using getRuntime() Loop Comparisons"
+title: "Lesson 6.3: Timing Robot Actions with getRuntime()"
 sidebar_label: "6.3 · getRuntime() Timing"
 sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 6.3: Managing Timed Transitions using getRuntime() Loop Comparisons
+# Lesson 6.3: Timing Robot Actions with getRuntime()
 
 ---
 
@@ -17,7 +17,7 @@ Standard `sleep()` commands block the **entire thread**, preventing the robot fr
 
 ---
 
-## The Deep Dive
+## How getRuntime() Helps You Time Actions Without Guessing
 
 The `getRuntime()` method returns a `double` representing the seconds elapsed since the OpMode was initialized. By capturing a "start time" timestamp and comparing it to the current `getRuntime()` value inside a `while` or `if` statement, the programmer creates a timed window for hardware to operate — without freezing any other logic.
 

@@ -1,0 +1,156 @@
+---
+id: drive-and-stop
+title: "Lesson 10.5: Challenge — Developing a Precise Drive and Stop System for Linear Navigation"
+sidebar_label: "10.5 · Challenge: Drive and Stop"
+sidebar_position: 5
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 10.5: Challenge — Developing a Precise Drive and Stop System for Linear Navigation
+
+---
+
+## Why Encoder Resets Matter More Than You Think
+
+Here is a scenario that trips up a lot of teams. The autonomous drives forward 1000 ticks -- works perfectly. Then it is supposed to drive forward another 500 ticks. But you forgot to reset the encoder, so the motor is now at position 1000 and you called `setTargetPosition(500)`. The Hub thinks the target is behind the motor and either drives backward or does nothing at all.
+
+The fix is `STOP_AND_RESET_ENCODER`. This mode tells the Hub to stop the motor, zero out the tick counter, and hold position until you switch to a movement mode. Running it before every new move segment gives you a clean logical zero to work from every time, and it also means errors from the previous segment -- like being bumped by another robot -- cannot carry forward and compound over multiple steps.
+
+---
+
+## Putting the Full Sequence Together
+
+A complete encoder-based move has five steps that you will repeat for every segment of an autonomous routine:
+
+1. Reset the encoder with `STOP_AND_RESET_ENCODER`
+2. Set the target position with `setTargetPosition()`
+3. Switch to `RUN_TO_POSITION`
+4. Apply power with `setPower()`
+5. Wait for the move to finish with `isBusy()`
+
+The `isBusy()` method returns `true` as long as the Hub is actively driving toward the target. Once the motor arrives and the Hub transitions to holding mode, `isBusy()` returns `false` and your `while` loop exits. This is the correct condition to use -- checking a tick threshold yourself would be less reliable.
+
+One thing to remember: after `STOP_AND_RESET_ENCODER`, the motor is stopped. You must switch to a movement mode before calling `setPower()` or nothing will happen.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Drive_And_Stop_Demo")
+public class DriveAndStopDemo extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor drive = hardwareMap.get(DcMotor.class, "drive");
+        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        waitForStart();
+
+        // Step 1: Zero out any accumulated ticks from previous runs
+        drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        // Step 2: Define the absolute target from zero
+        drive.setTargetPosition(1000);
+
+        // Step 3: Activate position control
+        drive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Step 4: Apply power -- the Hub starts moving now
+        drive.setPower(0.5);
+
+        // Step 5: Block until the Hub reports arrival
+        while (opModeIsActive() && drive.isBusy()) {
+            telemetry.addData("Target",   drive.getTargetPosition());
+            telemetry.addData("Position", drive.getCurrentPosition());
+            telemetry.update();
+        }
+
+        drive.setPower(0);
+        telemetry.addData("Status", "Move complete");
+        telemetry.update();
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To zero out accumulated ticks before a new move, you apply the `DcMotor.RunMode.__________` mode.
+2. After a reset, the motor must be switched to a movement mode because the reset command also `__________` the motor shaft.
+3. The `__________` method returns a boolean indicating whether the motor is still actively traveling toward its encoder target.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`STOP_AND_RESET_ENCODER`**
+2. **stops** (halts / disables)
+3. **`isBusy()`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** Create a precise autonomous sequence for a `"slider"` motor. Reset its encoder, move exactly 500 ticks forward, and wait until the move is complete before stopping. Display the current position during the move.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Precision_Slide_Challenge")
+public class PrecisionSlide extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor slider = hardwareMap.get(DcMotor.class, "slider");
+        slider.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        waitForStart();
+
+        // INSERT CODE HERE: Reset the encoder
+        // INSERT CODE HERE: Set target to 500 ticks
+        // INSERT CODE HERE: Switch to RUN_TO_POSITION
+        // INSERT CODE HERE: Apply 0.5 power
+
+        while (opModeIsActive() && slider.isBusy()) {
+            telemetry.addData("Position", slider.getCurrentPosition());
+            telemetry.update();
+        }
+
+        slider.setPower(0);
+        telemetry.addData("Status", "Done");
+        telemetry.update();
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+slider.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+slider.setTargetPosition(500);
+slider.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+slider.setPower(0.5);
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-10/drive-and-stop"
+  nextUnit="/docs/unit-10/mastery-quiz"
+  nextUnitName="Unit 10 Mastery Quiz"
+/>

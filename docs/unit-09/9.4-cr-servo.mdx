@@ -1,13 +1,13 @@
 ---
 id: cr-servo
-title: "Lesson 9.4: Mapping Continuous Rotation Servos for Intake Mechanisms"
+title: "Lesson 9.4: Using CRServos for Intake-Style Mechanisms"
 sidebar_label: "9.4 · CRServo"
 sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 9.4: Mapping Continuous Rotation Servos for Intake Mechanisms
+# Lesson 9.4: Using CRServos for Intake-Style Mechanisms
 
 ---
 
@@ -17,7 +17,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## The Deep Dive
+## How CRServos Differ from Standard Servos
 
 Unlike standard positional servos, a `CRServo` does not have a target angle. It has **no concept of "position"** — instead, it spins continuously at a speed determined by its power value. For this reason, the SDK exposes it through the `setPower()` method, exactly like a `DcMotor`:
 

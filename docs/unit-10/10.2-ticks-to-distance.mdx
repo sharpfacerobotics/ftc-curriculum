@@ -1,0 +1,162 @@
+---
+id: ticks-to-distance
+title: "Lesson 10.2: Calculating Distances based on Ticks Per Revolution Data"
+sidebar_label: "10.2 · Ticks to Distance"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 10.2: Calculating Distances based on Ticks Per Revolution Data
+
+---
+
+## From Raw Numbers to Real Distances
+
+Raw ticks are useful for monitoring, but you cannot tell your robot to "drive 24 inches" using ticks alone without a conversion. This lesson covers exactly how to build that conversion so your autonomous code talks in real-world units rather than abstract encoder counts.
+
+The math only requires two pieces of information: how many ticks your motor produces per full output shaft revolution, and how far the robot travels per revolution of that shaft.
+
+---
+
+## The Conversion Formula Explained
+
+Here is how the chain works. Once the shaft completes one full revolution, a wheel of diameter `d` travels a distance equal to its circumference -- `Math.PI * d`. So if you know how many ticks equal one revolution, you can calculate distance like this:
+
+```
+rotations  = ticks / ticksPerRevolution
+distance   = rotations * (Math.PI * wheelDiameter)
+```
+
+The SDK actually stores the motor's resolution for you inside `motor.getMotorType().getTicksPerRev()`. This is worth using because if your team ever swaps the 20:1 gearbox for a 40:1, the constant updates automatically without you having to hunt down a hardcoded number somewhere in your code.
+
+One subtle but important point: `getCurrentPosition()` returns an `int`, but `ticksPerRev` should be stored as a `double`. If you divide an `int` by an `int` in Java, you get integer division -- the remainder gets thrown away, and you lose precision. Storing one of the values as a `double` promotes the entire calculation to floating point automatically.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Ticks_To_Distance_Demo")
+public class TicksToDistanceDemo extends OpMode {
+
+    private DcMotor driveMotor;
+
+    // Wheel diameter in inches -- measure your actual wheel
+    private static final double WHEEL_DIAMETER_IN = 3.78;
+
+    @Override
+    public void init() {
+        driveMotor = hardwareMap.get(DcMotor.class, "left_drive");
+        driveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    @Override
+    public void loop() {
+        driveMotor.setPower(-gamepad1.left_stick_y);
+
+        // Pull the resolution directly from the motor's config object
+        double ticksPerRev = driveMotor.getMotorType().getTicksPerRev();
+
+        // Convert raw ticks into rotations, then into inches
+        double rotations = driveMotor.getCurrentPosition() / ticksPerRev;
+        double distanceIn = rotations * (Math.PI * WHEEL_DIAMETER_IN);
+
+        telemetry.addData("Ticks Per Rev",  ticksPerRev);
+        telemetry.addData("Rotations",      "%.2f", rotations);
+        telemetry.addData("Distance (in)",  "%.2f", distanceIn);
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. To find how far a wheel has traveled, you must multiply the number of rotations by the wheel's `__________`.
+2. The SDK method `getMotorType().__________()` provides the ticks-per-revolution value for the configured motor.
+3. Dividing an `int` by a `double` in Java results in a `__________` data type, preserving the decimal portion of the result.
+
+<details>
+<summary>Show answers</summary>
+
+1. **circumference** (`Math.PI * diameter`)
+2. **`getTicksPerRev()`**
+3. **`double`**
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You have a winch motor with a drum diameter of 2.0 inches. Calculate and report the number of motor rotations and the total cable length reeled in (in inches) to the Driver Station.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Winch_Rotations_Challenge")
+public class WinchRotations extends OpMode {
+
+    private DcMotor winch;
+    private static final double DRUM_DIAMETER_IN = 2.0;
+
+    @Override
+    public void init() {
+        winch = hardwareMap.get(DcMotor.class, "winch");
+        // INSERT CODE HERE: Store the ticks per revolution from the motor type
+    }
+
+    @Override
+    public void loop() {
+        winch.setPower(-gamepad1.left_stick_y);
+
+        // INSERT CODE HERE: Calculate rotations and distance in inches
+        // INSERT CODE HERE: Display both values via telemetry
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+private DcMotor winch;
+private static final double DRUM_DIAMETER_IN = 2.0;
+private double ticksPerRev;
+
+@Override
+public void init() {
+    winch = hardwareMap.get(DcMotor.class, "winch");
+    ticksPerRev = winch.getMotorType().getTicksPerRev();
+}
+
+@Override
+public void loop() {
+    winch.setPower(-gamepad1.left_stick_y);
+
+    double rotations  = winch.getCurrentPosition() / ticksPerRev;
+    double distanceIn = rotations * (Math.PI * DRUM_DIAMETER_IN);
+
+    telemetry.addData("Rotations",      "%.2f", rotations);
+    telemetry.addData("Cable In (in)",  "%.2f", distanceIn);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-10/ticks-to-distance"
+  nextUnit="/docs/unit-10/run-to-position"
+  nextUnitName="Lesson 10.3: Automating Targeted Movement with RUN_TO_POSITION"
+/>

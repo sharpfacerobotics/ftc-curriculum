@@ -1,13 +1,13 @@
 ---
 id: sensitivity-curves
-title: "Lesson 4.4: Reducing Stick Sensitivity using the squareInputWithSign() Method"
+title: "Lesson 4.4: Shaping Joystick Sensitivity with squareInputWithSign()"
 sidebar_label: "4.4 · Sensitivity Curves"
 sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 4.4: Reducing Stick Sensitivity using the squareInputWithSign() Method
+# Lesson 4.4: Shaping Joystick Sensitivity with squareInputWithSign()
 
 ---
 
@@ -17,7 +17,7 @@ Standard linear joystick mapping makes it difficult to perform fine adjustments 
 
 ---
 
-## The Deep Dive
+## How Input Shaping Makes Driving Smoother
 
 Squaring a joystick input (e.g., `0.5 * 0.5 = 0.25`) reduces the output power for the majority of the stick's range. However, a standard square operation turns negative inputs positive (e.g., `-0.5 * -0.5 = 0.25`), which would destroy the driver's ability to reverse the robot. Professional FTC code uses a custom method called `squareInputWithSign()`. This method calculates the square but then uses a conditional `if` statement to check if the original input was negative; if so, it multiplies the result by `-1` to preserve the direction of movement.
 

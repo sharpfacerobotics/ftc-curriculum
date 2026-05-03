@@ -1,13 +1,13 @@
 ---
 id: joystick-scaling
-title: "Lesson 4.2: Scaling Joystick X/Y Analog Values for Differential Drive"
+title: "Lesson 4.2: Turning Joystick X and Y into Smooth Drive Control"
 sidebar_label: "4.2 · Joystick Scaling"
 sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 4.2: Scaling Joystick X/Y Analog Values for Differential Drive
+# Lesson 4.2: Turning Joystick X and Y into Smooth Drive Control
 
 ---
 
@@ -17,7 +17,7 @@ The gamepad joysticks provide a range of motion used for proportional speed cont
 
 ---
 
-## The Deep Dive
+## How Joystick Values Become Drive Commands
 
 Joysticks are members of the `gamepad` object and are stored as `double` precision variables with a range of `-1.0` to `1.0`. The center position of the joystick is exactly `0.0`. In a Differential Drive (or Tank Drive) configuration, the Y-axis input is typically used to command the voltage of the DC Motors. To correct the hardware's inverted logical bias, the programmer must perform a simple math operation: `double forwardPower = -gamepad1.left_stick_y;`.
 

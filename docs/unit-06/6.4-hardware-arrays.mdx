@@ -1,13 +1,13 @@
 ---
 id: hardware-arrays
-title: "Lesson 6.4: Iterating Hardware Arrays using for..each Syntax"
+title: "Lesson 6.4: Looping Through Hardware Arrays with for-each"
 sidebar_label: "6.4 · Hardware Arrays"
 sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 6.4: Iterating Hardware Arrays using for..each Syntax
+# Lesson 6.4: Looping Through Hardware Arrays with for-each
 
 ---
 
@@ -17,7 +17,7 @@ Complex robots often utilize four drivetrain motors or multiple identical sensor
 
 ---
 
-## The Deep Dive
+## Why for-each Loops Scale Better with More Hardware
 
 A Java array is instantiated to hold a fixed number of SDK objects (e.g., `DcMotor[] motors = new DcMotor[4]`). The `for..each` syntax — `for (Type variable : array)` — provides a shortcut to access every object in that array without managing an index integer, ensuring every connected component receives the instruction in a clean, readable block.
 

@@ -1,13 +1,13 @@
 ---
 id: if-statements
-title: "Lesson 5.1: Conditional Motor Activation using Foundational if Statements"
+title: "Lesson 5.1: Using if Statements to Decide When a Motor Should Run"
 sidebar_label: "5.1 · if Statements"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 5.1: Conditional Motor Activation using Foundational if Statements
+# Lesson 5.1: Using if Statements to Decide When a Motor Should Run
 
 ---
 
@@ -17,7 +17,7 @@ The `if` statement is the fundamental mechanism for preventing unintended robot 
 
 ---
 
-## The Deep Dive
+## How if Statements Turn Inputs into Actions
 
 In the Java JVM, an `if` statement evaluates a boolean expression found within the parentheses. If the expression evaluates to `true`, the code block encapsulated by curly braces `{}` is executed. In FTC, this is typically used to poll the state of a gamepad button (e.g., `gamepad1.a`) or a digital sensor. Because the `loop()` method executes approximately 50 times per second, the `if` statement allows the robot to make real-time decisions based on the current state of the hardware registry.
 

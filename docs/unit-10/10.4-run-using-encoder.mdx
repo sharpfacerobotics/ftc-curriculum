@@ -1,0 +1,144 @@
+---
+id: run-using-encoder
+title: "Lesson 10.4: Maintaining Speed Consistency with RUN_USING_ENCODER"
+sidebar_label: "10.4 · RUN_USING_ENCODER"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 10.4: Maintaining Speed Consistency with RUN_USING_ENCODER
+
+---
+
+## The Problem with Voltage-Based Speed Control
+
+Picture this: your autonomous routine drives the robot perfectly in practice at full battery. Then in the second match of the day, the battery is at 80% and the robot underdrives every segment by a few inches. You change nothing in the code -- the issue is that `RUN_WITHOUT_ENCODER` sends a fixed fraction of whatever voltage the battery currently has. Less voltage means less speed, and by the end of a competition day the robot is driving noticeably slower than it was at the start.
+
+`RUN_USING_ENCODER` eliminates this problem by making the Hub treat `setPower()` as a velocity command instead of a voltage command.
+
+---
+
+## What Velocity Control Actually Does
+
+When this mode is active, the Hub monitors how fast the encoder is actually ticking and compares it against a target speed derived from your `setPower()` value. If the motor slows down because the battery dropped or the robot hit a bump, the Hub automatically increases the voltage to compensate and bring the speed back to the target. If it speeds up, the Hub backs off the voltage.
+
+The result is that `setPower(0.5)` always means approximately 50% of the motor's maximum achievable speed, regardless of battery state. This makes your autonomous distances far more consistent match over match.
+
+One trade-off worth knowing: `RUN_USING_ENCODER` cannot use `setTargetPosition()`. If you need to move to a specific tick position, you want `RUN_TO_POSITION` from Lesson 10.3. These two modes serve different purposes -- velocity consistency versus positional targeting.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Run_Using_Encoder_Demo")
+public class RunUsingEncoderDemo extends OpMode {
+
+    private DcMotor leftDrive;
+    private DcMotor rightDrive;
+
+    @Override
+    public void init() {
+        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+
+        // Enable velocity PID on both drive motors
+        leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        telemetry.addData("Status", "Velocity control active");
+    }
+
+    @Override
+    public void loop() {
+        // setPower now commands velocity, not raw voltage
+        double drive = -gamepad1.left_stick_y;
+        leftDrive.setPower(drive);
+        rightDrive.setPower(drive);
+
+        telemetry.addData("Commanded Velocity", drive);
+        telemetry.addData("Left Ticks",  leftDrive.getCurrentPosition());
+        telemetry.addData("Right Ticks", rightDrive.getCurrentPosition());
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. `RUN_USING_ENCODER` uses internal `__________` logic on the Control Hub to maintain motor speed.
+2. This mode improves drivetrain consistency because the robot travels at a fixed `__________` rather than a fixed voltage.
+3. In this mode, the `setPower()` method effectively sets the motor's targeted `__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **PID**
+2. **velocity**
+3. **velocity** (speed / ticks per second)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You have a four-motor drivetrain stored in an array named `motors`. Configure every motor to use `RUN_USING_ENCODER` for consistent velocity during TeleOp using a `for..each` loop.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Consistent_Drive_Challenge")
+public class ConsistentDrive extends OpMode {
+
+    private DcMotor leftFront, rightFront, leftBack, rightBack;
+    private DcMotor[] motors;
+
+    @Override
+    public void init() {
+        leftFront  = hardwareMap.get(DcMotor.class, "left_front");
+        rightFront = hardwareMap.get(DcMotor.class, "right_front");
+        leftBack   = hardwareMap.get(DcMotor.class, "left_back");
+        rightBack  = hardwareMap.get(DcMotor.class, "right_back");
+
+        motors = new DcMotor[]{ leftFront, rightFront, leftBack, rightBack };
+
+        // INSERT CODE HERE: Use a for..each loop to set every motor to
+        // RUN_USING_ENCODER
+    }
+
+    @Override
+    public void loop() {}
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+for (DcMotor motor : motors) {
+    motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-10/run-using-encoder"
+  nextUnit="/docs/unit-10/drive-and-stop"
+  nextUnitName="Lesson 10.5: Challenge — Developing a Precise Drive and Stop System for Linear Navigation"
+/>

@@ -1,0 +1,142 @@
+---
+id: get-current-position
+title: "Lesson 10.1: Reading Raw Tick Counts with getCurrentPosition()"
+sidebar_label: "10.1 · getCurrentPosition()"
+sidebar_position: 1
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 10.1: Reading Raw Tick Counts with getCurrentPosition()
+
+---
+
+## Why Encoders Beat Timers
+
+If you have ever written code like "run the motor for 2 seconds then stop," you have already run into the core problem: the robot goes a different distance every single run. Battery charge, carpet friction, wheel slippage -- they all change how far the robot actually travels in that 2 seconds. Encoders solve this by measuring real physical rotation instead of guessing from time.
+
+Every motor shaft has a small magnetic or optical sensor inside it that generates pulses as the shaft turns. The Control Hub counts those pulses and stores the total as an integer called the **tick count**. When you call `getCurrentPosition()`, you get that count back. Because it measures actual rotation rather than elapsed time, it does not care what the battery is at or how grippy the field is.
+
+---
+
+## How the Tick Count Actually Works
+
+Think of the encoder like an odometer that never resets on its own. Every time the motor shaft spins forward, the number goes up. Every time it spins backward, the number goes down. That direction is tied directly to whatever you set with `setDirection()` -- reversing the motor also flips which way the encoder counts.
+
+The number itself is fairly meaningless without knowing your motor's **resolution**, which is how many ticks happen per full revolution of the output shaft. A REV HD Hex Motor at a 20:1 gear ratio has a resolution of 537.7 ticks per revolution. A 40:1 version has 1120. You will use that number in the next lesson to convert ticks into real distances.
+
+One thing to note: `getCurrentPosition()` returns an `int`, and it starts accumulating from the moment the Robot Controller powers on. It does not zero out automatically between OpMode runs, so if you ran a program earlier in the day the count might already be at 3000 when you start. Lesson 10.5 covers how to reset it properly before each move.
+
+---
+
+## Annotated Code
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Encoder_Monitor_Demo")
+public class EncoderMonitorDemo extends OpMode {
+
+    private DcMotor arm;
+
+    @Override
+    public void init() {
+        arm = hardwareMap.get(DcMotor.class, "arm_motor");
+
+        // RUN_WITHOUT_ENCODER still reads ticks -- it just does not use them
+        // for closed-loop speed control. Good for raw monitoring.
+        arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        telemetry.addData("Status", "Encoder monitoring active");
+    }
+
+    @Override
+    public void loop() {
+        arm.setPower(-gamepad1.left_stick_y);
+
+        // Ask the encoder for the current accumulated tick count
+        int currentPos = arm.getCurrentPosition();
+
+        telemetry.addData("Raw Ticks",   currentPos);
+        telemetry.addData("Motor Power", arm.getPower());
+    }
+}
+```
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. The `getCurrentPosition()` method returns a value using the `__________` data type.
+2. Ticks accumulate based on the rotation of the motor's internal `__________` sensor.
+3. If a motor rotates in the direction defined as `REVERSE`, the tick count will typically `__________`.
+
+<details>
+<summary>Show answers</summary>
+
+1. **`int`**
+2. **encoder**
+3. **decrement** (count downward)
+
+</details>
+
+---
+
+## Template Challenge
+
+**Robot Scenario:** You are troubleshooting a linear slide and need to confirm it is not skipping teeth on the gear rack during manual operation. Display the raw tick count and the current motor power on the Driver Station so you can watch both update in real time.
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@TeleOp(name="Encoder_Monitor_Challenge")
+public class EncoderMonitor extends OpMode {
+
+    private DcMotor arm;
+
+    @Override
+    public void init() {
+        arm = hardwareMap.get(DcMotor.class, "arm_motor");
+        arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    @Override
+    public void loop() {
+        arm.setPower(-gamepad1.left_stick_y);
+
+        // INSERT CODE HERE: Store the current tick count in an int variable
+        // INSERT CODE HERE: Display "Raw Ticks" and the value via telemetry
+        // INSERT CODE HERE: Display "Motor Power" and arm.getPower() via telemetry
+    }
+}
+```
+
+<details>
+<summary>Show answer</summary>
+
+```java
+@Override
+public void loop() {
+    arm.setPower(-gamepad1.left_stick_y);
+
+    int rawTicks = arm.getCurrentPosition();
+    telemetry.addData("Raw Ticks",   rawTicks);
+    telemetry.addData("Motor Power", arm.getPower());
+}
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-10/get-current-position"
+  nextUnit="/docs/unit-10/ticks-to-distance"
+  nextUnitName="Lesson 10.2: Calculating Distances based on Ticks Per Revolution Data"
+/>

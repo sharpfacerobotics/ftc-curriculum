@@ -1,13 +1,13 @@
 ---
 id: set-position
-title: "Lesson 9.1: Commanding Rotational Precision with setPosition()"
+title: "Lesson 9.1: Using setPosition() for Accurate Servo Movement"
 sidebar_label: "9.1 · setPosition()"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 9.1: Commanding Rotational Precision with setPosition()
+# Lesson 9.1: Using setPosition() for Accurate Servo Movement
 
 ---
 
@@ -17,7 +17,7 @@ Servos are used for mechanisms requiring **exact angular positioning** — such 
 
 ---
 
-## The Deep Dive
+## How setPosition() Maps to Real Servo Motion
 
 The `setPosition(double position)` method sends a specific **pulse-width modulation (PWM)** signal to the Control Hub to move the servo to a fraction of its total range. It accepts a `double` parameter between `0.0` and `1.0`, where:
 

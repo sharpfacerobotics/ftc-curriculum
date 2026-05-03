@@ -1,13 +1,13 @@
 ---
 id: comparison-operators
-title: "Lesson 5.3: Implementing Hardware Safe-Zones with Comparison Operators"
+title: "Lesson 5.3: Using Comparison Operators to Protect Hardware Limits"
 sidebar_label: "5.3 · Comparison Operators"
 sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 5.3: Implementing Hardware Safe-Zones with Comparison Operators
+# Lesson 5.3: Using Comparison Operators to Protect Hardware Limits
 
 ---
 
@@ -17,7 +17,7 @@ Comparison operators allow the robot to interpret analog data — such as encode
 
 ---
 
-## The Deep Dive
+## How Comparisons Create Safe Operating Zones
 
 Hardware sensors return numerical values that must be compared against thresholds. Java provides several conditional operators for this purpose: `==` (equal to), `!=` (not equal to), `<` (less than), `>` (greater than), `<=` (less than or equal to), and `>=` (greater than or equal to). In the case of an arm mechanism, the programmer compares the current `DcMotor` encoder position against a maximum "Safe-Zone" integer. If the position exceeds the limit, the logic overrides driver input to force the power to zero.
 

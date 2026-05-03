@@ -1,0 +1,129 @@
+---
+id: mastery-quiz
+title: "Unit 10 Mastery Quiz: Encoders & Precision"
+sidebar_label: "Unit 10 · Mastery Quiz"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Unit 10 Mastery Quiz: Encoders & Precision
+
+---
+
+## I. Conceptual Questions
+
+**1. Deterministic Verification:** Why is reading tick counts via `getCurrentPosition()` technically superior to time-based movement for maintaining autonomous consistency across different battery voltage levels?
+
+<details>
+<summary>Show answer</summary>
+
+Encoders provide feedback based on actual physical rotation, so the measurement is the same regardless of what the battery is doing. Time-based movement assumes constant speed, but speed drops as battery voltage drops throughout a match, so a 2-second drive at the start of a match covers more ground than the same 2-second drive at the end. Encoders eliminate that variable entirely.
+
+</details>
+
+---
+
+**2. Hub-Level PID:** Why does offloading deceleration logic to the Expansion Hub via `RUN_TO_POSITION` prevent the overshoot that often occurs when manually checking encoder values in a software `while` loop?
+
+<details>
+<summary>Show answer</summary>
+
+The Hub's processor runs its PID loop at a much higher frequency than user code can ever achieve through `loop()` or a `LinearOpMode` `while` loop. By the time your code reads the position, evaluates a condition, and sends a stop command, the motor has already traveled past the target. The Hub handles deceleration internally and in real time, so it can slow the motor smoothly and stop it precisely without the latency inherent in user-side polling.
+
+</details>
+
+---
+
+**3. Velocity Versus Voltage:** How does `RUN_USING_ENCODER` maintain robot speed consistency even as battery voltage drops during the final minutes of a match?
+
+<details>
+<summary>Show answer</summary>
+
+In this mode, `setPower()` commands a target velocity expressed as a fraction of the motor's maximum speed. The Hub monitors the actual encoder tick rate and uses its PID controller to automatically increase the applied voltage if the motor slows down below the target. The result is that `setPower(0.5)` always produces approximately the same physical speed regardless of battery state, because the Hub compensates for voltage drop by pushing harder.
+
+</details>
+
+---
+
+**4. Cumulative Error Prevention:** Why is it an engineering best practice to call `STOP_AND_RESET_ENCODER` before starting each new autonomous navigation segment rather than relying on absolute global tick counts?
+
+<details>
+<summary>Show answer</summary>
+
+Each encoder reset establishes a clean local zero for that specific move. Any error from the previous segment -- such as the robot being bumped, a wheel slipping slightly, or stopping a few ticks short -- cannot carry forward and compound into later segments. Relying on absolute counts means errors accumulate across the entire routine, and by the third or fourth move the robot can be significantly off from where the code expects it to be.
+
+</details>
+
+---
+
+**5. Asynchronous Monitoring:** Why is `isBusy()` the correct condition for controlling flow in a `LinearOpMode` during encoder-targeted movements rather than comparing `getCurrentPosition()` to the target yourself?
+
+<details>
+<summary>Show answer</summary>
+
+`isBusy()` reflects the Hub's own internal state -- it goes `false` only when the Hub has confirmed the motor has settled at the target and transitioned into holding mode. Comparing position yourself introduces a tolerance question (how close is close enough?) and a timing gap where the motor might still be moving when your check passes. Trusting `isBusy()` lets the Hub's higher-frequency PID loop make that call more reliably than user code can.
+
+</details>
+
+---
+
+## II. Debug the Code
+
+The following code is intended to drive a `"lift"` motor to tick position 1000. **Identify and fix the 2 errors.**
+
+```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+@Autonomous(name="Lift_Debug")
+public class LiftDebug extends LinearOpMode {
+
+    @Override
+    public void runOpMode() {
+        DcMotor lift = hardwareMap.get(DcMotor.class, "lift");
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        waitForStart();
+
+        lift.setTargetPosition(1000)
+        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        while (opModeIsActive() && lift.isBusy()) {
+            telemetry.addData("Position", lift.getCurrentPosition());
+            telemetry.update();
+        }
+
+        lift.setPower(0);
+    }
+}
+```
+
+<details>
+<summary>Show answers</summary>
+
+**Error 1 -- Syntax Error:**
+The `setTargetPosition(1000)` call is missing a semicolon at the end. Java requires every statement to be terminated with a semicolon.
+
+```java
+lift.setTargetPosition(1000); // semicolon added
+```
+
+**Error 2 -- Logic Error:**
+`setPower()` is never called after switching to `RUN_TO_POSITION`. In this mode the motor will not move until you provide a non-zero power value as the speed limit. The Hub has a target and the PID controller is active, but without power the motor just sits there. Add a `setPower()` call immediately after the mode switch:
+
+```java
+lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+lift.setPower(0.6); // must set power before the motor will move
+```
+
+</details>
+
+<MarkComplete
+  lessonId="unit-10/mastery-quiz"
+  nextUnit="/docs/unit-11/touch-sensor"
+  nextUnitName="Lesson 11.1: Reading Touch Sensor Binary States via DigitalChannel"
+/>

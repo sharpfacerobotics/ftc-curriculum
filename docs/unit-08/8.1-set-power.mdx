@@ -1,13 +1,13 @@
 ---
 id: set-power
-title: "Lesson 8.1: Applying Voltage to Motors with the setPower() Method"
+title: "Lesson 8.1: Using setPower() to Control Motor Speed"
 sidebar_label: "8.1 · setPower()"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 8.1: Applying Voltage to Motors with the setPower() Method
+# Lesson 8.1: Using setPower() to Control Motor Speed
 
 ---
 
@@ -17,7 +17,7 @@ The Robot Controller manages motor output by sending **pulse-width modulation (P
 
 ---
 
-## The Deep Dive
+## What setPower() Is Really Doing
 
 The `setPower(double power)` method is the primary tool for commanding hardware motion. It accepts a `double` parameter ranging from `-1.0` (full reverse) to `1.0` (full forward), where `0.0` signifies a stop command.
 

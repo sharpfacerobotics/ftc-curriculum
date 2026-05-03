@@ -1,13 +1,13 @@
 ---
 id: arcade-drive-challenge
-title: "Lesson 4.5: Challenge — Full Arcade Drive Mapping with Custom Deadzones and Sensitivity Curves"
+title: "Lesson 4.5: Challenge — Build Full Arcade Drive with Deadzones and Sensitivity Curves"
 sidebar_label: "4.5 · Challenge: Arcade Drive"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 4.5: Challenge — Full Arcade Drive Mapping with Custom Deadzones and Sensitivity Curves
+# Lesson 4.5: Challenge — Build Full Arcade Drive with Deadzones and Sensitivity Curves
 
 ---
 
@@ -17,7 +17,7 @@ Professional drivers require a **"Deadzone"** to prevent robot creep caused by j
 
 ---
 
-## The Deep Dive
+## How to Build an Arcade Drive That Feels Good
 
 This challenge requires integrating nested logic and method calls. A deadzone is implemented using a comparison operator (e.g., `if (Math.abs(input) < 0.1) power = 0;`). By passing only the filtered data to the `squareInputWithSign()` method from Lesson 4.4, you create a professional-grade driver interface. This utilizes **procedural decomposition** by separating the math from the hardware execution, making the code easier to debug when the drive team requests "feel" adjustments during a competition.
 

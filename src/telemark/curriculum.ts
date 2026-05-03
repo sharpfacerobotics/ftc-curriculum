@@ -196,8 +196,8 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     slug: 'unit-09',
     overviewPath: '/docs/unit-09',
     startPath: '/docs/unit-09/set-position',
-    nextPath: '/dashboard',
-    nextLabel: 'Dashboard',
+    nextPath: '/docs/unit-10',
+    nextLabel: 'Unit 10: Encoders & Precision',
     lessonCount: 6,
     overview:
       'This unit extends mechanism control beyond DC motors by teaching students how to command standard and continuous rotation servos safely and predictably.',
@@ -207,13 +207,53 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
       'Choose correctly between Servo and CRServo so intake and gripper mechanisms use the right control model.',
     ],
   },
+  {
+    id: 'UNIT_10',
+    label: 'Unit 10',
+    title: 'Encoders & Precision',
+    desc: 'Read raw tick counts, convert ticks to distance, and use encoder run modes for reliable autonomous movement.',
+    tier: 'Intermediate',
+    slug: 'unit-10',
+    overviewPath: '/docs/unit-10',
+    startPath: '/docs/unit-10/get-current-position',
+    nextPath: '/docs/unit-11',
+    nextLabel: 'Unit 11: Digital & Analog Sensors',
+    lessonCount: 6,
+    overview:
+      'This unit teaches students how to use encoders as real feedback, turning motors from guesswork into measurable, repeatable motion.',
+    outcomes: [
+      'Read encoder tick counts and understand how they relate to real motor rotation.',
+      'Convert ticks into meaningful distances using ticks-per-revolution data and wheel geometry.',
+      'Choose between RUN_TO_POSITION, RUN_USING_ENCODER, and encoder resets for more reliable autonomous control.',
+    ],
+  },
+  {
+    id: 'UNIT_11',
+    label: 'Unit 11',
+    title: 'Digital & Analog Sensors',
+    desc: 'Read touch sensors and potentiometers, sample alliance colors, measure range with ToF sensors, and build a sensor-gated intake.',
+    tier: 'Intermediate',
+    slug: 'unit-11',
+    overviewPath: '/docs/unit-11',
+    startPath: '/docs/unit-11/touch-sensor',
+    nextPath: '/dashboard',
+    nextLabel: 'Dashboard',
+    lessonCount: 6,
+    overview:
+      'This unit teaches students how to read, scale, and act on data from the three main sensor categories available in FTC: digital binary sensors, analog voltage sensors, and I2C sensors for color and distance.',
+    outcomes: [
+      'Read digital touch sensors correctly, accounting for active-low hardware logic, and use them as reliable software limit switches.',
+      'Convert raw potentiometer voltage into engineering units using Range.scale() for absolute positional feedback without a homing sequence.',
+      'Sample and compare color sensor channels to identify alliance game elements reliably across different field lighting conditions.',
+    ],
+  },
 ];
 
 export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/prerequisites',
     label: '1 · Prerequisites',
-    title: 'Section 1: What You Need Before You Start',
+    title: 'Section 1: What to Have Ready Before You Start',
     path: '/docs/unit-01/prerequisites',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -222,7 +262,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/install-jdk',
     label: '2 · Installing JDK 17',
-    title: 'Section 2: Installing JDK 17',
+    title: 'Section 2: Installing JDK 17 the Right Way',
     path: '/docs/unit-01/install-jdk',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -231,7 +271,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/install-android-studio',
     label: '3 · Installing Android Studio',
-    title: 'Section 3: Installing Android Studio',
+    title: 'Section 3: Setting Up Android Studio for FTC',
     path: '/docs/unit-01/install-android-studio',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -240,7 +280,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/configure-jdk',
     label: '4 · Configure JDK',
-    title: 'Section 4: Pointing Android Studio to JDK 17',
+    title: 'Section 4: Linking Android Studio to JDK 17',
     path: '/docs/unit-01/configure-jdk',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -249,7 +289,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/get-ftc-sdk',
     label: '5 · Getting the FTC SDK',
-    title: 'Section 5: Getting the FTC SDK',
+    title: 'Section 5: Downloading the FTC SDK',
     path: '/docs/unit-01/get-ftc-sdk',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -258,7 +298,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/open-project',
     label: '6 · Open the Project',
-    title: 'Section 6: Opening the Project in Android Studio',
+    title: 'Section 6: Opening the FTC Project in Android Studio',
     path: '/docs/unit-01/open-project',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -267,7 +307,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/verify-build-config',
     label: '7 · Verify Build Config',
-    title: 'Section 7: Verifying the Build Configuration',
+    title: 'Section 7: Checking That the Build Setup Works',
     path: '/docs/unit-01/verify-build-config',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -276,7 +316,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/first-opmode',
     label: '8 · First OpMode',
-    title: 'Section 8: Writing Your First OpMode',
+    title: 'Section 8: Writing Your First FTC OpMode',
     path: '/docs/unit-01/first-opmode',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -285,7 +325,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/connect-control-hub',
     label: '9 · Connect to Control Hub',
-    title: 'Section 9: Connecting to the Control Hub',
+    title: 'Section 9: Connecting Android Studio to the Control Hub',
     path: '/docs/unit-01/connect-control-hub',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -294,7 +334,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-01/verification-checklist',
     label: '10 · Verification Checklist',
-    title: 'Section 10: Environment Verification Checklist',
+    title: 'Section 10: Final Environment Setup Check',
     path: '/docs/unit-01/verification-checklist',
     unitSlug: 'unit-01',
     unitLabel: 'Unit 1',
@@ -303,7 +343,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-02/registering-programs',
     label: '2.1 · @TeleOp & @Autonomous',
-    title: 'Lesson 2.1: Registering Programs with @TeleOp and @Autonomous Annotations',
+    title: 'Lesson 2.1: Getting Your OpModes to Show Up with @TeleOp and @Autonomous',
     path: '/docs/unit-02/registering-programs',
     unitSlug: 'unit-02',
     unitLabel: 'Unit 2',
@@ -312,7 +352,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-02/init-method',
     label: '2.2 · init() Method',
-    title: 'Lesson 2.2: Initializing Peripheral Hardware within the init() Method',
+    title: 'Lesson 2.2: Setting Up Hardware in init() Before the Match Starts',
     path: '/docs/unit-02/init-method',
     unitSlug: 'unit-02',
     unitLabel: 'Unit 2',
@@ -321,7 +361,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-02/loop-lifecycle',
     label: '2.3 · loop() Lifecycle',
-    title: 'Lesson 2.3: Executing Real-time Logic inside the loop() Lifecycle',
+    title: 'Lesson 2.3: Running Real-Time Robot Logic Inside loop()',
     path: '/docs/unit-02/loop-lifecycle',
     unitSlug: 'unit-02',
     unitLabel: 'Unit 2',
@@ -330,7 +370,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-02/start-and-stop',
     label: '2.4 · start() & stop()',
-    title: 'Lesson 2.4: Utilizing start() and stop() for One-time Hardware Transitions',
+    title: 'Lesson 2.4: Using start() and stop() for One-Time Robot Actions',
     path: '/docs/unit-02/start-and-stop',
     unitSlug: 'unit-02',
     unitLabel: 'Unit 2',
@@ -339,7 +379,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-02/health-check-challenge',
     label: '2.5 · Challenge: Health-Check',
-    title: 'Lesson 2.5: Challenge — Implementing a Robot Health-Check OpMode with Telemetry Feedback',
+    title: 'Lesson 2.5: Challenge — Build a Robot Health-Check OpMode with Telemetry',
     path: '/docs/unit-02/health-check-challenge',
     unitSlug: 'unit-02',
     unitLabel: 'Unit 2',
@@ -357,7 +397,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-03/string-literals',
     label: '3.1 · String Literals',
-    title: 'Lesson 3.1: Using String Literals for Exact Hardware Configuration Names',
+    title: 'Lesson 3.1: Using Strings to Match Hardware Names Exactly',
     path: '/docs/unit-03/string-literals',
     unitSlug: 'unit-03',
     unitLabel: 'Unit 3',
@@ -366,7 +406,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-03/double-precision',
     label: '3.2 · double Precision',
-    title: 'Lesson 3.2: Storing Motor Power Levels with double Precision',
+    title: 'Lesson 3.2: Using double for Motor Power and Precise Math',
     path: '/docs/unit-03/double-precision',
     unitSlug: 'unit-03',
     unitLabel: 'Unit 3',
@@ -375,7 +415,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-03/boolean-flags',
     label: '3.3 · boolean Flags',
-    title: 'Lesson 3.3: Managing Binary Sensor States using boolean Flags',
+    title: 'Lesson 3.3: Using boolean Values for On-or-Off Robot State',
     path: '/docs/unit-03/boolean-flags',
     unitSlug: 'unit-03',
     unitLabel: 'Unit 3',
@@ -384,7 +424,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-03/int-datatypes',
     label: '3.4 · int Datatypes',
-    title: 'Lesson 3.4: Tracking Mechanism Cycle Counts with int Datatypes',
+    title: 'Lesson 3.4: Using int Values to Count Cycles and Repetitions',
     path: '/docs/unit-03/int-datatypes',
     unitSlug: 'unit-03',
     unitLabel: 'Unit 3',
@@ -393,7 +433,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-03/dynamic-power-challenge',
     label: '3.5 · Challenge: Dynamic Power',
-    title: 'Lesson 3.5: Challenge — Dynamic Power Calculation using Multi-Variable Math Operations',
+    title: 'Lesson 3.5: Challenge — Build Dynamic Power Logic with Multiple Variables',
     path: '/docs/unit-03/dynamic-power-challenge',
     unitSlug: 'unit-03',
     unitLabel: 'Unit 3',
@@ -411,7 +451,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-04/button-toggles',
     label: '4.1 · Button Toggles',
-    title: 'Lesson 4.1: Mapping gamepad.a and gamepad.b to Direct Mechanism Toggles',
+    title: 'Lesson 4.1: Mapping gamepad Buttons to Simple Mechanism Toggles',
     path: '/docs/unit-04/button-toggles',
     unitSlug: 'unit-04',
     unitLabel: 'Unit 4',
@@ -420,7 +460,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-04/joystick-scaling',
     label: '4.2 · Joystick Scaling',
-    title: 'Lesson 4.2: Scaling Joystick X/Y Analog Values for Differential Drive',
+    title: 'Lesson 4.2: Turning Joystick X and Y into Smooth Drive Control',
     path: '/docs/unit-04/joystick-scaling',
     unitSlug: 'unit-04',
     unitLabel: 'Unit 4',
@@ -429,7 +469,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-04/trigger-inputs',
     label: '4.3 · Trigger Inputs',
-    title: 'Lesson 4.3: Implementing Progressive Braking via Analog Trigger Inputs',
+    title: 'Lesson 4.3: Using Triggers for Gradual Braking Control',
     path: '/docs/unit-04/trigger-inputs',
     unitSlug: 'unit-04',
     unitLabel: 'Unit 4',
@@ -438,7 +478,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-04/sensitivity-curves',
     label: '4.4 · Sensitivity Curves',
-    title: 'Lesson 4.4: Reducing Stick Sensitivity using the squareInputWithSign() Method',
+    title: 'Lesson 4.4: Shaping Joystick Sensitivity with squareInputWithSign()',
     path: '/docs/unit-04/sensitivity-curves',
     unitSlug: 'unit-04',
     unitLabel: 'Unit 4',
@@ -447,7 +487,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-04/arcade-drive-challenge',
     label: '4.5 · Challenge: Arcade Drive',
-    title: 'Lesson 4.5: Challenge — Full Arcade Drive Mapping with Custom Deadzones and Sensitivity Curves',
+    title: 'Lesson 4.5: Challenge — Build Full Arcade Drive with Deadzones and Sensitivity Curves',
     path: '/docs/unit-04/arcade-drive-challenge',
     unitSlug: 'unit-04',
     unitLabel: 'Unit 4',
@@ -465,7 +505,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-05/if-statements',
     label: '5.1 · if Statements',
-    title: 'Lesson 5.1: Conditional Motor Activation using Foundational if Statements',
+    title: 'Lesson 5.1: Using if Statements to Decide When a Motor Should Run',
     path: '/docs/unit-05/if-statements',
     unitSlug: 'unit-05',
     unitLabel: 'Unit 5',
@@ -474,7 +514,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-05/else-if-chaining',
     label: '5.2 · else if Chaining',
-    title: 'Lesson 5.2: Handling Mutually Exclusive Hardware States with else if Chaining',
+    title: 'Lesson 5.2: Using else if Chains to Pick One Robot Action at a Time',
     path: '/docs/unit-05/else-if-chaining',
     unitSlug: 'unit-05',
     unitLabel: 'Unit 5',
@@ -483,7 +523,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-05/comparison-operators',
     label: '5.3 · Comparison Operators',
-    title: 'Lesson 5.3: Implementing Hardware Safe-Zones with Comparison Operators',
+    title: 'Lesson 5.3: Using Comparison Operators to Protect Hardware Limits',
     path: '/docs/unit-05/comparison-operators',
     unitSlug: 'unit-05',
     unitLabel: 'Unit 5',
@@ -492,7 +532,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-05/logical-operators',
     label: '5.4 · Logical Operators',
-    title: 'Lesson 5.4: Combining Sensor Thresholds with Logical AND/OR Operators',
+    title: 'Lesson 5.4: Combining Sensor Checks with AND and OR Logic',
     path: '/docs/unit-05/logical-operators',
     unitSlug: 'unit-05',
     unitLabel: 'Unit 5',
@@ -501,7 +541,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-05/intake-logic-challenge',
     label: '5.5 · Challenge: Intake Logic',
-    title: 'Lesson 5.5: Challenge — Designing a Multi-Stage Intake Logic Tree for Game Element Sorting',
+    title: 'Lesson 5.5: Challenge — Build Intake Logic for Multi-Stage Game Piece Sorting',
     path: '/docs/unit-05/intake-logic-challenge',
     unitSlug: 'unit-05',
     unitLabel: 'Unit 5',
@@ -519,7 +559,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-06/opmode-active',
     label: '6.1 · opModeIsActive()',
-    title: 'Lesson 6.1: Safeguarding Main Execution with while(opModeIsActive())',
+    title: 'Lesson 6.1: Keeping a LinearOpMode Safe with while(opModeIsActive())',
     path: '/docs/unit-06/opmode-active',
     unitSlug: 'unit-06',
     unitLabel: 'Unit 6',
@@ -528,7 +568,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-06/for-loops',
     label: '6.2 · for Loops',
-    title: 'Lesson 6.2: Automating Repetitive Motion Patterns with for Loops',
+    title: 'Lesson 6.2: Using for Loops to Repeat Robot Actions Cleanly',
     path: '/docs/unit-06/for-loops',
     unitSlug: 'unit-06',
     unitLabel: 'Unit 6',
@@ -537,7 +577,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-06/runtime-timing',
     label: '6.3 · getRuntime() Timing',
-    title: 'Lesson 6.3: Managing Timed Transitions using getRuntime() Loop Comparisons',
+    title: 'Lesson 6.3: Timing Robot Actions with getRuntime()',
     path: '/docs/unit-06/runtime-timing',
     unitSlug: 'unit-06',
     unitLabel: 'Unit 6',
@@ -546,7 +586,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-06/hardware-arrays',
     label: '6.4 · Hardware Arrays',
-    title: 'Lesson 6.4: Iterating Hardware Arrays using for..each Syntax',
+    title: 'Lesson 6.4: Looping Through Hardware Arrays with for-each',
     path: '/docs/unit-06/hardware-arrays',
     unitSlug: 'unit-06',
     unitLabel: 'Unit 6',
@@ -555,7 +595,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-06/nonblocking-timer',
     label: '6.5 · Challenge: Non-Blocking Timer',
-    title: 'Lesson 6.5: Challenge — Building a Non-Blocking Timer Loop for Parallel Mechanism Control',
+    title: 'Lesson 6.5: Challenge — Build a Non-Blocking Timer for Parallel Mechanism Control',
     path: '/docs/unit-06/nonblocking-timer',
     unitSlug: 'unit-06',
     unitLabel: 'Unit 6',
@@ -573,7 +613,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-07/hardware-map-object',
     label: '7.1 · hardwareMap Object',
-    title: 'Lesson 7.1: Accessing the Configuration Registry via the hardwareMap Object',
+    title: 'Lesson 7.1: Using hardwareMap to Find the Devices You Configured',
     path: '/docs/unit-07/hardware-map-object',
     unitSlug: 'unit-07',
     unitLabel: 'Unit 7',
@@ -582,7 +622,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-07/dcmotor-mapping',
     label: '7.2 · DcMotor Mapping',
-    title: 'Lesson 7.2: Registering DcMotors and Assigning Port-Specific Names',
+    title: 'Lesson 7.2: Mapping DcMotors with the Right Names and Ports',
     path: '/docs/unit-07/dcmotor-mapping',
     unitSlug: 'unit-07',
     unitLabel: 'Unit 7',
@@ -591,7 +631,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-07/sensor-mapping',
     label: '7.3 · Sensor Mapping',
-    title: 'Lesson 7.3: Instantiating Digital and Analog Sensor Objects in Java',
+    title: 'Lesson 7.3: Mapping Digital and Analog Sensors into Java Objects',
     path: '/docs/unit-07/sensor-mapping',
     unitSlug: 'unit-07',
     unitLabel: 'Unit 7',
@@ -600,7 +640,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-07/name-mismatches',
     label: '7.4 · Name Mismatches',
-    title: 'Lesson 7.4: Troubleshooting Name Mismatches and Configuration Overlays',
+    title: 'Lesson 7.4: Debugging Name Mismatches and Configuration Problems',
     path: '/docs/unit-07/name-mismatches',
     unitSlug: 'unit-07',
     unitLabel: 'Unit 7',
@@ -609,7 +649,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-07/mechanism-classes',
     label: '7.5 · Challenge: Mechanism Classes',
-    title: 'Lesson 7.5: Challenge — Synchronizing Hardware Classes Across Multiple OpModes',
+    title: 'Lesson 7.5: Challenge — Keep Shared Hardware Classes Consistent Across OpModes',
     path: '/docs/unit-07/mechanism-classes',
     unitSlug: 'unit-07',
     unitLabel: 'Unit 7',
@@ -627,7 +667,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-08/set-power',
     label: '8.1 · setPower()',
-    title: 'Lesson 8.1: Applying Voltage to Motors with the setPower() Method',
+    title: 'Lesson 8.1: Using setPower() to Control Motor Speed',
     path: '/docs/unit-08/set-power',
     unitSlug: 'unit-08',
     unitLabel: 'Unit 8',
@@ -636,7 +676,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-08/set-direction',
     label: '8.2 · setDirection()',
-    title: 'Lesson 8.2: Reversing Mechanical Bias using setDirection(REVERSE)',
+    title: 'Lesson 8.2: Fixing Reversed Mechanisms with setDirection(REVERSE)',
     path: '/docs/unit-08/set-direction',
     unitSlug: 'unit-08',
     unitLabel: 'Unit 8',
@@ -645,7 +685,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-08/zero-power-behavior',
     label: '8.3 · ZeroPowerBehavior',
-    title: 'Lesson 8.3: Managing Backlash with ZeroPowerBehavior.BRAKE',
+    title: 'Lesson 8.3: Using ZeroPowerBehavior.BRAKE to Hold Position Better',
     path: '/docs/unit-08/zero-power-behavior',
     unitSlug: 'unit-08',
     unitLabel: 'Unit 8',
@@ -654,7 +694,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-08/coast-vs-stop',
     label: '8.4 · Coast vs. Stop',
-    title: 'Lesson 8.4: Utilizing setPower(0.0) for Consistent Coast vs. Stop Behavior',
+    title: 'Lesson 8.4: Choosing Between Coasting and Stopping with setPower(0.0)',
     path: '/docs/unit-08/coast-vs-stop',
     unitSlug: 'unit-08',
     unitLabel: 'Unit 8',
@@ -663,7 +703,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-08/linear-slide-challenge',
     label: '8.5 · Challenge: Linear Slide',
-    title: 'Lesson 8.5: Challenge — Creating a Bidirectional Linear Slide Control with Software Limiters',
+    title: 'Lesson 8.5: Challenge — Build a Two-Way Linear Slide with Software Limits',
     path: '/docs/unit-08/linear-slide-challenge',
     unitSlug: 'unit-08',
     unitLabel: 'Unit 8',
@@ -681,7 +721,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-09/set-position',
     label: '9.1 · setPosition()',
-    title: 'Lesson 9.1: Commanding Rotational Precision with setPosition()',
+    title: 'Lesson 9.1: Using setPosition() for Accurate Servo Movement',
     path: '/docs/unit-09/set-position',
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
@@ -690,7 +730,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-09/scale-range',
     label: '9.2 · scaleRange()',
-    title: 'Lesson 9.2: Constraining Physical Motion Ranges with scaleRange()',
+    title: 'Lesson 9.2: Limiting Servo Travel Safely with scaleRange()',
     path: '/docs/unit-09/scale-range',
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
@@ -699,7 +739,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-09/servo-direction',
     label: '9.3 · Servo Direction',
-    title: 'Lesson 9.3: Configuring Servo Logical Direction for Inverted Assemblies',
+    title: 'Lesson 9.3: Fixing Inverted Servo Setups with Direction Settings',
     path: '/docs/unit-09/servo-direction',
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
@@ -708,7 +748,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-09/cr-servo',
     label: '9.4 · CRServo',
-    title: 'Lesson 9.4: Mapping Continuous Rotation Servos for Intake Mechanisms',
+    title: 'Lesson 9.4: Using CRServos for Intake-Style Mechanisms',
     path: '/docs/unit-09/cr-servo',
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
@@ -717,7 +757,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-09/dual-servo-challenge',
     label: '9.5 · Challenge: Dual-Servo Gripper',
-    title: 'Lesson 9.5: Challenge — Synchronizing Dual-Servo Grippers with Independent Position Offsets',
+    title: 'Lesson 9.5: Challenge — Sync a Dual-Servo Gripper with Offset Tuning',
     path: '/docs/unit-09/dual-servo-challenge',
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
@@ -731,6 +771,114 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
     unitTitle: 'Servo Control',
+  },
+  {
+    id: 'unit-10/get-current-position',
+    label: '10.1 · getCurrentPosition()',
+    title: 'Lesson 10.1: Reading Raw Tick Counts with getCurrentPosition()',
+    path: '/docs/unit-10/get-current-position',
+    unitSlug: 'unit-10',
+    unitLabel: 'Unit 10',
+    unitTitle: 'Encoders & Precision',
+  },
+  {
+    id: 'unit-10/ticks-to-distance',
+    label: '10.2 · Ticks to Distance',
+    title: 'Lesson 10.2: Calculating Distances based on Ticks Per Revolution Data',
+    path: '/docs/unit-10/ticks-to-distance',
+    unitSlug: 'unit-10',
+    unitLabel: 'Unit 10',
+    unitTitle: 'Encoders & Precision',
+  },
+  {
+    id: 'unit-10/run-to-position',
+    label: '10.3 · RUN_TO_POSITION',
+    title: 'Lesson 10.3: Automating Targeted Movement with RUN_TO_POSITION',
+    path: '/docs/unit-10/run-to-position',
+    unitSlug: 'unit-10',
+    unitLabel: 'Unit 10',
+    unitTitle: 'Encoders & Precision',
+  },
+  {
+    id: 'unit-10/run-using-encoder',
+    label: '10.4 · RUN_USING_ENCODER',
+    title: 'Lesson 10.4: Maintaining Speed Consistency with RUN_USING_ENCODER',
+    path: '/docs/unit-10/run-using-encoder',
+    unitSlug: 'unit-10',
+    unitLabel: 'Unit 10',
+    unitTitle: 'Encoders & Precision',
+  },
+  {
+    id: 'unit-10/drive-and-stop',
+    label: '10.5 · Challenge: Drive and Stop',
+    title: 'Lesson 10.5: Challenge — Developing a Precise Drive and Stop System for Linear Navigation',
+    path: '/docs/unit-10/drive-and-stop',
+    unitSlug: 'unit-10',
+    unitLabel: 'Unit 10',
+    unitTitle: 'Encoders & Precision',
+  },
+  {
+    id: 'unit-10/mastery-quiz',
+    label: 'Unit 10 · Mastery Quiz',
+    title: 'Unit 10 Mastery Quiz: Encoders & Precision',
+    path: '/docs/unit-10/mastery-quiz',
+    unitSlug: 'unit-10',
+    unitLabel: 'Unit 10',
+    unitTitle: 'Encoders & Precision',
+  },
+  {
+    id: 'unit-11/touch-sensor',
+    label: '11.1 · Touch Sensor',
+    title: 'Lesson 11.1: Reading Touch Sensor Binary States via DigitalChannel',
+    path: '/docs/unit-11/touch-sensor',
+    unitSlug: 'unit-11',
+    unitLabel: 'Unit 11',
+    unitTitle: 'Digital & Analog Sensors',
+  },
+  {
+    id: 'unit-11/potentiometer',
+    label: '11.2 · Potentiometer',
+    title: 'Lesson 11.2: Scaling Analog Voltage from Potentiometers using Range.scale',
+    path: '/docs/unit-11/potentiometer',
+    unitSlug: 'unit-11',
+    unitLabel: 'Unit 11',
+    unitTitle: 'Digital & Analog Sensors',
+  },
+  {
+    id: 'unit-11/color-sensor',
+    label: '11.3 · Color Sensor',
+    title: 'Lesson 11.3: Sampling Alliance Colors with the REV Color Sensor',
+    path: '/docs/unit-11/color-sensor',
+    unitSlug: 'unit-11',
+    unitLabel: 'Unit 11',
+    unitTitle: 'Digital & Analog Sensors',
+  },
+  {
+    id: 'unit-11/distance-sensor',
+    label: '11.4 · Distance Sensor',
+    title: 'Lesson 11.4: Integration of Time-of-Flight Distance Sensors for Obstacle Detection',
+    path: '/docs/unit-11/distance-sensor',
+    unitSlug: 'unit-11',
+    unitLabel: 'Unit 11',
+    unitTitle: 'Digital & Analog Sensors',
+  },
+  {
+    id: 'unit-11/sensor-gated-intake',
+    label: '11.5 · Challenge: Sensor-Gated Intake',
+    title: 'Lesson 11.5: Challenge — Creating an Automated Sensor-Gated Intake System',
+    path: '/docs/unit-11/sensor-gated-intake',
+    unitSlug: 'unit-11',
+    unitLabel: 'Unit 11',
+    unitTitle: 'Digital & Analog Sensors',
+  },
+  {
+    id: 'unit-11/mastery-quiz',
+    label: 'Unit 11 · Mastery Quiz',
+    title: 'Unit 11 Mastery Quiz: Digital & Analog Sensors',
+    path: '/docs/unit-11/mastery-quiz',
+    unitSlug: 'unit-11',
+    unitLabel: 'Unit 11',
+    unitTitle: 'Digital & Analog Sensors',
   },
 ];
 

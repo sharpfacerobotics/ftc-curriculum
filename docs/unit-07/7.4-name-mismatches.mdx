@@ -1,13 +1,13 @@
 ---
 id: name-mismatches
-title: "Lesson 7.4: Troubleshooting Name Mismatches and Configuration Overlays"
+title: "Lesson 7.4: Debugging Name Mismatches and Configuration Problems"
 sidebar_label: "7.4 · Name Mismatches"
 sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 7.4: Troubleshooting Name Mismatches and Configuration Overlays
+# Lesson 7.4: Debugging Name Mismatches and Configuration Problems
 
 ---
 
@@ -17,7 +17,7 @@ The string literal used in `hardwareMap.get()` must match the configuration name
 
 ---
 
-## The Deep Dive
+## How to Track Down Mapping Errors Quickly
 
 When the SDK encounters a name mismatch, it cannot find the hardware in the XML registry. The result is that the object remains `null`. Any subsequent call to that object (like `motor.setPower()`) will trigger a `NullPointerException`, which terminates the OpMode instantly.
 

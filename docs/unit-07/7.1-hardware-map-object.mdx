@@ -1,13 +1,13 @@
 ---
 id: hardware-map-object
-title: "Lesson 7.1: Accessing the Configuration Registry via the hardwareMap Object"
+title: "Lesson 7.1: Using hardwareMap to Find the Devices You Configured"
 sidebar_label: "7.1 · hardwareMap Object"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 7.1: Accessing the Configuration Registry via the hardwareMap Object
+# Lesson 7.1: Using hardwareMap to Find the Devices You Configured
 
 ---
 
@@ -17,7 +17,7 @@ The Control Hub maintains an internal XML configuration file that maps physical 
 
 ---
 
-## The Deep Dive
+## How hardwareMap Connects Code to Real Hardware
 
 The `hardwareMap` object is an instance of the `HardwareMap` class provided by the SDK. It acts as a **lookup service**. When you invoke the `get()` method, the SDK searches the configuration registry for a device matching the specified class type and name string. This process performs the dependency injection required to link your logical Java objects to the physical I/O ports on the Control Hub.
 

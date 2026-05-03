@@ -1,13 +1,13 @@
 ---
 id: dual-servo-challenge
-title: "Lesson 9.5: Challenge — Synchronizing Dual-Servo Grippers with Independent Position Offsets"
+title: "Lesson 9.5: Challenge — Sync a Dual-Servo Gripper with Offset Tuning"
 sidebar_label: "9.5 · Challenge: Dual-Servo Gripper"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 9.5: Challenge — Synchronizing Dual-Servo Grippers with Independent Position Offsets
+# Lesson 9.5: Challenge — Sync a Dual-Servo Gripper with Offset Tuning
 
 ---
 
@@ -17,7 +17,7 @@ Mechanical misalignment or "slop" in servo splines means two physically identica
 
 ---
 
-## The Deep Dive
+## How to Tune Two Servos So They Work Together
 
 This challenge combines `setDirection()` from Lesson 9.3 with `else if` chaining from Unit 5, and adds the concept of **per-servo offsets**. Rather than commanding both servos to the exact same value, you define named constants for each state (`OPEN`, `CLOSED`, `READY`) and apply a small offset to whichever servo needs mechanical compensation.
 

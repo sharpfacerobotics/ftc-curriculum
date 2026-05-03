@@ -1,13 +1,13 @@
 ---
 id: nonblocking-timer
-title: "Lesson 6.5: Challenge — Building a Non-Blocking Timer Loop for Parallel Mechanism Control"
+title: "Lesson 6.5: Challenge — Build a Non-Blocking Timer for Parallel Mechanism Control"
 sidebar_label: "6.5 · Challenge: Non-Blocking Timer"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 6.5: Challenge — Building a Non-Blocking Timer Loop for Parallel Mechanism Control
+# Lesson 6.5: Challenge — Build a Non-Blocking Timer for Parallel Mechanism Control
 
 ---
 
@@ -17,7 +17,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## The Deep Dive
+## How Non-Blocking Timing Lets Mechanisms Work Together
 
 This challenge integrates `while(opModeIsActive())` and `getRuntime()` comparisons from the previous lessons. The key insight is that the loop body runs many times per second. Instead of waiting inside the loop, the code simply **checks** whether a condition is met on each pass and acts accordingly — all other hardware logic continues to run uninterrupted every cycle.
 

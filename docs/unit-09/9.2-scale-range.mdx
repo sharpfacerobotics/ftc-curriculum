@@ -1,13 +1,13 @@
 ---
 id: scale-range
-title: "Lesson 9.2: Constraining Physical Motion Ranges with scaleRange()"
+title: "Lesson 9.2: Limiting Servo Travel Safely with scaleRange()"
 sidebar_label: "9.2 · scaleRange()"
 sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 9.2: Constraining Physical Motion Ranges with scaleRange()
+# Lesson 9.2: Limiting Servo Travel Safely with scaleRange()
 
 ---
 
@@ -17,7 +17,7 @@ Most robot mechanisms have physical stops that prevent a servo from completing i
 
 ---
 
-## The Deep Dive
+## Why scaleRange() Protects Your Mechanism
 
 The `scaleRange(double min, double max)` method redefines the logical `0.0` to `1.0` window to map onto a specific physical subsection of the servo's total travel. Once called in `init()`, any subsequent `setPosition()` call operates **within the new bounds**:
 

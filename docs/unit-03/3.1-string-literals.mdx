@@ -1,13 +1,13 @@
 ---
 id: string-literals
-title: "Lesson 3.1: Using String Literals for Exact Hardware Configuration Names"
+title: "Lesson 3.1: Using Strings to Match Hardware Names Exactly"
 sidebar_label: "3.1 · String Literals"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 3.1: Using String Literals for Exact Hardware Configuration Names
+# Lesson 3.1: Using Strings to Match Hardware Names Exactly
 
 ---
 
@@ -17,7 +17,7 @@ The Control Hub utilizes a registry to link Java objects to physical I/O ports. 
 
 ---
 
-## The Deep Dive
+## Why Strings Matter for Hardware Names
 
 In Java, a `String` is an object used to hold a sequence of characters. While primitive types like `int` or `double` start with lowercase letters, `String` is capitalized because it is a class within the Java library. When you initialize hardware, the SDK requires a string parameter that must match the name defined in the robot's configuration file **exactly**. Storing these names in variables at the top of your class ensures that if a hardware port name changes, you only need to update it in one location rather than searching through hundreds of lines of code.
 

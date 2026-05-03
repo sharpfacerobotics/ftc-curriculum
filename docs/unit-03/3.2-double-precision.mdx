@@ -1,13 +1,13 @@
 ---
 id: double-precision
-title: "Lesson 3.2: Storing Motor Power Levels with double Precision"
+title: "Lesson 3.2: Using double for Motor Power and Precise Math"
 sidebar_label: "3.2 · double Precision"
 sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 3.2: Storing Motor Power Levels with double Precision
+# Lesson 3.2: Using double for Motor Power and Precise Math
 
 ---
 
@@ -17,7 +17,7 @@ Motor voltage control requires high-precision values to achieve smooth accelerat
 
 ---
 
-## The Deep Dive
+## Why FTC Code Uses double So Often
 
 The `double` is a 64-bit primitive datatype used for floating-point numbers (decimals). In the FTC SDK, the `setPower()` method specifically expects a `double` parameter. While a `float` also handles decimals, it is only 32-bit; the JVM on the Control Hub defaults to `double` for maximum accuracy when calculating velocity or interpreting analog joystick data. Assigning a power level to a `double` variable allows you to perform math — such as halving the speed for a "Slow Mode" — without losing the decimal remainder.
 

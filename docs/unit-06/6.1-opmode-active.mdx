@@ -1,13 +1,13 @@
 ---
 id: opmode-active
-title: "Lesson 6.1: Safeguarding Main Execution with while(opModeIsActive())"
+title: "Lesson 6.1: Keeping a LinearOpMode Safe with while(opModeIsActive())"
 sidebar_label: "6.1 · opModeIsActive()"
 sidebar_position: 1
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Lesson 6.1: Safeguarding Main Execution with while(opModeIsActive())
+# Lesson 6.1: Keeping a LinearOpMode Safe with while(opModeIsActive())
 
 ---
 
@@ -17,7 +17,7 @@ In a `LinearOpMode`, failure to check the status of the Robot Controller (RC) ca
 
 ---
 
-## The Deep Dive
+## Why opModeIsActive() Is Your Safety Check
 
 The `opModeIsActive()` method is a member of the `LinearOpMode` class that returns a `boolean` value. It serves as a listener that monitors the match lifecycle. While `true`, the program continues to execute logic; if it returns `false` (due to a stop request or loss of communication), the loop terminates immediately, ensuring the Control Hub ceases command transmission to the `DcMotors`.
 
