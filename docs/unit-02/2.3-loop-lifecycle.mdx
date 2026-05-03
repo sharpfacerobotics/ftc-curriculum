@@ -11,15 +11,15 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## Technical Context
+## Context
 
-The `loop()` method controls the robot's performance during the match. Because it runs at a high frequency (approximately **50 times per second**), it allows for smooth movement and rapid sensor polling. Efficiency in this method is critical — any "blocking" code (like a sleep command) will freeze the robot and cause a communication timeout with the Driver Station.
+The `loop()` method controls the robot's performance during the match. Because it runs at a high frequency (approximately **50 times per second**), it allows for smooth movement and rapid sensor polling. Efficiency in this method is critical, any "blocking" code (like a sleep command) will freeze the robot and could cause a communication timeout with the Driver Station.
 
 ---
 
-## The Deep Dive
+## The loop() Lifecycle
 
-In an `OpMode`, the `loop()` method is executed repeatedly after the driver presses the "Play" button and until they press "Stop". It follows a **sensing → thinking → acting** cycle: it reads the latest values from the Gamepads or sensors, calculates the necessary power adjustments, and commands the Control Hub's motor controllers to update voltage outputs.
+In an `OpMode`, the `loop()` method is executed repeatedly after the driver presses the "Play" button and until they press "Stop". It usually follows a **sensing → thinking → acting** cycle: it reads the latest values from the Gamepads or sensors, calculates the necessary power adjustments, and commands the Control Hub's motor controllers to update voltage outputs.
 
 Since `loop()` is non-blocking, it is ideal for TeleOp where driver inputs are changing in real-time.
 
@@ -67,9 +67,9 @@ public class LoopDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Challenge
 
-**Robot Scenario:** You need to create a simple diagnostic that shows the status of the "A" button on `gamepad1` during the entire match.
+You need to create a simple diagnostic that shows the status of the "A" button on `gamepad1` during the entire match.
 
 ```java
 package org.firstinspires.ftc.teamcode;

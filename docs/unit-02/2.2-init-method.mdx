@@ -11,13 +11,13 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## Technical Context
+## Context
 
 The `init()` method is the hardware setup phase. It prevents `NullPointerException` crashes by ensuring that every motor and sensor object is linked to a physical port on the Control Hub before the match begins. Failure to properly instantiate hardware here will result in the robot failing to respond when the "Play" button is pressed.
 
 ---
 
-## The Deep Dive
+## What is the init() Method?
 
 The `init()` method is a callback executed **exactly once** when the driver presses the "INIT" button on the Driver Station. This is the stage where the program accesses the `hardwareMap`, a built-in object that acts as a registry for all configured devices.
 
@@ -69,9 +69,9 @@ public class InitDemo extends OpMode {
 
 ---
 
-## Template Challenge
+## Challenge
 
-**Robot Scenario:** You need to prepare a `Servo` named `"claw"` for the match. Use the `init()` method to map it and ensure it is ready to move once the match starts.
+You need to prepare a `Servo` named `"claw"` for the match. Use the `init()` method to map it and ensure it is ready to move once the match starts.
 
 ```java
 package org.firstinspires.ftc.teamcode;

@@ -11,13 +11,13 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-## Technical Context
+## Context
 
-Correct annotation prevents the **"Invisible Code" failure**, where valid Java classes fail to appear on the Driver Station menu. In a competition environment, precise registration ensures the drive team can distinguish between driver-controlled programs and sensor-dependent autonomous routines, preventing the accidental execution of the wrong logic.
+Sometimes valid Java classes fail to appear on the Driver Station menu. This is often due to incorrect annotation. In a competition environment, precise registration ensures the drive team can distinguish between driver-controlled programs and sensor-dependent autonomous routines, preventing the accidental execution of the wrong logic.
 
 ---
 
-## The Deep Dive
+## What Are Annotations?
 
 Annotations in the FTC SDK are metadata tags that start with the `@` symbol. When the Robot Controller app starts, it scans the TeamCode package for classes that extend `OpMode` and possess the `@TeleOp` or `@Autonomous` annotation. This process registers the class into the SDK's internal registry, allowing the Driver Station to build its user interface menu.
 
@@ -53,7 +53,7 @@ public class ManualControl extends OpMode {
 
 ---
 
-## Fill-in-the-Blank Practice
+## Practice
 
 1. To register a program for the 30-second pre-programmed phase, the class must use the `__________` annotation.
 2. If you want to keep code in your project but hide it from the Driver Station menu, you must add the `__________` annotation.
@@ -70,9 +70,9 @@ public class ManualControl extends OpMode {
 
 ---
 
-## Template Challenge
+## Challenge
 
-**Robot Scenario:** Your team has a dedicated program for testing a new intake mechanism. Register this class as an Autonomous program named `"Intake_Test"` so it appears in the correct folder on the Driver Station.
+Your team has a dedicated program for testing a new intake mechanism. Register this class as an Autonomous program named `"Intake_Test"` so it appears in the correct folder on the Driver Station.
 
 ```java
 package org.firstinspires.ftc.teamcode;
