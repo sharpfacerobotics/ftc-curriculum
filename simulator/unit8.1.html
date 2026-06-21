@@ -108,6 +108,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 .dpad-left{left:0;top:33%;border-radius:4px 0 0 4px}.dpad-right{right:0;top:33%;border-radius:0 4px 4px 0}
 .dpad-center{position:absolute;left:33%;top:33%;width:34%;height:34%;background:rgba(30,30,30,.9)}
 </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 <div id="left-panel">
@@ -252,14 +253,15 @@ function getMethodBody(code,name){
 }
 function transpile(java){
   var js=java;
-  js=js.replace(/\b(int|double|float|long|boolean|String|byte|short|char)\s+/g,'let ');
-  js=js.replace(/\blet\s*\[\s*\]/g,'let ');
-  GAMEPAD_PROPS.forEach(function(p){js=js.replace(new RegExp('gamepad1\\.'+p,'g'),'gamepad.'+p)});
   js=js.replace(/(\w+)\.setPower\s*\(/g,'setIntakePower(');
-  js=js.replace(/telemetry\.addData\s*\(/g,'addTelemetry(');
-  js=js.replace(/telemetry\.update\s*\(\s*\)/g,'');
   js=js.replace(/getRuntime\s*\(\s*\)/g,'__runtime()');
-  return js;
+  return window.TelemarkJava
+    ? window.TelemarkJava.transpileBody(js,{
+        gamepad1Name:'gamepad',
+        addTelemetryName:'addTelemetry',
+        updateTelemetryName:'(()=>{})'
+      })
+    : js;
 }
 function runLoop(){
   var body=getMethodBody(codeEditor.value,'loop');

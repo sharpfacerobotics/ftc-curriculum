@@ -116,6 +116,7 @@ code{font-family:"Consolas","Courier New",monospace}
 .gp-instruction{position:absolute;left:50%;top:4%;transform:translateX(-50%);font-size:.72rem;color:#ddd;font-family:"Consolas","Courier New",monospace;white-space:nowrap;z-index:7;background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;border:1px solid #444;}
 @media (max-width:900px){#left-panel{width:52%;min-width:310px}#right-panel{min-width:330px}.gamepad-float-card{width:320px}.direction-grid{grid-template-columns:1fr}}
 </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 <div id="left-panel">
@@ -393,26 +394,28 @@ function getMethodBody(code,name){
   return null;
 }
 function transpileCommon(js){
-  js=js.replace(/\b(double|int|boolean|String)\s+/g,'let ');
-  js=js.replace(/gamepad1\.(left_stick_y|left_stick_x|right_stick_x)/g,'gamepad.$1');
-  js=js.replace(/telemetry\.addData\s*\(/g,'addTelemetry(');
-  js=js.replace(/telemetry\.update\s*\(\s*\)\s*;?/g,'updateTelemetry();');
-  return js;
+  return window.TelemarkJava
+    ? window.TelemarkJava.transpileBody(js,{
+        gamepad1Name:'gamepad',
+        addTelemetryName:'addTelemetry',
+        updateTelemetryName:'updateTelemetry'
+      })
+    : js;
 }
 function transpileInit(java){
-  var js=transpileCommon(java);
+  var js=java;
   js=js.replace(/(leftFront|rightFront|leftBack|rightBack)\s*=\s*hardwareMap\.get\s*\(\s*DcMotor\.class\s*,\s*"([^"]+)"\s*\)\s*;?/g,'mapHardware("$1","$2");');
   js=js.replace(/(leftFront|rightFront|leftBack|rightBack)\.setDirection\s*\(\s*DcMotorSimple\.Direction\.(REVERSE|FORWARD)\s*\)\s*;?/g,'setMotorDirection("$1","$2");');
-  return js;
+  return transpileCommon(js);
 }
 function transpileLoop(java){
-  var js=transpileCommon(java);
+  var js=java;
   js=js.replace(/leftFront\.setPower\s*\(/g,'setMotorPower("leftFront",');
   js=js.replace(/rightFront\.setPower\s*\(/g,'setMotorPower("rightFront",');
   js=js.replace(/leftBack\.setPower\s*\(/g,'setMotorPower("leftBack",');
   js=js.replace(/rightBack\.setPower\s*\(/g,'setMotorPower("rightBack",');
   js=js.replace(/(leftFront|rightFront|leftBack|rightBack)\.setDirection\s*\(\s*DcMotorSimple\.Direction\.(REVERSE|FORWARD)\s*\)\s*;?/g,'setMotorDirection("$1","$2");');
-  return js;
+  return transpileCommon(js);
 }
 /* ── Motor helpers ────────────────────────────────────────────────────────── */
 function resetDirections(){MOTORS.forEach(function(m){motorDirections[m]='FORWARD'})}

@@ -113,6 +113,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 .dpad-left{left:0;top:33%;border-radius:4px 0 0 4px}.dpad-right{right:0;top:33%;border-radius:0 4px 4px 0}
 .dpad-center{position:absolute;left:33%;top:33%;width:34%;height:34%;background:rgba(30,30,30,.9);pointer-events:none}
 </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 <div id="editor-container">
@@ -309,6 +310,14 @@ function renderHints(){
 }
 
 function getMethodBody(code, name) {
+  if (window.TelemarkJava) {
+    try {
+      var method = window.TelemarkJava.findMethod(code, name);
+      return method ? method.body : null;
+    } catch (e) {
+      return null;
+    }
+  }
   var re = new RegExp('void\\s+' + name + '\\s*\\([^)]*\\)\\s*\\{');
   var m = re.exec(code);
   if (!m) return null;
@@ -494,10 +503,16 @@ function executeTelemetryFrom(methodName) {
       // 1. Swap gamepad1 -> gamepad
       // 2. Swap telemetry.addData("Key", Value) -> addTel("Key", Value)
       // 3. Remove telemetry.update() to prevent crashes
-      var jsCode = body
-          .replace(/gamepad1\./g, 'gamepad.')
-          .replace(/telemetry\.addData\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)/g, 'addTel($1, $2)')
-          .replace(/telemetry\.update\(\);/g, '');
+      var jsCode = window.TelemarkJava
+          ? window.TelemarkJava.transpileBody(body, {
+              gamepad1Name: 'gamepad',
+              addTelemetryName: 'addTel',
+              updateTelemetryName: '(()=>{})'
+            })
+          : body
+              .replace(/gamepad1\./g, 'gamepad.')
+              .replace(/telemetry\.addData\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)/g, 'addTel($1, $2)')
+              .replace(/telemetry\.update\(\);/g, '');
 
       // Helper to format output lines for our fake JS environment
       var addTel = function(key, val) {

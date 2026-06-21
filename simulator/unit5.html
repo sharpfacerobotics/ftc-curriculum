@@ -345,6 +345,7 @@
     .dpad-right { right: 0; top: 33%; border-radius: 0 4px 4px 0; }
     .dpad-center { position: absolute; left: 33%; top: 33%; width: 34%; height: 34%; background: rgba(30,30,30,0.9); border-radius: 2px; pointer-events: none; }
   </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 
@@ -1229,6 +1230,42 @@ function getMethodBody(code, methodName) {
 }
 
 function executeMethod(methodName) {
+  if (window.TelemarkJava) {
+    var sharedSource = codeEditor.value;
+    if (methodName === 'init' || window.__telemarkUnit5Source !== sharedSource) {
+      var sharedTelemetry = [];
+      window.__telemarkUnit5Runtime = TelemarkJava.createRuntime({
+        gamepad: gamepad,
+        getRuntime: getRuntime,
+        onPower: function(power) { updateMotorVisual(power); },
+        onTelemetry: function(key, value) {
+          sharedTelemetry.push('<div class="telemetry-line"><span class="telemetry-key">' + key + '</span>: ' + String(value) + '</div>');
+        },
+        onTelemetryClear: function() { sharedTelemetry.length = 0; },
+        onTelemetryUpdate: function() {
+          if (sharedTelemetry.length) document.getElementById('telemetry-log').innerHTML = sharedTelemetry.join('');
+        }
+      });
+      window.__telemarkUnit5Program = TelemarkJava.compile(sharedSource, window.__telemarkUnit5Runtime);
+      window.__telemarkUnit5Source = sharedSource;
+      if (!window.__telemarkUnit5Program.ok) {
+        var sharedDiagnostic = window.__telemarkUnit5Program.diagnostics[0];
+        document.getElementById('telemetry-log').textContent = sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')';
+        return;
+      }
+    }
+    var sharedMethod = window.__telemarkUnit5Program.methods[methodName];
+    if (sharedMethod) sharedMethod();
+    window.__telemarkUnit5Runtime.updateTelemetry();
+    Object.keys(window.__telemarkUnit5Program.scope || {}).forEach(function(name) {
+      if (declaredVars[name]) declaredVars[name].value = window.__telemarkUnit5Program.scope[name];
+    });
+    drawFlowchart();
+    renderConditionInspector();
+    renderTruthTable();
+    return;
+  }
+
   var code = codeEditor.value;
   var body = getMethodBody(code, methodName);
   if (!body) return;

@@ -735,6 +735,7 @@
       color: #6db3f2;
     }
   </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 
@@ -1567,6 +1568,42 @@ function splitArguments(argsString) {
 }
 
 function executeMethod(methodName) {
+  if (window.TelemarkJava) {
+    var sharedSource = codeEditor.value;
+    if (methodName === 'init' || window.__telemarkUnit4Source !== sharedSource) {
+      var sharedTelemetry = [];
+      window.__telemarkUnit4Runtime = TelemarkJava.createRuntime({
+        gamepad: gamepad,
+        getRuntime: getRuntime,
+        onPower: function(power) { updateMotorVisual(power); },
+        onTelemetry: function(key, value) {
+          sharedTelemetry.push('<div class="telemetry-line"><span class="telemetry-key">' + key + '</span>: ' + String(value) + '</div>');
+        },
+        onTelemetryClear: function() { sharedTelemetry.length = 0; },
+        onTelemetryUpdate: function() {
+          if (sharedTelemetry.length) document.getElementById('telemetry-log').innerHTML = sharedTelemetry.join('');
+        }
+      });
+      window.__telemarkUnit4Program = TelemarkJava.compile(sharedSource, window.__telemarkUnit4Runtime);
+      window.__telemarkUnit4Source = sharedSource;
+      if (!window.__telemarkUnit4Program.ok) {
+        var sharedDiagnostic = window.__telemarkUnit4Program.diagnostics[0];
+        document.getElementById('telemetry-log').textContent = sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')';
+        return;
+      }
+    }
+    var sharedMethod = window.__telemarkUnit4Program.methods[methodName];
+    if (sharedMethod) sharedMethod();
+    window.__telemarkUnit4Runtime.updateTelemetry();
+    Object.keys(window.__telemarkUnit4Program.scope || {}).forEach(function(name) {
+      if (declaredVars[name]) declaredVars[name].value = window.__telemarkUnit4Program.scope[name];
+    });
+    renderHints();
+    drawCurveGraph();
+    updateDeadzoneOverlays();
+    return;
+  }
+
   var code = codeEditor.value;
   var body = getMethodBody(code, methodName);
   if (!body) return;

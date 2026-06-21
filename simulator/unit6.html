@@ -156,6 +156,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 .dpad-left{left:0;top:33%;border-radius:4px 0 0 4px}.dpad-right{right:0;top:33%;border-radius:0 4px 4px 0}
 .dpad-center{position:absolute;left:33%;top:33%;width:34%;height:34%;background:rgba(30,30,30,.9);pointer-events:none}
 </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 <div id="editor-container">
@@ -359,6 +360,9 @@ function renderBadges(){
 
 // ── Transpiler ──
 function getMethodBody(code,name){
+  if(window.TelemarkJava){
+    try{var method=window.TelemarkJava.findMethod(code,name);return method?method.body:null}catch(e){return null}
+  }
   var re=new RegExp('void\\s+'+name+'\\s*\\([^)]*\\)\\s*\\{');
   var m=re.exec(code);if(!m)return null;
   var idx=m.index+m[0].length,depth=1;
@@ -367,6 +371,13 @@ function getMethodBody(code,name){
 }
 
 function transpile(javaBody){
+  if(window.TelemarkJava){
+    return window.TelemarkJava.transpileBody(javaBody,{
+      gamepad1Name:'gamepad',
+      addTelemetryName:'__tel',
+      updateTelemetryName:'(()=>{})'
+    });
+  }
   var js=javaBody;
   // Strip Java types
   js=js.replace(/\b(int|double|float|long|boolean|String|byte|short|char)\s+/g,'let ');

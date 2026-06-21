@@ -2174,10 +2174,13 @@
   let initialized = false;
   let running = false;
   let loopInterval = null;
+  let initLoopInterval = null;
   let pendingLoopFn = null;
   let timerInterval = null;
   let runtimeStart = 0;
   let stopRequested = true;
+  let studentLifecycle = null;
+  const pendingSleepTimers = new Map();
 
   window.getRuntime = function () {
     return (Date.now() - runtimeStart) / 1000;
@@ -2193,7 +2196,11 @@
    */
   window.sleep = function (ms) {
     return new Promise(function (resolve) {
-      setTimeout(resolve, ms);
+      const timer = setTimeout(function () {
+        pendingSleepTimers.delete(timer);
+        resolve();
+      }, ms);
+      pendingSleepTimers.set(timer, resolve);
     });
   };
 
@@ -2272,6 +2279,12 @@
     } else if (typeof window.onRun === "function") {
       window.onRun();
     }
+
+    if (studentLifecycle && typeof studentLifecycle.initLoop === "function") {
+      initLoopInterval = setInterval(function () {
+        if (initialized && !running) studentLifecycle.initLoop();
+      }, 50);
+    }
   }
 
   function handleStart() {
@@ -2279,9 +2292,18 @@
     running = true;
     stopRequested = false;
 
+    if (initLoopInterval) {
+      clearInterval(initLoopInterval);
+      initLoopInterval = null;
+    }
+
     setDriverStationState("RUNNING", "var(--good)");
     setPrimaryButton("Start", true);
     startTimer();
+
+    if (studentLifecycle && typeof studentLifecycle.start === "function") {
+      studentLifecycle.start();
+    }
     startPendingLoop();
 
     if (typeof window.onStart === "function") {
@@ -2304,10 +2326,19 @@
       clearInterval(loopInterval);
       loopInterval = null;
     }
+    if (initLoopInterval) {
+      clearInterval(initLoopInterval);
+      initLoopInterval = null;
+    }
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
     }
+    pendingSleepTimers.forEach(function (resolve, timer) {
+      clearTimeout(timer);
+      resolve();
+    });
+    pendingSleepTimers.clear();
 
     const dsState = document.getElementById("sim-ds-state");
     const btnRun = document.getElementById("sim-btn-run");
@@ -2322,6 +2353,11 @@
       btnRun.textContent = "Init";
     }
     if (timerVal) timerVal.textContent = "0.00";
+
+    if (studentLifecycle && typeof studentLifecycle.stop === "function") {
+      studentLifecycle.stop();
+    }
+    studentLifecycle = null;
 
     // Call the challenge's onStop callback
     if (typeof window.onStop === "function") {
@@ -2352,6 +2388,18 @@
    * Returns the code between the opening { and closing } of the method.
    */
   function getMethodBody(code, name) {
+    if (window.TelemarkJava) {
+      try {
+        const method = window.TelemarkJava.findMethod(code, name);
+        return method ? method.body : null;
+      } catch (error) {
+        showTelemetryError(
+          `${error.message} (line ${error.line || 1}, column ${error.column || 1})`
+        );
+        return null;
+      }
+    }
+
     // Match "void methodName(...) {"
     const re = new RegExp(
       "(?:public\\s+)?void\\s+" + name + "\\s*\\([^)]*\\)\\s*\\{"
@@ -2377,6 +2425,16 @@
    * Transpile a block of Java code into JavaScript.
    */
   function transpileJava(java) {
+    if (window.TelemarkJava) {
+      return window.TelemarkJava.transpileBody(java, {
+        gamepad1Name: "gamepad",
+        gamepad2Name: "gamepad2",
+        addTelemetryName: "addTelemetry",
+        updateTelemetryName: "updateTelemetry",
+        clearTelemetryName: "clearTelemetry",
+      });
+    }
+
     let js = java;
 
     // Strip Java type declarations → let
@@ -2594,6 +2652,77 @@
    */
   window.transpileAndRun = function (javaCode, initHandler, loopHandler) {
     try {
+      if (window.TelemarkJava) {
+        const compiled = window.TelemarkJava.compile(javaCode, {
+          gamepad1: window.gamepad,
+          gamepad2: window.gamepad2,
+          hardwareMap: window.hardwareMap,
+          addTelemetry: window.addTelemetry,
+          updateTelemetry: window.updateTelemetry,
+          clearTelemetry: window.clearTelemetry,
+          getRuntime: window.getRuntime,
+          isStopRequested: window.isStopRequested,
+          opModeIsActive: function () {
+            return initialized && running && !stopRequested;
+          },
+          waitForStart: function () {
+            return new Promise(function (resolve) {
+              const poll = setInterval(function () {
+                if (running || stopRequested) {
+                  clearInterval(poll);
+                  resolve();
+                }
+              }, 20);
+            });
+          },
+          sleep: window.sleep,
+        });
+
+        if (!compiled.ok) {
+          const diagnostic = compiled.diagnostics[0];
+          showTelemetryError(
+            `${diagnostic.message} (line ${diagnostic.line}, column ${diagnostic.column})`
+          );
+          return;
+        }
+
+        studentLifecycle = {
+          initLoop: compiled.methods.init_loop || null,
+          start: compiled.methods.start || null,
+          stop: compiled.methods.stop || null,
+        };
+
+        if (compiled.kind === "linear") {
+          Promise.resolve(compiled.methods.runOpMode?.()).catch(function (error) {
+            showTelemetryError("runOpMode() runtime error: " + error.message);
+            window.stopExecution();
+          });
+          return;
+        }
+
+        if (compiled.methods.init && initHandler) {
+          initHandler(compiled.methods.init);
+        } else if (compiled.methods.init) {
+          compiled.methods.init();
+        }
+
+        if (compiled.methods.loop) {
+          const wrappedLoop = function () {
+            try {
+              window.clearTelemetry();
+              compiled.methods.loop();
+              window.updateTelemetry();
+            } catch (error) {
+              showTelemetryError("loop() runtime error: " + error.message);
+              window.stopExecution();
+            }
+          };
+          if (loopHandler) loopHandler(wrappedLoop);
+          window._simStartLoop(wrappedLoop);
+        }
+        return;
+      }
+
       // Extract method bodies
       const initBody = getMethodBody(javaCode, "init");
       const loopBody = getMethodBody(javaCode, "loop");

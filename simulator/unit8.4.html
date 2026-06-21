@@ -140,6 +140,7 @@ code{font-family:"Consolas","Courier New",monospace}
 .axis-readout{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);font-family:"Consolas","Courier New",monospace;color:#ccc;font-size:.69rem;z-index:7;background:rgba(0,0,0,.75);padding:4px 8px;border-radius:4px;white-space:nowrap;border:1px solid #444;}
 .gp-instruction{position:absolute;left:50%;top:4%;transform:translateX(-50%);font-size:.72rem;color:#ddd;font-family:"Consolas","Courier New",monospace;white-space:nowrap;z-index:7;background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;border:1px solid #444;}
 </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 
@@ -600,17 +601,20 @@ function getMethodBody(code, name) {
 }
 
 function transpile(code) {
-  return code
-    .replace(/\b(double|int|boolean|String)\s+/g, 'let ')
-    .replace(/gamepad1\./g, 'gamepad.')
+  var adapted = code
     .replace(/motor1\s*=\s*hardwareMap\.get\([^;]*\)\s*;?/g, '// motor1 mapped')
     .replace(/motor2\s*=\s*hardwareMap\.get\([^;]*\)\s*;?/g, '// motor2 mapped')
     .replace(/motor1\.setPower\s*\(/g, 'setMotorPower("motor1", ')
     .replace(/motor2\.setPower\s*\(/g, 'setMotorPower("motor2", ')
     .replace(/motor1\.setZeroPowerBehavior\(DcMotor\.ZeroPowerBehavior\.(BRAKE|FLOAT)\)/g, 'setZeroPowerBehavior("motor1", "$1")')
     .replace(/motor2\.setZeroPowerBehavior\(DcMotor\.ZeroPowerBehavior\.(BRAKE|FLOAT)\)/g, 'setZeroPowerBehavior("motor2", "$1")')
-    .replace(/telemetry\.addData\s*\(/g, 'addTelemetry(')
-    .replace(/telemetry\.update\(\s*\)/g, 'updateTelemetry()');
+  return window.TelemarkJava
+    ? window.TelemarkJava.transpileBody(adapted, {
+        gamepad1Name: 'gamepad',
+        addTelemetryName: 'addTelemetry',
+        updateTelemetryName: 'updateTelemetry'
+      })
+    : adapted;
 }
 
 function setMotorPower(motor, power) {
