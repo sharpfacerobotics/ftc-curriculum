@@ -490,11 +490,16 @@
 .unitCard {
   background: #0d0d1e;
   padding: 1.5rem;
+  border: 0;
   text-decoration: none;
   color: inherit;
   display: block;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
   transition: background 0.2s;
 }
 
@@ -511,6 +516,28 @@
 
 .unitCard:hover              { background: #121230; text-decoration: none; color: inherit; }
 .unitCard:hover::before      { opacity: 1; }
+
+.unitCard:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.unitCardLocked {
+  background:
+    linear-gradient(135deg, rgba(0, 191, 255, 0.035), transparent 45%),
+    #0d0d1e;
+}
+
+.unitCardLocked::after {
+  content: '\f023';
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  color: rgba(232, 244, 255, 0.2);
+  font-family: 'Font Awesome 6 Free';
+  font-size: 18px;
+  font-weight: 900;
+}
 
 .unitNum {
   font-family: 'Share Tech Mono', monospace;
@@ -549,6 +576,13 @@
 .tagBasic { background: rgba(0, 191, 255, 0.1);  color: #00BFFF; border: 1px solid rgba(0, 191, 255, 0.3);  }
 .tagInter { background: rgba(57, 255, 20, 0.1);  color: #39FF14; border: 1px solid rgba(57, 255, 20, 0.3);  }
 .tagAdv   { background: rgba(255, 128, 64, 0.1); color: #ff8040; border: 1px solid rgba(255, 128, 64, 0.3); }
+.tagLocked { background: rgba(255, 181, 71, 0.08); color: #ffb547; border: 1px solid rgba(255, 181, 71, 0.28); }
+
+.unlockError {
+  margin: 1rem 0 0;
+  color: #ff9d7a;
+  font-size: 13px;
+}
 
 /* ── Features grid ───────────────────────────────────────── */
 .featuresGrid {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from '@docusaurus/Link';
+import { useHistory } from '@docusaurus/router';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Head from '@docusaurus/Head';
 import styles from './index.module.css';
@@ -7,6 +8,9 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../telemark/firebase';
 import { useAuth } from '../telemark/useAuth';
 import { trackEvent } from '../telemark/analytics';
+import { signInWithGoogle } from '../telemark/googleAuth';
+import { isProtectedUnit } from '../telemark/accessPolicy';
+import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import {
   CURRICULUM_LESSON_COUNT,
   CURRICULUM_UNIT_COUNT,
@@ -182,7 +186,39 @@ function StatsBar(): React.JSX.Element {
   );
 }
 
-function CurriculumSection(): React.JSX.Element {
+function CurriculumSection({
+  signedIn,
+}: {
+  signedIn: boolean;
+}): React.JSX.Element {
+  const history = useHistory();
+  const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+
+  async function unlockUnit(unit: (typeof CURRICULUM_UNITS)[number]) {
+    const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
+    setUnlockingUnit(unit.slug);
+    setUnlockError(null);
+    trackEvent('content_unlock_attempt', {
+      unit_number: unitNumber,
+      surface: 'homepage_curriculum_card',
+    });
+
+    try {
+      await signInWithGoogle();
+      trackEvent('content_unlock_success', {
+        unit_number: unitNumber,
+        surface: 'homepage_curriculum_card',
+      });
+      history.push(unit.overviewPath);
+    } catch (signInError) {
+      console.error('Telemark unit unlock failed:', signInError);
+      setUnlockError('Sign-in did not finish. Select a locked unit to try again.');
+    } finally {
+      setUnlockingUnit(null);
+    }
+  }
+
   return (
     <section className={styles.section} id="curriculum">
       <p className={styles.sectionLabel}>// curriculum.units[]</p>
@@ -192,21 +228,49 @@ function CurriculumSection(): React.JSX.Element {
       </p>
 
       <div className={styles.curriculumGrid}>
-        {CURRICULUM_UNITS.map((unit) => (
-          <Link
-            to={unit.overviewPath}
-            key={unit.id}
-            className={styles.unitCard}
-          >
+        {CURRICULUM_UNITS.map((unit) => {
+          const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
+          const locked = !signedIn && isProtectedUnit(unitNumber);
+          const cardContent = (
+            <>
             <div className={styles.unitNum}>{unit.label}</div>
             <div className={styles.unitTitle}>{unit.title}</div>
             <div className={styles.unitDesc}>{unit.desc}</div>
-            <span className={`${styles.unitTag} ${styles[TIER_CLASS[unit.tier]]}`}>
-              {unit.tier}
+            <span className={`${styles.unitTag} ${locked ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
+              {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
+              {' '}
+              {locked ? 'Account required' : unit.tier}
             </span>
-          </Link>
-        ))}
+            </>
+          );
+
+          if (locked) {
+            return (
+              <button
+                type="button"
+                key={unit.id}
+                className={`${styles.unitCard} ${styles.unitCardLocked}`}
+                onClick={() => unlockUnit(unit)}
+                disabled={unlockingUnit === unit.slug}
+                aria-label={`Sign in to unlock ${unit.label}: ${unit.title}`}
+              >
+                {cardContent}
+              </button>
+            );
+          }
+
+          return (
+            <Link
+              to={unit.overviewPath}
+              key={unit.id}
+              className={styles.unitCard}
+            >
+              {cardContent}
+            </Link>
+          );
+        })}
       </div>
+      {unlockError && <p className={styles.unlockError}>{unlockError}</p>}
     </section>
   );
 }
@@ -235,24 +299,6 @@ function FeaturesSection(): React.JSX.Element {
 }
 
 function SimulatorSection(): React.JSX.Element {
-  const simulatorRef = useRef<HTMLDivElement>(null);
-  const launchTrackedRef = useRef(false);
-
-  const openFullscreen = () => {
-    if (document.fullscreenElement === simulatorRef.current) {
-      document.exitFullscreen();
-      return;
-    }
-    simulatorRef.current?.requestFullscreen();
-    trackEvent('simulator_fullscreen', { simulator: 'homepage_navigator' });
-  };
-
-  const trackLaunch = () => {
-    if (launchTrackedRef.current) return;
-    launchTrackedRef.current = true;
-    trackEvent('simulator_launch', { simulator: 'homepage_navigator' });
-  };
-
   return (
     <section className={styles.section}>
       <p className={styles.sectionLabel}>// simulator.live[]</p>
@@ -260,26 +306,12 @@ function SimulatorSection(): React.JSX.Element {
       <p className={styles.sectionDesc}>
         Open the simulator in the browser and experiment with robot behavior while you work through the lessons.
       </p>
-      <div className={styles.simulatorToolbar}>
-        <button
-          type="button"
-          className={styles.simulatorToolbarButton}
-          onClick={openFullscreen}
-        >
-          <i className="fa-solid fa-expand" aria-hidden="true" />
-          Fullscreen Simulator
-        </button>
-      </div>
-      <div className={styles.simulatorWrapper} ref={simulatorRef}>
-        <iframe
-          src="/telemark/simulator/navigator.html"
-          allowFullScreen
-          allow="fullscreen"
-          title="Telemark Simulator"
-          scrolling="yes"
-          onLoad={trackLaunch}
-        />
-      </div>
+      <AuthenticatedSimulatorNavigator
+        simulatorId="homepage_navigator"
+        wrapperClassName={styles.simulatorWrapper}
+        toolbarClassName={styles.simulatorToolbar}
+        toolbarButtonClassName={styles.simulatorToolbarButton}
+      />
     </section>
   );
 }
@@ -386,7 +418,7 @@ export default function Home(): React.JSX.Element {
         <HeroSection />
         <StatsBar />
         <Divider />
-        <CurriculumSection />
+        <CurriculumSection signedIn={Boolean(user)} />
         <Divider />
         <SimulatorSection />
         <Divider />

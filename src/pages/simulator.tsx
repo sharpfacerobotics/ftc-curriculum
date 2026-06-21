@@ -1,28 +1,10 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import pageStyles from './index.module.css';
-import { trackEvent } from '../telemark/analytics';
+import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 
 export default function SimulatorPage(): React.JSX.Element {
-  const simulatorRef = useRef<HTMLDivElement>(null);
-  const launchTrackedRef = useRef(false);
-
-  const openFullscreen = () => {
-    if (document.fullscreenElement === simulatorRef.current) {
-      document.exitFullscreen();
-      return;
-    }
-    simulatorRef.current?.requestFullscreen();
-    trackEvent('simulator_fullscreen', { simulator: 'simulator_page_navigator' });
-  };
-
-  const trackLaunch = () => {
-    if (launchTrackedRef.current) return;
-    launchTrackedRef.current = true;
-    trackEvent('simulator_launch', { simulator: 'simulator_page_navigator' });
-  };
-
   return (
     <Layout title="Simulator — Telemark" noFooter>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -52,27 +34,12 @@ export default function SimulatorPage(): React.JSX.Element {
             curriculum whenever you want more guided practice.
           </p>
 
-          <div className={pageStyles.simulatorToolbar}>
-            <button
-              type="button"
-              className={pageStyles.simulatorToolbarButton}
-              onClick={openFullscreen}
-            >
-              <i className="fa-solid fa-expand" aria-hidden="true" />
-              Fullscreen Simulator
-            </button>
-          </div>
-
-          <div className={pageStyles.simulatorWrapper} ref={simulatorRef}>
-            <iframe
-              src="/telemark/simulator/navigator.html"
-              allowFullScreen
-              allow="fullscreen"
-              title="Telemark Simulator"
-              scrolling="yes"
-              onLoad={trackLaunch}
-            />
-          </div>
+          <AuthenticatedSimulatorNavigator
+            simulatorId="simulator_page_navigator"
+            wrapperClassName={pageStyles.simulatorWrapper}
+            toolbarClassName={pageStyles.simulatorToolbar}
+            toolbarButtonClassName={pageStyles.simulatorToolbarButton}
+          />
 
           <div className={pageStyles.heroActions}>
             <Link to="/curriculum" className={pageStyles.btnSecondary}>

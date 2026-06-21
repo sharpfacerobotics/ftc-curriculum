@@ -215,6 +215,28 @@
       text-decoration: none;
     }
 
+    .card.locked {
+      background:
+        linear-gradient(135deg, rgba(255, 181, 71, 0.055), transparent 48%),
+        rgba(13, 13, 30, 0.92);
+      border-color: rgba(255, 181, 71, 0.2);
+    }
+
+    .card.locked:hover,
+    .card.locked:focus-visible {
+      border-color: rgba(255, 181, 71, 0.46);
+      box-shadow: 0 0 22px rgba(255, 181, 71, 0.1);
+    }
+
+    .card.locked .unit-num,
+    .card.locked .action-row {
+      color: #ffb547;
+    }
+
+    .card-lock {
+      color: #ffb547;
+    }
+
     .unit-num,
     .challenge-id {
       color: var(--green);
@@ -414,7 +436,7 @@
           <p>Choose a unit, then launch a simulator challenge.</p>
         </div>
       </div>
-      <div class="status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> 70 current simulator challenges</div>
+      <div class="status" id="auth-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Units 1–5 free trial</div>
     </header>
 
     <main class="main">
@@ -461,6 +483,11 @@
   </div>
 
   <script>
+    const FREE_UNIT_MAX = 5;
+    const AUTH_REQUEST = "telemark:simulator-auth-request";
+    const AUTH_STATE = "telemark:simulator-auth-state";
+    let authenticated = new URLSearchParams(window.location.search).get("authenticated") === "1";
+
     const units = [
       { unit: 1, title: "Environment Setup", desc: "Install tools and verify the FTC SDK build.", type: "setup", href: "../docs/unit-01/prerequisites", challenges: [] },
       { unit: 2, title: "OpMode Structure", desc: "Annotations, init(), loop(), start(), and stop().", type: "shared", href: "unit2.html", challenges: [] },
@@ -588,7 +615,31 @@
     const simFrame = document.getElementById("sim-frame");
     const simTitle = document.getElementById("sim-title");
     const simSubtitle = document.getElementById("sim-subtitle");
+    const authStatus = document.getElementById("auth-status");
     let lastChooserView = "unit";
+
+    function isProtectedUnit(unitNumber) {
+      return unitNumber > FREE_UNIT_MAX;
+    }
+
+    function updateAuthStatus() {
+      authStatus.innerHTML = authenticated
+        ? '<i class="fa-solid fa-unlock" aria-hidden="true"></i> All simulator units unlocked'
+        : '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Units 1–5 free trial';
+    }
+
+    function requestUnlock(unit, destination) {
+      if (window.parent !== window) {
+        window.parent.postMessage({
+          type: AUTH_REQUEST,
+          unit,
+          destination
+        }, window.location.origin);
+        return;
+      }
+
+      window.location.href = "../login";
+    }
 
     function pad(value) {
       return String(value).padStart(2, "0");
@@ -613,22 +664,28 @@
     function makeUnitCard(unit) {
       const card = document.createElement("button");
       card.type = "button";
-      card.className = "card";
+      const locked = !authenticated && isProtectedUnit(unit.unit);
+      card.className = locked ? "card locked" : "card";
       const label = unit.type === "multi" ? `${unit.challenges.length} simulators` : unit.type === "shared" ? "unit simulator" : "setup";
-      const action = unit.type === "multi" ? "View challenges" : unit.type === "shared" ? "Launch unit sim" : "Open setup";
-      const icon = unit.type === "multi" ? "fa-table-cells" : unit.type === "shared" ? "fa-play" : "fa-book-open";
+      const action = locked ? "Sign in to unlock" : unit.type === "multi" ? "View challenges" : unit.type === "shared" ? "Launch unit sim" : "Open setup";
+      const icon = locked ? "fa-lock" : unit.type === "multi" ? "fa-table-cells" : unit.type === "shared" ? "fa-play" : "fa-book-open";
 
       card.innerHTML = `
         <span class="unit-num">Unit ${pad(unit.unit)}</span>
         <h3>${unit.title}</h3>
         <p>${unit.desc}</p>
         <span class="meta">
-          <span><i class="fa-solid ${icon}" aria-hidden="true"></i>${label}</span>
+          <span class="${locked ? "card-lock" : ""}"><i class="fa-solid ${icon}" aria-hidden="true"></i>${locked ? "account required" : label}</span>
         </span>
-        <span class="action-row">${action}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+        <span class="action-row">${action}<i class="fa-solid ${locked ? "fa-lock" : "fa-arrow-right"}" aria-hidden="true"></i></span>
       `;
 
       card.addEventListener("click", () => {
+        if (locked) {
+          requestUnlock(unit.unit, unit.href || `unit-${unit.unit}-challenges`);
+          return;
+        }
+
         if (unit.type === "multi") {
           showChallenges(unit);
         } else {
@@ -660,6 +717,7 @@
     function renderUnits() {
       unitGrid.innerHTML = "";
       units.forEach((unit) => unitGrid.appendChild(makeUnitCard(unit)));
+      updateAuthStatus();
     }
 
     function showChallenges(unit) {
@@ -688,6 +746,20 @@
         unitView.classList.remove("hidden");
       }
       document.querySelector(".main").scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    window.addEventListener("message", (event) => {
+      if (
+        event.origin !== window.location.origin
+        || event.source !== window.parent
+        || !event.data
+        || event.data.type !== AUTH_STATE
+      ) {
+        return;
+      }
+
+      authenticated = event.data.authenticated === true;
+      renderUnits();
     });
 
     renderUnits();

@@ -1,0 +1,162 @@
+.shell {
+  position: relative;
+  max-width: 760px;
+  margin: 3rem auto;
+  padding: clamp(2rem, 6vw, 4.5rem);
+  overflow: hidden;
+  border: 1px solid rgba(0, 191, 255, 0.24);
+  background:
+    linear-gradient(rgba(0, 191, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 191, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0%, rgba(0, 191, 255, 0.12), transparent 24rem),
+    #0d0d1e;
+  background-size: 36px 36px, 36px 36px, auto, auto;
+  color: #e8f4ff;
+  text-align: center;
+}
+
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+}
+
+.topLeft {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid #00bfff;
+  border-left: 2px solid #00bfff;
+}
+
+.bottomRight {
+  right: -1px;
+  bottom: -1px;
+  border-right: 2px solid #39ff14;
+  border-bottom: 2px solid #39ff14;
+}
+
+.lockIcon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.5rem;
+  border: 1px solid rgba(0, 191, 255, 0.42);
+  background: rgba(0, 191, 255, 0.08);
+  box-shadow: 0 0 32px rgba(0, 191, 255, 0.12);
+  color: #00bfff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 34px;
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(0, 191, 255, 0.22);
+  border-top-color: #39ff14;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: #39ff14;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 auto 1rem;
+  color: #e8f4ff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(30px, 6vw, 50px);
+  line-height: 1.05;
+}
+
+.description {
+  max-width: 590px;
+  margin: 0 auto 1.75rem;
+  color: rgba(232, 244, 255, 0.62);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.benefits {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.benefits span {
+  padding: 6px 10px;
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  background: rgba(57, 255, 20, 0.045);
+  color: rgba(232, 244, 255, 0.68);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.signInButton {
+  min-width: min(100%, 330px);
+  padding: 14px 24px;
+  border: 0;
+  background: linear-gradient(135deg, #00bfff, #0075d4);
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  transition: box-shadow 0.2s, transform 0.2s, opacity 0.2s;
+}
+
+.signInButton:hover:not(:disabled) {
+  box-shadow: 0 0 30px rgba(0, 191, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.signInButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.error {
+  margin: 1rem 0 0;
+  color: #ff9d7a;
+  font-size: 13px;
+}
+
+.trialNote {
+  margin: 1.25rem 0 0;
+  color: rgba(232, 244, 255, 0.34);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .shell {
+    margin: 1.5rem 0;
+  }
+
+  .benefits {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

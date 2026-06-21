@@ -1,7 +1,12 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
+import {useHistory} from '@docusaurus/router';
 import Layout from '@theme/Layout';
 import pageStyles from './index.module.css';
+import {useAuth} from '../telemark/useAuth';
+import {signInWithGoogle} from '../telemark/googleAuth';
+import {trackEvent} from '../telemark/analytics';
+import {isProtectedUnit} from '../telemark/accessPolicy';
 import {
   CURRICULUM_LESSON_COUNT,
   CURRICULUM_UNIT_COUNT,
@@ -9,6 +14,35 @@ import {
 } from '../telemark/curriculum';
 
 export default function CurriculumPage(): React.JSX.Element {
+  const {user} = useAuth();
+  const history = useHistory();
+  const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+
+  async function unlockUnit(unit: (typeof CURRICULUM_UNITS)[number]) {
+    const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
+    setUnlockingUnit(unit.slug);
+    setUnlockError(null);
+    trackEvent('content_unlock_attempt', {
+      unit_number: unitNumber,
+      surface: 'curriculum_page_card',
+    });
+
+    try {
+      await signInWithGoogle();
+      trackEvent('content_unlock_success', {
+        unit_number: unitNumber,
+        surface: 'curriculum_page_card',
+      });
+      history.push(unit.overviewPath);
+    } catch (signInError) {
+      console.error('Telemark unit unlock failed:', signInError);
+      setUnlockError('Sign-in did not finish. Select a locked unit to try again.');
+    } finally {
+      setUnlockingUnit(null);
+    }
+  }
+
   return (
     <Layout title="Curriculum — Telemark" noFooter>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,19 +69,47 @@ export default function CurriculumPage(): React.JSX.Element {
           </p>
 
           <div className={pageStyles.curriculumGrid}>
-            {CURRICULUM_UNITS.map((unit) => (
-              <Link to={unit.overviewPath} key={unit.id} className={pageStyles.unitCard}>
+            {CURRICULUM_UNITS.map((unit) => {
+              const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
+              const locked = !user && isProtectedUnit(unitNumber);
+              const cardContent = (
+                <>
                 <div className={pageStyles.unitNum}>{unit.label}</div>
                 <div className={pageStyles.unitTitle}>{unit.title}</div>
                 <div className={pageStyles.unitDesc}>
                   {unit.desc} {unit.lessonCount} lessons are currently available in this unit.
                 </div>
-                <span className={`${pageStyles.unitTag} ${pageStyles.tagBasic}`}>
-                  {unit.tier}
+                <span className={`${pageStyles.unitTag} ${locked ? pageStyles.tagLocked : pageStyles.tagBasic}`}>
+                  {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
+                  {' '}
+                  {locked ? 'Account required' : unit.tier}
                 </span>
-              </Link>
-            ))}
+                </>
+              );
+
+              if (locked) {
+                return (
+                  <button
+                    type="button"
+                    key={unit.id}
+                    className={`${pageStyles.unitCard} ${pageStyles.unitCardLocked}`}
+                    onClick={() => unlockUnit(unit)}
+                    disabled={unlockingUnit === unit.slug}
+                    aria-label={`Sign in to unlock ${unit.label}: ${unit.title}`}
+                  >
+                    {cardContent}
+                  </button>
+                );
+              }
+
+              return (
+                <Link to={unit.overviewPath} key={unit.id} className={pageStyles.unitCard}>
+                  {cardContent}
+                </Link>
+              );
+            })}
           </div>
+          {unlockError && <p className={pageStyles.unlockError}>{unlockError}</p>}
 
           <div className={pageStyles.heroActions}>
             <Link to={CURRICULUM_UNITS[0].startPath} className={pageStyles.btnPrimary}>

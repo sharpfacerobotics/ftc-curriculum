@@ -4,7 +4,11 @@ export type AnalyticsEventName =
   | 'lesson_complete'
   | 'unit_complete'
   | 'simulator_launch'
-  | 'simulator_fullscreen';
+  | 'simulator_fullscreen'
+  | 'content_lock_view'
+  | 'content_unlock_attempt'
+  | 'content_unlock_success'
+  | 'simulator_gate_request';
 
 type AnalyticsParameters = Record<string, string | number | boolean>;
 
