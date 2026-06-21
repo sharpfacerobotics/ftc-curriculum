@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {trackEvent} from '@site/src/telemark/analytics';
 
 type SimulatorFrameProps = {
   src: string;
@@ -23,6 +24,7 @@ export default function SimulatorFrame({
 }: SimulatorFrameProps): React.JSX.Element {
   const shellRef = useRef<HTMLDivElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const launchTrackedRef = useRef(false);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -39,6 +41,13 @@ export default function SimulatorFrame({
       return;
     }
     await shellRef.current.requestFullscreen();
+    trackEvent('simulator_fullscreen', {simulator: title});
+  };
+
+  const trackLaunch = () => {
+    if (launchTrackedRef.current) return;
+    launchTrackedRef.current = true;
+    trackEvent('simulator_launch', {simulator: title});
   };
 
   return (
@@ -58,6 +67,7 @@ export default function SimulatorFrame({
           title={title}
           loading={loading}
           allowFullScreen
+          onLoad={trackLaunch}
         />
       </div>
     </div>

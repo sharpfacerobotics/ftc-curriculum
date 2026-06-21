@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db } from './firebase';
+import { trackEvent } from './analytics';
 
 export interface ProgressData {
   completedLessons: string[];
@@ -48,6 +49,10 @@ export function useProgress(user: User | null) {
     }));
     await setDoc(ref, payload, { merge: true });
     setProgress({ completedLessons: newCompleted, lastLesson: lessonId });
+    trackEvent('lesson_complete', {
+      lesson_id: lessonId,
+      unit_slug: lessonId.split('/')[0] ?? 'unknown',
+    });
   }, [user, progress]);
 
   const markManyComplete = useCallback(async (lessonIds: string[]) => {
@@ -66,6 +71,16 @@ export function useProgress(user: User | null) {
 
     await setDoc(ref, payload, { merge: true });
     setProgress({ completedLessons: newCompleted, lastLesson });
+    additions.forEach((lessonId) => {
+      trackEvent('lesson_complete', {
+        lesson_id: lessonId,
+        unit_slug: lessonId.split('/')[0] ?? 'unknown',
+      });
+    });
+    trackEvent('unit_complete', {
+      unit_slug: lastLesson.split('/')[0] ?? 'unknown',
+      lessons_completed: additions.length,
+    });
   }, [user, progress]);
 
   const isComplete = useCallback(

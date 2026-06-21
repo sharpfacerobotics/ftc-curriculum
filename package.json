@@ -12,10 +12,16 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "functions:build": "npm --prefix functions run build",
+    "functions:test": "npm --prefix functions test",
+    "firebase:emulators": "npm run functions:build && firebase emulators:start --only functions",
+    "deploy:functions": "npm run functions:build && firebase deploy --only functions",
+    "deploy:firestore": "firebase deploy --only firestore:rules"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",
+    "@docusaurus/plugin-google-gtag": "^3.9.2",
     "@docusaurus/preset-classic": "3.9.2",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
@@ -31,6 +37,7 @@
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "firebase-tools": "^15.22.0",
     "typescript": "~5.6.2"
   },
   "browserslist": {

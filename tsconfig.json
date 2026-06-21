@@ -5,5 +5,5 @@
     "jsx": "react-jsx",
     "types": ["node", "react", "react-dom"]
   },
-  "exclude": [".docusaurus", "build"]
+  "exclude": [".docusaurus", "build", "functions"]
 }

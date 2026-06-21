@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { useHistory } from '@docusaurus/router';
 import Layout from '@theme/Layout';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '../telemark/firebase';
 import { useAuth } from '../telemark/useAuth';
+import { signInWithGoogle } from '../telemark/googleAuth';
 import styles from './login.module.css';
 
 export default function LoginPage(): React.JSX.Element {
@@ -19,7 +18,7 @@ export default function LoginPage(): React.JSX.Element {
 
   async function handleSignIn() {
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithGoogle();
       history.push('/telemark/dashboard');
     } catch (e) {
       console.error(e);

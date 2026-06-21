@@ -6,6 +6,7 @@ import styles from './index.module.css';
 import { signOut } from 'firebase/auth';
 import { auth } from '../telemark/firebase';
 import { useAuth } from '../telemark/useAuth';
+import { trackEvent } from '../telemark/analytics';
 import {
   CURRICULUM_LESSON_COUNT,
   CURRICULUM_UNIT_COUNT,
@@ -235,6 +236,7 @@ function FeaturesSection(): React.JSX.Element {
 
 function SimulatorSection(): React.JSX.Element {
   const simulatorRef = useRef<HTMLDivElement>(null);
+  const launchTrackedRef = useRef(false);
 
   const openFullscreen = () => {
     if (document.fullscreenElement === simulatorRef.current) {
@@ -242,6 +244,13 @@ function SimulatorSection(): React.JSX.Element {
       return;
     }
     simulatorRef.current?.requestFullscreen();
+    trackEvent('simulator_fullscreen', { simulator: 'homepage_navigator' });
+  };
+
+  const trackLaunch = () => {
+    if (launchTrackedRef.current) return;
+    launchTrackedRef.current = true;
+    trackEvent('simulator_launch', { simulator: 'homepage_navigator' });
   };
 
   return (
@@ -268,6 +277,7 @@ function SimulatorSection(): React.JSX.Element {
           allow="fullscreen"
           title="Telemark Simulator"
           scrolling="yes"
+          onLoad={trackLaunch}
         />
       </div>
     </section>

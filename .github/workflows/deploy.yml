@@ -25,3 +25,34 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
+
+  deploy-functions:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TELEMARK }}
+      GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Authenticate to Google Cloud
+        if: env.FIREBASE_SERVICE_ACCOUNT != '' && env.GA4_PROPERTY_ID != ''
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TELEMARK }}
+
+      - name: Install site tooling
+        if: env.FIREBASE_SERVICE_ACCOUNT != '' && env.GA4_PROPERTY_ID != ''
+        run: npm ci
+
+      - name: Install function dependencies
+        if: env.FIREBASE_SERVICE_ACCOUNT != '' && env.GA4_PROPERTY_ID != ''
+        run: npm ci --prefix functions
+
+      - name: Deploy secure analytics function
+        if: env.FIREBASE_SERVICE_ACCOUNT != '' && env.GA4_PROPERTY_ID != ''
+        run: npm run deploy:functions

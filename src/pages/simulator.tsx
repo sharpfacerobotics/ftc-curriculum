@@ -2,9 +2,11 @@ import React, { useRef } from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import pageStyles from './index.module.css';
+import { trackEvent } from '../telemark/analytics';
 
 export default function SimulatorPage(): React.JSX.Element {
   const simulatorRef = useRef<HTMLDivElement>(null);
+  const launchTrackedRef = useRef(false);
 
   const openFullscreen = () => {
     if (document.fullscreenElement === simulatorRef.current) {
@@ -12,6 +14,13 @@ export default function SimulatorPage(): React.JSX.Element {
       return;
     }
     simulatorRef.current?.requestFullscreen();
+    trackEvent('simulator_fullscreen', { simulator: 'simulator_page_navigator' });
+  };
+
+  const trackLaunch = () => {
+    if (launchTrackedRef.current) return;
+    launchTrackedRef.current = true;
+    trackEvent('simulator_launch', { simulator: 'simulator_page_navigator' });
   };
 
   return (
@@ -61,6 +70,7 @@ export default function SimulatorPage(): React.JSX.Element {
               allow="fullscreen"
               title="Telemark Simulator"
               scrolling="yes"
+              onLoad={trackLaunch}
             />
           </div>
 

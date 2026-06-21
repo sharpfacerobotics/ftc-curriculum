@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from '@docusaurus/Link';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '@site/src/telemark/firebase';
 import { useAuth } from '@site/src/telemark/useAuth';
 import { useProgress } from '@site/src/telemark/useProgress';
+import { signInWithGoogle } from '@site/src/telemark/googleAuth';
 import { getLessonsForUnit, getUnitBySlug } from '@site/src/telemark/curriculum';
 import styles from '@site/src/components/HomepageFeatures/MarkComplete.module.css';
 
@@ -46,7 +45,7 @@ export default function MarkUnitComplete({
 
   async function handleSignIn() {
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithGoogle();
     } catch (e) {
       console.error(e);
     }

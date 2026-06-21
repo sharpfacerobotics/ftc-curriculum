@@ -1,41 +1,27 @@
-# Website
+# Telemark
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+Telemark is Sharp Face Robotics' Docusaurus-based FTC programming curriculum.
 
-## Installation
-
-```bash
-yarn
-```
-
-## Local Development
+## Local development
 
 ```bash
-yarn start
+npm ci
+npm start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-## Build
+Production checks:
 
 ```bash
-yarn build
+npm run typecheck
+npm run build
+npm run functions:test
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+## Analytics administration
 
-## Deployment
+The private dashboard is available at `/telemark/admin`. Google login is visible
+to everyone, but both the browser and the callable backend restrict metrics to
+`sharpfacerobotics@gmail.com`. The backend returns aggregate values only.
 
-Using SSH:
-
-```bash
-USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+See [ANALYTICS_SETUP.md](./ANALYTICS_SETUP.md) for the required one-time Google
+Analytics, Firebase, IAM, and GitHub Actions configuration.

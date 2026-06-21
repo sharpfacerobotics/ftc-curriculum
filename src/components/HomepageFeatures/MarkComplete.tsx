@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from '@docusaurus/Link';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '@site/src/telemark/firebase';
 import { useAuth } from '@site/src/telemark/useAuth';
 import { useProgress } from '@site/src/telemark/useProgress';
+import { signInWithGoogle } from '@site/src/telemark/googleAuth';
 import styles from './MarkComplete.module.css';
 
 interface MarkCompleteProps {
@@ -44,7 +43,7 @@ export default function MarkComplete({
 
   async function handleSignIn() {
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithGoogle();
     } catch (e) {
       console.error(e);
     }
