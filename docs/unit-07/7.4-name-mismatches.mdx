@@ -14,7 +14,7 @@ import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
 ## Technical Context
 
-The string literal used in `hardwareMap.get()` must match the configuration name on the Hub **character-for-character**. A single typo — even a difference in capitalization, like `"LeftMotor"` versus `"left_motor"` — will cause the OpMode to crash immediately when the driver presses "Init." In a competition setting, this error costs an entire autonomous run.
+The string literal used in `hardwareMap.get()` must match the configuration name on the Hub **character-for-character**. A single typo: even a difference in capitalization, like `"LeftMotor"` versus `"left_motor"`: will cause the OpMode to crash immediately when the driver presses "Init." In a competition setting, this error costs an entire autonomous run.
 
 ---
 
@@ -22,7 +22,7 @@ The string literal used in `hardwareMap.get()` must match the configuration name
 
 When the SDK encounters a name mismatch, it cannot find the hardware in the XML registry. The result is that the object remains `null`. Any subsequent call to that object (like `motor.setPower()`) will trigger a `NullPointerException`, which terminates the OpMode instantly.
 
-The professional solution is to store all configuration name strings as `static final String` constants in a dedicated configuration class. This creates a **single source of truth** — if a hardware port name changes in the Robot Controller app, you update exactly one constant and every OpMode that references it is automatically corrected.
+A useful approach is to store shared configuration names as `static final String` constants. If a name changes in the Robot Controller configuration, you update the matching constant instead of searching through every OpMode.
 
 Common mismatch causes to watch for:
 - Capitalization differences (`"Arm"` vs `"arm"`)
@@ -50,7 +50,7 @@ public class RobotConfig {
 ```
 
 ```java
-// Inside an OpMode's init() method — using the constants instead of literals
+// Inside an OpMode's init() method: using the constants instead of literals
 import org.firstinspires.ftc.teamcode.RobotConfig;
 
 leftDrive  = hardwareMap.get(DcMotor.class, RobotConfig.LEFT_DRIVE);
@@ -87,5 +87,5 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 <MarkComplete
   lessonId="unit-07/name-mismatches"
   nextUnit="/docs/unit-07/mechanism-classes"
-  nextUnitName="Lesson 7.5: Challenge — Synchronizing Hardware Classes Across Multiple OpModes"
+  nextUnitName="Lesson 7.5: Challenge: Synchronizing Hardware Classes Across Multiple OpModes"
 />

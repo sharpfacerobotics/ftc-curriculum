@@ -62,7 +62,7 @@ Without the catch-all `else` block, once a motor is given power by an `if` state
 <details>
 <summary>Show answer</summary>
 
-Using an `enum` allows the compiler to catch typos that would be missed with `String`-based logic. It also makes the code more readable and easier to expand — adding a new autonomous step is as simple as adding a new `enum` value and a corresponding `case` block.
+Using an `enum` allows the compiler to catch typos that would be missed with `String`-based logic. It also makes the code more readable and easier to expand: adding a new autonomous step is as simple as adding a new `enum` value and a corresponding `case` block.
 
 </details>
 
@@ -90,15 +90,15 @@ public void loop() {
 <details>
 <summary>Show answers</summary>
 
-**Error 1 — Syntax Error:**
+**Error 1: Syntax Error:**
 The statement `motor.setPower(0.0)` inside the first `if` block is missing a semicolon (`;`). Java requires semicolons to terminate every command.
 
 ```java
 motor.setPower(0.0); // ← semicolon added
 ```
 
-**Error 2 — Logic Error:**
-The programmer used two independent `if` blocks instead of an `else if` or `else` structure. If the robot is closer than 10 cm **and** the driver is still holding the trigger, the motor will be told to stop and then immediately told to move in the same loop cycle — the trigger logic overrides the safety sensor.
+**Error 2: Logic Error:**
+The programmer used two independent `if` blocks instead of an `else if` or `else` structure. If the robot is closer than 10 cm **and** the driver is still holding the trigger, the motor will be told to stop and then immediately told to move in the same loop cycle: the trigger logic overrides the safety sensor.
 
 ```java
 if (dist < 10.0) {

@@ -1,6 +1,6 @@
 ---
 id: sensor-gated-intake
-title: "Lesson 11.5: Challenge — Creating an Automated Sensor-Gated Intake System"
+title: "Lesson 11.5: Challenge: Creating an Automated Sensor-Gated Intake System"
 sidebar_label: "11.5 · Challenge: Sensor-Gated Intake"
 sidebar_position: 5
 ---
@@ -8,7 +8,7 @@ sidebar_position: 5
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
-# Lesson 11.5: Challenge — Creating an Automated Sensor-Gated Intake System
+# Lesson 11.5: Challenge: Creating an Automated Sensor-Gated Intake System
 
 ---
 
@@ -43,7 +43,7 @@ if (dist < 10.0 && !isFull) {
 
 One subtlety that appears in real hardware: if the distance reading fluctuates right at the threshold boundary, the motor will start and stop many times per second. This rapid switching is called chatter, and it causes mechanical wear and inconsistent behavior.
 
-The professional solution is to use two different threshold values. A smaller value triggers the start of collection (for example, 8 cm means "an element is definitely in range"), and a slightly larger value defines when the system allows stopping (for example, 12 cm means "definitely no element present"). The gap between these two values is called a hysteresis band.
+A useful approach is to use two different threshold values. A smaller value triggers the start of collection (for example, 8 cm means "an element is definitely in range"), and a slightly larger value defines when the system allows stopping (for example, 12 cm means "definitely no element present"). The gap between these two values is called a hysteresis band.
 
 Implementing hysteresis requires tracking a state variable -- a `boolean` that records whether the intake is currently active -- and updating it based on which threshold was crossed most recently. This prevents the motor from switching states on every tiny fluctuation.
 

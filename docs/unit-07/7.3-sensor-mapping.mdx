@@ -14,7 +14,7 @@ import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
 ## Technical Context
 
-Sensors are mapped to different hardware buses — Digital, Analog, or I2C. Mapping a `DigitalChannel` (like a touch sensor) using the `AnalogInput` class, or vice versa, will result in incorrect voltage readings or hardware errors. The SDK uses distinct classes for each sensor type to enforce this separation and prevent silent logic failures.
+Sensors are mapped to different hardware buses: Digital, Analog, or I2C. Mapping a `DigitalChannel` (like a touch sensor) using the `AnalogInput` class, or vice versa, will result in incorrect voltage readings or hardware errors. The SDK uses distinct classes for each sensor type to enforce this separation and prevent silent logic failures.
 
 ---
 
@@ -22,7 +22,7 @@ Sensors are mapped to different hardware buses — Digital, Analog, or I2C. Mapp
 
 The SDK differentiates between two common sensor categories:
 
-**Digital sensors** (e.g., REV Touch Sensor, magnetic limit switches) operate on a binary signal — the pin is either HIGH or LOW. They are instantiated with the `DigitalChannel` class and return a `boolean` via `getState()`. One critical step: you must explicitly call `setMode(DigitalChannel.Mode.INPUT)` to configure the pin to receive data rather than send it.
+**Digital sensors** (e.g., REV Touch Sensor, magnetic limit switches) operate on a binary signal: the pin is either HIGH or LOW. They are instantiated with the `DigitalChannel` class and return a `boolean` via `getState()`. One critical step: you must explicitly call `setMode(DigitalChannel.Mode.INPUT)` to configure the pin to receive data rather than send it.
 
 **Analog sensors** (e.g., potentiometers, analog distance sensors) return a continuous voltage between 0V and the maximum port voltage. They are instantiated with the `AnalogInput` class and return a `double` via `getVoltage()`. Analog input ports do not require a mode to be set.
 
@@ -46,11 +46,11 @@ public class SensorMappingDemo extends OpMode {
 
     @Override
     public void init() {
-        // Mapping to a Digital port — requires INPUT mode to be set
+        // Mapping to a Digital port: requires INPUT mode to be set
         touch = hardwareMap.get(DigitalChannel.class, "limit_switch");
         touch.setMode(DigitalChannel.Mode.INPUT);
 
-        // Mapping to an Analog port — functional immediately upon registration
+        // Mapping to an Analog port: functional immediately upon registration
         pot = hardwareMap.get(AnalogInput.class, "arm_pot");
 
         telemetry.addData("Status", "Sensors mapped");

@@ -7,12 +7,6 @@ import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulato
 export default function SimulatorPage(): React.JSX.Element {
   return (
     <Layout title="Simulator — Telemark" noFooter>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap"
-        rel="stylesheet"
-      />
       <link
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         rel="stylesheet"

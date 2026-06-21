@@ -14,7 +14,7 @@ import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 ## What This Challenge Assembles
 
-    This challenge brings the major techniques from the unit into one competition-grade autonomous sequence. It combines:
+    This challenge brings the major techniques from the unit into one competition-ready autonomous sequence. It combines:
 
 - Pre-match spike mark detection via a custom `VisionProcessor` (Unit 14) to select the correct scoring path.
 - A `Follower` and `PathChain` of `BezierCurve` segments (Lessons 15.2 and 15.3) to execute smooth field navigation.
@@ -238,7 +238,7 @@ public class FullAutonomousChallenge extends LinearOpMode {
 
     private void applyLimelightCorrection() {
         LLResult result = limelight.getLatestResult();
-        if (result == null || !result.isValid()) return;
+        if (!result.isValid()) return;
 
         Pose3D botPose = result.getBotpose();
         if (botPose == null) return;

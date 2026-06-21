@@ -35,12 +35,7 @@ From Java code, you activate a pipeline by calling `limelight.pipelineSwitch(int
 
 ## Reading Results: LLResult and Validation
 
-The primary method for retrieving data is `limelight.getLatestResult()`, which returns an `LLResult` object. This object is a snapshot of the most recent completed frame analysis from the Limelight. Before accessing any data fields, two checks are mandatory:
-
-- `result != null` -- the Limelight may not have completed its first analysis cycle when the OpMode starts, and `getLatestResult()` can return `null` during this window.
-- `result.isValid()` -- even a non-null result may not contain usable data if no target is within the pipeline's field of view or if the pipeline produced an error.
-
-Both checks must pass before accessing fields like `getTx()`, `getTy()`, or `getTa()`.
+The primary method for retrieving data is `limelight.getLatestResult()`, which returns an `LLResult` snapshot of the latest completed analysis. In FTC SDK 10.3 and later, it returns an `LLResult` even before useful data is available. Check `result.isValid()` before using fields such as `getTx()`, `getTy()`, or `getTa()`.
 
 :::tip Common robot failure: valid results disappear on the field
 Look for lighting changes, wrong pipeline slots, target exposure problems, and camera mounting shifts. Save snapshots from the actual field and tune against those images instead of only tuning in the shop.
@@ -95,7 +90,7 @@ public class LimelightDemo extends OpMode {
     public void loop() {
         LLResult result = limelight.getLatestResult();
 
-        if (result != null && result.isValid()) {
+        if (result.isValid()) {
             double tx = result.getTx(); // degrees left (-) or right (+)
             double ty = result.getTy();
             double ta = result.getTa(); // target area as % of frame
@@ -165,7 +160,7 @@ limelight.pipelineSwitch(1);
 // In loop():
 LLResult result = limelight.getLatestResult();
 
-if (result != null && result.isValid()) {
+if (result.isValid()) {
     double tx = result.getTx();
 
     if (tx > 3.0) {

@@ -27,12 +27,6 @@ export default function LoginPage(): React.JSX.Element {
 
   return (
     <Layout title="Sign In — Telemark" noFooter>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap"
-        rel="stylesheet"
-      />
 
       <main className={styles.page}>
         <div className={styles.gridBg}   aria-hidden="true" />

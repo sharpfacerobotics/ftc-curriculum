@@ -7,29 +7,30 @@ sidebar_position: 1
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Section 1: What to Have Ready Before You Start
+# Section 1: Choose How You Will Learn and Deploy
 
-:::info Read before you begin
-This manual assumes you have never installed Android Studio before. Every step is numbered. Every common failure has a labeled fix. Read each step completely before executing it. Do not skip steps.
+:::info Start in the browser
+You can read every Telemark lesson and run its simulators without installing development software. Local setup is only needed when you are ready to build and deploy code to a physical Robot Controller.
 :::
 
 ---
 
-## Hardware Required
+## For Telemark Lessons and Simulators
 
-- A laptop or desktop running Windows 10/11, macOS 12+, or Ubuntu 20.04+
-- Minimum 8 GB RAM (16 GB strongly recommended)
-- Minimum 10 GB free disk space
-- An internet connection for the initial setup
+You need a modern browser, a keyboard, and an internet connection. The simulator runs Java-style FTC code in the browser against simulated hardware. It does not install an app on a Control Hub.
 
-## What You Will Install
+## For a Physical Robot
 
-- Android Studio (Ladybug 2024.2.1 or newer)
-- JDK 17 (manually configured — do not use Android Studio's bundled JDK)
-- The FTC SDK (cloned from GitHub)
+Choose the workflow your team uses:
+
+- **OnBot Java:** Write Java in the Robot Controller's browser editor. Android Studio and a local JDK are not required.
+- **Android Studio:** Work with the full FTC SDK project, Git, third-party libraries, and normal code-review tools. FIRST currently requires Android Studio Ladybug 2024.2 or later for the official project.
+- **A team-provided web workflow:** New browser-based alternatives are emerging. Follow your team's instructions if it uses one, and verify that it can build and deploy against the current FTC SDK.
+
+Sections 2 through 7 document the Android Studio path. They are optional if your team uses a browser workflow. Section 8 explains the first OpMode in either environment.
 
 <MarkComplete
   lessonId="unit-01/prerequisites"
   nextUnit="/docs/unit-01/install-jdk"
-  nextUnitName="Section 2: Installing JDK 17"
+  nextUnitName="Section 2: Understanding Java Versions (Optional)"
 />

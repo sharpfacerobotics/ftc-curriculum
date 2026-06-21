@@ -14,21 +14,21 @@ import Unit9Simulator from '@site/src/components/Unit9Simulator';
 
 ## Technical Context
 
-**Continuous Rotation (CR) servos** are used for high-speed intakes or spinning mechanisms where positional precision is not required. They provide a compact, lighter alternative to a full DC motor when you need continuous rotation but don't have a free motor port — or when the mechanism is small enough that a servo's current draw is acceptable.
+**Continuous Rotation (CR) servos** are used for high-speed intakes or spinning mechanisms where positional precision is not required. They provide a compact, lighter alternative to a full DC motor when you need continuous rotation but don't have a free motor port: or when the mechanism is small enough that a servo's current draw is acceptable.
 
 ---
 
 ## How CRServos Differ from Standard Servos
 
-Unlike standard positional servos, a `CRServo` does not have a target angle. It has **no concept of "position"** — instead, it spins continuously at a speed determined by its power value. For this reason, the SDK exposes it through the `setPower()` method, exactly like a `DcMotor`:
+Unlike standard positional servos, a `CRServo` does not have a target angle. It has **no concept of "position"**: instead, it spins continuously at a speed determined by its power value. For this reason, the SDK exposes it through the `setPower()` method, exactly like a `DcMotor`:
 
-- **`1.0`** — full speed forward
-- **`0.0`** — stopped
-- **`-1.0`** — full speed reverse
+- **`1.0`**: full speed forward
+- **`0.0`**: stopped
+- **`-1.0`**: full speed reverse
 
-Because it uses `setPower()` instead of `setPosition()`, you must also remember that a `CRServo` will **not hold any position** when set to `0.0` — it simply stops spinning. There is no equivalent of `ZeroPowerBehavior.BRAKE` for a CR servo.
+Because it uses `setPower()` instead of `setPosition()`, you must also remember that a `CRServo` will **not hold any position** when set to `0.0`: it simply stops spinning. There is no equivalent of `ZeroPowerBehavior.BRAKE` for a CR servo.
 
-The hardware must be instantiated using `CRServo.class` — not `Servo.class`. Attempting to cast a CR servo as a standard `Servo` will compile successfully but crash at runtime when `setPosition()` is called on an incompatible device type.
+Look up the device with `CRServo.class`, not `Servo.class`. The generic `hardwareMap.get()` call may still compile with the wrong requested type, but the Robot Controller cannot return a positional `Servo` interface for hardware configured as a CR servo and will report a runtime configuration or type error.
 
 ---
 
@@ -44,7 +44,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 @TeleOp(name="CRServo_Demo")
 public class CRServoDemo extends OpMode {
 
-    // Must declare as CRServo — not Servo
+    // Must declare as CRServo: not Servo
     private CRServo intake;
 
     @Override
@@ -57,7 +57,7 @@ public class CRServoDemo extends OpMode {
 
     @Override
     public void loop() {
-        // Trigger directly drives the servo speed — 0.0 to 1.0
+        // Trigger directly drives the servo speed: 0.0 to 1.0
         intake.setPower(gamepad1.right_trigger);
 
         // Left trigger runs it in reverse for ejecting
@@ -100,5 +100,5 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 <MarkComplete
   lessonId="unit-09/cr-servo"
   nextUnit="/docs/unit-09/dual-servo-challenge"
-  nextUnitName="Lesson 9.5: Challenge — Synchronizing Dual-Servo Grippers with Independent Position Offsets"
+  nextUnitName="Lesson 9.5: Challenge: Synchronizing Dual-Servo Grippers with Independent Position Offsets"
 />

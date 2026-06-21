@@ -192,6 +192,7 @@
   }
 </style>
 <script src="./simulator_base.js"></script>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 <script>
@@ -204,6 +205,8 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @TeleOp(name="Pose_Correction")
 public class PoseCorrection extends OpMode {
@@ -225,22 +228,16 @@ public class PoseCorrection extends OpMode {
     void correctPoseFromLimelight() {
         LLResult result = limelight.getLatestResult();
 
-        // Guard clause 1: null result
-        // TODO: Return if result is null
-
-        // Guard clause 2: invalid result
+        // Guard clause 1: invalid result
         // TODO: Return if result is not valid
 
-        // Guard clause 3: null botpose
-        // TODO: Read result.getBotpose() into a double[] named botpose
+        // Guard clause 2: unavailable pose
+        // TODO: Read result.getBotpose() into a Pose3D named botpose
         // TODO: Return if botpose is null
 
-        // Guard clause 4: incomplete botpose array
-        // TODO: Return if botpose has fewer than 6 values
-
-        // Convert meters to inches and degrees to radians
-        // TODO: Convert botpose x and y from meters to inches
-        // TODO: Convert botpose yaw from degrees to radians
+        // Convert meters to inches and request yaw in radians
+        // TODO: Read botpose.getPosition().x and .y, then convert to inches
+        // TODO: Read botpose.getOrientation().getYaw(AngleUnit.RADIANS)
 
         // TODO: Apply the corrected pose to the follower
     }
@@ -259,13 +256,13 @@ public class PoseCorrection extends OpMode {
 
   const requirements = [
     "Call limelight.getLatestResult()",
-    "Check result != null before using it",
-    "Check result.isValid() before using botpose",
+    "Check result.isValid() before using pose data",
+    "Read result.getBotpose() into a Pose3D",
     "Check result.getBotpose() != null",
     "Convert meters to inches with 39.3701 or equivalent",
-    "Convert yaw degrees to radians",
+    "Request yaw with AngleUnit.RADIANS",
     "Call follower.setPose(new Pose(...)) with converted values",
-    "Return early for every invalid Limelight case"
+    "Place guard clauses before follower.setPose()"
   ];
 
   const INCHES_PER_METER = 39.3701;
@@ -595,7 +592,7 @@ public class PoseCorrection extends OpMode {
         <button class="u154-button" type="button" data-scenario="valid">Valid Reading</button>
         <button class="u154-button" type="button" data-scenario="nullBotpose">Null Botpose</button>
         <button class="u154-button" type="button" data-scenario="invalid">Invalid Result</button>
-        <button class="u154-button" type="button" data-scenario="nullResult">Null Result</button>
+        <button class="u154-button" type="button" data-scenario="starting">Camera Starting</button>
       </div>
       <div class="u154-card" style="margin-top:8px">
         <i class="fa-solid fa-arrows-left-right"></i> Drift slider<br>
@@ -919,10 +916,12 @@ public class PoseCorrection extends OpMode {
       .replace(/\blimelight\s*\.\s*getLatestResult\s*\(\s*\)/g, "getLimelightResult()")
       .replace(/\bresult\s*\.\s*getBotpose\s*\(\s*\)/g, "result.botpose")
       .replace(/\bresult\s*\.\s*isValid\s*\(\s*\)/g, "result.valid")
-      .replace(/\bMath\s*\.\s*toRadians\s*\(/g, "degreesToRadians(")
+      .replace(/\bbotpose\s*\.\s*getPosition\s*\(\s*\)\s*\.\s*x\b/g, "botpose.position.x")
+      .replace(/\bbotpose\s*\.\s*getPosition\s*\(\s*\)\s*\.\s*y\b/g, "botpose.position.y")
+      .replace(/\bbotpose\s*\.\s*getOrientation\s*\(\s*\)\s*\.\s*getYaw\s*\(\s*AngleUnit\.RADIANS\s*\)/g, "botpose.orientation.yawRadians")
       .replace(/\bfollower\s*\.\s*setPose\s*\(/g, "setFollowerPose(")
       .replace(/\bnew\s+Pose\s*\(/g, "createPose(")
-      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:LLResult|Pose|double\[\]|double|int|boolean|String|float|long|byte|short|char)\s+([A-Za-z_$])/gm, "$1let $2");
+      .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:LLResult|Pose3D|Pose|double|int|boolean|String|float|long|byte|short|char)\s+([A-Za-z_$])/gm, "$1let $2");
     if (typeof _simTranspile === "function") js = _simTranspile(js);
     return js;
   }
@@ -992,10 +991,10 @@ public class PoseCorrection extends OpMode {
   function getLimelightResult() {
     const botpose = makeBotposeForScenario();
     const runtime = {
-      resultNotNull: botpose.result !== null,
-      valid: !!(botpose.result && botpose.result.valid),
-      botposeNotNull: !!(botpose.result && botpose.result.botpose),
-      lengthOk: !!(botpose.result && botpose.result.botpose && botpose.result.botpose.length >= 6)
+      resultNotNull: true,
+      valid: !!botpose.result.valid,
+      botposeNotNull: !!botpose.result.botpose,
+      lengthOk: !!botpose.result.botpose
     };
     state.guardRuntime = runtime;
     if (runtime.lengthOk) emitLimelightBotpose();
@@ -1003,18 +1002,18 @@ public class PoseCorrection extends OpMode {
   }
 
   function makeBotposeForScenario() {
-    const raw = [
-      TRUE_POSE.x / INCHES_PER_METER,
-      TRUE_POSE.y / INCHES_PER_METER,
-      0,
-      0,
-      0,
-      TRUE_POSE.heading * 180 / Math.PI
-    ];
+    const raw = {
+      position: {
+        x: TRUE_POSE.x / INCHES_PER_METER,
+        y: TRUE_POSE.y / INCHES_PER_METER
+      },
+      orientation: {
+        yawRadians: TRUE_POSE.heading
+      }
+    };
     if (state.scenario === "valid") return { result: { valid: true, botpose: raw } };
     if (state.scenario === "nullBotpose") return { result: { valid: true, botpose: null } };
-    if (state.scenario === "invalid") return { result: { valid: false, botpose: raw.slice(0, 4) } };
-    return { result: null };
+    return { result: { valid: false, botpose: null } };
   }
 
   function applyDrift() {
@@ -1063,10 +1062,10 @@ public class PoseCorrection extends OpMode {
     renderCard("u154-drift-card", '<i class="fa-solid fa-ruler"></i> DRIFT<br><strong>' + fmt(drift) + " inches</strong>", driftClass);
     renderCard("u154-status-card", '<i class="fa-solid fa-location-crosshairs"></i> Status<br><strong>' + escapeHTML(state.lastCorrectionStatus) + "</strong>", statusClass);
 
-    renderGuard("u154-guard-result", "result != null", checks.meta.hasResultNull, state.guardRuntime.resultNotNull);
+    renderGuard("u154-guard-result", "LLResult available", true, state.guardRuntime.resultNotNull);
     renderGuard("u154-guard-valid", "result.isValid()", checks.meta.hasValidCheck, state.guardRuntime.valid);
-    renderGuard("u154-guard-botpose", "botpose != null", checks.meta.hasBotposeNull, state.guardRuntime.botposeNotNull);
-    renderGuard("u154-guard-length", "botpose.length >= 6", checks.meta.hasLengthCheck, state.guardRuntime.lengthOk);
+    renderGuard("u154-guard-botpose", "Pose3D botpose", checks.meta.hasPose3D, state.guardRuntime.botposeNotNull);
+    renderGuard("u154-guard-length", "yaw in radians", checks.meta.hasYawConversion, state.guardRuntime.lengthOk);
 
     renderConversion("u154-conv-x", "Raw Limelight X", fmt(rawX) + " m", "Converted X", fmt(rawX * INCHES_PER_METER) + " in", checks.meta.hasMetersConversion);
     renderConversion("u154-conv-yaw", "Raw yaw", fmt(rawYaw) + " deg", "Converted yaw", fmt(rawYaw * Math.PI / 180) + " rad", checks.meta.hasYawConversion);
@@ -1141,27 +1140,28 @@ public class PoseCorrection extends OpMode {
     const correctBody = extractMethodBody(code, "correctPoseFromLimelight") || "";
     const setPoseIndex = correctBody.search(/follower\s*\.\s*setPose\s*\(/);
     const beforeSetPose = setPoseIndex >= 0 ? correctBody.slice(0, setPoseIndex) : correctBody;
-    const hasResultNull = /result\s*==\s*null|null\s*==\s*result|result\s*!=\s*null|null\s*!=\s*result/.test(correctBody);
     const hasValidCheck = /!\s*result\s*\.\s*isValid\s*\(\s*\)|result\s*\.\s*isValid\s*\(\s*\)\s*==\s*false|result\s*\.\s*isValid\s*\(\s*\)/.test(correctBody);
+    const hasPose3D = /\bPose3D\s+botpose\s*=\s*result\s*\.\s*getBotpose\s*\(\s*\)/.test(correctBody);
     const hasBotposeNull = /botpose\s*==\s*null|null\s*==\s*botpose|botpose\s*!=\s*null|null\s*!=\s*botpose/.test(correctBody);
-    const hasLengthCheck = /botpose\s*\.\s*length\s*<\s*6|botpose\s*\.\s*length\s*>=\s*6|6\s*<=\s*botpose\s*\.\s*length/.test(correctBody);
-    const hasMetersConversion = /39\.3701|39\.37|\/\s*0\.0254/.test(correctBody);
-    const hasYawConversion = /Math\s*\.\s*toRadians\s*\(\s*botpose\s*\[\s*5\s*\]\s*\)|botpose\s*\[\s*5\s*\]\s*\*\s*Math\s*\.\s*PI\s*\/\s*180(?:\.0)?|botpose\s*\[\s*5\s*\]\s*\/\s*180(?:\.0)?\s*\*\s*Math\s*\.\s*PI/.test(correctBody);
+    const hasMetersConversion = /getPosition\s*\(\s*\)\s*\.\s*x/.test(correctBody) &&
+      /getPosition\s*\(\s*\)\s*\.\s*y/.test(correctBody) &&
+      /39\.3701|39\.37|\/\s*0\.0254/.test(correctBody);
+    const hasYawConversion = /getOrientation\s*\(\s*\)\s*\.\s*getYaw\s*\(\s*AngleUnit\s*\.\s*RADIANS\s*\)/.test(correctBody);
     const returnCount = (beforeSetPose.match(/\breturn\s*;/g) || []).length;
     const setPoseConverted = /follower\s*\.\s*setPose\s*\(\s*new\s+Pose\s*\(/.test(correctBody) &&
-      /botpose\s*\[\s*0\s*\]/.test(correctBody) &&
-      /botpose\s*\[\s*1\s*\]/.test(correctBody) &&
-      /botpose\s*\[\s*5\s*\]/.test(correctBody);
+      /xInches/.test(correctBody) &&
+      /yInches/.test(correctBody) &&
+      /heading/.test(correctBody);
 
     const checks = [
       /limelight\s*\.\s*getLatestResult\s*\(\s*\)/.test(correctBody),
-      hasResultNull,
       hasValidCheck,
-      /getBotpose\s*\(\s*\)/.test(correctBody) && hasBotposeNull,
+      hasPose3D,
+      hasBotposeNull,
       hasMetersConversion,
       hasYawConversion,
       setPoseConverted,
-      hasResultNull && hasValidCheck && hasBotposeNull && hasLengthCheck && returnCount >= 4 && setPoseIndex > beforeSetPose.search(/\breturn\s*;/)
+      hasValidCheck && hasBotposeNull && returnCount >= 2 && setPoseIndex > beforeSetPose.search(/\breturn\s*;/)
     ];
     if (updateRequirements !== false) {
       checks.forEach(function (passed, index) {
@@ -1171,10 +1171,9 @@ public class PoseCorrection extends OpMode {
     return {
       list: checks,
       meta: {
-        hasResultNull: hasResultNull,
         hasValidCheck: hasValidCheck,
+        hasPose3D: hasPose3D,
         hasBotposeNull: hasBotposeNull,
-        hasLengthCheck: hasLengthCheck,
         hasMetersConversion: hasMetersConversion,
         hasYawConversion: hasYawConversion,
         setPoseIndex: setPoseIndex,
@@ -1186,17 +1185,16 @@ public class PoseCorrection extends OpMode {
 
   function getHint(meta) {
     const body = meta.correctBody || "";
-    if (!meta.hasResultNull) return { type: "error", message: "Check result != null before calling any methods on it - getLatestResult() can return null" };
-    if (!meta.hasValidCheck) return { type: "error", message: "Check result.isValid() before using the data - a non-null result can still contain invalid data" };
-    if (!meta.hasBotposeNull) return { type: "error", message: "Check getBotpose() != null before accessing the array - botpose can be null even when result is valid" };
-    if (!meta.hasLengthCheck) return { type: "error", message: "Check botpose.length >= 6 before reading indices - incomplete arrays must return early" };
-    if (!meta.hasMetersConversion) return { type: "error", message: "Limelight returns position in meters - multiply by 39.3701 to convert to inches for Pedro Pathing" };
-    if (!meta.hasYawConversion) return { type: "error", message: "Convert yaw from degrees to radians - use Math.toRadians() or multiply by Math.PI / 180.0" };
+    if (!meta.hasValidCheck) return { type: "error", message: "Check result.isValid() before using pose data" };
+    if (!meta.hasPose3D) return { type: "error", message: "Store result.getBotpose() in a Pose3D variable named botpose" };
+    if (!meta.hasBotposeNull) return { type: "error", message: "Check botpose != null before reading its position" };
+    if (!meta.hasMetersConversion) return { type: "error", message: "Read botpose.getPosition().x and .y, then convert meters to inches" };
+    if (!meta.hasYawConversion) return { type: "error", message: "Read yaw with getYaw(AngleUnit.RADIANS)" };
     if (meta.setPoseIndex >= 0 && /\bfollower\s*\.\s*setPose\s*\(/.test(body.slice(0, meta.setPoseIndex))) {
       return { type: "error", message: "All guard clauses must come before setPose() - return early if any check fails" };
     }
-    if (!/botpose\s*\[\s*0\s*\]/.test(body) || !/botpose\s*\[\s*1\s*\]/.test(body) || !/botpose\s*\[\s*5\s*\]/.test(body)) {
-      return { type: "error", message: "botpose[0] is X, botpose[1] is Y, botpose[5] is yaw - check your array indices" };
+    if (!/xInches/.test(body) || !/yInches/.test(body)) {
+      return { type: "error", message: "Pass the converted x and y values into the new Pose" };
     }
     if (!/telemetry\s*\.\s*update\s*\(\s*\)/.test(getCodeSafe())) {
       return { type: "warn", message: "Call telemetry.update() to send data to the Driver Station" };
@@ -1216,7 +1214,7 @@ public class PoseCorrection extends OpMode {
     if (value === "valid") return "Valid Reading";
     if (value === "nullBotpose") return "Null Botpose";
     if (value === "invalid") return "Invalid Result";
-    return "Null Result";
+    return "Camera Starting";
   }
 
   function extractMethodBody(source, methodName) {

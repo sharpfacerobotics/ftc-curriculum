@@ -18,7 +18,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 <details>
 <summary>Show answer</summary>
 
-The `hardwareMap` acts as a lookup service for the Control Hub's XML configuration. Since the SDK performs dependency injection to link code objects to physical ports, it must consult the registry to find the unique hardware ID assigned by the Robot Controller. A standard `new` constructor has no mechanism to access that port binding — it would create a Java object with no physical connection.
+The `hardwareMap` looks up devices in the active Robot Controller configuration. A normal `new DcMotor()` call would not know which configured hub and port to use, and FTC hardware classes are supplied by the SDK rather than constructed directly by team code.
 
 </details>
 
@@ -40,7 +40,7 @@ Hardware mapping is a "heavy" registry lookup operation. Performing it inside `l
 <details>
 <summary>Show answer</summary>
 
-Providing the `.class` ensures type safety. It tells the SDK exactly what kind of hardware object to return. Without it, the programmer could accidentally assign a `Servo` object to a `DcMotor` variable. Because the types are incompatible, calling `motor.setPower()` on an object that is actually a `Servo` would cause a crash at runtime — the class parameter lets the compiler catch this mismatch before deployment.
+Providing the `.class` ensures type safety. It tells the SDK exactly what kind of hardware object to return. Without it, the programmer could accidentally assign a `Servo` object to a `DcMotor` variable. Because the types are incompatible, calling `motor.setPower()` on an object that is actually a `Servo` would cause a crash at runtime: the class parameter lets the compiler catch this mismatch before deployment.
 
 </details>
 
@@ -51,7 +51,7 @@ Providing the `.class` ensures type safety. It tells the SDK exactly what kind o
 <details>
 <summary>Show answer</summary>
 
-Digital pins on the Control Hub are **bidirectional** — the same physical pin can either send a voltage signal (OUTPUT) or listen for one (INPUT). The SDK needs an explicit declaration to know which direction to configure the pin's signal processing hardware. Analog input ports, by contrast, are dedicated for variable voltage input only and have no bidirectional ambiguity — the SDK can configure them correctly without additional instruction.
+Digital pins on the Control Hub are **bidirectional**: the same physical pin can either send a voltage signal (OUTPUT) or listen for one (INPUT). The SDK needs an explicit declaration to know which direction to configure the pin's signal processing hardware. Analog input ports, by contrast, are dedicated for variable voltage input only and have no bidirectional ambiguity: the SDK can configure them correctly without additional instruction.
 
 </details>
 
@@ -62,7 +62,7 @@ Digital pins on the Control Hub are **bidirectional** — the same physical pin 
 <details>
 <summary>Show answer</summary>
 
-Passing `HardwareMap` promotes encapsulation by defining hardware names in exactly one location — the mechanism class. If a motor port name changes in the Robot Controller configuration, you update only the mechanism class, and every OpMode that uses it is automatically corrected. Hard-coding lookups directly in every OpMode creates multiple independent copies of the same string, each of which must be manually found and updated — a process that inevitably introduces mismatches and bugs.
+Passing `HardwareMap` promotes encapsulation by defining hardware names in exactly one location: the mechanism class. If a motor port name changes in the Robot Controller configuration, you update only the mechanism class, and every OpMode that uses it is automatically corrected. Hard-coding lookups directly in every OpMode creates multiple independent copies of the same string, each of which must be manually found and updated: a process that inevitably introduces mismatches and bugs.
 
 </details>
 
@@ -108,15 +108,15 @@ public class MappingChallenge extends LinearOpMode {
 <details>
 <summary>Show answers</summary>
 
-**Error 1 — Syntax Error:**
+**Error 1: Syntax Error:**
 The `hardwareMap.get()` call for `drive` on the first mapping line is missing a semicolon (`;`) at the end of the statement. Java requires every statement to be terminated with a semicolon.
 
 ```java
 drive = hardwareMap.get(DcMotor.class, "left_drive"); // ← semicolon added
 ```
 
-**Error 2 — Logic Error:**
-The `limit` variable is declared as a `DigitalChannel`, but it is being instantiated using `AnalogInput.class` in the `get()` call. A touch sensor is a binary (digital) device connected to a digital port — it must be looked up with `DigitalChannel.class`. Using `AnalogInput.class` would either crash at runtime or return an incompatible object, making `limit.getState()` inaccessible.
+**Error 2: Logic Error:**
+The `limit` variable is declared as a `DigitalChannel`, but it is being instantiated using `AnalogInput.class` in the `get()` call. A touch sensor is a binary (digital) device connected to a digital port: it must be looked up with `DigitalChannel.class`. Using `AnalogInput.class` would either crash at runtime or return an incompatible object, making `limit.getState()` inaccessible.
 
 ```java
 limit = hardwareMap.get(DigitalChannel.class, "lift_limit"); // ← correct class

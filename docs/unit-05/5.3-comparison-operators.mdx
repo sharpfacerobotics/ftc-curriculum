@@ -14,7 +14,7 @@ import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
 ## Technical Context
 
-Comparison operators allow the robot to interpret analog data — such as encoder ticks or sensor voltage — to enforce physical safety limits. Implementing **"Soft Limits"** via comparison logic prevents the robot from attempting to drive a mechanism past its physical hard-stop, which would otherwise result in stalled motors, stripped gears, or blown fuses on the Control Hub.
+Comparison operators let the robot interpret values such as encoder ticks or sensor voltage. A software limit can stop a mechanism before it reaches a hard stop, reducing stalls, heat, and mechanical wear. Software limits should support, not replace, suitable physical design and current protection.
 
 ---
 

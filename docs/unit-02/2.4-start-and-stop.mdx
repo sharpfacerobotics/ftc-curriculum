@@ -24,7 +24,7 @@ While `init()` and `loop()` are required, `start()` and `stop()` are **optional*
 
 `start()` is called once the instant the "Play" button is pressed, making it more precise than `init()` for resetting counters.
 
-`stop()` is called once when the "Stop" button is hit or the match timer expires. This is the professional way to handle cleanup logic, such as ensuring a high-speed flywheel is commanded to `setPower(0)` before the program terminates.
+`stop()` is called once when the "Stop" button is hit or the match timer expires. This is a reliable way to handle cleanup logic, such as ensuring a high-speed flywheel is commanded to `setPower(0)` before the program terminates.
 
 ---
 

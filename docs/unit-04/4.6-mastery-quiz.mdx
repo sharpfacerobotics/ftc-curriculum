@@ -35,7 +35,7 @@ Squaring the input provides greater granularity at lower power levels, allowing 
 
 ---
 
-**3. Mechanical Fail-Safe (Deadzones):** Explain the hardware-focused reason for implementing a "Deadzone" logic check (e.g., `if (Math.abs(input) < 0.1) input = 0;`) in a competition-grade OpMode.
+**3. Mechanical Fail-Safe (Deadzones):** Explain the hardware-focused reason for implementing a "Deadzone" logic check (e.g., `if (Math.abs(input) < 0.1) input = 0;`) in a competition-ready OpMode.
 
 <details>
 <summary>Show answer</summary>
@@ -101,14 +101,14 @@ public class InputDebug extends OpMode {
 <details>
 <summary>Show answers</summary>
 
-**Error 1 — Syntax Error:**
+**Error 1: Syntax Error:**
 The instantiation of the `drive` object in the `init()` method is missing a semicolon (`;`) at the end of the `hardwareMap.get()` call. Java requires every statement to be terminated for the compiler to parse the code.
 
 ```java
 drive = hardwareMap.get(DcMotor.class, "left_drive"); // ← semicolon added
 ```
 
-**Error 2 — Logic Error:**
+**Error 2: Logic Error:**
 The squaring operation (`gamepad1.left_stick_y * gamepad1.left_stick_y`) destroys the sign of the input. Because a negative times a negative is positive, the robot will drive in the same direction regardless of whether the joystick is pushed up or down. The programmer must negate the input to correct the Y-axis bias and use a sign-preservation method to retain direction:
 
 ```java

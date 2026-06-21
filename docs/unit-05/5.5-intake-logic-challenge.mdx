@@ -1,6 +1,6 @@
 ---
 id: intake-logic-challenge
-title: "Lesson 5.5: Challenge — Build Intake Logic for Multi-Stage Game Piece Sorting"
+title: "Lesson 5.5: Challenge: Build Intake Logic for Multi-Stage Game Piece Sorting"
 sidebar_label: "5.5 · Challenge: Intake Logic"
 sidebar_position: 5
 ---
@@ -8,13 +8,13 @@ sidebar_position: 5
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
-# Lesson 5.5: Challenge — Build Intake Logic for Multi-Stage Game Piece Sorting
+# Lesson 5.5: Challenge: Build Intake Logic for Multi-Stage Game Piece Sorting
 
 ---
 
 ## Technical Context
 
-A **"Logic Tree"** is a complex arrangement of decisions that allows the robot to handle variable field conditions autonomously. This prevents failures in game element management by creating specific behaviors for different scenarios — such as varying motor power based on whether a Color Sensor detects a friendly or opposing alliance element.
+A **"Logic Tree"** is a complex arrangement of decisions that allows the robot to handle variable field conditions autonomously. This prevents failures in game element management by creating specific behaviors for different scenarios: such as varying motor power based on whether a Color Sensor detects a friendly or opposing alliance element.
 
 ---
 
@@ -33,15 +33,15 @@ public void loop() {
     int    redValue = board.getAmountRed();
 
     if (dist < 5.0) {
-        // Logic Level 1: Intake is full — stop immediately
+        // Logic Level 1: Intake is full: stop immediately
         intake.setPower(0.0);
         telemetry.addData("Intake", "FULL - STOPPED");
     } else if (redValue > 200) {
-        // Logic Level 2: Wrong alliance element detected — eject
+        // Logic Level 2: Wrong alliance element detected: eject
         intake.setPower(-1.0);
         telemetry.addData("Intake", "WRONG ELEMENT - EJECTING");
     } else {
-        // Logic Level 3: Ready to intake — follow driver input
+        // Logic Level 3: Ready to intake: follow driver input
         intake.setPower(gamepad1.right_trigger);
         telemetry.addData("Intake", "READY");
     }

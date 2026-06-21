@@ -14,7 +14,7 @@ import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
 ## Technical Context
 
-Complex robot behaviors often require data from multiple hardware sources to be true simultaneously before an action is taken. Logical combinations improve performance by adding redundancy — for instance, a launcher should only fire if a game element is detected **AND** the driver confirms the command, preventing "dry firing" that could damage the mechanical tension system.
+Complex robot behaviors often require data from multiple hardware sources to be true simultaneously before an action is taken. Logical combinations improve performance by adding redundancy: for instance, a launcher should only fire if a game element is detected **AND** the driver confirms the command, preventing "dry firing" that could damage the mechanical tension system.
 
 ---
 
@@ -22,10 +22,10 @@ Complex robot behaviors often require data from multiple hardware sources to be 
 
 Java provides four primary logical operators to combine boolean expressions:
 
-- **`&&`** (Logical AND) — requires **both** sides to be `true`
-- **`||`** (Logical OR) — requires **at least one** side to be `true`
-- **`!`** (Logical NOT) — inverts a boolean value
-- **`^`** (XOR) — true only if the sides differ
+- **`&&`** (Logical AND): requires **both** sides to be `true`
+- **`||`** (Logical OR): requires **at least one** side to be `true`
+- **`!`** (Logical NOT): inverts a boolean value
+- **`^`** (XOR): true only if the sides differ
 
 Using these operators lets you create complex safety gates. For example, `if (isArmRaised && isClawClosed)` ensures the robot only drives fast when the center of gravity is stable.
 
@@ -95,5 +95,5 @@ public void loop() {
 <MarkComplete
   lessonId="unit-05/logical-operators"
   nextUnit="/docs/unit-05/intake-logic-challenge"
-  nextUnitName="Lesson 5.5: Challenge — Designing a Multi-Stage Intake Logic Tree for Game Element Sorting"
+  nextUnitName="Lesson 5.5: Challenge: Designing a Multi-Stage Intake Logic Tree for Game Element Sorting"
 />

@@ -29,7 +29,7 @@ Precision in autonomous and TeleOp depends on **predictable stops**. If a progra
 
 In a high-speed drivetrain, switching to `0.0` power with `FLOAT` behavior can cause the robot to over-travel its target by several inches, enough to miss a scoring zone entirely. `BRAKE` mode reduces this over-travel dramatically, making autonomous navigation far more repeatable.
 
-A common professional pattern is to set `BRAKE` on all drive motors in `init()`, then send `setPower(0.0)` as the last command of every autonomous step to guarantee a clean stop before the next movement begins.
+A common pattern is to set `BRAKE` on all drive motors in `init()`, then send `setPower(0.0)` as the last command of every autonomous step to guarantee a clean stop before the next movement begins.
 
 ---
 

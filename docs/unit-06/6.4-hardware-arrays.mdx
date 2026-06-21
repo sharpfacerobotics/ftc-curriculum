@@ -20,10 +20,10 @@ Complex robots often utilize four drivetrain motors or multiple identical sensor
 
 ## Why for-each Loops Scale Better with More Hardware
 
-A Java array is instantiated to hold a fixed number of SDK objects (e.g., `DcMotor[] motors = new DcMotor[4]`). The `for..each` syntax — `for (Type variable : array)` — provides a shortcut to access every object in that array without managing an index integer, ensuring every connected component receives the instruction in a clean, readable block.
+A Java array is instantiated to hold a fixed number of SDK objects (e.g., `DcMotor[] motors = new DcMotor[4]`). The `for..each` syntax: `for (Type variable : array)`: provides a shortcut to access every object in that array without managing an index integer, ensuring every connected component receives the instruction in a clean, readable block.
 
 Two things to remember:
-- Arrays in Java are **zero-indexed** — the first element is at index `0`.
+- Arrays in Java are **zero-indexed**: the first element is at index `0`.
 - The variable type declared in the `for..each` header must match the type stored in the array.
 
 ---
@@ -40,7 +40,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 @TeleOp(name="Array_Drive_Demo")
 public class ArrayDriveDemo extends OpMode {
 
-    // Array declaration — holds all four drivetrain motors
+    // Array declaration: holds all four drivetrain motors
     DcMotor[] allMotors;
 
     private DcMotor leftFront, rightFront, leftBack, rightBack;
@@ -101,5 +101,5 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 <MarkComplete
   lessonId="unit-06/hardware-arrays"
   nextUnit="/docs/unit-06/nonblocking-timer"
-  nextUnitName="Lesson 6.5: Challenge — Building a Non-Blocking Timer Loop for Parallel Mechanism Control"
+  nextUnitName="Lesson 6.5: Challenge: Building a Non-Blocking Timer Loop for Parallel Mechanism Control"
 />

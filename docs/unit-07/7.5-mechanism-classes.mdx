@@ -1,6 +1,6 @@
 ---
 id: mechanism-classes
-title: "Lesson 7.5: Challenge — Keep Shared Hardware Classes Consistent Across OpModes"
+title: "Lesson 7.5: Challenge: Keep Shared Hardware Classes Consistent Across OpModes"
 sidebar_label: "7.5 · Challenge: Mechanism Classes"
 sidebar_position: 5
 ---
@@ -8,13 +8,13 @@ sidebar_position: 5
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
-# Lesson 7.5: Challenge — Keep Shared Hardware Classes Consistent Across OpModes
+# Lesson 7.5: Challenge: Keep Shared Hardware Classes Consistent Across OpModes
 
 ---
 
 ## Technical Context
 
-As robots become complex, putting all hardware mapping in a single OpMode file leads to unmaintainable "spaghetti code." Creating a dedicated **Hardware Class** (or Mechanism Class) allows you to define your hardware once and share it across every Autonomous and TeleOp program on the robot. If a motor port changes, you update one file — not every OpMode.
+As robots become complex, putting all hardware mapping in a single OpMode file leads to unmaintainable "spaghetti code." Creating a dedicated **Hardware Class** (or Mechanism Class) allows you to define your hardware once and share it across every Autonomous and TeleOp program on the robot. If a motor port changes, you update one file: not every OpMode.
 
 ---
 
@@ -22,7 +22,7 @@ As robots become complex, putting all hardware mapping in a single OpMode file l
 
 A mechanism class requires a custom `init()` method that accepts the `HardwareMap` from the parent OpMode as a parameter. This is the key architectural insight: the mechanism class cannot access `hardwareMap` on its own because that object belongs to the OpMode context. By passing it in, you allow the mechanism to perform its own registry lookups while remaining completely portable.
 
-This pattern is known as **dependency injection** — the OpMode "injects" the hardware context that the mechanism class needs. The mechanism class encapsulates the hardware-specific details (names, directions, run modes), shielding the OpMode from them entirely.
+Passing `HardwareMap` into the mechanism constructor or `init()` method gives that class the dependency it needs without relying on a global variable. The mechanism class can then keep its hardware names, directions, and run modes together while the OpMode works through a smaller public interface.
 
 ---
 
@@ -47,7 +47,7 @@ public class IntakeSystem {
         intakeMotor.setPower(0);
     }
 
-    // Clean public interface — OpMode never touches the motor directly
+    // Clean public interface: OpMode never touches the motor directly
     public void setIntakePower(double power) {
         intakeMotor.setPower(power);
     }

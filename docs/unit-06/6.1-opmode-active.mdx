@@ -43,7 +43,7 @@ public class SafeLoopDemo extends LinearOpMode {
 
         waitForStart(); // Pause execution until the driver presses Play
 
-        // Main execution safeguard — loop exits the instant Stop is pressed
+        // Main execution safeguard: loop exits the instant Stop is pressed
         while (opModeIsActive()) {
             telemetry.addData("Status", "Running Safe");
             telemetry.update(); // Manual update required in LinearOpMode

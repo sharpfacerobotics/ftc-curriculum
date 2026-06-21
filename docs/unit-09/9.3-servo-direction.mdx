@@ -20,9 +20,9 @@ Dual-servo grippers often have servos mounted **mirrored** to each other on oppo
 
 ## When Servo Direction Is the Cleaner Fix
 
-The `setDirection()` method flips the **logical coordinate system** of the servo object. By passing `Servo.Direction.REVERSE`, the SDK ensures that `0.0` maps to the physical "far right" and `1.0` maps to the physical "far left" — the opposite of the default. This allows the programmer to use the exact same position value for both servos in a mirrored assembly.
+The `setDirection()` method reverses the servo object's logical coordinate system. With `Servo.Direction.REVERSE`, logical `0.0` and `1.0` exchange endpoints. The physical directions depend on the servo mounting and linkage, so verify them on the actual mechanism.
 
-This is architecturally identical to `DcMotorSimple.Direction.REVERSE` from Unit 8 — both exist so that your code can express intent cleanly (`setPosition(1.0)` always means "close the claw") without any manual inversion math scattered throughout the codebase.
+This serves the same basic purpose as `DcMotorSimple.Direction.REVERSE`: it lets code use one logical convention for mirrored hardware instead of repeating inversion math.
 
 | Setting | `setPosition(0.0)` result | `setPosition(1.0)` result |
 |---|---|---|
@@ -65,11 +65,11 @@ public class ServoDirectionDemo extends OpMode {
     @Override
     public void loop() {
         if (gamepad1.a) {
-            // Both servos move inward — claw closes
+            // Both servos move inward: claw closes
             leftServo.setPosition(1.0);
             rightServo.setPosition(1.0);
         } else if (gamepad1.b) {
-            // Both servos move outward — claw opens
+            // Both servos move outward: claw opens
             leftServo.setPosition(0.0);
             rightServo.setPosition(0.0);
         }

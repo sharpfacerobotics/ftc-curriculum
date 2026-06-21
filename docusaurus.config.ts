@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Telemark | Sharp Face Robotics',
-  tagline: 'A structured, hands-on curriculum built by student engineers.',
+  tagline: 'FTC Java, from setup to autonomous.',
   favicon: 'img/telemark.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -89,7 +89,7 @@ const config: Config = {
           to: '/dashboard',
           label: 'Dashboard',
           position: 'right',
-          className: 'navbar-dashboard-link',
+          className: 'navbar-auth-link',
         },
       ],
       style: 'dark',

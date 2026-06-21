@@ -14,7 +14,7 @@ import Unit9Simulator from '@site/src/components/Unit9Simulator';
 
 ## Technical Context
 
-Servos are used for mechanisms requiring **exact angular positioning** — such as claws, latches, and gate mechanisms — where the motor must reliably reach the same physical location every time a button is pressed. Commanding a servo to a position that is blocked by mechanical hardware can lead to gear stripping or Control Hub port failure from sustained over-current draw.
+Positional servos are useful for claws, latches, and gates that need repeatable target positions. If a linkage blocks the servo before it reaches the command, the servo can stall, heat up, draw excess current, and damage its gears or the mechanism.
 
 ---
 
@@ -22,11 +22,11 @@ Servos are used for mechanisms requiring **exact angular positioning** — such 
 
 The `setPosition(double position)` method sends a specific **pulse-width modulation (PWM)** signal to the Control Hub to move the servo to a fraction of its total range. It accepts a `double` parameter between `0.0` and `1.0`, where:
 
-- **`0.0`** — the far left of the servo's physical travel
-- **`0.5`** — the center (midpoint) of the servo's range
-- **`1.0`** — the far right of the servo's physical travel
+- **`0.0`**: one endpoint of the configured logical range
+- **`0.5`**: the midpoint of the configured logical range
+- **`1.0`**: the other endpoint of the configured logical range
 
-Unlike a `DcMotor`, a servo **holds** its commanded position. Once you call `setPosition(1.0)`, the servo actively drives to and maintains that angle — you do not need to continuously resend the command. This makes servos ideal for mechanisms that need to lock into a position until the driver changes it.
+A standard servo's internal controller continues trying to hold its commanded position while PWM output is enabled. You do not need to resend the same command every loop, but the servo may keep drawing current if the mechanism is loaded or blocked.
 
 ---
 

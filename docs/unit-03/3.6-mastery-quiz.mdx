@@ -46,7 +46,7 @@ This captures a "snapshot" of the hardware's physical state at a specific point 
 
 ---
 
-**4. Configuration Management:** Why is it considered a professional "Best Practice" to store hardware names (like `"left_drive"`) in a `String` variable at the class level instead of passing a literal string directly into `hardwareMap.get()`?
+**4. Configuration Management:** Why is it considered a useful practice to store hardware names (like `"left_drive"`) in a `String` variable at the class level instead of passing a literal string directly into `hardwareMap.get()`?
 
 <details>
 <summary>Show answer</summary>
@@ -105,10 +105,10 @@ public class VariableDebug extends OpMode {
 <details>
 <summary>Show answers</summary>
 
-**Error 1 — Syntax Error:**
+**Error 1: Syntax Error:**
 The declaration `int targetPower = 0.75` is missing a semicolon (`;`) at the end of the statement. Furthermore, assigning a decimal value (`0.75`) to an `int` will cause a compiler error because an `int` cannot hold fractional data.
 
-**Error 2 — Logic Error:**
+**Error 2: Logic Error:**
 The variable `targetPower` is declared as an `int`. Even if the syntax were corrected, any value assigned to it that is less than `1` (like `0.75`) would be truncated to `0`. The motor would never move because `setPower()` would only ever receive a `0`. The variable must be declared as a `double`:
 
 ```java

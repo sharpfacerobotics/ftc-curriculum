@@ -18,7 +18,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 <details>
 <summary>Show answer</summary>
 
-`setPosition()` commands the servo to move to a specific angular coordinate (a fraction from `0.0` to `1.0` of its total travel) using PWM signals. Standard servos contain an internal feedback circuit that drives the motor until the output shaft reaches the target angle and then holds it there. They are positional devices, not velocity-driven like DC motors — `setPower()` is not part of the `Servo` interface at all.
+`setPosition()` commands the servo to move to a specific angular coordinate (a fraction from `0.0` to `1.0` of its total travel) using PWM signals. Standard servos contain an internal feedback circuit that drives the motor until the output shaft reaches the target angle and then holds it there. They are positional devices, not velocity-driven like DC motors: `setPower()` is not part of the `Servo` interface at all.
 
 </details>
 
@@ -29,7 +29,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 <details>
 <summary>Show answer</summary>
 
-It prevents mechanical binding. By constraining the software limits to match the physical hard stops of the mechanism, you prevent the servo from ever being commanded past its safe range. Without it, a `setPosition(1.0)` call could drive the servo into its physical barrier, causing a current spike that strips internal gears and can damage the Control Hub port from sustained overcurrent.
+It reduces mechanical binding. By constraining the software range to match the useful motion of the mechanism, you avoid repeatedly commanding the servo into a hard stop. Calibration still needs to be tested carefully because `scaleRange()` cannot detect an incorrectly measured limit or a shifted linkage.
 
 </details>
 
@@ -51,7 +51,7 @@ Using `setDirection(REVERSE)` provides logical abstraction at the hardware level
 <details>
 <summary>Show answer</summary>
 
-Sending multiple conflicting position commands within a single 50Hz update period causes servo jitter — the servo rapidly oscillates between competing target angles because the hardware controller receives contradictory instructions faster than it can physically execute them. This mechanical oscillation strains the servo gears and produces erratic behavior. Using an `else if` chain guarantees exactly one unambiguous command per cycle.
+Sending multiple conflicting position commands within a single 50Hz update period causes servo jitter: the servo rapidly oscillates between competing target angles because the hardware controller receives contradictory instructions faster than it can physically execute them. This mechanical oscillation strains the servo gears and produces erratic behavior. Using an `else if` chain guarantees exactly one unambiguous command per cycle.
 
 </details>
 
@@ -62,7 +62,7 @@ Sending multiple conflicting position commands within a single 50Hz update perio
 <details>
 <summary>Show answer</summary>
 
-Type safety — a `CRServo` is treated as a continuously spinning motor by the SDK and uses `setPower()` for velocity control, whereas a positional `Servo` uses `setPosition()` for angular control. They are distinct hardware classes with different underlying control interfaces. Instantiating a CR servo as a `Servo` would compile without error but crash at runtime when the incompatible method is called on the wrong hardware type.
+Type safety matters because `CRServo` and `Servo` expose different control interfaces. A CR servo uses `setPower()`, while a positional servo uses `setPosition()`. Requesting the wrong class from `hardwareMap` can compile because the requested class is a method argument, but the Robot Controller will reject a device whose configured type does not match.
 
 </details>
 
@@ -105,15 +105,15 @@ public class ClawSync extends OpMode {
 <details>
 <summary>Show answers</summary>
 
-**Error 1 — Syntax Error:**
+**Error 1: Syntax Error:**
 The `hardwareMap.get()` call for `rightClaw` in `init()` is missing a semicolon (`;`) at the end of the statement.
 
 ```java
 rightClaw = hardwareMap.get(Servo.class, "right_claw"); // ← semicolon added
 ```
 
-**Error 2 — Logic Error:**
-The programmer is calling `rightClaw.setPower(1.0)` on a standard `Servo` object. Positional servos do not support the `setPower()` method — that belongs to `CRServo` and `DcMotor`. The correct method for a standard servo is `setPosition()`:
+**Error 2: Logic Error:**
+The programmer is calling `rightClaw.setPower(1.0)` on a standard `Servo` object. Positional servos do not support the `setPower()` method: that belongs to `CRServo` and `DcMotor`. The correct method for a standard servo is `setPosition()`:
 
 ```java
 rightClaw.setPosition(1.0); // ← setPosition, not setPower

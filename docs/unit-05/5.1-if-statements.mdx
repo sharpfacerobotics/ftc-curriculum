@@ -14,7 +14,7 @@ import Unit5Simulator from '@site/src/components/Unit5Simulator';
 
 ## Technical Context
 
-The `if` statement is the fundamental mechanism for preventing unintended robot movement. By wrapping hardware commands in a conditional block, you ensure that voltage is only applied to I/O ports when specific criteria are met — such as a driver input or a sensor state. This prevents "runaway" robots and mechanical damage during the sensing-thinking-acting cycle.
+An `if` statement lets the program send a hardware command only when a condition is true, such as a driver pressing a button or a sensor reporting a safe state. The condition does not make a mechanism safe by itself, but it is the basic tool used to build limits, interlocks, and driver controls.
 
 ---
 

@@ -2,7 +2,7 @@
    EHS ROBOTICS — TELEMARK THEME
    Dragon colors: cyan-blue + neon green
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
 
 :root {
   --ifm-color-primary: #00BFFF;
@@ -14,8 +14,16 @@
   --ifm-color-primary-lightest: #4dd4ff;
 
   --ifm-code-font-size: 95%;
-  --ifm-font-family-base: 'Inter', 'Segoe UI', sans-serif;
+  --ifm-font-family-base: 'Exo 2', 'Segoe UI', sans-serif;
   --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', monospace;
+  --telemark-font-display: 'Rajdhani', 'Arial Narrow', sans-serif;
+  --telemark-font-body: 'Exo 2', 'Segoe UI', sans-serif;
+  --telemark-font-label: 'Share Tech Mono', 'JetBrains Mono', monospace;
+  --telemark-color-heading: #e8f4ff;
+  --telemark-color-body: rgba(232, 244, 255, 0.68);
+  --telemark-color-muted: rgba(232, 244, 255, 0.5);
+  --telemark-color-cyan: #00bfff;
+  --telemark-color-green: #39ff14;
 }
 
 /* Dark mode overrides — this is the primary mode */
@@ -44,7 +52,7 @@
   background-clip: text;
 }
 
-.navbar-dashboard-link {
+.navbar-auth-link {
   border: 1px solid #00BFFF44;
   background: linear-gradient(135deg, rgba(0, 191, 255, 0.16), rgba(57, 255, 20, 0.08));
   font-family: 'JetBrains Mono', monospace;
@@ -54,7 +62,7 @@
   padding: 0.55rem 0.85rem !important;
 }
 
-.navbar-dashboard-link:hover {
+.navbar-auth-link:hover {
   background: linear-gradient(135deg, rgba(0, 191, 255, 0.22), rgba(57, 255, 20, 0.12));
 }
 
@@ -88,7 +96,7 @@ article {
 }
 
 /* ---- HEADINGS with dragon glow ---- */
-h1 {
+.theme-doc-markdown h1 {
   background: linear-gradient(90deg, #00BFFF, #39FF14);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -96,13 +104,13 @@ h1 {
   font-weight: 800;
 }
 
-h2 {
+.theme-doc-markdown h2 {
   color: #00BFFF;
   border-bottom: 1px solid #00BFFF33;
   padding-bottom: 0.3rem;
 }
 
-h3 {
+.theme-doc-markdown h3 {
   color: #39FF14;
 }
 

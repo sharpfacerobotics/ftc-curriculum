@@ -387,6 +387,7 @@
       color: #ff6666;
     }
   </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 
@@ -691,45 +692,51 @@ function evaluateExpression(expr, vars) {
   catch { return val; }
 }
 
+let telemarkCompiledSource = '';
+let telemarkCompiledProgram = null;
+let telemarkRuntime = null;
+
 function executeMethod(methodName) {
   const code = codeEditor.value;
-  let body = getMethodBody(code, methodName);
-  if (!body) return;
+  if (methodName === 'init') telemarkCompiledSource = '';
+  if (code !== telemarkCompiledSource) {
+    const telemetryLines = [];
+    const runtime = TelemarkJava.createRuntime({
+      gamepad,
+      getRuntime,
+      onTelemetry(key, value) {
+        const shown = typeof value === 'number' ? value.toFixed(2) : String(value);
+        telemetryLines.push(
+          `<div class="telemetry-line"><span class="telemetry-key">${key}</span> : ${shown}</div>`
+        );
+      },
+      onTelemetryClear() {
+        telemetryLines.length = 0;
+      },
+      onTelemetryUpdate() {
+        if (telemetryLines.length) {
+          document.getElementById('telemetry-log').innerHTML = telemetryLines.join('');
+        }
+      },
+    });
+    telemarkRuntime = runtime;
+    telemarkCompiledProgram = TelemarkJava.compile(code, runtime);
+    telemarkCompiledSource = code;
+    if (!telemarkCompiledProgram.ok) {
+      const error = telemarkCompiledProgram.diagnostics[0];
+      document.getElementById('telemetry-log').textContent =
+        `${error.message} (line ${error.line}, column ${error.column})`;
+      return;
+    }
+  }
 
-  if (methodName === 'start' && /resetRuntime\(\)/.test(body)) {
+  if (methodName === 'start' && /resetRuntime\(\)/.test(getMethodBody(code, methodName) || '')) {
     runtimeOffset = Date.now();
   }
 
-  const vars = {};
-  const varRe = /(?:double|float|int|boolean|String)\s+([a-zA-Z_]\w*)\s*=\s*([^;]+);/g;
-  let vm;
-  while ((vm = varRe.exec(body)) !== null) {
-    vars[vm[1]] = evaluateExpression(vm[2], vars);
-  }
-
-  ['a', 'b', 'x', 'y', 'back', 'start', 'mode'].forEach(btn => {
-    const re = new RegExp(
-      `if\\s*\\(\\s*gamepad1\\.${btn}\\s*\\)\\s*\\{([\\s\\S]*?)\\}`, 'g'
-    );
-    body = body.replace(re, gamepad[btn] ? '$1' : '');
-  });
-
-  const telRe = /telemetry\.addData\(\s*"([^"]+)"\s*,\s*([^)]+)\s*\)/g;
-  let logHTML = '';
-  let tm;
-  while ((tm = telRe.exec(body)) !== null) {
-    const key = tm[1];
-    let   val = evaluateExpression(tm[2].trim(), vars);
-
-    if (typeof val === 'number')  val = val.toFixed(2);
-    if (typeof val === 'boolean') val = val ? 'TRUE' : 'FALSE';
-
-    logHTML += `<div class="telemetry-line"><span class="telemetry-key">${key}</span> : ${val}</div>`;
-  }
-
-  if (logHTML) {
-    document.getElementById('telemetry-log').innerHTML = logHTML;
-  }
+  const method = telemarkCompiledProgram?.methods?.[methodName];
+  if (method) method();
+  telemarkRuntime?.updateTelemetry();
 }
 
 // ─── Hints ───────────────────────────────────────────────────────────────────

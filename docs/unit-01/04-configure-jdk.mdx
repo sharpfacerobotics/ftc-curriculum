@@ -1,49 +1,49 @@
 ---
 id: configure-jdk
-title: "Section 4: Linking Android Studio to JDK 17"
-sidebar_label: "4 · Configure JDK"
+title: "Section 4: Checking Android Studio's Gradle JDK"
+sidebar_label: "4 · Check Gradle JDK"
 sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Section 4: Linking Android Studio to JDK 17
+# Section 4: Checking Android Studio's Gradle JDK
 
-:::info This is the most important configuration step
-Android Studio Ladybug ships with a bundled JDK that may be version 21. The FTC SDK requires JDK 17 for a stable build. You must manually redirect Android Studio.
+:::info Use the project default first
+The current FTC project can build with Android Studio's bundled JDK. Do not force JDK 17 or change the project's Java compatibility settings unless the current official README or your team's repository requires it.
 :::
 
 ---
 
-## Step 4.1 — Open Project Structure
+## Step 4.1: Find the Gradle JDK
 
-With Android Studio open (no project loaded yet):
+After opening the FTC project, go to:
 
-- **Windows/Linux:** File → Project Structure → SDK Location
-- **macOS:** Android Studio → Settings → Build, Execution, Deployment → Build Tools → Gradle
-
----
-
-## Step 4.2 — Set the Gradle JDK
-
-In the Gradle JDK dropdown, select **"Add JDK."**
-
-Navigate to the JDK 17 path you noted in Step 2.2. Select the root folder of the JDK installation (the folder that contains the `bin` directory).
-
-Once selected, the dropdown will show something like:
-
-```
-17 | Eclipse Temurin 17.0.x
-```
-
-Click "OK" or "Apply."
+**Settings → Build, Execution, Deployment → Build Tools → Gradle**
 
 ---
 
-:::danger Critical Warning
-If Android Studio shows a prompt reading **"Upgrade Gradle Plugin?"** or **"Update Android Gradle Plugin?"** at any point after opening the FTC project, click **"Don't Remind Me Again"** or dismiss it. Do not upgrade.
+## Step 4.2: Check the Selection
 
-The FTC SDK's Gradle plugin version is pinned deliberately. Upgrading it breaks the Control Hub deployment pipeline and requires manual XML edits to recover.
+Start with the bundled or project-recommended JDK shown in the dropdown. Run a Gradle sync before changing it. If the build succeeds, the selection is correct.
+
+If Gradle reports an unsupported Java runtime, compare your project with the current official `FtcRobotController` release and your team's setup notes. Select a different installed JDK only when those sources specify one.
+
+## Keep Team Code Compatible
+
+The official SDK currently uses:
+
+```groovy
+compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+}
+```
+
+Do not raise those values just because the Gradle runtime uses a newer JDK. The Java 8 language target keeps team code compatible with OnBot Java.
+
+:::caution Keep SDK build files together
+Do not accept automatic Android Gradle Plugin or Gradle upgrades in an FTC competition project without checking the current SDK release notes. Upgrade the FTC SDK as a complete project instead of changing one build component by itself.
 :::
 
 <MarkComplete

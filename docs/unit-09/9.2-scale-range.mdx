@@ -26,7 +26,7 @@ The `scaleRange(double min, double max)` method redefines the logical `0.0` to `
 - `setPosition(1.0)` moves to the physical angle corresponding to `max`
 - `setPosition(0.5)` moves to the midpoint between `min` and `max`
 
-This is a clean way to document hardware constraints in code — rather than remembering "don't go below 0.3" everywhere in your OpMode, you call `scaleRange(0.3, 0.9)` once in `init()` and the SDK enforces it automatically for the lifetime of that OpMode run.
+This is a clean way to document hardware constraints in code: rather than remembering "don't go below 0.3" everywhere in your OpMode, you call `scaleRange(0.3, 0.9)` once in `init()` and the SDK enforces it automatically for the lifetime of that OpMode run.
 
 Both parameters must be between `0.0` and `1.0`, and `min` must be less than `max`.
 

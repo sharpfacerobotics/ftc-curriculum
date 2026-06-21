@@ -14,7 +14,7 @@ import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
 ## Technical Context
 
-Repetitive mechanical tasks — such as pulsing an intake or cycling a scoring mechanism — are prone to "logic bloat" if written line-by-line. Using a `for` loop ensures code efficiency and allows the programmer to adjust the number of iterations (e.g., 3 gear-clearing pulses) in a single parameter change rather than rewriting blocks of code.
+Repetitive mechanical tasks: such as pulsing an intake or cycling a scoring mechanism: are prone to "logic bloat" if written line-by-line. Using a `for` loop ensures code efficiency and allows the programmer to adjust the number of iterations (e.g., 3 gear-clearing pulses) in a single parameter change rather than rewriting blocks of code.
 
 ---
 
@@ -23,9 +23,9 @@ Repetitive mechanical tasks — such as pulsing an intake or cycling a scoring m
 The `for` loop follows the syntax `for(initialization; condition; update)`. It instantiates a local `int` counter that increments after each pass. In FTC robotics, this is frequently used to cycle mechanisms for a fixed number of iterations rather than relying on inconsistent time-based logic.
 
 The three parts of the `for` header do distinct jobs:
-- **Initialization** — runs once before the loop starts, creating the counter (e.g., `int i = 0`)
-- **Condition** — checked before every iteration; the loop stops when this is `false` (e.g., `i < 5`)
-- **Update** — runs at the end of every iteration, advancing the counter (e.g., `i++`)
+- **Initialization**: runs once before the loop starts, creating the counter (e.g., `int i = 0`)
+- **Condition**: checked before every iteration; the loop stops when this is `false` (e.g., `i < 5`)
+- **Update**: runs at the end of every iteration, advancing the counter (e.g., `i++`)
 
 ---
 

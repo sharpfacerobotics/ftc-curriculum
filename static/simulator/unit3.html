@@ -511,6 +511,7 @@
     .hint { display: block; background: rgba(255, 204, 0, 0.12); border-left: 4px solid var(--warn); padding: 10px 12px; color: var(--warn); border-radius: 6px; font-size: 0.92rem; }
     .hint.error { background: rgba(204, 0, 0, 0.12); border-left-color: var(--danger); color: #ff6666; }
   </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 
@@ -910,68 +911,56 @@ function getMethodBody(code, methodName) {
   return null;
 }
 
+let telemarkCompiledSource = '';
+let telemarkCompiledProgram = null;
+let telemarkRuntime = null;
+
 function executeMethod(methodName) {
   const code = codeEditor.value;
-  let body = getMethodBody(code, methodName);
-  if (!body) return;
-
-  if (methodName === 'start' && /resetRuntime\(\)/.test(body)) runtimeOffset = Date.now();
-
-  // Evaluate simple if-statements for logic
-  body = body.replace(/if\s*\(\s*gamepad1\.([a-z_]+)\s*\)\s*\{([\s\S]*?)\}\s*(?:else\s*\{([\s\S]*?)\})?/g, (m, buttonName, ifBody, elseBody) => {
-      if (!Object.prototype.hasOwnProperty.call(gamepad, buttonName)) {
-        return m;
-      }
-      return gamepad[buttonName] ? ifBody : (elseBody || '');
-  });
-
-  // Strip braces that might remain from basic blocks to read lines sequentially
-  let lines = body.replace(/[{}]/g, '').split(';');
-  let telemetryLines = [];
-
-  for (let line of lines) {
-      line = line.trim();
-      if (!line) continue;
-
-      // Variable Assignment Check
-      const assignMatch = line.match(/^(?:String|double|boolean|int)?\s*([a-zA-Z_]\w*)\s*=\s*(.+)$/);
-      if (assignMatch) {
-          let varName = assignMatch[1];
-          let expr = assignMatch[2];
-          let val = evaluateExpression(expr);
-          if (declaredVars[varName]) {
-              let type = declaredVars[varName].type;
-              if (type === 'int' && String(val).includes('.')) addHint("Integer division discards the remainder");
-              declaredVars[varName].value = parseValue(val, type);
-          } else {
-              declaredVars[varName] = { type: 'double', value: val };
-          }
-      }
-
-      // Motor Power Check
-      const powerMatch = line.match(/\.setPower\(([^)]+)\)/);
-      if (powerMatch) {
-          let param = powerMatch[1].trim();
-          if (declaredVars[param] && declaredVars[param].type === 'int') addHint("int passed to setPower() — values will only ever be 0 or 1");
-          updateMotorVisual(evaluateExpression(param));
-      }
-
-      // Telemetry Check
-      const telMatch = line.match(/telemetry\.addData\(\s*"([^"]+)"\s*,\s*([^)]+)\s*\)/);
-      if (telMatch) {
-          let key = telMatch[1];
-          let param = telMatch[2].trim();
-          let val = evaluateExpression(param);
-          if (declaredVars[param]) val = formatValue(val, declaredVars[param].type);
-          if (typeof val === 'number' && !Number.isInteger(val)) val = val.toFixed(2);
-          if (typeof val === 'boolean') val = val ? 'true' : 'false';
-          telemetryLines.push(`<div class="telemetry-line"><span class="telemetry-key">${key}</span>: ${val}</div>`);
-      }
+  if (methodName === 'init') telemarkCompiledSource = '';
+  if (code !== telemarkCompiledSource) {
+    const telemetryLines = [];
+    const runtime = TelemarkJava.createRuntime({
+      gamepad,
+      getRuntime,
+      onPower(power) {
+        updateMotorVisual(power);
+      },
+      onTelemetry(key, value) {
+        telemetryLines.push(
+          `<div class="telemetry-line"><span class="telemetry-key">${key}</span>: ${String(value)}</div>`
+        );
+      },
+      onTelemetryClear() {
+        telemetryLines.length = 0;
+      },
+      onTelemetryUpdate() {
+        if (telemetryLines.length) {
+          document.getElementById('telemetry-log').innerHTML = telemetryLines.join('');
+        }
+      },
+    });
+    telemarkRuntime = runtime;
+    telemarkCompiledProgram = TelemarkJava.compile(code, runtime);
+    telemarkCompiledSource = code;
+    if (!telemarkCompiledProgram.ok) {
+      const error = telemarkCompiledProgram.diagnostics[0];
+      document.getElementById('telemetry-log').textContent =
+        `${error.message} (line ${error.line}, column ${error.column})`;
+      return;
+    }
   }
 
+  if (methodName === 'start' && /resetRuntime\(\)/.test(getMethodBody(code, methodName) || '')) {
+    runtimeOffset = Date.now();
+  }
+  telemarkCompiledProgram?.methods?.[methodName]?.();
+  telemarkRuntime?.updateTelemetry();
+  Object.entries(telemarkCompiledProgram?.scope || {}).forEach(([name, value]) => {
+    if (declaredVars[name]) declaredVars[name].value = value;
+  });
   renderVariableInspector();
   renderHints();
-  if (telemetryLines.length > 0) document.getElementById('telemetry-log').innerHTML = telemetryLines.join('');
 }
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────────

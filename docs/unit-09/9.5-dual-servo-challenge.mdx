@@ -1,6 +1,6 @@
 ---
 id: dual-servo-challenge
-title: "Lesson 9.5: Challenge — Sync a Dual-Servo Gripper with Offset Tuning"
+title: "Lesson 9.5: Challenge: Sync a Dual-Servo Gripper with Offset Tuning"
 sidebar_label: "9.5 · Challenge: Dual-Servo Gripper"
 sidebar_position: 5
 ---
@@ -8,7 +8,7 @@ sidebar_position: 5
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit9Simulator from '@site/src/components/Unit9Simulator';
 
-# Lesson 9.5: Challenge — Sync a Dual-Servo Gripper with Offset Tuning
+# Lesson 9.5: Challenge: Sync a Dual-Servo Gripper with Offset Tuning
 
 ---
 
@@ -22,7 +22,7 @@ Mechanical misalignment or "slop" in servo splines means two physically identica
 
 This challenge combines `setDirection()` from Lesson 9.3 with `else if` chaining from Unit 5, and adds the concept of **per-servo offsets**. Rather than commanding both servos to the exact same value, you define named constants for each state (`OPEN`, `CLOSED`, `READY`) and apply a small offset to whichever servo needs mechanical compensation.
 
-Using `else if` chaining instead of multiple independent `if` blocks is critical here — it prevents **servo jitter**. If two `if` blocks both evaluate to `true` in the same loop cycle (for example, if two buttons are held simultaneously), the servo would receive two conflicting position commands within a single 50Hz update, causing rapid mechanical oscillation that can strip servo gears.
+Using `else if` chaining instead of multiple independent `if` blocks is critical here: it prevents **servo jitter**. If two `if` blocks both evaluate to `true` in the same loop cycle (for example, if two buttons are held simultaneously), the servo would receive two conflicting position commands within a single 50Hz update, causing rapid mechanical oscillation that can strip servo gears.
 
 A single `else if` chain guarantees the servo receives **exactly one** position command per loop cycle.
 
@@ -65,7 +65,7 @@ public class DualServoDemo extends OpMode {
 
     @Override
     public void loop() {
-        // Mutually exclusive states — exactly one command sent per cycle
+        // Mutually exclusive states: exactly one command sent per cycle
         if (gamepad1.a) {
             leftClaw.setPosition(CLOSED_LEFT);
             rightClaw.setPosition(CLOSED_RIGHT);

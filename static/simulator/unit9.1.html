@@ -127,6 +127,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
   #scene-wrap{flex:1 1 auto;width:auto;aspect-ratio:auto;margin:0;min-height:0}
 }
   </style>
+  <script src="./telemark-java.js"></script>
 </head>
 <body>
 
@@ -220,7 +221,7 @@ function getMethodBody(c,m){var r=new RegExp('(?:@\\w+[\\s\\S]*?)?(?:public\\s+)
 function detectBlockingLoop(c){return/while\s*\(\s*(true|gamepad\d?\.|opModeIsActive)/.test(c)}
 function extractClassFields(c){var f={},r=/\b(Servo|DcMotor|CRServo|DistanceSensor|TouchSensor|ColorSensor|IMU|BNO055IMU)\s+(\w+)\s*;/g,m;while((m=r.exec(c))!==null)f[m[2]]=m[1];return f}
 function extractHardwareNames(b){var m2={},r=/(\w+)\s*=\s*hardwareMap\s*\.\s*get\s*\(\s*\w+\s*\.\s*class\s*,\s*"(\w+)"\s*\)/g,mm;while((mm=r.exec(b))!==null)m2[mm[1]]=mm[2];return m2}
-function transpileJava(j,cf,hn){var s=j;s=s.replace(/\b(double|int|boolean|String|float|long|byte|short|char)\s+(?=[a-zA-Z_])/g,'let ');s=s.replace(/\blet\s*\[\s*\]/g,'let ');s=s.replace(/\b(Servo|DcMotor|CRServo|DistanceSensor|TouchSensor|ColorSensor|IMU|BNO055IMU)\s+(\w+)/g,'let $2');s=s.replace(/\bhardwareMap\s*\.\s*get\s*\(\s*(\w+)\.class\s*,/g,'hardwareMap.get("$1",');if(hn){s=s.replace(/(\w+)\.setPosition\s*\(/g,function(_,v){return'setServoPosition("'+(hn[v]||v)+'", '});s=s.replace(/(\w+)\.setPower\s*\(/g,function(_,v){return'setMotorPower("'+(hn[v]||v)+'", '})}else{s=s.replace(/(\w+)\.setPosition\s*\(/g,function(_,v){return'setServoPosition("'+v+'", '})}s=s.replace(/\bgamepad1\./g,'gamepad.');s=s.replace(/\btelemetry\s*\.\s*addData\s*\(/g,'addTelemetry(');s=s.replace(/\btelemetry\s*\.\s*update\s*\(\s*\)/g,'updateTelemetry()');s=s.replace(/\btelemetry\s*\.\s*clear\s*\(\s*\)/g,'clearTelemetry()');return s}
+function transpileJava(j,cf,hn){var s=j;if(hn){s=s.replace(/(\w+)\.setPosition\s*\(/g,function(_,v){return'setServoPosition("'+(hn[v]||v)+'", '});s=s.replace(/(\w+)\.setPower\s*\(/g,function(_,v){return'setMotorPower("'+(hn[v]||v)+'", '})}else{s=s.replace(/(\w+)\.setPosition\s*\(/g,function(_,v){return'setServoPosition("'+v+'", '})}return window.TelemarkJava?window.TelemarkJava.transpileBody(s,{gamepad1Name:'gamepad',addTelemetryName:'addTelemetry',updateTelemetryName:'updateTelemetry',clearTelemetryName:'clearTelemetry'}):s}
 
 // Telemetry
 function addTelemetry(k,v){state.telemetryBuffer.push({key:k,value:String(v)})}

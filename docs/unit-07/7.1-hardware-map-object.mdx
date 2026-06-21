@@ -20,11 +20,11 @@ The Control Hub maintains an internal XML configuration file that maps physical 
 
 ## How hardwareMap Connects Code to Real Hardware
 
-The `hardwareMap` object is an instance of the `HardwareMap` class provided by the SDK. It acts as a **lookup service**. When you invoke the `get()` method, the SDK searches the configuration registry for a device matching the specified class type and name string. This process performs the dependency injection required to link your logical Java objects to the physical I/O ports on the Control Hub.
+The `hardwareMap` object is an instance of the SDK's `HardwareMap` class. It acts as a **lookup service**. When you call `get()`, the SDK searches the active Robot Controller configuration for a device with the requested type and name, then returns the Java object used to communicate with that configured device.
 
 The `get()` method requires two parameters:
-1. **The hardware class** — tells the SDK what type of device to return (e.g., `DcMotor.class`)
-2. **The configuration name string** — must match the name defined in the Robot Controller app exactly, character for character
+1. **The hardware class**: tells the SDK what type of device to return (e.g., `DcMotor.class`)
+2. **The configuration name string**: must match the name defined in the Robot Controller app exactly, character for character
 
 ---
 
@@ -69,7 +69,7 @@ public class HardwareMapDemo extends OpMode {
 <details>
 <summary>Show answers</summary>
 
-1. **lookup** (dependency injection / registry search)
+1. **lookup** (configuration registry search)
 2. **class type** (e.g., `DcMotor.class`)
 3. **`NullPointerException`** (or `MissingHardwareException`)
 

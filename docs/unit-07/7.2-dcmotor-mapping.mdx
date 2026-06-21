@@ -14,7 +14,7 @@ import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
 ## Technical Context
 
-Motors are high-draw components connected to the 4-pin motor ports on the Control Hub or Expansion Hub. Proper mapping ensures that the SDK applies the correct PID coefficients and encoder logic to the specific motor registered at that port. Mapping the wrong port will send voltage to the wrong mechanism — a critical failure during a competition match.
+Motors connect to the motor ports on a Control Hub or Expansion Hub. Mapping gives your Java variable access to the device name stored in the Robot Controller configuration. If the name points to the wrong configured port, later commands can move the wrong mechanism.
 
 ---
 
@@ -22,7 +22,7 @@ Motors are high-draw components connected to the 4-pin motor ports on the Contro
 
 In Java, you declare a member variable of type `DcMotor` at the class level. During the `init()` phase, you use `hardwareMap.get(DcMotor.class, "name")` to assign the physical motor to that variable. Once instantiated, the motor object gains access to methods like `setPower()`, `setDirection()`, and `setMode()`.
 
-A common professional practice is to set the motor's **direction** and **run mode** immediately after mapping, so the hardware is always in a known state before the match begins. This prevents issues like an arm motor suddenly lurching when the OpMode starts.
+Set the motor's **direction**, **run mode**, and other required defaults during initialization so the mechanism begins each OpMode in a known software state. A safe initialization sequence should still keep motor power at zero until movement is intended.
 
 ---
 

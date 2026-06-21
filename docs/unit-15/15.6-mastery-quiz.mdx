@@ -24,7 +24,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ---
 
-**2. Follower Consistency:** Within high-performance libraries like Pedro Pathing, why is the continuous execution of `follower.update()` imperative for maintaining the robot's geometric trajectory during unexpected field collisions?
+**2. Follower Consistency:** Within responsive libraries like Pedro Pathing, why is the continuous execution of `follower.update()` imperative for maintaining the robot's geometric trajectory during unexpected field collisions?
 
 <details>
 <summary>Show answer</summary>
@@ -118,12 +118,12 @@ visionDevice.pipelineSwitch(0);
 ```
 
 **Error 2 -- Missing result validation:**
-`getLatestResult()` can return `null` before the Limelight finishes processing its first frame, and a non-null result may still be invalid if no target is visible. Accessing `result.getTx()` without checking both conditions risks a runtime crash or invalid telemetry. The correct pattern is:
+In FTC SDK 10.3 and later, `getLatestResult()` returns an `LLResult`, but the result may be invalid while the camera starts or when no target is visible. Check `isValid()` before reading target data:
 
 ```java
 LLResult result = visionDevice.getLatestResult();
 
-if (result != null && result.isValid()) {
+if (result.isValid()) {
     double tx = result.getTx();
     telemetry.addData("Horizontal Offset", "%.2f", tx);
 } else {

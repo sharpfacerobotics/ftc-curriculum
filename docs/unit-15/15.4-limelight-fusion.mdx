@@ -116,8 +116,8 @@ public class LimelightFusionDemo extends LinearOpMode {
     private void applyLimelightCorrection() {
         LLResult result = limelight.getLatestResult();
 
-        if (result == null || !result.isValid()) {
-            return; // No valid observation this cycle -- keep current estimate
+        if (!result.isValid()) {
+            return; // No valid observation this cycle, so keep the current estimate
         }
 
         Pose3D botPose = result.getBotpose();
@@ -159,7 +159,7 @@ public class LimelightFusionDemo extends LinearOpMode {
 
 ## Simulator Challenge
 
-Complete the simulator's `correctPoseFromLimelight()` method. It should get the latest Limelight result, return immediately if the result is null or invalid, read `result.getBotpose()` into a `double[] botpose`, return if that array is null or shorter than 6 values, convert x and y from meters to inches, convert yaw from degrees to radians, and call `follower.setPose()` with the corrected `Pose`.
+Complete the simulator's `correctPoseFromLimelight()` method. Get the latest result, return when it is invalid, read `result.getBotpose()` into a `Pose3D`, and return if the pose is unavailable. Convert x and y from meters to inches, read yaw in radians, and call `follower.setPose()` with the corrected Pedro Pathing `Pose`.
 
 Open the simulator in fullscreen before you start so the editor, telemetry, controls, and visualizer are easy to read. Complete the missing starter-code lines in the simulator editor, press **Init** and **Start**, then use telemetry, visual feedback, and any checks or hints to debug before opening the answer.
 
@@ -172,27 +172,20 @@ Open the simulator in fullscreen before you start so the editor, telemetry, cont
 void correctPoseFromLimelight() {
     LLResult result = limelight.getLatestResult();
 
-    if (result == null) {
-        return;
-    }
-
     if (!result.isValid()) {
         return;
     }
 
-    double[] botpose = result.getBotpose();
+    Pose3D botpose = result.getBotpose();
 
     if (botpose == null) {
         return;
     }
 
-    if (botpose.length < 6) {
-        return;
-    }
-
-    double xInches     = botpose[0] * 39.3701;
-    double yInches     = botpose[1] * 39.3701;
-    double headingRads = Math.toRadians(botpose[5]);
+    double xInches = botpose.getPosition().x * 39.3701;
+    double yInches = botpose.getPosition().y * 39.3701;
+    double headingRads =
+        botpose.getOrientation().getYaw(AngleUnit.RADIANS);
 
     follower.setPose(new Pose(xInches, yInches, headingRads));
 }

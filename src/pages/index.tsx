@@ -28,7 +28,7 @@ const STATS = [
 const FEATURES = [
   {
     title: 'Embedded Simulator',
-    desc:  'Use the browser-based simulator alongside the lessons to test ideas and build intuition without leaving the curriculum.',
+    desc:  'Run lesson code against simulated FTC hardware in your browser.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect x="2" y="6" width="28" height="20" rx="2" stroke="#00BFFF" strokeWidth="1.5" />
@@ -38,7 +38,7 @@ const FEATURES = [
   },
   {
     title: 'Progress Tracking',
-    desc:  'Sign in with Google to save completed lessons, monitor progress, and return to the next unfinished page from the dashboard.',
+    desc:  'Sign in to save completed lessons and resume where you stopped.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#00BFFF" strokeWidth="1.5" />
@@ -48,7 +48,7 @@ const FEATURES = [
   },
   {
     title: 'Tiered Challenges',
-    desc:  'Work from guided templates into harder problems that ask you to apply the idea instead of just repeating syntax.',
+    desc:  'Move from guided examples to problems that require your own solution.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <circle cx="16" cy="16" r="10" stroke="#00BFFF" strokeWidth="1.5" />
@@ -58,7 +58,7 @@ const FEATURES = [
   },
   {
     title: 'Open Source',
-    desc:  'Built on Docusaurus and published openly so teams can study it, extend it, and improve it together.',
+    desc:  'Read the source, adapt it for your team, or contribute a fix.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <path d="M6 26L14 6l8 12 4-6 4 14" stroke="#00BFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -144,7 +144,7 @@ function HeroSection(): React.JSX.Element {
     <section className={styles.hero}>
       <div className={styles.heroBadge}>
         <span className={styles.badgeDot} aria-hidden="true" />
-        <span>Student-Built FTC Curriculum · Open Source</span>
+        <span>Student-built FTC Java curriculum</span>
       </div>
 
       <h1 className={styles.heroTitle}>
@@ -153,14 +153,12 @@ function HeroSection(): React.JSX.Element {
       </h1>
 
       <p className={styles.heroSub}>
-        A structured FTC Java curriculum written by students for students.
-        We start with environment setup and fundamentals, then build through hardware,
-        motion control, sensors, vision, and full autonomous integration.
+        Student-built lessons and browser simulators for learning how FTC robots are programmed.
       </p>
 
       <div className={styles.terminalLine} aria-hidden="true">
-        <span className={styles.terminalPrompt}>~/ftc $</span>
-        <span>git clone https://github.com/sharpfacerobotics/telemark </span>
+        <span className={styles.terminalPrompt}>telemetry &gt;</span>
+        <span>FTC Java ready </span>
         <span className={styles.cursor} />
       </div>
 
@@ -224,7 +222,7 @@ function CurriculumSection({
       <p className={styles.sectionLabel}>// curriculum.units[]</p>
       <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} Structured Units. One Clear Path.</h2>
       <p className={styles.sectionDesc}>
-        Each unit builds on the last, and the lesson order on the site matches the sequence we would use when teaching a new teammate.
+        Follow the sequence or jump to the topic your team needs.
       </p>
 
       <div className={styles.curriculumGrid}>
@@ -279,10 +277,9 @@ function FeaturesSection(): React.JSX.Element {
   return (
     <section className={styles.section}>
       <p className={styles.sectionLabel}>// platform.features[]</p>
-      <h2 className={styles.sectionTitle}>Built for Real Learning</h2>
+      <h2 className={styles.sectionTitle}>Learn, test, and keep moving</h2>
       <p className={styles.sectionDesc}>
-        The platform is designed to keep the learning path practical, organized,
-        and easy to pick back up between meetings.
+        Designed to keep the learning path practical, organized, and easy to resume.
       </p>
 
       <div className={styles.featuresGrid}>
@@ -302,9 +299,9 @@ function SimulatorSection(): React.JSX.Element {
   return (
     <section className={styles.section}>
       <p className={styles.sectionLabel}>// simulator.live[]</p>
-      <h2 className={styles.sectionTitle}>Try It Right Now</h2>
+      <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
       <p className={styles.sectionDesc}>
-        Open the simulator in the browser and experiment with robot behavior while you work through the lessons.
+        Test lesson code against simulated FTC hardware before using a robot.
       </p>
       <AuthenticatedSimulatorNavigator
         simulatorId="homepage_navigator"
@@ -327,7 +324,7 @@ function CtaSection(): React.JSX.Element {
           Start with the fundamentals.<br />Build toward competition.
         </h2>
         <p className={styles.ctaSub}>
-          Begin with Unit 1. We will get the toolchain working first, then move step by step into hardware, control systems, vision, and advanced autonomous routines.
+          Begin in the browser, then choose the deployment tools that fit your team.
         </p>
         <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
           Begin Unit 1 →
@@ -349,17 +346,11 @@ export default function Home(): React.JSX.Element {
         <title>{siteConfig.title}</title>
         <meta
           name="description"
-          content="Telemark by EHS Robotics — an open-source FTC Java curriculum built by students, covering environment setup, hardware, sensors, control, vision, and advanced autonomous systems."
+          content="Telemark is a student-built FTC Java curriculum with browser simulators, from setup and fundamentals through hardware, vision, and autonomous."
         />
       </Head>
     
       {/* Google Fonts — non-blocking preconnect */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap"
-        rel="stylesheet"
-      />
       <link
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         rel="stylesheet"

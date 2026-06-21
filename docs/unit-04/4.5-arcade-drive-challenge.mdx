@@ -1,6 +1,6 @@
 ---
 id: arcade-drive-challenge
-title: "Lesson 4.5: Challenge — Build Full Arcade Drive with Deadzones and Sensitivity Curves"
+title: "Lesson 4.5: Challenge: Build Full Arcade Drive with Deadzones and Sensitivity Curves"
 sidebar_label: "4.5 · Challenge: Arcade Drive"
 sidebar_position: 5
 ---
@@ -8,19 +8,19 @@ sidebar_position: 5
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
-# Lesson 4.5: Challenge — Build Full Arcade Drive with Deadzones and Sensitivity Curves
+# Lesson 4.5: Challenge: Build Full Arcade Drive with Deadzones and Sensitivity Curves
 
 ---
 
 ## Technical Context
 
-Professional drivers require a **"Deadzone"** to prevent robot creep caused by joystick drift — a common hardware failure where the physical stick does not return to a perfect `0.0`. Combining deadzones with sensitivity curves creates a robust control system that ignores accidental touches but responds with extreme precision during scoring.
+A **deadzone** prevents robot creep when a joystick does not return to exactly `0.0`. Combining a small deadzone with a sensitivity curve lets the driver make fine adjustments near the center while retaining full output near the edge.
 
 ---
 
 ## How to Build an Arcade Drive That Feels Good
 
-This challenge requires integrating nested logic and method calls. A deadzone is implemented using a comparison operator (e.g., `if (Math.abs(input) < 0.1) power = 0;`). By passing only the filtered data to the `squareInputWithSign()` method from Lesson 4.4, you create a professional-grade driver interface. This utilizes **procedural decomposition** by separating the math from the hardware execution, making the code easier to debug when the drive team requests "feel" adjustments during a competition.
+This challenge combines nested logic and method calls. A deadzone can use a comparison such as `if (Math.abs(input) < 0.1) power = 0;`. Passing the filtered value to `squareInputWithSign()` keeps the input math separate from the motor command, which makes later drive-feel adjustments easier to test.
 
 ---
 

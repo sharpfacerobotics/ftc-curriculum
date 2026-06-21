@@ -1,65 +1,44 @@
 ---
 id: install-jdk
-title: "Section 2: Installing JDK 17 the Right Way"
-sidebar_label: "2 · Installing JDK 17"
+title: "Section 2: Understanding Java Versions for Android Studio"
+sidebar_label: "2 · Java Versions (Optional)"
 sidebar_position: 2
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Section 2: Installing JDK 17 the Right Way
+# Section 2: Understanding Java Versions for Android Studio
 
-:::info Order matters
-Install JDK 17 **before** Android Studio. Android Studio's setup wizard will ask you to configure a JDK path, and having JDK 17 already installed makes that easier and more convenient.
+:::info Optional Android Studio path
+Skip this section if you are using Telemark only, OnBot Java, or another browser-based workflow.
 :::
 
 ---
 
-## Step 2.1 — Download JDK 17
+## The Two Java Versions You May See
 
-Go to: [https://adoptium.net/temurin/releases/](https://adoptium.net/temurin/releases/)
+Android Studio uses a JDK to run Gradle and build the Robot Controller app. The Java version used by that build process is different from the language level accepted by FTC team code.
 
-Select:
-- **Version:** 17
-- **OS:** Your operating system
-- **Architecture:** x64 (most laptops) or aarch64 (Apple Silicon Macs)
-- **Package Type:** JDK
+The current official FTC project:
 
-Download the installer (`.msi` on Windows, `.pkg` on macOS, `.deb`/`.rpm` on Linux).
+- Supports Android Studio Ladybug 2024.2 or later.
+- Can use Android Studio's bundled JDK for Gradle.
+- Keeps `sourceCompatibility` and `targetCompatibility` at Java 8 so Android Studio and OnBot Java code remain compatible.
 
----
+This means you should not change the project to `JavaVersion.VERSION_17`. That setting would make the project inconsistent with the official SDK.
 
-## Step 2.2 — Install JDK 17
+## When a Separate JDK Is Useful
 
-Run the installer with default settings. Do not change the installation directory. Write down the path where it installs since you will need this exact path in Section 4.
+A separate JDK can still be useful for unrelated Java projects or a team-specific build system. If your team's repository documents a required version, follow that repository. Otherwise, start with Android Studio's bundled JDK.
 
-| OS | Default install path |
-|---|---|
-| Windows | `C:\Program Files\Eclipse Adoptium\jdk-17.x.x.x-hotspot\` |
-| macOS | `/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home` |
-| Linux | `/usr/lib/jvm/temurin-17/` |
+To see the Java runtime selected by Android Studio, open:
 
----
+**Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**
 
-## Step 2.3 — Verify the Installation
-
-Open a terminal (Command Prompt on Windows, Terminal on macOS/Linux) and run:
-
-```bash
-java -version
-```
-
-You should see output similar to:
-
-```
-openjdk version "17.0.x" 2024-xx-xx
-OpenJDK Runtime Environment Temurin-17.x.x+x
-```
-
-If you see version 21 or higher, you have multiple JDKs installed. That is fine, Android Studio will be pointed to version 17 specifically in Section 4.
+Leave the selected runtime unchanged unless the official FTC README or your team's repository says otherwise.
 
 <MarkComplete
   lessonId="unit-01/install-jdk"
   nextUnit="/docs/unit-01/install-android-studio"
-  nextUnitName="Section 3: Installing Android Studio"
+  nextUnitName="Section 3: Installing Android Studio (Optional)"
 />

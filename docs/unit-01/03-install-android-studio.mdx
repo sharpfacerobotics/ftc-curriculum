@@ -1,35 +1,39 @@
 ---
 id: install-android-studio
-title: "Section 3: Setting Up Android Studio for FTC"
-sidebar_label: "3 · Installing Android Studio"
+title: "Section 3: Installing Android Studio for FTC"
+sidebar_label: "3 · Android Studio (Optional)"
 sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
-# Section 3: Setting Up Android Studio for FTC
+# Section 3: Installing Android Studio for FTC
+
+:::info Optional
+Android Studio is useful for a full SDK project, Git collaboration, and third-party libraries. You do not need it for Telemark's simulator, OnBot Java, or a compatible browser-based team workflow.
+:::
 
 ---
 
-## Step 3.1 — Download Android Studio
+## Step 3.1: Download Android Studio
 
 Go to: [https://developer.android.com/studio](https://developer.android.com/studio)
 
-Download Android Studio Ladybug (2024.2.1) or the latest stable release. Do not download a "Canary" or "Beta" build, use the stable channel only.
+Download Android Studio Ladybug 2024.2 or a later stable release supported by the current FTC SDK. Avoid Canary and Beta builds for a competition project.
 
 ---
 
-## Step 3.2 — Run the Installer
+## Step 3.2: Run the Installer
 
-**Windows:** Run the `.exe` installer. Accept all defaults. When asked about installation components, ensure "Android Studio" and "Android SDK" are both checked. Do not change the installation path unless your C: drive has less than 5 GB free.
+**Windows:** Run the `.exe` installer. Keep Android Studio and the Android SDK selected.
 
 **macOS:** Open the `.dmg` file and drag Android Studio to Applications. The first launch will complete the installation.
 
-**Linux:** Unpack the `.tar.gz` to `/opt/android-studio/`. Run `/opt/android-studio/bin/studio.sh` to launch.
+**Linux:** Follow the installation instructions supplied with the current `.tar.gz` package, then launch `studio.sh`.
 
 ---
 
-## Step 3.3 — First Launch Setup Wizard
+## Step 3.3: First Launch Setup Wizard
 
 When Android Studio launches for the first time, it runs a setup wizard. Navigate it as follows:
 
@@ -38,15 +42,11 @@ When Android Studio launches for the first time, it runs a setup wizard. Navigat
 | Welcome screen | Click "Next." |
 | Install type | Select "Standard." Click "Next." |
 | UI theme | Choose either. Click "Next." |
-| SDK Components | Ensure "Android SDK" is checked. The download is approximately 1–2 GB. Let it complete. |
+| SDK Components | Keep the recommended Android SDK components selected and let the download finish. |
 | Verify Settings | Click "Finish." |
-
-:::caution
-Do not close Android Studio after the wizard completes. Proceed to Section 4 immediately.
-:::
 
 <MarkComplete
   lessonId="unit-01/install-android-studio"
   nextUnit="/docs/unit-01/configure-jdk"
-  nextUnitName="Section 4: Pointing Android Studio to JDK 17"
+  nextUnitName="Section 4: Checking the Gradle JDK"
 />

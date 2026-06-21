@@ -20,7 +20,7 @@ Standard `sleep()` commands block the **entire thread**, preventing the robot fr
 
 ## How getRuntime() Helps You Time Actions Without Guessing
 
-The `getRuntime()` method returns a `double` representing the seconds elapsed since the OpMode was initialized. By capturing a "start time" timestamp and comparing it to the current `getRuntime()` value inside a `while` or `if` statement, the programmer creates a timed window for hardware to operate — without freezing any other logic.
+The `getRuntime()` method returns a `double` representing the seconds elapsed since the OpMode was initialized. By capturing a "start time" timestamp and comparing it to the current `getRuntime()` value inside a `while` or `if` statement, the programmer creates a timed window for hardware to operate: without freezing any other logic.
 
 The key pattern is: **capture a target timestamp, then check against it each loop cycle.**
 
@@ -28,7 +28,7 @@ The key pattern is: **capture a target timestamp, then check against it each loo
 double targetTime = getRuntime() + 2.0; // 2 seconds from now
 ```
 
-The clock increments in sub-milliseconds, so you must use `<` (less than) rather than `==` for the comparison — the current time will almost never land on the exact target value.
+The clock increments in sub-milliseconds, so you must use `<` (less than) rather than `==` for the comparison: the current time will almost never land on the exact target value.
 
 ---
 
