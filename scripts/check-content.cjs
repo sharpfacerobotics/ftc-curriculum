@@ -14,6 +14,9 @@ function walk(directory) {
 for (const file of walk(path.join(root, 'docs')).filter((name) => name.endsWith('.mdx'))) {
   const text = fs.readFileSync(file, 'utf8');
   if (text.includes('—')) failures.push(`${path.relative(root, file)} contains an em dash`);
+  if (text.includes('Open the simulator in fullscreen before you start')) {
+    failures.push(`${path.relative(root, file)} contains the retired simulator boilerplate`);
+  }
 }
 
 const checkedSource = [
@@ -37,6 +40,14 @@ for (const file of simulatorFiles) {
   if (!text.includes('telemark-java.js')) {
     failures.push(`${path.relative(root, file)} does not load TelemarkJava`);
   }
+}
+
+const guideCount = walk(path.join(root, 'docs'))
+  .filter((name) => name.endsWith('.mdx'))
+  .filter((file) => fs.readFileSync(file, 'utf8').includes('<SimulatorRunGuide />'))
+  .length;
+if (guideCount !== 70) {
+  failures.push(`Expected 70 lessons to use SimulatorRunGuide, found ${guideCount}`);
 }
 
 if (failures.length) {

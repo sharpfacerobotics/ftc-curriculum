@@ -173,6 +173,39 @@
       font-size: 0.82rem;
       line-height: 1.5;
     }
+    .sim-fault-control {
+      display: none;
+      gap: 6px;
+      align-items: center;
+      margin: 0 0 10px;
+      padding: 8px;
+      border: 1px solid rgba(255, 181, 71, 0.28);
+      border-radius: 4px;
+      background: rgba(255, 181, 71, 0.06);
+    }
+    .sim-fault-control.visible {
+      display: grid;
+    }
+    .sim-fault-control label {
+      color: #ffb547;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .sim-fault-control select {
+      width: 100%;
+      border: 1px solid rgba(255, 181, 71, 0.35);
+      border-radius: 3px;
+      background: #0a0a0f;
+      color: #e8f4ff;
+      padding: 6px 8px;
+      font: 0.78rem var(--font-ui);
+    }
+    .sim-fault-description {
+      color: #c8b58d;
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
 
     /* ── Requirements ── */
     .sim-req {
@@ -1068,6 +1101,11 @@
     });
     challengeBody.innerHTML = `
       <div class="sim-challenge-desc" id="sim-challenge-desc"></div>
+      <div class="sim-fault-control" id="sim-fault-control">
+        <label for="sim-fault-select">Optional robot fault</label>
+        <select id="sim-fault-select"></select>
+        <div class="sim-fault-description" id="sim-fault-description"></div>
+      </div>
       <div id="sim-requirements-list"></div>
       <div class="sim-success-banner" id="sim-success-banner"><i class="fa-solid fa-circle-check"></i> Challenge Complete!</div>
     `;
@@ -1218,6 +1256,12 @@
 
     // Load Prism core
     const script1 = document.createElement("script");
+    let finished = false;
+    const finish = function () {
+      if (finished) return;
+      finished = true;
+      if (callback) callback();
+    };
     script1.src =
       "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js";
     script1.onload = function () {
@@ -1227,10 +1271,12 @@
         "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js";
       script2.onload = function () {
         prismLoaded = true;
-        if (callback) callback();
+        finish();
       };
+      script2.onerror = finish;
       document.head.appendChild(script2);
     };
+    script1.onerror = finish;
     document.head.appendChild(script1);
   }
 
@@ -3357,12 +3403,24 @@
 
   let challengeRequirements = [];
   let challengeCompleteCallback = null;
+  let challengeHintRules = [];
+  let challengeWasComplete = false;
+  let challengeFaultModes = [];
+  let activeFaultId = "";
 
   /**
    * setChallenge(title, description, requirements)
-   * requirements: array of strings
+   * setChallenge({title, scenario, requirements, successMessage, hints, faultModes, onComplete})
+   * The positional signature remains supported for existing lesson adapters.
    */
   window.setChallenge = function (title, description, requirements) {
+    const config = typeof title === "object" && title !== null
+      ? title
+      : {
+          title: title,
+          scenario: description,
+          requirements: requirements,
+        };
     const headerTitle = document.getElementById("sim-header-title");
     const headerSub = document.getElementById("sim-header-sub");
     const titleText = document.getElementById("sim-challenge-title-text");
@@ -3370,13 +3428,23 @@
     const reqList = document.getElementById("sim-requirements-list");
     const banner = document.getElementById("sim-success-banner");
 
-    if (headerTitle) headerTitle.textContent = title;
-    if (headerSub) headerSub.textContent = description;
-    if (titleText) titleText.innerHTML = '<i class="fa-solid fa-trophy" style="margin-right:4px"></i> ' + escHTML(title);
-    if (desc) desc.innerHTML = description;
-    if (banner) banner.classList.remove("visible");
+    if (headerTitle) headerTitle.textContent = config.title || "Simulator Challenge";
+    if (headerSub) headerSub.textContent = config.scenario || config.description || "";
+    if (titleText) titleText.innerHTML = '<i class="fa-solid fa-trophy" style="margin-right:4px"></i> ' + escHTML(config.title || "Simulator Challenge");
+    if (desc) desc.innerHTML = config.scenario || config.description || "";
+    if (banner) {
+      banner.classList.remove("visible");
+      banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> '
+        + escHTML(config.successMessage || "Challenge Complete!");
+    }
 
-    challengeRequirements = requirements || [];
+    challengeRequirements = config.requirements || [];
+    challengeCompleteCallback = typeof config.onComplete === "function"
+      ? config.onComplete
+      : null;
+    challengeHintRules = Array.isArray(config.hints) ? config.hints : [];
+    challengeWasComplete = false;
+    window.setFaultModes(config.faultModes || []);
 
     if (reqList) {
       reqList.innerHTML = "";
@@ -3387,6 +3455,74 @@
         reqList.appendChild(div);
       });
     }
+  };
+
+  window.setFaultModes = function (faultModes) {
+    challengeFaultModes = Array.isArray(faultModes) ? faultModes : [];
+    activeFaultId = "";
+    const control = document.getElementById("sim-fault-control");
+    const select = document.getElementById("sim-fault-select");
+    const description = document.getElementById("sim-fault-description");
+    if (!control || !select || !description) return;
+
+    control.classList.toggle("visible", challengeFaultModes.length > 0);
+    select.innerHTML = "";
+    const normal = document.createElement("option");
+    normal.value = "";
+    normal.textContent = "Normal robot";
+    select.appendChild(normal);
+
+    challengeFaultModes.forEach(function (fault) {
+      const option = document.createElement("option");
+      option.value = fault.id;
+      option.textContent = fault.label;
+      select.appendChild(option);
+    });
+    description.textContent = "No injected fault. Behavior is deterministic.";
+
+    select.onchange = function () {
+      activeFaultId = select.value;
+      const active = challengeFaultModes.find(function (fault) {
+        return fault.id === activeFaultId;
+      });
+      description.textContent = active
+        ? active.description || "A repeatable robot fault is active."
+        : "No injected fault. Behavior is deterministic.";
+      handleStop();
+      if (typeof window.onFaultModeChange === "function") {
+        window.onFaultModeChange(activeFaultId, active || null);
+      }
+      if (active) {
+        window.addHint(
+          '<i class="fa-solid fa-screwdriver-wrench"></i> Fault enabled: '
+            + escHTML(active.label) + ". Reinitialize before testing.",
+          "info"
+        );
+      }
+    };
+  };
+
+  window.getActiveFault = function () {
+    return activeFaultId;
+  };
+
+  window.isFaultActive = function (faultId) {
+    return activeFaultId === faultId;
+  };
+
+  window.createSeededRandom = function (seed) {
+    let state = (Number(seed) || 1) >>> 0;
+    return function () {
+      state = (state * 1664525 + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+  };
+
+  window.evaluateChallengeHints = function (context) {
+    challengeHintRules.forEach(function (rule) {
+      if (!rule || typeof rule.when !== "function" || !rule.when(context)) return;
+      window.addHint(escHTML(rule.message || ""), rule.type || "warn");
+    });
   };
 
   /**
@@ -3420,10 +3556,15 @@
     const banner = document.getElementById("sim-success-banner");
     if (allPass && challengeRequirements.length > 0) {
       if (banner) banner.classList.add("visible");
-      if (typeof window.onChallengeComplete === "function") {
-        window.onChallengeComplete();
+      if (!challengeWasComplete) {
+        challengeWasComplete = true;
+        if (challengeCompleteCallback) challengeCompleteCallback();
+        if (typeof window.onChallengeComplete === "function") {
+          window.onChallengeComplete();
+        }
       }
     } else {
+      challengeWasComplete = false;
       if (banner) banner.classList.remove("visible");
     }
   }
@@ -3462,12 +3603,39 @@
 
   function loadThreeJS(callback) {
     const script = document.createElement("script");
-    script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-    script.onload = function () {
+    let finished = false;
+    const finish = function () {
+      if (finished) return;
+      finished = true;
       if (callback) callback();
     };
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    script.onload = finish;
+    script.onerror = finish;
     document.head.appendChild(script);
+  }
+
+  function showGraphicsFallback(message) {
+    const container = document.getElementById("sim-scene-container");
+    const canvas = document.getElementById("sim-robot-canvas");
+    if (canvas) canvas.style.display = "none";
+    if (!container || document.getElementById("sim-graphics-fallback")) return;
+    const fallback = el("div", {id: "sim-graphics-fallback"});
+    fallback.style.cssText = [
+      "height:100%",
+      "display:grid",
+      "place-items:center",
+      "padding:24px",
+      "color:#aeb4c0",
+      "font:0.85rem/1.6 var(--font-ui)",
+      "text-align:center",
+      "background:#08080c",
+    ].join(";");
+    fallback.innerHTML = '<div><strong style="display:block;color:#ffb547;margin-bottom:8px">3D view unavailable</strong>'
+      + escHTML(message)
+      + '<br>The editor, telemetry, requirements, and hints still work.</div>';
+    container.appendChild(fallback);
   }
 
   function updateCameraOrbit() {
@@ -3826,7 +3994,26 @@
     function checkReady() {
       if (prismReady && threeReady) {
         // Initialize Three.js scene
-        initThreeScene();
+        try {
+          if (!window.THREE) {
+            throw new Error("The graphics library could not be loaded.");
+          }
+          initThreeScene();
+        } catch (graphicsError) {
+          console.warn("[Simulator graphics fallback]", graphicsError);
+          threeScene = null;
+          threeCamera = null;
+          threeRenderer = null;
+          window.scene = null;
+          window.camera = null;
+          window.renderer = null;
+          showGraphicsFallback(
+            graphicsError && graphicsError.message
+              ? graphicsError.message
+              : "WebGL is unavailable in this browser."
+          );
+          startAnimationLoop();
+        }
 
         // Observe resize
         observeSceneResize();

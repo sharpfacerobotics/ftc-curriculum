@@ -371,11 +371,19 @@ public class HeadingDisplay extends OpMode {
     }
 
     if (window.setChallenge) {
-        setChallenge(
-            "Heading Display and Alignment Check",
-            "Use the IMU heading to determine if the robot is aligned within ±10 degrees.",
-            requirements
-        );
+        setChallenge({
+            title: "Heading Display and Alignment Check",
+            scenario: "Use the IMU heading to determine if the robot is aligned within ±10 degrees.",
+            successMessage: "Heading and alignment telemetry are correct.",
+            faultModes: [
+                {
+                    id: "imu-drift",
+                    label: "Slow IMU drift",
+                    description: "The reported yaw gains a repeatable offset while the robot holds the same physical heading."
+                }
+            ],
+            requirements: requirements
+        });
         setHeader(
             "Telemark Unit 12.2 Simulator",
             "Heading Display and Alignment Check"
@@ -430,7 +438,16 @@ public class HeadingDisplay extends OpMode {
     let currentHeading   = 0;
     let unwrappedHeading = 0;
     let startHeading     = 0;
+    let driftOffset      = 0;
     const headingHistory = [];
+
+    function reportedHeading(heading) {
+        if (window.isFaultActive && isFaultActive("imu-drift")) {
+            driftOffset = Math.min(18, driftOffset + 0.25);
+            return heading + driftOffset;
+        }
+        return heading;
+    }
 
     function buildField() {
 
@@ -796,7 +813,7 @@ public class HeadingDisplay extends OpMode {
 
         hardwareMap.onIMUHeading(
             (heading) => {
-                currentHeading = heading;
+                currentHeading = reportedHeading(heading);
             }
         );
     }
@@ -807,8 +824,8 @@ public class HeadingDisplay extends OpMode {
     ) {
         hardwareMap.onIMU((name,data) => {
             if (name === "imu" && data && typeof data.heading === "number") {
-                currentHeading = data.heading;
-                unwrappedHeading = data.heading;
+                currentHeading = reportedHeading(data.heading);
+                unwrappedHeading = currentHeading;
                 updateVisuals();
             }
         });
@@ -816,13 +833,14 @@ public class HeadingDisplay extends OpMode {
 
     window.updateHeadingVisual =
         function(heading) {
-            currentHeading = heading;
+            currentHeading = reportedHeading(heading);
         };
 
     window.onRun = function() {
         currentHeading = 0;
         unwrappedHeading = 0;
         startHeading = 0;
+        driftOffset = 0;
         headingHistory.length = 0;
         updateVisuals();
     };
@@ -833,11 +851,20 @@ public class HeadingDisplay extends OpMode {
 
         currentHeading = 0;
         unwrappedHeading = 0;
+        driftOffset = 0;
 
         if (robot) {
             robot.rotation.y = 0;
         }
 
+        updateVisuals();
+    };
+
+    window.onFaultModeChange = function() {
+        driftOffset = 0;
+        currentHeading = 0;
+        unwrappedHeading = 0;
+        headingHistory.length = 0;
         updateVisuals();
     };
 

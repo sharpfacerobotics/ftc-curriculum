@@ -17,14 +17,39 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test shared Java runtime
+        run: npm run test:simulator
+
+      - name: Audit simulator pages
+        run: npm run test:simulator:audit
+
+      - name: Check curriculum content
+        run: npm run check:content
+
+      - name: Test access and search behavior
+        run: npm run test:site
+
       - name: Build
+        env:
+          TELEMARK_BUILD_COMMIT: ${{ github.sha }}
         run: npm run build
+
+      - name: Verify production build
+        run: npm run verify:build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
+
+      - name: Smoke test deployed site
+        env:
+          TELEMARK_BUILD_COMMIT: ${{ github.sha }}
+        run: npm run smoke:deployed
 
   deploy-functions:
     runs-on: ubuntu-latest

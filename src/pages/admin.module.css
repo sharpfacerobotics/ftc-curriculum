@@ -238,7 +238,10 @@
 }
 
 .statValue {
-  font: 700 clamp(1.7rem, 3vw, 2.45rem)/1 'Rajdhani', system-ui, sans-serif;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  font-weight: 700;
+  line-height: 1;
   color: #e8f4ff;
 }
 

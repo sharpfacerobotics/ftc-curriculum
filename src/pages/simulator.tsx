@@ -3,6 +3,7 @@ import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import pageStyles from './index.module.css';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
+import SimulatorWorkflow from '../components/SimulatorWorkflow';
 
 export default function SimulatorPage(): React.JSX.Element {
   return (
@@ -24,8 +25,17 @@ export default function SimulatorPage(): React.JSX.Element {
           <p className={pageStyles.sectionLabel}>// simulator.live[]</p>
           <h1 className={pageStyles.sectionTitle}>Telemark Simulator</h1>
           <p className={pageStyles.sectionDesc}>
-            Launch the browser-based simulator here, then jump back into the
-            curriculum whenever you want more guided practice.
+            Write Java, run the same Init and Start sequence used in FTC, then
+            compare telemetry, requirements, and robot behavior as you debug.
+          </p>
+          <SimulatorWorkflow
+            className={pageStyles.simulatorWorkflow}
+            itemClassName={pageStyles.simulatorStep}
+            taskClassName={pageStyles.simulatorTasks}
+          />
+          <p className={pageStyles.simulatorLimit}>
+            Simulation checks code and modeled behavior. Use a physical robot
+            to verify wiring, motor direction, traction, and final tuning.
           </p>
 
           <AuthenticatedSimulatorNavigator

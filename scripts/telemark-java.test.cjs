@@ -203,6 +203,100 @@ function testDiagnostics() {
   assert.equal(result.diagnostics[0].column > 0, true);
 }
 
+function testInfiniteLoopProtection() {
+  const program = compile(`
+    public class GuardTest extends OpMode {
+      public void loop() {
+        while (true) {
+        }
+      }
+    }
+  `);
+  assert.throws(() => program.methods.loop(), /Loop limit exceeded/);
+}
+
+function testQualifiedTypesAndArrayInitializers() {
+  const qualified = compile(`
+    public class QualifiedTypeSyntax extends OpMode {
+      public void init() {
+        IMU.Parameters parameters = new IMU.Parameters(null);
+      }
+    }
+  `);
+  assert.equal(qualified.ok, true);
+
+  const program = compile(`
+    public class ModernFtcSyntax extends OpMode {
+      DcMotor[] motors;
+      public void init() {
+        motors = new DcMotor[] {
+          hardwareMap.get(DcMotor.class, "left"),
+          hardwareMap.get(DcMotor.class, "right")
+        };
+      }
+    }
+  `, {
+    hardwareMap: {
+      get(_type, name) {
+        return {name};
+      },
+    },
+  });
+  program.methods.init();
+  assert.equal(program.scope.motors.length, 2);
+}
+
+async function testReinitializationResetsFields() {
+  const lifecycle = TelemarkJava.createLifecycle({tickMs: 5});
+  const source = `
+    public class ResetTest extends OpMode {
+      int count = 0;
+      public void init() { count++; }
+      public void loop() { count++; }
+    }
+  `;
+  const first = lifecycle.init(source);
+  assert.equal(first.scope.count, 1);
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 8));
+  lifecycle.stop();
+
+  const second = lifecycle.init(source);
+  assert.equal(second.scope.count, 1);
+  lifecycle.stop();
+}
+
+async function testStopInterruptsLinearSleep() {
+  const events = [];
+  const lifecycle = TelemarkJava.createLifecycle({
+    tickMs: 5,
+    runtime: {
+      addTelemetry(key) {
+        events.push(key);
+      },
+    },
+  });
+  const result = lifecycle.init(`
+    public class SleepTest extends LinearOpMode {
+      public void runOpMode() {
+        waitForStart();
+        telemetry.addData("started", 1);
+        sleep(10000);
+        if (!isStopRequested()) {
+          telemetry.addData("late", 1);
+        }
+      }
+    }
+  `);
+  assert.equal(result.ok, true);
+  lifecycle.start();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  lifecycle.stop();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.deepEqual(events, ['started']);
+  assert.equal(lifecycle.phase, 'stopped');
+}
+
 async function main() {
   testIterativeExecution();
   testArraysAndEnhancedFor();
@@ -212,6 +306,10 @@ async function main() {
   await testLifecycleController();
   await testLinearWaitForStart();
   testDiagnostics();
+  testInfiniteLoopProtection();
+  testQualifiedTypesAndArrayInitializers();
+  await testReinitializationResetsFields();
+  await testStopInterruptsLinearSleep();
   console.log('TelemarkJava tests passed');
 }
 

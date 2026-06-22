@@ -39,13 +39,62 @@
 
 /* ---- NAVBAR ---- */
 .navbar {
-  border-bottom: 2px solid #00BFFF44;
-  background: linear-gradient(90deg, #0d0d1a 0%, #0a1628 100%);
-  box-shadow: 0 2px 20px #00BFFF22;
+  height: 72px;
+  padding: 0 2rem;
+  border-bottom: 1px solid rgba(0, 191, 255, 0.2);
+  background: rgba(7, 7, 15, 0.96);
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+}
+
+.telemark-navbar-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.telemark-navbar-brand,
+.telemark-navbar-account {
+  flex: 0 0 auto;
+}
+
+.telemark-navbar-center {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  gap: 2rem;
+  transform: translateX(-50%);
+}
+
+.telemark-navbar-center .navbar__item {
+  padding: 0;
+}
+
+.telemark-navbar-center .navbar__link {
+  color: rgba(232, 244, 255, 0.55);
+  font-family: var(--telemark-font-label);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.telemark-navbar-center .navbar__link:hover,
+.telemark-navbar-center .navbar__link--active {
+  color: #00bfff;
+}
+
+.telemark-navbar-center .navbar__link svg {
+  display: none;
 }
 
 .navbar__title {
+  font-family: var(--telemark-font-display);
   font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
   background: linear-gradient(90deg, #00BFFF, #39FF14);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -53,17 +102,21 @@
 }
 
 .navbar-auth-link {
-  border: 1px solid #00BFFF44;
-  background: linear-gradient(135deg, rgba(0, 191, 255, 0.16), rgba(57, 255, 20, 0.08));
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
+  border: 1px solid #00bfff;
+  background: transparent;
+  color: #00bfff;
+  font-family: var(--telemark-font-label);
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 0.55rem 0.85rem !important;
+  letter-spacing: 1px;
+  padding: 8px 22px !important;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
 }
 
 .navbar-auth-link:hover {
-  background: linear-gradient(135deg, rgba(0, 191, 255, 0.22), rgba(57, 255, 20, 0.12));
+  background: rgba(0, 191, 255, 0.12);
+  color: #00bfff;
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.25);
 }
 
 /* ---- SIDEBAR ---- */
@@ -156,10 +209,43 @@ code {
 /* ---- FOOTER ---- */
 .footer {
   border-top: 1px solid #00BFFF33;
+  padding: 0.85rem 1.5rem;
+  background: #080810;
 }
 
-.footer__title {
-  color: #00BFFF;
+.footer .container {
+  max-width: none;
+}
+
+.footer__bottom {
+  margin: 0;
+}
+
+.footer__copyright {
+  color: rgba(232, 244, 255, 0.5);
+  font-family: var(--telemark-font-label);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+
+@media (max-width: 996px) {
+  .navbar {
+    height: 64px;
+    padding: 0 1rem;
+  }
+
+  .telemark-navbar-center {
+    display: none;
+  }
+
+  .telemark-navbar-brand {
+    gap: 0.25rem;
+  }
+
+  .navbar__title {
+    font-size: 16px;
+  }
 }
 
 /* ---- SCROLLBAR (nice touch) ---- */

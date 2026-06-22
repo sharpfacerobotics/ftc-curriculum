@@ -16,7 +16,11 @@
     "functions:build": "npm --prefix functions run build",
     "functions:test": "npm --prefix functions test",
     "test:simulator": "node scripts/telemark-java.test.cjs",
+    "test:simulator:audit": "node scripts/audit-simulators.cjs",
+    "test:site": "node scripts/site-regression.test.cjs",
     "check:content": "node scripts/check-content.cjs",
+    "verify:build": "node scripts/verify-build.cjs",
+    "smoke:deployed": "node scripts/smoke-deployed.cjs",
     "firebase:emulators": "npm run functions:build && firebase emulators:start --only functions",
     "deploy:functions": "npm run functions:build && firebase deploy --only functions",
     "deploy:firestore": "firebase deploy --only firestore:rules"

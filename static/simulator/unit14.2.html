@@ -342,8 +342,10 @@ public class ScanForTag extends OpMode {
     scanStart: 0,
     lastEval: null,
     processor: null,
-    warning: ""
+    warning: "",
+    randomRun: 0
   };
+  let staleSnapshot = null;
 
   let sceneRoot;
   let feedGroup;
@@ -363,11 +365,19 @@ public class ScanForTag extends OpMode {
   ensureAprilTagHardware();
 
   setCode(starterCode);
-  setChallenge(
-    "Telemark Unit 14.2 Simulator",
-    "scanForTag - Searching the Detection List",
-    requirements
-  );
+  setChallenge({
+    title: "Telemark Unit 14.2 Simulator",
+    scenario: "Search the current AprilTag detection list for a requested ID with valid metadata.",
+    successMessage: "scanForTag correctly searches the detection list.",
+    faultModes: [
+      {
+        id: "stale-detections",
+        label: "Stale camera results",
+        description: "The camera keeps returning an older detection list after the field view changes."
+      }
+    ],
+    requirements: requirements
+  });
   setBadges([
     { icon: "fa-camera", iconClass: "fa-solid fa-camera", label: "AprilTag", active: true },
     { icon: "fa-list-check", iconClass: "fa-solid fa-list-check", label: "Detection", active: true },
@@ -416,6 +426,8 @@ public class ScanForTag extends OpMode {
     state.foundIndex = -1;
     state.lastSignature = "";
     state.lastEval = null;
+    state.randomRun = 0;
+    staleSnapshot = null;
     tags.forEach(function (tag) {
       tag.active = tag.id === 20 || tag.id === 22;
       tag.metadataValid = true;
@@ -756,11 +768,42 @@ public class ScanForTag extends OpMode {
         }
       };
     });
+    if (window.isFaultActive && isFaultActive("stale-detections")) {
+      if (!staleSnapshot) {
+        staleSnapshot = detections.map(function (detection) {
+          return {
+            id: detection.id,
+            metadata: detection.metadata,
+            ftcPose: Object.assign({}, detection.ftcPose)
+          };
+        });
+      }
+      const stale = staleSnapshot.map(function (detection) {
+        return {
+          id: detection.id,
+          metadata: detection.metadata,
+          ftcPose: Object.assign({}, detection.ftcPose)
+        };
+      });
+      stale.size = function () {
+        return stale.length;
+      };
+      return stale;
+    }
+
+    staleSnapshot = null;
     detections.size = function () {
       return detections.length;
     };
     return detections;
   }
+
+  window.onFaultModeChange = function() {
+    staleSnapshot = null;
+    state.lastSignature = "";
+    emitDetections();
+    updatePanel();
+  };
 
   function emitDetections() {
     const detections = getAprilTagDetections();
@@ -1093,16 +1136,20 @@ public class ScanForTag extends OpMode {
         state.targetId = 26;
       }
     } else if (name === "random") {
+      state.randomRun++;
+      const random = typeof createSeededRandom === "function"
+        ? createSeededRandom(14200 + state.randomRun)
+        : Math.random;
       let anyActive = false;
       tags.forEach(function (tag) {
-        tag.active = Math.random() > 0.48;
-        tag.metadataValid = Math.random() > 0.28;
+        tag.active = random() > 0.48;
+        tag.metadataValid = random() > 0.28;
         anyActive = anyActive || tag.active;
       });
       if (!anyActive) {
-        setTag(tags[Math.floor(Math.random() * tags.length)].id, true, true);
+        setTag(tags[Math.floor(random() * tags.length)].id, true, true);
       }
-      state.targetId = tags[Math.floor(Math.random() * tags.length)].id;
+      state.targetId = tags[Math.floor(random() * tags.length)].id;
     } else if (name === "late") {
       state.targetId = 29;
       setTag(20, true, true);

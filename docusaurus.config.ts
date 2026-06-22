@@ -1,8 +1,28 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+
+function localCommit(): string {
+  try {
+    const gitDirectory = path.join(process.cwd(), '.git');
+    const head = fs.readFileSync(path.join(gitDirectory, 'HEAD'), 'utf8').trim();
+    if (!head.startsWith('ref: ')) return head;
+    return fs.readFileSync(
+      path.join(gitDirectory, head.slice('ref: '.length)),
+      'utf8',
+    ).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+const buildCommit = process.env.TELEMARK_BUILD_COMMIT
+  ?? process.env.GITHUB_SHA
+  ?? localCommit();
 
 const config: Config = {
   title: 'Telemark | Sharp Face Robotics',
@@ -25,7 +45,11 @@ const config: Config = {
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
 
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'throw',
+
+  customFields: {
+    buildCommit,
+  },
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -72,6 +96,10 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    './plugins/telemark-search',
+  ],
+
   themeConfig: {
     colorMode: {
       defaultMode: 'dark',
@@ -79,12 +107,32 @@ const config: Config = {
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'Telemark | Team 30450',
+      title: 'Telemark',
       logo: {
         alt: 'Telemark Logo',
-        src: 'img/telemark.png', // we'll place your logo here next
+        src: 'img/telemark.png',
       },
       items: [
+        {
+          to: '/curriculum',
+          label: 'Curriculum',
+          position: 'left',
+        },
+        {
+          to: '/simulator',
+          label: 'Simulator',
+          position: 'left',
+        },
+        {
+          to: '/search',
+          label: 'Search',
+          position: 'left',
+        },
+        {
+          href: 'https://github.com/sharpfacerobotics/ftc-curriculum',
+          label: 'GitHub',
+          position: 'left',
+        },
         {
           to: '/dashboard',
           label: 'Dashboard',
@@ -96,7 +144,8 @@ const config: Config = {
     },
     footer: {
       style: 'dark',
-      copyright: `Copyright © ${new Date().getFullYear()} EHS Robotics. Built with Docusaurus.`,
+      copyright:
+        '© 2026 Telemark. Built by FTC Team Sharp Face Robotics #30450. Built with Docusaurus. Not affiliated with FIRST®',
     },
   } satisfies Preset.ThemeConfig,
 };

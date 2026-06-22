@@ -783,6 +783,24 @@ public class AutoLift extends LinearOpMode {
                 return;
             }
 
+            if (window.isFaultActive && isFaultActive("lift-stall")) {
+                sim.busy = true;
+                setWarning(
+                    "Lift stalled: power is applied, but encoder position is not changing",
+                    "warn"
+                );
+                if (window.addHint) {
+                    addHint(
+                        '<i class="fa-solid fa-gears"></i> The encoder is stationary while the motor is powered. Check for a jam, disconnected mechanism, or current limit.',
+                        "info"
+                    );
+                }
+                updatePanel();
+                updateLiftVisual();
+                pushLiftTelemetry("Stalled");
+                return;
+            }
+
             const error =
                 sim.targetTicks -
                 sim.currentTicks;
@@ -1065,11 +1083,19 @@ public class AutoLift extends LinearOpMode {
 
         setCode(starterCode);
 
-        setChallenge(
-            "Autonomous Lift to Position",
-            "Use RUN_TO_POSITION mode and motor encoders to raise the lift to 1200 ticks using a LinearOpMode.",
-            requirements
-        );
+        setChallenge({
+            title: "Autonomous Lift to Position",
+            scenario: "Use RUN_TO_POSITION mode and motor encoders to raise the lift to 1200 ticks using a LinearOpMode.",
+            successMessage: "Lift reached 1200 ticks and stopped.",
+            faultModes: [
+                {
+                    id: "lift-stall",
+                    label: "Jammed lift",
+                    description: "The motor receives power, but the mechanism is physically stalled and the encoder does not advance."
+                }
+            ],
+            requirements: requirements
+        });
 
         setHeader(
             "Telemark Unit 10.3 Simulator",

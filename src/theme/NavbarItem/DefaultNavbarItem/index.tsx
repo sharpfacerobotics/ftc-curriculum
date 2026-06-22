@@ -13,12 +13,15 @@ export default function DefaultNavbarItem({
   const isAuthItem = props.className?.split(/\s+/).includes('navbar-auth-link');
   const Comp = mobile ? DefaultNavbarItemMobile : DefaultNavbarItemDesktop;
 
+  if (isAuthItem && loading) {
+    return null;
+  }
+
   const resolvedProps = isAuthItem
     ? {
         ...props,
         to: user ? '/dashboard' : '/login',
         label: user ? 'Dashboard' : 'Sign In',
-        'aria-busy': loading || undefined,
       }
     : props;
 

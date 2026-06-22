@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import Link from '@docusaurus/Link';
 import { useHistory } from '@docusaurus/router';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
@@ -11,6 +11,7 @@ import { trackEvent } from '../telemark/analytics';
 import { signInWithGoogle } from '../telemark/googleAuth';
 import { isProtectedUnit } from '../telemark/accessPolicy';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
+import SimulatorWorkflow from '../components/SimulatorWorkflow';
 import {
   CURRICULUM_LESSON_COUNT,
   CURRICULUM_UNIT_COUNT,
@@ -96,42 +97,10 @@ function Divider(): React.JSX.Element {
   );
 }
 
-/** Counts up from 0 to a numeric target once the element enters the viewport. */
-function AnimatedStat({ num, label }: { num: string; label: string }): React.JSX.Element {
-  const isNumeric = !isNaN(parseInt(num, 10));
-  const target    = isNumeric ? parseInt(num, 10) : 0;
-  const suffix    = isNumeric ? num.replace(String(target), '') : '';
-
-  const [display, setDisplay] = useState<string>(isNumeric ? '0' + suffix : num);
-  const ref                   = useRef<HTMLDivElement>(null);
-  const animated              = useRef(false);
-
-  useEffect(() => {
-    if (!isNumeric) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !animated.current) {
-          animated.current = true;
-          const duration = 900;
-          const start    = performance.now();
-          const step = (now: number) => {
-            const progress = Math.min((now - start) / duration, 1);
-            const ease     = 1 - Math.pow(1 - progress, 3);
-            setDisplay(Math.round(ease * target) + suffix);
-            if (progress < 1) requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
-        }
-      },
-      { threshold: 0.5 },
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [isNumeric, target, suffix]);
-
+function Stat({ num, label }: { num: string; label: string }): React.JSX.Element {
   return (
-    <div className={styles.statItem} ref={ref}>
-      <span className={styles.statNum}>{display}</span>
+    <div className={styles.statItem}>
+      <span className={styles.statNum}>{num}</span>
       <span className={styles.statLabel}>{label}</span>
     </div>
   );
@@ -178,7 +147,7 @@ function StatsBar(): React.JSX.Element {
   return (
     <div className={styles.statsBar}>
       {STATS.map((s) => (
-        <AnimatedStat key={s.label} num={s.num} label={s.label} />
+        <Stat key={s.label} num={s.num} label={s.label} />
       ))}
     </div>
   );
@@ -186,8 +155,10 @@ function StatsBar(): React.JSX.Element {
 
 function CurriculumSection({
   signedIn,
+  authLoading,
 }: {
   signedIn: boolean;
+  authLoading: boolean;
 }): React.JSX.Element {
   const history = useHistory();
   const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
@@ -228,29 +199,35 @@ function CurriculumSection({
       <div className={styles.curriculumGrid}>
         {CURRICULUM_UNITS.map((unit) => {
           const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
-          const locked = !signedIn && isProtectedUnit(unitNumber);
+          const protectedUnit = isProtectedUnit(unitNumber);
+          const checking = authLoading && protectedUnit;
+          const locked = !authLoading && !signedIn && protectedUnit;
           const cardContent = (
             <>
             <div className={styles.unitNum}>{unit.label}</div>
             <div className={styles.unitTitle}>{unit.title}</div>
             <div className={styles.unitDesc}>{unit.desc}</div>
-            <span className={`${styles.unitTag} ${locked ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
+            <span className={`${styles.unitTag} ${(locked || checking) ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
               {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
               {' '}
-              {locked ? 'Account required' : unit.tier}
+              {checking ? 'Checking access' : locked ? 'Account required' : unit.tier}
             </span>
             </>
           );
 
-          if (locked) {
+          if (locked || checking) {
             return (
               <button
                 type="button"
                 key={unit.id}
                 className={`${styles.unitCard} ${styles.unitCardLocked}`}
-                onClick={() => unlockUnit(unit)}
-                disabled={unlockingUnit === unit.slug}
-                aria-label={`Sign in to unlock ${unit.label}: ${unit.title}`}
+                onClick={() => {
+                  if (!checking) unlockUnit(unit);
+                }}
+                disabled={checking || unlockingUnit === unit.slug}
+                aria-label={checking
+                  ? `Checking access to ${unit.label}: ${unit.title}`
+                  : `Sign in to unlock ${unit.label}: ${unit.title}`}
               >
                 {cardContent}
               </button>
@@ -301,7 +278,17 @@ function SimulatorSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>// simulator.live[]</p>
       <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
       <p className={styles.sectionDesc}>
-        Test lesson code against simulated FTC hardware before using a robot.
+        Write lesson code, run the FTC lifecycle, and debug the result with
+        telemetry, requirement checks, and simulated hardware.
+      </p>
+      <SimulatorWorkflow
+        className={styles.simulatorWorkflow}
+        itemClassName={styles.simulatorStep}
+        taskClassName={styles.simulatorTasks}
+      />
+      <p className={styles.simulatorLimit}>
+        The browser can test code and simulated behavior. A physical robot is
+        recommended to verify wiring, motor direction, friction, and tuning.
       </p>
       <AuthenticatedSimulatorNavigator
         simulatorId="homepage_navigator"
@@ -338,7 +325,8 @@ function CtaSection(): React.JSX.Element {
 
 export default function Home(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const buildCommit = String(siteConfig.customFields?.buildCommit ?? 'unknown');
 
   return (
     <>
@@ -348,6 +336,7 @@ export default function Home(): React.JSX.Element {
           name="description"
           content="Telemark is a student-built FTC Java curriculum with browser simulators, from setup and fundamentals through hardware, vision, and autonomous."
         />
+        <meta name="telemark-build-commit" content={buildCommit} />
       </Head>
     
       {/* Google Fonts — non-blocking preconnect */}
@@ -375,6 +364,7 @@ export default function Home(): React.JSX.Element {
           <ul className={styles.navLinks}>
             <li><Link to="/curriculum">Curriculum</Link></li>
             <li><Link to="/simulator">Simulator</Link></li>
+            <li><Link to="/search">Search</Link></li>
             <li>
               <a
                 href="https://github.com/sharpfacerobotics/ftc-curriculum"
@@ -386,7 +376,9 @@ export default function Home(): React.JSX.Element {
             </li>
           </ul>
 
-          {user ? (
+          {loading ? (
+            <div className={styles.navAuthPlaceholder} aria-hidden="true" />
+          ) : user ? (
             <div className={styles.navUser}>
               <Link to="/dashboard" className={styles.navCta}>
                 Dashboard
@@ -409,7 +401,7 @@ export default function Home(): React.JSX.Element {
         <HeroSection />
         <StatsBar />
         <Divider />
-        <CurriculumSection signedIn={Boolean(user)} />
+        <CurriculumSection signedIn={Boolean(user)} authLoading={loading} />
         <Divider />
         <SimulatorSection />
         <Divider />
@@ -418,8 +410,10 @@ export default function Home(): React.JSX.Element {
 
         {/* ── Footer ── */}
         <footer className={styles.footer}>
-          <span>TEAM 30450 · TELEMARK · OPEN SOURCE</span>
-          <span className={styles.footerRight}>BUILT WITH DOCUSAURUS V3</span>
+          <span>
+            © 2026 Telemark. Built by FTC Team Sharp Face Robotics #30450.
+            {' '}Built with Docusaurus. Not affiliated with FIRST®
+          </span>
         </footer>
       </main>
     </>

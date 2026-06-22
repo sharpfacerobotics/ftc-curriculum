@@ -1,0 +1,37 @@
+.guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 1rem 0 1.5rem;
+  border: 1px solid rgba(0, 191, 255, 0.18);
+  background: rgba(0, 191, 255, 0.12);
+}
+
+.step {
+  padding: 0.9rem 1rem;
+  background: #0d0d1e;
+  color: rgba(232, 244, 255, 0.68);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.step strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: #e8f4ff;
+  font-family: var(--telemark-font-display);
+  font-size: 1rem;
+}
+
+.number {
+  margin-right: 0.35rem;
+  color: #39ff14;
+  font-family: var(--telemark-font-label);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 700px) {
+  .guide {
+    grid-template-columns: 1fr;
+  }
+}

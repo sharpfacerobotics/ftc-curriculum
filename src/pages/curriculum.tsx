@@ -14,7 +14,7 @@ import {
 } from '../telemark/curriculum';
 
 export default function CurriculumPage(): React.JSX.Element {
-  const {user} = useAuth();
+  const {user, loading} = useAuth();
   const history = useHistory();
   const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
   const [unlockError, setUnlockError] = useState<string | null>(null);
@@ -65,7 +65,9 @@ export default function CurriculumPage(): React.JSX.Element {
           <div className={pageStyles.curriculumGrid}>
             {CURRICULUM_UNITS.map((unit) => {
               const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
-              const locked = !user && isProtectedUnit(unitNumber);
+              const protectedUnit = isProtectedUnit(unitNumber);
+              const checking = loading && protectedUnit;
+              const locked = !loading && !user && protectedUnit;
               const cardContent = (
                 <>
                 <div className={pageStyles.unitNum}>{unit.label}</div>
@@ -73,23 +75,27 @@ export default function CurriculumPage(): React.JSX.Element {
                 <div className={pageStyles.unitDesc}>
                   {unit.desc}
                 </div>
-                <span className={`${pageStyles.unitTag} ${locked ? pageStyles.tagLocked : pageStyles.tagBasic}`}>
+                <span className={`${pageStyles.unitTag} ${(locked || checking) ? pageStyles.tagLocked : pageStyles.tagBasic}`}>
                   {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
                   {' '}
-                  {locked ? 'Account required' : unit.tier}
+                  {checking ? 'Checking access' : locked ? 'Account required' : unit.tier}
                 </span>
                 </>
               );
 
-              if (locked) {
+              if (locked || checking) {
                 return (
                   <button
                     type="button"
                     key={unit.id}
                     className={`${pageStyles.unitCard} ${pageStyles.unitCardLocked}`}
-                    onClick={() => unlockUnit(unit)}
-                    disabled={unlockingUnit === unit.slug}
-                    aria-label={`Sign in to unlock ${unit.label}: ${unit.title}`}
+                    onClick={() => {
+                      if (!checking) unlockUnit(unit);
+                    }}
+                    disabled={checking || unlockingUnit === unit.slug}
+                    aria-label={checking
+                      ? `Checking access to ${unit.label}: ${unit.title}`
+                      : `Sign in to unlock ${unit.label}: ${unit.title}`}
                   >
                     {cardContent}
                   </button>
@@ -109,9 +115,14 @@ export default function CurriculumPage(): React.JSX.Element {
             <Link to={CURRICULUM_UNITS[0].startPath} className={pageStyles.btnPrimary}>
               Begin Unit 1
             </Link>
-            <Link to={user ? '/dashboard' : '/login'} className={pageStyles.btnSecondary}>
-              {user ? 'Open Dashboard' : 'Sign In'}
+            <Link to="/docs/learning-paths" className={pageStyles.btnSecondary}>
+              Learning Paths
             </Link>
+            {!loading && (
+              <Link to={user ? '/dashboard' : '/login'} className={pageStyles.btnSecondary}>
+                {user ? 'Open Dashboard' : 'Sign In'}
+              </Link>
+            )}
           </div>
         </section>
       </main>

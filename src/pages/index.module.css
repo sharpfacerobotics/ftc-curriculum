@@ -151,6 +151,8 @@
   justify-content: center;
   text-align: center;
   padding: 7rem 2rem 4rem;
+  width: min(1100px, 100%);
+  margin: 0 auto;
 }
 
 .heroBadge {
@@ -271,6 +273,11 @@
   gap: 10px;
 }
 
+.navAuthPlaceholder {
+  width: 180px;
+  height: 34px;
+}
+
 .navSignOut {
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
@@ -348,7 +355,11 @@
   text-align: center;
   border-right: 1px solid rgba(0, 191, 255, 0.14);
   flex: 1;
+  animation: statReveal 0.65s ease both;
 }
+.statItem:nth-child(2) { animation-delay: 0.08s; }
+.statItem:nth-child(3) { animation-delay: 0.16s; }
+.statItem:nth-child(4) { animation-delay: 0.24s; }
 .statItem:last-child { border-right: none; }
 
 .statNum {
@@ -433,6 +444,64 @@
   margin: -1.75rem 0 0.75rem;
 }
 
+.simulatorWorkflow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 1rem;
+  border: 1px solid rgba(0, 191, 255, 0.16);
+  background: rgba(0, 191, 255, 0.12);
+}
+
+.simulatorStep {
+  display: flex;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: #0d0d1e;
+}
+
+.simulatorStep > span {
+  color: #39ff14;
+  font-family: var(--telemark-font-label);
+  font-size: 0.8rem;
+}
+
+.simulatorStep strong {
+  display: block;
+  color: #e8f4ff;
+  font-family: var(--telemark-font-display);
+  font-size: 1rem;
+}
+
+.simulatorStep p {
+  margin: 0.3rem 0 0;
+  color: rgba(232, 244, 255, 0.48);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.simulatorTasks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.simulatorTasks span {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  background: rgba(57, 255, 20, 0.04);
+  color: rgba(232, 244, 255, 0.65);
+  font-size: 0.75rem;
+}
+
+.simulatorLimit {
+  margin: -1rem 0 2rem;
+  color: rgba(232, 244, 255, 0.48);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
 .simulatorToolbarButton {
   display: inline-flex;
   align-items: center;
@@ -513,7 +582,8 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
-  font: inherit;
+  font-family: inherit;
+  font-size: inherit;
   transition: background 0.2s;
 }
 
@@ -680,18 +750,16 @@
 /* ── Footer ──────────────────────────────────────────────── */
 .footer {
   border-top: 1px solid rgba(0, 191, 255, 0.14);
-  padding: 2rem;
+  padding: 0.9rem 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px;
   letter-spacing: 1px;
   color: rgba(232, 244, 255, 0.28);
-  text-transform: uppercase;
+  text-align: center;
 }
-
-.footerRight { color: #39FF14; }
 
 /* ── Keyframe animations ──────────────────────────────────── */
 @keyframes fadeInDown {
@@ -704,6 +772,11 @@
   to   { opacity: 1; transform: translateY(0);    }
 }
 
+@keyframes statReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 768px) {
   .navLinks         { display: none; }
@@ -713,9 +786,27 @@
   .statItem         { flex: 1 1 50%; border-right: none; border-bottom: 1px solid rgba(0,191,255,0.14); }
   .ctaBox           { padding: 2.5rem 1.5rem; }
   .footer           { flex-direction: column; gap: 0.5rem; text-align: center; }
+  .simulatorWorkflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .navAuthPlaceholder { width: 90px; }
 }
 
 @media (max-width: 480px) {
   .curriculumGrid   { grid-template-columns: 1fr; }
   .statItem         { flex: 1 1 100%; }
+  .simulatorWorkflow { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroBadge,
+  .heroTitle,
+  .heroSub,
+  .terminalLine,
+  .heroActions,
+  .statsBar,
+  .statItem,
+  .titleLine2,
+  .badgeDot,
+  .cursor {
+    animation: none;
+  }
 }
