@@ -587,6 +587,19 @@
         continue;
       }
 
+      if (
+        token.type === "identifier"
+        && /^[A-Z]\w*$/.test(token.value)
+        && rawTokens[i + 1]?.value === "."
+        && rawTokens[i + 2]?.type === "identifier"
+        && /^[A-Z]\w*$/.test(rawTokens[i + 2].value)
+        && rawTokens[i + 3]?.type === "identifier"
+      ) {
+        output.push("let");
+        i += 2;
+        continue;
+      }
+
       if (token.value === "{") {
         const previous = rawTokens[i - 1];
         const guard = previous?.value === ")" ? loopGuards.get(i - 1) : null;
@@ -667,9 +680,27 @@
 
       if (token.value === "new" && rawTokens[i + 1]?.type === "identifier") {
         const typeName = rawTokens[i + 1].value;
+        if (
+          rawTokens[i + 2]?.value === "."
+          && rawTokens[i + 3]?.type === "identifier"
+        ) {
+          output.push("new", `${typeName}.${rawTokens[i + 3].value}`);
+          i += 3;
+          continue;
+        }
         if (rawTokens[i + 2]?.value === "[") {
           const close = matchingToken(rawTokens, i + 2);
           const size = rawTokens.slice(i + 3, close);
+          if (
+            size.length === 0
+            && rawTokens[close + 1]?.value === "{"
+          ) {
+            const initializerClose = matchingToken(rawTokens, close + 1);
+            const initializer = rawTokens.slice(close + 2, initializerClose);
+            output.push(`[${emitExpression(initializer, options)}]`);
+            i = initializerClose;
+            continue;
+          }
           output.push(`new Array(${emitExpression(size, options)})`);
           i = close;
           continue;

@@ -1198,9 +1198,31 @@ function updateUI(){
 }
 
 function installMocks(){
+    let noiseStep = 0;
+    const noisePattern = [-1.2, 0.8, -0.4, 1.1, -0.7, 0.5];
 
     window.getDistance =
-        () => sim.distance;
+        () => {
+            if(
+                window.isFaultActive &&
+                isFaultActive("threshold-noise")
+            ){
+                const noise =
+                    noisePattern[
+                        noiseStep %
+                        noisePattern.length
+                    ];
+
+                noiseStep++;
+
+                return Math.max(
+                    0,
+                    sim.distance + noise
+                );
+            }
+
+            return sim.distance;
+        };
 
     window.isTouchPressed =
         () => sim.limitPressed;
@@ -1304,10 +1326,18 @@ function(){
 
     setCode(starterCode);
 
-    setChallenge(
-        "Smart Intake with Distance Sensor and Touch Sensor Gate",
-        "Run the intake only when a game element is close AND storage is not full.",
-        [
+    setChallenge({
+        title: "Smart Intake with Distance Sensor and Touch Sensor Gate",
+        scenario: "Run the intake only when a game element is close AND storage is not full.",
+        successMessage: "The intake responds safely to both sensors.",
+        faultModes: [
+            {
+                id: "threshold-noise",
+                label: "Noisy distance threshold",
+                description: "A repeatable measurement pattern moves the reading above and below the true distance, exposing chatter near 10 cm."
+            }
+        ],
+        requirements: [
             "Read distance sensor",
             "Read touch sensor",
             "Single gate if/else",
@@ -1317,7 +1347,7 @@ function(){
             "Use telemetry",
             "Control intake motor"
         ]
-    );
+    });
 
     setHeader(
         "Telemark Unit 11.5 Simulator",
