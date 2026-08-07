@@ -12,6 +12,7 @@ const rootTheme = read('src/theme/Root.tsx');
 const navbarItem = read('src/theme/NavbarItem/DefaultNavbarItem/index.tsx');
 const homepage = read('src/pages/index.tsx');
 const searchPlugin = read('plugins/telemark-search/index.js');
+const deployedSmoke = read('scripts/smoke-deployed.cjs');
 const config = read('docusaurus.config.ts');
 const customCss = read('src/css/custom.css');
 
@@ -28,6 +29,8 @@ assert.match(homepage, /CURRICULUM_LESSON_COUNT/);
 assert.match(searchPlugin, /const isProtected = unit !== null/);
 assert.match(searchPlugin, /excerpt: isProtected \? '' : cleanExcerpt/);
 assert.match(searchPlugin, /actions\.setGlobalData\(content\)/);
+assert.match(deployedSmoke, /deployedMeta\.commit !== expectedCommit/);
+assert.match(deployedSmoke, /cacheKey = `\$\{expectedCommit \|\| Date\.now\(\)\}-\$\{attempt\}`/);
 assert.match(config, /title: 'Telemark'/);
 assert.match(config, /label: 'GitHub'/);
 assert.match(

@@ -3,23 +3,28 @@ const assert = require('node:assert/strict');
 const baseUrl = (process.env.TELEMARK_DEPLOY_URL
   || 'https://sharpfacerobotics.github.io/telemark').replace(/\/$/, '');
 const expectedCommit = process.env.TELEMARK_BUILD_COMMIT || process.env.GITHUB_SHA;
+const retryDelayMs = Number.parseInt(
+  process.env.TELEMARK_SMOKE_RETRY_DELAY_MS || '15000',
+  10,
+);
 
-async function fetchWithRetry(route, attempts = 8) {
+async function fetchWithRetry(route, attempts = 8, validate) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       const separator = route.includes('?') ? '&' : '?';
-      const cacheKey = expectedCommit || Date.now();
+      const cacheKey = `${expectedCommit || Date.now()}-${attempt}`;
       const response = await fetch(
         `${baseUrl}${route}${separator}telemark_smoke=${cacheKey}`,
         {cache: 'no-store'},
       );
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      if (validate) await validate(response.clone());
       return response;
     } catch (error) {
       lastError = error;
       if (attempt < attempts) {
-        await new Promise((resolve) => setTimeout(resolve, 15000));
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
       }
     }
   }
@@ -27,8 +32,18 @@ async function fetchWithRetry(route, attempts = 8) {
 }
 
 async function main() {
-  const meta = await fetchWithRetry('/build-meta.json').then((response) => response.json());
-  if (expectedCommit) assert.equal(meta.commit, expectedCommit);
+  const meta = await fetchWithRetry(
+    '/build-meta.json',
+    12,
+    async (response) => {
+      const deployedMeta = await response.json();
+      if (expectedCommit && deployedMeta.commit !== expectedCommit) {
+        throw new Error(
+          `Deployment still serves ${deployedMeta.commit}; expected ${expectedCommit}`,
+        );
+      }
+    },
+  ).then((response) => response.json());
 
   const homepage = await fetchWithRetry('/').then((response) => response.text());
   assert.match(homepage, />15</);
