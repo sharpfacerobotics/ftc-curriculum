@@ -1,8 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const FREE_UNIT_MAX = 5;
-
 function walk(directory) {
   return fs.readdirSync(directory, {withFileTypes: true}).flatMap((entry) => {
     const fullPath = path.join(directory, entry.name);
@@ -59,7 +57,7 @@ module.exports = function telemarkSearchPlugin(context) {
         .map((file) => {
           const source = fs.readFileSync(file, 'utf8');
           const unit = unitNumberFor(file);
-          const isProtected = unit !== null && unit > FREE_UNIT_MAX;
+          const isProtected = unit !== null;
           const title = readFrontMatter(source, 'title')
             || source.match(/^#\s+(.+)$/m)?.[1]?.trim()
             || path.basename(file, '.mdx');

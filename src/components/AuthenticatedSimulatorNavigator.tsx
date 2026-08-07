@@ -14,6 +14,7 @@ interface AuthenticatedSimulatorNavigatorProps {
   wrapperClassName: string;
   toolbarClassName: string;
   toolbarButtonClassName: string;
+  allowHomepageDemos?: boolean;
 }
 
 export default function AuthenticatedSimulatorNavigator({
@@ -21,6 +22,7 @@ export default function AuthenticatedSimulatorNavigator({
   wrapperClassName,
   toolbarClassName,
   toolbarButtonClassName,
+  allowHomepageDemos = false,
 }: AuthenticatedSimulatorNavigatorProps): React.JSX.Element {
   const {user, loading} = useAuth();
   const shellRef = useRef<HTMLDivElement>(null);
@@ -30,8 +32,14 @@ export default function AuthenticatedSimulatorNavigator({
   const navigatorUrl = useBaseUrl('/simulator/navigator.html');
   const authenticated = Boolean(user);
   const iframeSrc = useMemo(
-    () => `${navigatorUrl}?authenticated=${authenticated ? '1' : '0'}`,
-    [authenticated, navigatorUrl],
+    () => {
+      const params = new URLSearchParams({
+        authenticated: authenticated ? '1' : '0',
+      });
+      if (allowHomepageDemos) params.set('homepageDemos', '1');
+      return `${navigatorUrl}?${params.toString()}`;
+    },
+    [allowHomepageDemos, authenticated, navigatorUrl],
   );
 
   function sendAuthState() {

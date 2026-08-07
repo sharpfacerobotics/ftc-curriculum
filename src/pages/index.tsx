@@ -295,6 +295,7 @@ function SimulatorSection(): React.JSX.Element {
         wrapperClassName={styles.simulatorWrapper}
         toolbarClassName={styles.simulatorToolbar}
         toolbarButtonClassName={styles.simulatorToolbarButton}
+        allowHomepageDemos
       />
     </section>
   );

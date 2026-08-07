@@ -484,10 +484,13 @@
   </div>
 
   <script>
-    const FREE_UNIT_MAX = 5;
+    const HOMEPAGE_DEMO_UNIT_MIN = 2;
+    const HOMEPAGE_DEMO_UNIT_MAX = 5;
     const AUTH_REQUEST = "telemark:simulator-auth-request";
     const AUTH_STATE = "telemark:simulator-auth-state";
-    let authenticated = new URLSearchParams(window.location.search).get("authenticated") === "1";
+    const query = new URLSearchParams(window.location.search);
+    const homepageDemosEnabled = query.get("homepageDemos") === "1";
+    let authenticated = query.get("authenticated") === "1";
 
     const units = [
       { unit: 1, title: "Environment Setup", desc: "Install tools and verify the FTC SDK build.", type: "setup", href: "../docs/unit-01/prerequisites", challenges: [] },
@@ -620,13 +623,18 @@
     let lastChooserView = "unit";
 
     function isProtectedUnit(unitNumber) {
-      return unitNumber > FREE_UNIT_MAX;
+      const homepageDemo = homepageDemosEnabled
+        && unitNumber >= HOMEPAGE_DEMO_UNIT_MIN
+        && unitNumber <= HOMEPAGE_DEMO_UNIT_MAX;
+      return !homepageDemo;
     }
 
     function updateAuthStatus() {
       authStatus.innerHTML = authenticated
         ? '<i class="fa-solid fa-unlock" aria-hidden="true"></i> All simulator units unlocked'
-        : '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Units 1–5 free trial';
+        : homepageDemosEnabled
+          ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Units 2–5 homepage demos available'
+          : '<i class="fa-solid fa-lock" aria-hidden="true"></i> Google sign-in required';
     }
 
     function requestUnlock(unit, destination) {

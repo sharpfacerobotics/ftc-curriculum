@@ -1,5 +1,3 @@
-export const FREE_UNIT_MAX = 5;
-
 export const SIMULATOR_AUTH_REQUEST = 'telemark:simulator-auth-request';
 export const SIMULATOR_AUTH_STATE = 'telemark:simulator-auth-state';
 
@@ -15,7 +13,7 @@ export interface SimulatorAuthStateMessage {
 }
 
 export function isProtectedUnit(unitNumber: number): boolean {
-  return unitNumber > FREE_UNIT_MAX;
+  return Number.isInteger(unitNumber) && unitNumber >= 1;
 }
 
 export function getUnitNumber(value: string | null | undefined): number | null {

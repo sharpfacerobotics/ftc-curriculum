@@ -5,43 +5,57 @@ import {getUnitBySlug} from '@site/src/telemark/curriculum';
 import styles from './ContentLock.module.css';
 
 interface ContentLockProps {
-  unitNumber: number;
+  unitNumber?: number;
   loading?: boolean;
+  contentType?: 'lesson' | 'simulator' | 'site';
 }
 
 export default function ContentLock({
   unitNumber,
   loading = false,
+  contentType = 'lesson',
 }: ContentLockProps): React.JSX.Element {
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const viewTrackedRef = useRef(false);
-  const unitSlug = `unit-${String(unitNumber).padStart(2, '0')}`;
-  const unit = getUnitBySlug(unitSlug);
+  const unitSlug = unitNumber === undefined
+    ? null
+    : `unit-${String(unitNumber).padStart(2, '0')}`;
+  const unit = unitSlug ? getUnitBySlug(unitSlug) : undefined;
+  const surface = contentType === 'simulator'
+    ? 'simulator_page'
+    : contentType === 'site'
+      ? 'protected_page'
+      : 'curriculum_document';
+  const analyticsParameters = unitNumber === undefined
+    ? {surface}
+    : {unit_number: unitNumber, surface};
+
+  const unlockedTitle = contentType === 'simulator'
+    ? 'Sign in to use the Telemark Simulator'
+    : contentType === 'site'
+      ? 'Sign in to access Telemark'
+      : `Sign in to unlock ${unit?.label ?? `Unit ${unitNumber}`}`;
+  const unlockedDescription = contentType === 'simulator'
+    ? 'The complete simulator library is included with your free Telemark account. Sign in to write, run, and debug FTC Java in your browser.'
+    : contentType === 'site'
+      ? 'This page is included with your free Telemark account. Sign in with Google to continue.'
+      : `${unit?.title ?? 'This curriculum unit'} is included with your free Telemark account. Sign in to continue and save lesson progress across devices.`;
 
   useEffect(() => {
     if (loading || viewTrackedRef.current) return;
     viewTrackedRef.current = true;
-    trackEvent('content_lock_view', {
-      unit_number: unitNumber,
-      surface: 'curriculum_document',
-    });
-  }, [loading, unitNumber]);
+    trackEvent('content_lock_view', analyticsParameters);
+  }, [loading, unitNumber, surface]);
 
   async function handleSignIn() {
     setSigningIn(true);
     setError(null);
-    trackEvent('content_unlock_attempt', {
-      unit_number: unitNumber,
-      surface: 'curriculum_document',
-    });
+    trackEvent('content_unlock_attempt', analyticsParameters);
 
     try {
       await signInWithGoogle();
-      trackEvent('content_unlock_success', {
-        unit_number: unitNumber,
-        surface: 'curriculum_document',
-      });
+      trackEvent('content_unlock_success', analyticsParameters);
     } catch (signInError) {
       console.error('Telemark content unlock failed:', signInError);
       setError('Sign-in did not finish. Please try again.');
@@ -68,25 +82,29 @@ export default function ContentLock({
       </div>
 
       <p className={styles.eyebrow}>
-        {loading ? '// checking.access' : `// ${unitSlug}.locked`}
+        {loading
+          ? '// checking.access'
+          : unitSlug
+            ? `// ${unitSlug}.locked`
+            : `// ${contentType}.locked`}
       </p>
       <h1 className={styles.title}>
         {loading
           ? 'Checking your Telemark access'
-          : `Sign in to unlock ${unit?.label ?? `Unit ${unitNumber}`}`}
+          : unlockedTitle}
       </h1>
       <p className={styles.description}>
         {loading
-          ? 'Your lesson will open automatically when the access check is complete.'
-          : `${unit?.title ?? 'This curriculum unit'} is included with a free Telemark account. Sign in to continue and save lesson progress across devices.`}
+          ? 'This page will open automatically when the access check is complete.'
+          : unlockedDescription}
       </p>
 
       {!loading && (
         <>
           <div className={styles.benefits}>
-            <span>Unlock Units 6–15</span>
+            <span>Unlock all 15 units</span>
+            <span>Use every simulator</span>
             <span>Track completed lessons</span>
-            <span>Resume from your dashboard</span>
           </div>
 
           <button
@@ -95,12 +113,12 @@ export default function ContentLock({
             onClick={handleSignIn}
             disabled={signingIn}
           >
-            {signingIn ? 'Signing in…' : 'Sign in with Google to Unlock'}
+            {signingIn ? 'Signing in…' : 'Sign in with Google to Continue'}
           </button>
 
           {error && <p className={styles.error}>{error}</p>}
           <p className={styles.trialNote}>
-            Units 1–5 and their simulators remain available without an account.
+            The home page and its demo simulators remain available without an account.
           </p>
         </>
       )}
