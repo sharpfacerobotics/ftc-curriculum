@@ -435,6 +435,116 @@
     return tokens[next]?.type === "identifier";
   }
 
+  function statementEnd(tokens, start) {
+    const token = tokens[start];
+    if (!token) return start;
+
+    if (token.value === "{") return matchingToken(tokens, start) + 1;
+
+    if (token.value === "if") {
+      const conditionOpen = start + 1;
+      const conditionClose = matchingToken(tokens, conditionOpen);
+      let end = statementEnd(tokens, conditionClose + 1);
+      if (tokens[end]?.value === "else") end = statementEnd(tokens, end + 1);
+      return end;
+    }
+
+    if (["for", "while", "switch", "synchronized", "catch"].includes(token.value)) {
+      const conditionOpen = start + 1;
+      const conditionClose = matchingToken(tokens, conditionOpen);
+      return statementEnd(tokens, conditionClose + 1);
+    }
+
+    if (token.value === "do") {
+      let end = statementEnd(tokens, start + 1);
+      if (tokens[end]?.value !== "while") return end;
+      const conditionOpen = end + 1;
+      const conditionClose = matchingToken(tokens, conditionOpen);
+      end = conditionClose + 1;
+      if (tokens[end]?.value === ";") end += 1;
+      return end;
+    }
+
+    if (token.value === "try") {
+      let bodyStart = start + 1;
+      if (tokens[bodyStart]?.value === "(") bodyStart = matchingToken(tokens, bodyStart) + 1;
+      let end = statementEnd(tokens, bodyStart);
+      while (tokens[end]?.value === "catch") end = statementEnd(tokens, end);
+      if (tokens[end]?.value === "finally") end = statementEnd(tokens, end + 1);
+      return end;
+    }
+
+    if (token.value === "else" || token.value === "finally") {
+      return statementEnd(tokens, start + 1);
+    }
+
+    if (token.type === "identifier" && tokens[start + 1]?.value === ":") {
+      return statementEnd(tokens, start + 2);
+    }
+
+    for (let i = start; i < tokens.length; i += 1) {
+      if (["(", "[", "{"].includes(tokens[i].value)) {
+        i = matchingToken(tokens, i);
+        continue;
+      }
+      if (tokens[i].value === ";") return i + 1;
+    }
+    return tokens.length;
+  }
+
+  function braceUnbracedLoopBodies(tokens) {
+    const trailingDoWhiles = new Set();
+    const openings = new Map();
+    const closings = new Map();
+
+    for (let i = 0; i < tokens.length; i += 1) {
+      if (tokens[i].value !== "do") continue;
+      const bodyEnd = statementEnd(tokens, i + 1);
+      if (tokens[bodyEnd]?.value === "while") trailingDoWhiles.add(bodyEnd);
+    }
+
+    function addLoopBody(start, owner) {
+      if (!tokens[start] || tokens[start].value === "{") return;
+      const end = statementEnd(tokens, start);
+      if (!openings.has(start)) openings.set(start, []);
+      if (!closings.has(end)) closings.set(end, []);
+      openings.get(start).push({owner});
+      closings.get(end).push({owner, start});
+    }
+
+    for (let i = 0; i < tokens.length; i += 1) {
+      const value = tokens[i].value;
+      if (value === "do") {
+        addLoopBody(i + 1, i);
+        continue;
+      }
+      if (!["for", "while"].includes(value) || trailingDoWhiles.has(i)) continue;
+      if (tokens[i + 1]?.value !== "(") continue;
+      const conditionClose = matchingToken(tokens, i + 1);
+      addLoopBody(conditionClose + 1, i);
+    }
+
+    if (!openings.size) return tokens;
+
+    const result = [];
+    for (let i = 0; i <= tokens.length; i += 1) {
+      const closeAtBoundary = closings.get(i);
+      if (closeAtBoundary) {
+        closeAtBoundary
+          .sort((left, right) => right.start - left.start || right.owner - left.owner)
+          .forEach(() => result.push({type: "punctuation", value: "}"}));
+      }
+      const openAtBoundary = openings.get(i);
+      if (openAtBoundary) {
+        openAtBoundary
+          .sort((left, right) => left.owner - right.owner)
+          .forEach(() => result.push({type: "punctuation", value: "{"}));
+      }
+      if (i < tokens.length) result.push(tokens[i]);
+    }
+    return result;
+  }
+
   function emitExpression(tokens, options) {
     let output = "";
     for (let i = 0; i < tokens.length; i += 1) {
@@ -479,7 +589,7 @@
         continue;
       }
       if (
-        ["DcMotor", "DcMotorSimple", "Servo", "DigitalChannel"].includes(value)
+        ["DcMotor", "DcMotorEx", "DcMotorSimple", "Servo", "DigitalChannel"].includes(value)
         && tokens[i + 1]?.value === "."
       ) {
         let cursor = i + 1;
@@ -513,11 +623,14 @@
   }
 
   function transpileBody(source, options = {}) {
-    const rawTokens = significant(tokenize(source));
-    assertBalanced(rawTokens);
+    const sourceTokens = significant(tokenize(source));
+    assertBalanced(sourceTokens);
+    const rawTokens = braceUnbracedLoopBodies(sourceTokens);
     const output = [];
     let loopCounter = 0;
+    const loopGuardNames = [];
     const loopGuards = new Map();
+    const trailingDoWhiles = new Set();
 
     for (let i = 0; i < rawTokens.length; i += 1) {
       const token = rawTokens[i];
@@ -541,13 +654,15 @@
           const right = inside.slice(colonIndex + 1);
           if (!name) throw new TelemarkJavaError("Invalid enhanced for loop", token);
           const guard = `__telemarkLoop${loopCounter++}`;
-          output.push(`let ${guard}=0; for (const ${name} of ${emitExpression(right, options)})`);
+          loopGuardNames.push(guard);
+          output.push(`for (const ${name} of ${emitExpression(right, options)})`);
           loopGuards.set(close, guard);
           i = close;
           continue;
         }
         const guard = `__telemarkLoop${loopCounter++}`;
-        output.push(`let ${guard}=0; for`);
+        loopGuardNames.push(guard);
+        output.push("for");
         loopGuards.set(close, guard);
         continue;
       }
@@ -563,9 +678,14 @@
       }
 
       if (token.value === "while" && rawTokens[i + 1]?.value === "(") {
+        if (trailingDoWhiles.has(i)) {
+          output.push("while");
+          continue;
+        }
         const close = matchingToken(rawTokens, i + 1);
         const guard = `__telemarkLoop${loopCounter++}`;
-        output.push(`let ${guard}=0; while`);
+        loopGuardNames.push(guard);
+        output.push("while");
         loopGuards.set(close, guard);
         continue;
       }
@@ -601,11 +721,11 @@
       }
 
       if (token.value === "{") {
-        const previous = rawTokens[i - 1];
-        const guard = previous?.value === ")" ? loopGuards.get(i - 1) : null;
+        const guard = loopGuards.get(i - 1);
         output.push("{");
         if (guard) {
           output.push(`if(++${guard}>${options.loopLimit || 10000}) throw new Error("Loop limit exceeded");`);
+          if (options.async) output.push("await linearTick();");
         }
         continue;
       }
@@ -662,7 +782,7 @@
       }
 
       if (
-        ["DcMotor", "DcMotorSimple", "Servo", "DigitalChannel"].includes(token.value)
+        ["DcMotor", "DcMotorEx", "DcMotorSimple", "Servo", "DigitalChannel"].includes(token.value)
         && rawTokens[i + 1]?.value === "."
       ) {
         let cursor = i + 1;
@@ -756,7 +876,15 @@
 
       if (token.value === "do") {
         const guard = `__telemarkLoop${loopCounter++}`;
-        output.push(`let ${guard}=0; do`);
+        loopGuardNames.push(guard);
+        output.push("do");
+        if (rawTokens[i + 1]?.value === "{") {
+          const bodyClose = matchingToken(rawTokens, i + 1);
+          loopGuards.set(i, guard);
+          if (rawTokens[bodyClose + 1]?.value === "while") {
+            trailingDoWhiles.add(bodyClose + 1);
+          }
+        }
         continue;
       }
 
@@ -765,12 +893,16 @@
       output.push(token.value);
     }
 
-    return output.join(" ")
+    const body = output.join(" ")
       .replace(/\s+([;,.()[\]{}])/g, "$1")
       .replace(/([({[])\s+/g, "$1")
       .replace(/\s+([)}\]])/g, "$1")
       .replace(/\s{2,}/g, " ")
       .trim();
+    const guardDeclarations = loopGuardNames.length
+      ? `let ${loopGuardNames.map((name) => `${name}=0`).join(",")}; `
+      : "";
+    return guardDeclarations + body;
   }
 
   function diagnosticFromError(error) {
@@ -899,10 +1031,17 @@
       },
       updateTelemetry() {
         options.onTelemetryUpdate?.(telemetry.slice());
+        // FTC telemetry is auto-cleared after each update by default. Keeping
+        // only the current frame prevents iterative OpModes from replaying the
+        // entire telemetry history on every loop tick.
+        if (options.autoClearTelemetry !== false) {
+          telemetry.length = 0;
+          options.onTelemetryClear?.({automatic: true});
+        }
       },
       clearTelemetry() {
         telemetry.length = 0;
-        options.onTelemetryClear?.();
+        options.onTelemetryClear?.({automatic: false});
       },
       getRuntime: options.getRuntime || (() => 0),
       isStopRequested: options.isStopRequested || (() => false),
@@ -932,7 +1071,8 @@ const getRuntime=runtime.getRuntime||(()=>0);
 const opModeIsActive=runtime.opModeIsActive||(()=>false);
 const isStopRequested=runtime.isStopRequested||(()=>false);
 const waitForStart=runtime.waitForStart||(()=>Promise.resolve());
-const sleep=runtime.sleep||(()=>Promise.resolve());
+const sleep=runtime.sleep||((ms)=>new Promise((resolve)=>setTimeout(resolve,Math.max(0,Number(ms)||0))));
+const linearTick=runtime.linearTick||(()=>sleep(0));
 ${options.classPrelude || ""}
 with(scope){${js}}`
       );

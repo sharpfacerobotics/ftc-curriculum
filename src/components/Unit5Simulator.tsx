@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'if-statements'
@@ -231,16 +232,16 @@ export default function Unit5Simulator({lesson}: Unit5SimulatorProps): React.JSX
     showDistanceSensor: String(config.showDistanceSensor),
     showColorSensor: String(config.showColorSensor),
   });
-  const simulatorSrc = `${useBaseUrl('/simulators/unit5.html')}?${params.toString()}`;
+  const simulatorSrc = `${useBaseUrl('/simulator/unit5.html')}?${params.toString()}`;
   const simulatorTitle = 'Telemark Unit 5 Simulator';
 
   return (
     <>
-      <iframe
+      <SimulatorFrame
         src={simulatorSrc}
         width="100%"
         height="1180px"
-        style={{border: 'none'}}
+        iframeStyle={{border: 'none'}}
         title={simulatorTitle}
       />
 

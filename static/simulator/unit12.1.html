@@ -156,6 +156,7 @@ html, body {
 }
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 
 <body>
@@ -670,14 +671,6 @@ window.UsbFacing = {
     BACKWARD: "BACKWARD"
 };
 
-window.addTelemetry = function(k, v) {
-    if (window.addLineToTelemetry) {
-        addLineToTelemetry(`${k}: ${v}`);
-    }
-};
-
-window.updateTelemetry = function() {};
-
 function transpile(javaCode) {
 
     parseDirections(javaCode);
@@ -758,10 +751,8 @@ window.onInit = () => {
 
         console.error(err);
 
-        if (window.addLineToTelemetry) {
-            addLineToTelemetry(
-                "ERROR: " + err.message
-            );
+        if (window._simShowTelemetryError) {
+            window._simShowTelemetryError(err.message);
         }
     }
 };
@@ -778,6 +769,7 @@ window.onStart = () => {
 
             if (!running) return;
 
+            if (window.clearTelemetry) window.clearTelemetry();
             preparedLoop();
 
         }, 50);

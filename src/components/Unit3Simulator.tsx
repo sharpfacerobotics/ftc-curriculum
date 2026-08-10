@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'string-literals'
@@ -184,16 +185,16 @@ export default function Unit3Simulator({lesson}: Unit3SimulatorProps): React.JSX
     lesson,
     showMotorVisual: String(config.showMotorVisual),
   });
-  const simulatorSrc = `${useBaseUrl('/simulators/unit3.html')}?${params.toString()}`;
+  const simulatorSrc = `${useBaseUrl('/simulator/unit3.html')}?${params.toString()}`;
   const simulatorTitle = 'Telemark Unit 3 Simulator';
 
   return (
     <>
-      <iframe
+      <SimulatorFrame
         src={simulatorSrc}
         width="100%"
         height="900px"
-        style={{border: 'none'}}
+        iframeStyle={{border: 'none'}}
         title={simulatorTitle}
       />
 

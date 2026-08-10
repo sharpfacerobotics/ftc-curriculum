@@ -130,6 +130,49 @@ function testHardwareAndTelemetry() {
   assert.deepEqual(telemetry, [['Power', 0.5]]);
 }
 
+function testTelemetryFramesAutoClear() {
+  const frames = [];
+  const clears = [];
+  const runtime = TelemarkJava.createRuntime({
+    onTelemetryUpdate(frame) {
+      frames.push(frame);
+    },
+    onTelemetryClear(event) {
+      clears.push(event);
+    },
+  });
+
+  runtime.addTelemetry('Loop', 1);
+  runtime.updateTelemetry();
+  runtime.addTelemetry('Loop', 2);
+  runtime.updateTelemetry();
+
+  assert.deepEqual(frames, [
+    [{key: 'Loop', value: 1}],
+    [{key: 'Loop', value: 2}],
+  ]);
+  assert.deepEqual(clears, [{automatic: true}, {automatic: true}]);
+
+  runtime.clearTelemetry();
+  assert.deepEqual(clears.at(-1), {automatic: false});
+
+  const retainedFrames = [];
+  const retained = TelemarkJava.createRuntime({
+    autoClearTelemetry: false,
+    onTelemetryUpdate(frame) {
+      retainedFrames.push(frame);
+    },
+  });
+  retained.addTelemetry('Loop', 1);
+  retained.updateTelemetry();
+  retained.addTelemetry('Loop', 2);
+  retained.updateTelemetry();
+  assert.deepEqual(retainedFrames, [
+    [{key: 'Loop', value: 1}],
+    [{key: 'Loop', value: 1}, {key: 'Loop', value: 2}],
+  ]);
+}
+
 async function testLifecycleController() {
   const events = [];
   const lifecycle = TelemarkJava.createLifecycle({
@@ -188,6 +231,131 @@ async function testLinearWaitForStart() {
   releaseStart();
   await running;
   assert.deepEqual(events, ['before', 'after']);
+}
+
+async function testLinearLoopsYieldToRuntime() {
+  let busy = true;
+  let ticks = 0;
+  let mode = null;
+  const positions = [];
+  const powers = [];
+  const motor = {
+    setMode(nextMode) {
+      mode = nextMode;
+    },
+    isBusy() {
+      return busy;
+    },
+    getCurrentPosition() {
+      return ticks;
+    },
+    setPower(power) {
+      powers.push(power);
+    },
+  };
+  const program = compile(`
+    public class CooperativeLoop extends LinearOpMode {
+      DcMotorEx slider;
+      public void runOpMode() {
+        slider = hardwareMap.get(DcMotorEx.class, "slider");
+        slider.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        waitForStart();
+        slider.setPower(0.8);
+        while (opModeIsActive() && slider.isBusy()) {
+          telemetry.addData("Position", slider.getCurrentPosition());
+          telemetry.update();
+        }
+        slider.setPower(0.0);
+      }
+    }
+  `, {
+    hardwareMap: {get: () => motor},
+    waitForStart: () => Promise.resolve(),
+    opModeIsActive: () => true,
+    linearTick: async () => {
+      ticks += 1;
+      if (ticks === 3) busy = false;
+    },
+    addTelemetry(_key, value) {
+      positions.push(value);
+    },
+    updateTelemetry() {},
+  });
+
+  await program.methods.runOpMode();
+  assert.equal(ticks, 3);
+  assert.equal(mode, 'RUN_TO_POSITION');
+  assert.deepEqual(positions, [1, 2, 3]);
+  assert.deepEqual(powers, [0.8, 0]);
+}
+
+async function testLinearLoopFallbackYieldsToBrowserTimers() {
+  let active = true;
+  const program = compile(`
+    public class TimerYield extends LinearOpMode {
+      public void runOpMode() {
+        while (opModeIsActive()) {
+        }
+      }
+    }
+  `, {
+    opModeIsActive: () => active,
+  });
+
+  setTimeout(() => {
+    active = false;
+  }, 0);
+  await program.methods.runOpMode();
+  assert.equal(active, false);
+}
+
+function testAsyncLoopInstrumentation() {
+  const source = `
+    for (int i = 0; i < 2; i++) { }
+    while (false) { }
+    do { } while (false);
+  `;
+  const asyncBody = TelemarkJava.transpileBody(source, {async: true});
+  const synchronousBody = TelemarkJava.transpileBody(source);
+  assert.equal((asyncBody.match(/await linearTick\(\)/g) || []).length, 3);
+  assert.doesNotMatch(synchronousBody, /await linearTick/);
+}
+
+async function testUnbracedLoopsAreInstrumented() {
+  let ticks = 0;
+  const program = compile(`
+    public class UnbracedLoops extends LinearOpMode {
+      int visits = 0;
+      public void runOpMode() {
+        if (visits == 0)
+          for (int i = 0; i < 2; i++) visits++;
+        while (visits < 4) visits++;
+        do visits++; while (visits < 6);
+      }
+    }
+  `, {
+    linearTick: async () => {
+      ticks += 1;
+    },
+  });
+
+  await program.methods.runOpMode();
+  assert.equal(program.scope.visits, 6);
+  assert.equal(ticks, 6);
+
+  const output = TelemarkJava.transpileBody(
+    'do telemetry.update(); while (opModeIsActive());',
+    {async: true},
+  );
+  assert.doesNotThrow(
+    () => new (Object.getPrototypeOf(async function () {}).constructor)(
+      'updateTelemetry',
+      'opModeIsActive',
+      'linearTick',
+      output,
+    ),
+  );
+  assert.equal((output.match(/await linearTick\(\)/g) || []).length, 1);
 }
 
 function testDiagnostics() {
@@ -303,8 +471,13 @@ async function main() {
   testClassesAndInheritance();
   testEnumsAndSwitch();
   testHardwareAndTelemetry();
+  testTelemetryFramesAutoClear();
   await testLifecycleController();
   await testLinearWaitForStart();
+  await testLinearLoopsYieldToRuntime();
+  await testLinearLoopFallbackYieldsToBrowserTimers();
+  testAsyncLoopInstrumentation();
+  await testUnbracedLoopsAreInstrumented();
   testDiagnostics();
   testInfiniteLoopProtection();
   testQualifiedTypesAndArrayInitializers();

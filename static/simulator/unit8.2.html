@@ -117,6 +117,7 @@ code{font-family:"Consolas","Courier New",monospace}
 @media (max-width:900px){#left-panel{width:52%;min-width:310px}#right-panel{min-width:330px}.gamepad-float-card{width:320px}.direction-grid{grid-template-columns:1fr}}
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 <div id="left-panel">
@@ -351,21 +352,7 @@ function updateCode(t){
 }
 function syncScroll(el){var h=document.getElementById('highlighting');h.scrollTop=el.scrollTop;h.scrollLeft=el.scrollLeft}
 function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor);validate()}
-codeEditor.addEventListener('keydown',function(e){
-  var s=this.selectionStart,end=this.selectionEnd;
-  if(e.key==='Tab'){
-    e.preventDefault();this.value=this.value.substring(0,s)+'    '+this.value.substring(end);
-    this.selectionStart=this.selectionEnd=s+4;onCodeChange();return;
-  }
-  if(e.key==='Enter'){
-    e.preventDefault();
-    var before=this.value.substring(0,s),line=before.split('\n').pop()||'';
-    var indent=(line.match(/^\s*/)||[''])[0],extra=line.trimEnd().endsWith('{')?'    ':'';
-    var ins='\n'+indent+extra;
-    this.value=before+ins+this.value.substring(end);
-    this.selectionStart=this.selectionEnd=s+ins.length;onCodeChange();
-  }
-});
+TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 function setCameraFollowRobot(enabled){
   cameraFollowRobot = !!enabled;
   var btn = document.getElementById('camera-follow-btn');

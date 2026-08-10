@@ -1350,6 +1350,16 @@
   }
 
   function handleJavaEditorAutocomplete(e) {
+    if (window.TelemarkEditor) {
+      e.stopPropagation();
+      const handled = window.TelemarkEditor.handleKeydown(e);
+      if (handled) {
+        updateHighlighting();
+        syncScroll();
+      }
+      return handled;
+    }
+
     const editor = e.currentTarget;
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
@@ -1382,6 +1392,12 @@
       } else {
         insertIntoEditor(editor, "{" + selected + "}", 1 + selected.length);
       }
+      return true;
+    }
+
+    if ([")", "]", "}", '"', "'"].includes(e.key) && start === end && after[0] === e.key) {
+      e.preventDefault();
+      editor.selectionStart = editor.selectionEnd = start + 1;
       return true;
     }
 
@@ -2764,7 +2780,7 @@
             }
           };
           if (loopHandler) loopHandler(wrappedLoop);
-          window._simStartLoop(wrappedLoop);
+          else window._simStartLoop(wrappedLoop);
         }
         return;
       }
@@ -2863,11 +2879,11 @@
 
           if (loopHandler) {
             loopHandler(wrappedLoop);
+          } else {
+            // Start after the Driver Station Start button. If this was called
+            // during Init, _simStartLoop stores the loop until Start is pressed.
+            window._simStartLoop(wrappedLoop);
           }
-
-          // Start after the Driver Station Start button. If this was called
-          // during Init, _simStartLoop stores the loop until Start is pressed.
-          window._simStartLoop(wrappedLoop);
         } catch (e) {
           showTelemetryError("loop() compile error: " + e.message);
           return;

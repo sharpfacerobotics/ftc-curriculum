@@ -1,6 +1,7 @@
 import React from 'react';
 import Admonition from '@theme/Admonition';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import SimulatorFrame from './SimulatorFrame';
 
 type LessonKey =
   | 'registering-programs'
@@ -140,16 +141,16 @@ export default function Unit2Simulator({lesson}: Unit2SimulatorProps): React.JSX
   const params = new URLSearchParams({
     code: LESSON_STARTER_CODE[lesson],
   });
-  const simulatorSrc = `${useBaseUrl('/simulators/unit2.html')}?${params.toString()}`;
+  const simulatorSrc = `${useBaseUrl('/simulator/unit2.html')}?${params.toString()}`;
   const simulatorTitle = 'Telemark Unit 2 Simulator';
 
   return (
     <>
-      <iframe
+      <SimulatorFrame
         src={simulatorSrc}
         width="100%"
         height="700px"
-        style={{border: 'none'}}
+        iframeStyle={{border: 'none'}}
         title={simulatorTitle}
       />
 

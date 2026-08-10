@@ -16,6 +16,15 @@ const deployedSmoke = read('scripts/smoke-deployed.cjs');
 const config = read('docusaurus.config.ts');
 const customCss = read('src/css/custom.css');
 
+for (let unit = 2; unit <= 15; unit += 1) {
+  const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
+  assert.match(
+    simulatorComponent,
+    /<SimulatorFrame\b/,
+    `Unit ${unit} must use the shared fullscreen simulator frame`,
+  );
+}
+
 assert.match(accessPolicy, /unitNumber >= 1/);
 assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MIN = 2/);
 assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MAX = 5/);
