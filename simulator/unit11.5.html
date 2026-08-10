@@ -158,6 +158,7 @@ html,body{
 }
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 
 <body>
@@ -375,7 +376,11 @@ const sim = {
         distance:false,
         touch:false,
         gate:false,
-        stop:false
+        run:false,
+        stopFull:false,
+        stopEmpty:false,
+        telemetry:false,
+        motor:false
     },
 
     spheres:[]
@@ -1197,6 +1202,23 @@ function updateUI(){
     }
 }
 
+function updateRequirementStates(){
+    if(!window.setRequirement) return;
+
+    [
+        sim.validations.distance,
+        sim.validations.touch,
+        sim.validations.gate,
+        sim.validations.run,
+        sim.validations.stopFull,
+        sim.validations.stopEmpty,
+        sim.validations.telemetry,
+        sim.validations.motor
+    ].forEach(function(passed,index){
+        window.setRequirement(index,passed);
+    });
+}
+
 function installMocks(){
     let noiseStep = 0;
     const noisePattern = [-1.2, 0.8, -0.4, 1.1, -0.7, 0.5];
@@ -1397,9 +1419,14 @@ function(){
     }
 };
 
-window.onRun = function(){
+let executionGeneration = 0;
+let preparedLoopRunner = null;
 
-    sim.running = true;
+window.onInit = function(){
+
+    const generation = ++executionGeneration;
+    sim.running = false;
+    preparedLoopRunner = null;
 
     installMocks();
 
@@ -1419,6 +1446,19 @@ window.onRun = function(){
     const js =
         transpile(source);
 
+    const loopSource = extractLoop(source);
+    const loopJs = transpile(loopSource);
+    const powerArguments = Array.from(
+        loopJs.matchAll(/setMotorPower\(\s*"intake"\s*,\s*([^)]+)\)/g),
+        match => match[1].trim()
+    );
+    const hasZeroPower = powerArguments.some(
+        value => /^0(?:\.0+)?$/.test(value)
+    );
+    const hasRunningPower = powerArguments.some(
+        value => !/^0(?:\.0+)?$/.test(value)
+    );
+
     sim.validations.distance =
         js.includes(
             'getDistance("range")'
@@ -1430,6 +1470,8 @@ window.onRun = function(){
         );
 
     sim.validations.gate =
+        /\bif\s*\(/.test(loopSource) &&
+        /\belse\b/.test(loopSource) &&
         js.includes(
             "distance < 10.0"
         ) &&
@@ -1437,15 +1479,19 @@ window.onRun = function(){
             '!isTouchPressed("limit")'
         );
 
-    sim.validations.stop =
-        js.includes(
-            'setMotorPower("intake",0.0)'
-        );
+    sim.validations.run = sim.validations.gate && hasRunningPower;
+    sim.validations.stopFull = sim.validations.gate && hasZeroPower;
+    sim.validations.stopEmpty = sim.validations.gate && hasZeroPower;
+    sim.validations.telemetry =
+        /telemetry\s*\.\s*addData\s*\(/.test(loopSource) &&
+        /telemetry\s*\.\s*update\s*\(\s*\)/.test(loopSource);
+    sim.validations.motor =
+        /hardwareMap\s*\.\s*get\s*\(\s*DcMotor\s*\.\s*class\s*,\s*"intake"\s*\)/.test(source) &&
+        powerArguments.length > 0;
 
-    const loopBody =
-        transpile(
-            extractLoop(source)
-        );
+    updateRequirementStates();
+
+    const loopBody = loopJs;
 
     try{
 
@@ -1456,9 +1502,9 @@ window.onRun = function(){
         const loopFn =
             new Function(loopBody);
 
-        function tick(){
+        preparedLoopRunner = function tick(){
 
-            if(!sim.running)
+            if(!sim.running || generation !== executionGeneration)
                 return;
 
             try{
@@ -1491,9 +1537,7 @@ window.onRun = function(){
                 tick,
                 50
             );
-        }
-
-        tick();
+        };
 
     }catch(err){
 
@@ -1523,17 +1567,24 @@ window.onRun = function(){
             );
         }
 
-        sim.running = false;
-
         if(window.stopExecution){
             stopExecution();
         }
     }
 };
 
+window.onStart = function(){
+    if(!preparedLoopRunner) return;
+
+    sim.running = true;
+    preparedLoopRunner();
+};
+
 window.onStop = function(){
 
+    executionGeneration++;
     sim.running = false;
+    preparedLoopRunner = null;
     sim.intakePower = 0;
 };
 

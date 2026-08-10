@@ -512,6 +512,7 @@
     .hint.error { background: rgba(204, 0, 0, 0.12); border-left-color: var(--danger); color: #ff6666; }
   </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 
@@ -525,7 +526,6 @@
 
   <div class="code-wrapper">
     <textarea id="code-editor" spellcheck="false"
-      oninput="updateCode(this.value); syncScroll(this);"
       onscroll="syncScroll(this);">@TeleOp(name="TeleOpTest", group="Practice")
 public class TeleOpTest extends OpMode {
     @Override
@@ -685,41 +685,18 @@ function loadInitialConfig() {
   }
 }
 
-codeEditor.addEventListener('keydown', function (e) {
-  const start = this.selectionStart;
-  const end   = this.selectionEnd;
-
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
-    this.selectionStart = this.selectionEnd = start + 4;
-    updateCode(this.value); runStaticAnalysis();
-    return;
-  }
-
-  const pairs = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
-  if (pairs[e.key]) {
-    e.preventDefault();
-    this.value = this.value.substring(0, start) + e.key + pairs[e.key] + this.value.substring(end);
-    this.selectionStart = this.selectionEnd = start + 1;
-    updateCode(this.value); runStaticAnalysis();
-    return;
-  }
-
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    const before   = this.value.substring(0, start);
-    const lastLine = before.split('\n').pop();
-    const indent   = lastLine.match(/^\s*/)[0];
-    const extra    = lastLine.trimEnd().endsWith('{') ? '    ' : '';
-    const insert   = '\n' + indent + extra;
-    this.value     = before + insert + this.value.substring(end);
-    this.selectionStart = this.selectionEnd = start + insert.length;
-    updateCode(this.value); runStaticAnalysis();
-    return;
-  }
+TelemarkEditor.attach(codeEditor, {
+  onChange(editor) {
+    updateCode(editor.value);
+    syncScroll(editor);
+    runStaticAnalysis();
+  },
 });
-codeEditor.addEventListener('input', () => { updateCode(codeEditor.value); runStaticAnalysis(); });
+codeEditor.addEventListener('input', () => {
+  updateCode(codeEditor.value);
+  syncScroll(codeEditor);
+  runStaticAnalysis();
+});
 
 // ─── Simulator State & Inspector ─────────────────────────────────────────────
 let currentState  = 'STOPPED';
@@ -931,8 +908,9 @@ function executeMethod(methodName) {
           `<div class="telemetry-line"><span class="telemetry-key">${key}</span>: ${String(value)}</div>`
         );
       },
-      onTelemetryClear() {
+      onTelemetryClear(event) {
         telemetryLines.length = 0;
+        if (!event?.automatic) document.getElementById('telemetry-log').innerHTML = '';
       },
       onTelemetryUpdate() {
         if (telemetryLines.length) {
@@ -954,8 +932,12 @@ function executeMethod(methodName) {
   if (methodName === 'start' && /resetRuntime\(\)/.test(getMethodBody(code, methodName) || '')) {
     runtimeOffset = Date.now();
   }
-  telemarkCompiledProgram?.methods?.[methodName]?.();
-  telemarkRuntime?.updateTelemetry();
+  const method = telemarkCompiledProgram?.methods?.[methodName];
+  if (method) {
+    if (methodName === 'loop' || methodName === 'init_loop') telemarkRuntime?.clearTelemetry();
+    method();
+    telemarkRuntime?.updateTelemetry();
+  }
   Object.entries(telemarkCompiledProgram?.scope || {}).forEach(([name, value]) => {
     if (declaredVars[name]) declaredVars[name].value = value;
   });

@@ -173,6 +173,7 @@ html,body{
 }
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 
 <body>
@@ -781,8 +782,13 @@ window.onSimulatorReady = function(){
     }
 };
 
-window.onRun = function(){
-    sim.running = true;
+let executionGeneration = 0;
+let preparedLoopRunner = null;
+
+window.onInit = function(){
+    const generation = ++executionGeneration;
+    sim.running = false;
+    preparedLoopRunner = null;
     installMocks();
 
     if(window.clearTelemetry){
@@ -823,8 +829,8 @@ window.onRun = function(){
 
         const loopFn = new Function(loopBody);
 
-        function tick(){
-            if(!sim.running) return;
+        preparedLoopRunner = function tick(){
+            if(!sim.running || generation !== executionGeneration) return;
 
             sim.stick =
                 Number(window.gamepad?.left_stick_y) || 0;
@@ -849,8 +855,7 @@ window.onRun = function(){
                 }
             }
             setTimeout(tick, 50);
-        }
-        tick();
+        };
 
     }catch(err){
         console.error(err);
@@ -863,15 +868,23 @@ window.onRun = function(){
         if(window._simShowTelemetryError){
             _simShowTelemetryError("ERROR: " + err.message);
         }
-        sim.running = false;
         if(window.stopExecution){
             stopExecution();
         }
     }
 };
 
+window.onStart = function(){
+    if(!preparedLoopRunner) return;
+
+    sim.running = true;
+    preparedLoopRunner();
+};
+
 window.onStop = function(){
+    executionGeneration++;
     sim.running = false;
+    preparedLoopRunner = null;
     sim.motorPower = 0;
     sim.effectivePower = 0;
 };

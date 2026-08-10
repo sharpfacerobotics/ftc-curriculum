@@ -240,6 +240,7 @@
         }
     </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 
@@ -330,6 +331,9 @@ public class AutoLift extends LinearOpMode {
     let powerFill = null;
 
     let startResolver = null;
+    let executionToken = 0;
+    let compiledProgram = null;
+    const STOP_SIGNAL = {};
 
     function clamp(v, min, max) {
         return Math.max(min, Math.min(max, v));
@@ -860,137 +864,19 @@ public class AutoLift extends LinearOpMode {
         }, 50);
     }
 
-    function stripJavaComments(code) {
-        return String(code || "")
-            .replace(/\/\*[\s\S]*?\*\//g, "")
-            .replace(/\/\/.*$/gm, "");
+    function validateStudentCode(code) {
+        sim.requirements[0] =
+            /hardwareMap\s*\.\s*get\s*\(\s*DcMotor(?:Ex)?\s*\.\s*class\s*,\s*"lift"\s*\)/.test(code);
+        sim.requirements[5] =
+            /while\s*\(\s*opModeIsActive\s*\(\s*\)\s*&&\s*lift\s*\.\s*isBusy\s*\(\s*\)\s*\)/.test(code);
+        updateRequirements();
     }
 
-    function findMatchingBrace(source, openIndex) {
-        let depth = 1;
-
-        for (let i = openIndex + 1; i < source.length; i++) {
-            if (source[i] === "{") {
-                depth++;
-            } else if (source[i] === "}") {
-                depth--;
-                if (depth === 0) return i;
-            }
-        }
-
-        return -1;
+    function ensureCurrentExecution(token) {
+        if (token !== executionToken || !sim.running) throw STOP_SIGNAL;
     }
 
-    function getRunOpModeBody(code) {
-        const match =
-            /void\s+runOpMode\s*\([^)]*\)\s*\{/.exec(code);
-
-        if (!match) return code;
-
-        const openIndex =
-            code.indexOf("{", match.index);
-
-        const closeIndex =
-            findMatchingBrace(code, openIndex);
-
-        if (closeIndex < 0) {
-            return code.slice(openIndex + 1);
-        }
-
-        return code.slice(openIndex + 1, closeIndex);
-    }
-
-    function findWaitForStart(source) {
-        const match =
-            /\bwaitForStart\s*\(\s*\)\s*;/.exec(source);
-
-        if (!match) return null;
-
-        return {
-            index: match.index,
-            end: match.index + match[0].length
-        };
-    }
-
-    function findBusyLoop(source) {
-        const loopMatch =
-            /while\s*\(\s*opModeIsActive\s*\(\s*\)\s*&&\s*lift\s*\.\s*isBusy\s*\(\s*\)\s*\)/.exec(source);
-
-        if (!loopMatch) return null;
-
-        const openIndex =
-            source.indexOf("{", loopMatch.index + loopMatch[0].length);
-
-        if (openIndex < 0) {
-            return {
-                index: loopMatch.index,
-                end: loopMatch.index + loopMatch[0].length,
-                body: ""
-            };
-        }
-
-        const closeIndex =
-            findMatchingBrace(source, openIndex);
-
-        if (closeIndex < 0) {
-            return {
-                index: loopMatch.index,
-                end: source.length,
-                body: source.slice(openIndex + 1)
-            };
-        }
-
-        return {
-            index: loopMatch.index,
-            end: closeIndex + 1,
-            body: source.slice(openIndex + 1, closeIndex)
-        };
-    }
-
-    function getNumericArgument(argumentText) {
-        const match =
-            /-?\d+(?:\.\d+)?/.exec(String(argumentText || ""));
-
-        return match ? Number(match[0]) : 0;
-    }
-
-    function applyMotorCommands(segment, lift) {
-        const commandRegex =
-            /lift\s*\.\s*(setMode|setTargetPosition|setPower)\s*\(\s*([^;]*?)\s*\)\s*;/g;
-
-        let match = commandRegex.exec(segment);
-
-        while (match) {
-            const method = match[1];
-            const argumentText = match[2];
-
-            if (method === "setMode") {
-                if (argumentText.includes("STOP_AND_RESET_ENCODER")) {
-                    lift.setMode("STOP_AND_RESET_ENCODER");
-                } else if (argumentText.includes("RUN_TO_POSITION")) {
-                    lift.setMode("RUN_TO_POSITION");
-                } else if (argumentText.includes("RUN_USING_ENCODER")) {
-                    lift.setMode("RUN_USING_ENCODER");
-                } else if (argumentText.includes("RUN_WITHOUT_ENCODER")) {
-                    lift.setMode("RUN_WITHOUT_ENCODER");
-                }
-            }
-
-            if (method === "setTargetPosition") {
-                lift.setTargetPosition(
-                    Math.round(getNumericArgument(argumentText))
-                );
-            }
-
-            if (method === "setPower") {
-                lift.setPower(getNumericArgument(argumentText));
-            }
-
-            match = commandRegex.exec(segment);
-        }
-    }
-
-    async function waitForDriverStationStart() {
+    async function waitForDriverStationStart(token) {
         sim.waitingForStart = true;
         sim.active = false;
 
@@ -1002,81 +888,73 @@ public class AutoLift extends LinearOpMode {
             if (sim.startRequested) releaseDriverStationStart(false);
         });
 
+        ensureCurrentExecution(token);
         sim.waitingForStart = false;
         sim.started = true;
         sim.active = true;
 
+        maybeBeginMotion();
         pushLiftTelemetry("Started");
     }
 
-    async function executeJavaLinearOpMode(code) {
+    async function executeJavaLinearOpMode(code, token) {
+        validateStudentCode(code);
 
-        const source =
-            stripJavaComments(code);
-
-        const body =
-            getRunOpModeBody(source);
-
-        sim.requirements[0] =
-            /hardwareMap\s*\.\s*get\s*\(\s*DcMotor(?:Ex)?\s*\.\s*class\s*,\s*"lift"\s*\)/.test(source);
-
-        sim.requirements[5] =
-            /while\s*\(\s*opModeIsActive\s*\(\s*\)\s*&&\s*lift\s*\.\s*isBusy\s*\(\s*\)\s*\)/.test(source);
-
-        updateRequirements();
-
-        const lift =
-            hardwareMap.get("DcMotor", "lift");
-
-        const waitCall =
-            findWaitForStart(body);
-
-        const beforeStart =
-            waitCall ? body.slice(0, waitCall.index) : "";
-
-        const afterStart =
-            waitCall ? body.slice(waitCall.end) : body;
-
-        applyMotorCommands(beforeStart, lift);
-
-        if (waitCall) {
-            await waitForDriverStationStart();
-        } else {
+        if (!/\bwaitForStart\s*\(\s*\)/.test(code)) {
             sim.active = true;
             sim.started = true;
             pushLiftTelemetry("Running");
         }
 
-        if (!sim.running) return;
-
-        const busyLoop =
-            findBusyLoop(afterStart);
-
-        const beforeLoop =
-            busyLoop ? afterStart.slice(0, busyLoop.index) : afterStart;
-
-        const afterLoop =
-            busyLoop ? afterStart.slice(busyLoop.end) : "";
-
-        applyMotorCommands(beforeLoop, lift);
-        maybeBeginMotion();
-
-        while (
-            sim.running &&
-            sim.active &&
-            lift.isBusy()
-        ) {
-            pushLiftTelemetry("Lifting...");
+        const runtime = window.TelemarkJava.createRuntime({
+            gamepad1: window.gamepad || {},
+            gamepad2: window.gamepad2 || {},
+            getRuntime: window.getRuntime,
+            isStopRequested: function () {
+                return token !== executionToken || !sim.running;
+            },
+            opModeIsActive: function () {
+                return token === executionToken && sim.running && sim.active;
+            },
+            waitForStart: function () {
+                return waitForDriverStationStart(token);
+            },
+            sleep: async function (ms) {
+                await sleep(ms);
+                ensureCurrentExecution(token);
+            },
+            onTelemetryUpdate: function (frame) {
+                window.clearTelemetry();
+                frame.forEach(function (item) {
+                    window.addTelemetry(item.key, item.value);
+                });
+                window.updateTelemetry();
+            },
+            onTelemetryClear: function (event) {
+                if (!event || !event.automatic) window.clearTelemetry();
+            }
+        });
+        runtime.hardwareMap = window.hardwareMap;
+        runtime.linearTick = async function () {
             await sleep(50);
+            ensureCurrentExecution(token);
+        };
+
+        compiledProgram = window.TelemarkJava.compile(code, runtime);
+        if (!compiledProgram.ok) {
+            const diagnostic = compiledProgram.diagnostics[0];
+            throw new Error(
+                diagnostic.message +
+                " (line " + diagnostic.line +
+                ", column " + diagnostic.column + ")"
+            );
         }
 
-        applyMotorCommands(afterLoop, lift);
-
-        if (sim.requirements[6]) {
-            pushLiftTelemetry("Done");
-        } else {
-            pushLiftTelemetry("Stopped");
+        if (compiledProgram.kind !== "linear" || !compiledProgram.methods.runOpMode) {
+            throw new Error("This challenge requires a LinearOpMode with runOpMode().");
         }
+
+        await compiledProgram.methods.runOpMode();
     }
 
     window.onSimulatorReady = function () {
@@ -1152,6 +1030,8 @@ public class AutoLift extends LinearOpMode {
         sim.active = false;
         sim.started = false;
         sim.startRequested = false;
+        const token = ++executionToken;
+        compiledProgram = null;
 
         setWarning(null);
         pushLiftTelemetry("Initialized");
@@ -1165,12 +1045,15 @@ public class AutoLift extends LinearOpMode {
             editor?.value || starterCode;
 
         try {
-            await executeJavaLinearOpMode(code);
+            await executeJavaLinearOpMode(code, token);
         } catch (err) {
+            if (err === STOP_SIGNAL) return;
             console.error(err);
 
-            if (window.addTelemetry && window.updateTelemetry) {
-                window.addTelemetry("ERROR", String(err));
+            if (window._simShowTelemetryError) {
+                window._simShowTelemetryError(err.message || String(err));
+            } else if (window.addTelemetry && window.updateTelemetry) {
+                window.addTelemetry("ERROR", err.message || String(err));
                 window.updateTelemetry();
             }
         }
@@ -1182,11 +1065,13 @@ public class AutoLift extends LinearOpMode {
 
     window.onStop = function () {
 
+        executionToken++;
         sim.active = false;
         sim.running = false;
         sim.busy = false;
         sim.waitingForStart = false;
         sim.startRequested = false;
+        compiledProgram = null;
 
         clearInterval(sim.movementInterval);
         sim.movementInterval = null;

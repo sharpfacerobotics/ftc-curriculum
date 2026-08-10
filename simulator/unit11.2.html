@@ -182,6 +182,7 @@
 }
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 
 <body>
@@ -1245,11 +1246,16 @@ window.onSimulatorReady = function(){
     }
 };
 
-window.onRun = function(){
-    sim.running = true;
+let executionGeneration = 0;
+let preparedLoopRunner = null;
+
+window.onInit = function(){
+    const generation = ++executionGeneration;
+    sim.running = false;
     sim.setupOk = false;
     sim.loopFunction = null;
     sim.safeFunction = null;
+    preparedLoopRunner = null;
 
     const editor =
         document.getElementById("sim-code-editor");
@@ -1272,13 +1278,12 @@ window.onRun = function(){
             "setup error: " + err.message
         );
         updateRequirementStates();
-        sim.running = false;
         window.stopExecution?.();
         return;
     }
 
-    function tick(){
-        if(!sim.running){
+    preparedLoopRunner = function tick(){
+        if(!sim.running || generation !== executionGeneration){
             return;
         }
 
@@ -1286,6 +1291,7 @@ window.onRun = function(){
             sim.targetPosition;
 
         try{
+            window.clearTelemetry?.();
             sim.loopFunction();
 
             if(sim.safeFunction){
@@ -1321,13 +1327,20 @@ window.onRun = function(){
         updateUI();
 
         setTimeout(tick,50);
-    }
+    };
+};
 
-    tick();
+window.onStart = function(){
+    if(!sim.setupOk || !preparedLoopRunner) return;
+
+    sim.running = true;
+    preparedLoopRunner();
 };
 
 window.onStop = function(){
+    executionGeneration++;
     sim.running = false;
+    preparedLoopRunner = null;
 };
 
 window.onReset = function(){

@@ -114,6 +114,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 .dpad-center{position:absolute;left:33%;top:33%;width:34%;height:34%;background:rgba(30,30,30,.9);pointer-events:none}
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 <div id="editor-container">
@@ -233,6 +234,12 @@ var hwDevices = [];
 var declaredVars = {}; 
 var currentState = 'STOPPED';
 var intervalId = null, timerId = null, runtimeOffset = 0;
+var stopRequested = false;
+var compiledSource = '';
+var compiledProgram = null;
+var compiledRuntime = null;
+var telemetryPending = false;
+var telemetryUpdateVersion = 0;
 var gamepad = {left_stick_x:0,left_stick_y:0,right_stick_x:0,right_stick_y:0,left_trigger:0,right_trigger:0,a:false,b:false,x:false,y:false,left_bumper:false,right_bumper:false,start:false,back:false,dpad_up:false,dpad_down:false,dpad_left:false,dpad_right:false};
 
 var robotConfig = null; 
@@ -258,31 +265,7 @@ function onCodeChange(){
     runAnalysis();
 }
 
-codeEditor.addEventListener('keydown', function(e){
-    var s = this.selectionStart, end = this.selectionEnd;
-    if(e.key === 'Tab'){
-        e.preventDefault();
-        this.value = this.value.substring(0,s) + '    ' + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = s + 4;
-        onCodeChange();
-        return;
-    }
-    var p = {'(':')','{':'}','[':']','"':'"',"'":"'"};
-    if(p[e.key]){
-        e.preventDefault();
-        this.value = this.value.substring(0,s) + e.key + p[e.key] + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = s + 1;
-        onCodeChange();
-        return;
-    }
-    if(e.key === 'Enter'){
-        e.preventDefault();
-        var before = this.value.substring(0,s), lastLine = before.split('\n').pop(), indent = lastLine.match(/^\s*/)[0], extra = lastLine.trimEnd().endsWith('{') ? '    ' : '', ins = '\n' + indent + extra;
-        this.value = before + ins + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = s + ins.length;
-        onCodeChange();
-    }
-});
+TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 var resizer=document.getElementById('resizer'),leftPanel=document.getElementById('editor-container'),isResizing=false;
 resizer.addEventListener('mousedown',function(){isResizing=true;resizer.classList.add('active')});
@@ -462,7 +445,7 @@ function runAnalysis() {
   updateRobot3D();
 }
 
-// ── Lifecycle & Telemetry Transpiler ──
+// ── Compiled OpMode Lifecycle ──
 function setLifecycle(s, color, btnLabel) {
   currentState = s;
   document.getElementById('state-indicator').textContent = s;
@@ -478,90 +461,151 @@ function stopAllIntervals() {
     intervalId = timerId = null; 
 }
 
-// THE TRANSPILER: This turns basic Java logic into JavaScript so if/else actually evaluates!
-function executeTelemetryFrom(methodName) {
-  var code = codeEditor.value;
-  var body = getMethodBody(code, methodName);
-  if (!body) return;
-  
-  var telemetryLines = [];
+function escapeRuntimeText(value) {
+  return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-  // Fallback regex function in case the JS execution fails
-  function fallbackRegex(codeString) {
-      var telRe = /telemetry\.addData\s*\(\s*"([^"]+)"\s*,\s*([^)]+)\s*\)/g;
-      var m;
-      while ((m = telRe.exec(codeString)) !== null) {
-        var key = m[1], val = m[2].trim();
-        if (/^"[^"]*"$/.test(val)) val = val.slice(1, -1);
-        else if (val === 'getRuntime()') val = getRuntime().toFixed(2);
-        telemetryLines.push('<div class="telemetry-line"><span class="telemetry-key">' + key + '</span>: ' + val + '</div>');
-      }
+function renderCompiledTelemetry(items) {
+  var panel=document.getElementById('telemetry-log');
+  if(!items.length){
+    panel.innerHTML='<span style="color:#666">No telemetry data</span>';
+    return;
   }
+  panel.innerHTML=items.map(function(item){
+    var value=item.value;
+    if(typeof value==='number'&&value!==Math.floor(value))value=value.toFixed(2);
+    return '<div class="telemetry-line"><span class="telemetry-key">'+escapeRuntimeText(item.key)+'</span>: '+escapeRuntimeText(value)+'</div>';
+  }).join('');
+}
 
-  // Only try to transpile the loop() method logic
-  if (methodName === 'loop') {
-      // 1. Swap gamepad1 -> gamepad
-      // 2. Swap telemetry.addData("Key", Value) -> addTel("Key", Value)
-      // 3. Remove telemetry.update() to prevent crashes
-      var jsCode = window.TelemarkJava
-          ? window.TelemarkJava.transpileBody(body, {
-              gamepad1Name: 'gamepad',
-              addTelemetryName: 'addTel',
-              updateTelemetryName: '(()=>{})'
-            })
-          : body
-              .replace(/gamepad1\./g, 'gamepad.')
-              .replace(/telemetry\.addData\s*\(\s*(.+?)\s*,\s*(.+?)\s*\)/g, 'addTel($1, $2)')
-              .replace(/telemetry\.update\(\);/g, '');
+function showExecutionError(context,error) {
+  var message=error&&error.message?error.message:String(error||'Unknown error');
+  document.getElementById('telemetry-log').innerHTML='<div class="telemetry-line" style="color:var(--danger)"><strong>'+escapeRuntimeText(context)+':</strong> '+escapeRuntimeText(message)+'</div>';
+}
 
-      // Helper to format output lines for our fake JS environment
-      var addTel = function(key, val) {
-          if (typeof val === 'number') val = val.toFixed(2);
-          if (val === 'getRuntime()') val = getRuntime().toFixed(2);
-          // Clean up quotes on string keys
-          var cleanKey = String(key).replace(/^"|"$/g, '');
-          telemetryLines.push('<div class="telemetry-line"><span class="telemetry-key">' + cleanKey + '</span>: ' + val + '</div>');
-      };
+function failExecution(context,error) {
+  stopAllIntervals();
+  stopRequested=true;
+  runtimeOffset=0;
+  document.getElementById('timer-val').textContent='0.00';
+  showExecutionError(context,error);
+  setLifecycle('STOPPED','var(--danger)','INIT');
+  return false;
+}
 
-      try {
-          // Attempt to evaluate the java code as Javascript
-          var logicFunc = new Function('gamepad', 'addTel', 'getRuntime', jsCode);
-          logicFunc(gamepad, addTel, getRuntime);
-      } catch (e) {
-          // If the student wrote complex Java syntax that breaks JS (like type casting), fall back to dumb Regex
-          fallbackRegex(body);
-      }
-  } else {
-      fallbackRegex(body);
+function ensureSdkConstructorStubs() {
+  var imuType=window.IMU||(window.IMU=function IMU(){});
+  if(!imuType.Parameters)imuType.Parameters=function Parameters(orientation){this.orientation=orientation};
+  var orientationType=window.RevHubOrientationOnRobot||(window.RevHubOrientationOnRobot=function RevHubOrientationOnRobot(logo,usb){this.logo=logo;this.usb=usb});
+  orientationType.LogoFacingDirection=orientationType.LogoFacingDirection||{UP:'UP',DOWN:'DOWN',FORWARD:'FORWARD',BACKWARD:'BACKWARD',LEFT:'LEFT',RIGHT:'RIGHT'};
+  orientationType.UsbFacingDirection=orientationType.UsbFacingDirection||{UP:'UP',DOWN:'DOWN',FORWARD:'FORWARD',BACKWARD:'BACKWARD',LEFT:'LEFT',RIGHT:'RIGHT'};
+  window.DistanceUnit=window.DistanceUnit||{MM:'MM',CM:'CM',METER:'METER',INCH:'INCH'};
+}
+
+function createHardwareRuntime() {
+  ensureSdkConstructorStubs();
+  telemetryPending=false;
+  telemetryUpdateVersion=0;
+  var runtime=TelemarkJava.createRuntime({
+    gamepad:gamepad,
+    getRuntime:getRuntime,
+    isStopRequested:function(){return stopRequested},
+    opModeIsActive:function(){return currentState==='RUNNING'&&!stopRequested},
+    onTelemetry:function(){telemetryPending=true},
+    onTelemetryUpdate:renderCompiledTelemetry,
+    onDirection:function(direction,state){
+      var mapped=hwDevices.find(function(device){return device.configName===state.name});
+      if(mapped)mapped.direction=String(direction);
+      updateRobot3D();
+    }
+  });
+  var baseGet=runtime.hardwareMap.get.bind(runtime.hardwareMap);
+  runtime.hardwareMap.get=function(type,name){
+    type=String(type);name=String(name);
+    if(robotConfig){
+      if(!robotConfig[name])throw new Error('No configured '+type+' named "'+name+'"');
+      if(robotConfig[name]!==type)throw new Error('Hardware "'+name+'" is configured as '+robotConfig[name]+', not '+type);
+    }
+    var device=baseGet(type,name);
+    if(!device.setZeroPowerBehavior)device.setZeroPowerBehavior=function(behavior){device._state.zeroPowerBehavior=String(behavior)};
+    if(!device.initialize)device.initialize=function(parameters){device._state.initialized=true;device._state.parameters=parameters};
+    if(!device.resetYaw)device.resetYaw=function(){device._state.yaw=0};
+    return device;
+  };
+  var rawClear=runtime.clearTelemetry.bind(runtime);
+  var rawUpdate=runtime.updateTelemetry.bind(runtime);
+  runtime.clearTelemetry=function(){rawClear();telemetryPending=false};
+  runtime.updateTelemetry=function(){
+    rawUpdate();
+    rawClear();
+    telemetryPending=false;
+    telemetryUpdateVersion++;
+  };
+  return runtime;
+}
+
+function compileHardwareProgram() {
+  if(!window.TelemarkJava)return failExecution('Compiler unavailable',new Error('TelemarkJava did not load'));
+  compiledRuntime=createHardwareRuntime();
+  compiledProgram=TelemarkJava.compile(codeEditor.value,compiledRuntime);
+  compiledSource=codeEditor.value;
+  if(!compiledProgram.ok){
+    var diagnostic=compiledProgram.diagnostics&&compiledProgram.diagnostics[0]||{};
+    var location=diagnostic.line?' (line '+diagnostic.line+', column '+diagnostic.column+')':'';
+    return failExecution('Java compile error',new Error((diagnostic.message||'Unable to compile Java')+location));
   }
+  if(compiledProgram.kind!=='iterative')return failExecution('OpMode type mismatch',new Error('Unit 7 expects a class that extends OpMode'));
+  return true;
+}
 
-  if (telemetryLines.length) {
-      document.getElementById('telemetry-log').innerHTML = telemetryLines.join('');
+function executeLifecycleMethod(methodName,replaceFrame) {
+  var method=compiledProgram&&compiledProgram.methods&&compiledProgram.methods[methodName];
+  if(!method)return true;
+  if(replaceFrame!==false)compiledRuntime.clearTelemetry();
+  var updateBefore=telemetryUpdateVersion;
+  try{
+    method();
+    if(telemetryPending||telemetryUpdateVersion===updateBefore)compiledRuntime.updateTelemetry();
+    return true;
+  }catch(error){
+    return failExecution(methodName+'() runtime error',error);
   }
 }
 
 function handleMainButton() {
   if (currentState === 'STOPPED') {
+    stopAllIntervals();
+    stopRequested=false;
     runAnalysis();
     document.getElementById('telemetry-log').innerHTML = '';
     document.getElementById('timer-val').textContent = '0.00';
     runtimeOffset = 0;
-    executeTelemetryFrom('init');
-    setLifecycle('INIT', '#ffcc00', 'START');
-  } else if (currentState === 'INIT') {
+    if(!compileHardwareProgram())return;
+    setLifecycle('INIT_LOOP', '#ffcc00', 'START');
+    if(!executeLifecycleMethod('init',true))return;
+    if(compiledProgram.methods.init_loop){
+      intervalId=setInterval(function(){executeLifecycleMethod('init_loop',true)},100);
+    }
+  } else if (currentState === 'INIT_LOOP') {
+    clearInterval(intervalId);intervalId=null;
+    stopRequested=false;
     runtimeOffset = Date.now();
     setLifecycle('RUNNING', '#00ff00', 'RUNNING');
+    if(!executeLifecycleMethod('start',true))return;
     timerId = setInterval(function() { document.getElementById('timer-val').textContent = getRuntime().toFixed(2); }, 50);
-    intervalId = setInterval(function() { executeTelemetryFrom('loop'); }, 100);
+    if(compiledProgram.methods.loop){
+      intervalId = setInterval(function() { executeLifecycleMethod('loop',true); }, 100);
+    }
   }
 }
 
 function handleStopButton() {
   if (currentState === 'STOPPED') return;
   stopAllIntervals();
+  stopRequested=true;
+  executeLifecycleMethod('stop',true);
   runtimeOffset = 0;
   document.getElementById('timer-val').textContent = '0.00';
-  document.getElementById('telemetry-log').innerHTML = '<span style="color:#666">Press INIT to start...</span>';
   setLifecycle('STOPPED', 'var(--danger)', 'INIT');
 }
 

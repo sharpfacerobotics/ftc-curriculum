@@ -141,6 +141,7 @@ code{font-family:"Consolas","Courier New",monospace}
 .gp-instruction{position:absolute;left:50%;top:4%;transform:translateX(-50%);font-size:.72rem;color:#ddd;font-family:"Consolas","Courier New",monospace;white-space:nowrap;z-index:7;background:rgba(0,0,0,0.6);padding:3px 8px;border-radius:4px;border:1px solid #444;}
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 
@@ -907,6 +908,7 @@ function onCodeChange() {
   updateCode(codeEditor.value);
   validate();
 }
+TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 function handleRun() {
   if (running) return;

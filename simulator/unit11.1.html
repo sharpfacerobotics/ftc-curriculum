@@ -252,6 +252,7 @@ body{
 }
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 
 <body>
@@ -1107,9 +1108,9 @@ function createRuntime(){
         };
 }
 
-function physicsLoop(){
+function physicsLoop(generation){
 
-    if(!sim.running) return;
+    if(!sim.running || generation !== executionGeneration) return;
 
     sim.rawStick =
         gamepad.left_stick_y;
@@ -1152,9 +1153,9 @@ function physicsLoop(){
 
     updateUI();
 
-    requestAnimationFrame(
-        physicsLoop
-    );
+    requestAnimationFrame(function(){
+        physicsLoop(generation);
+    });
 }
 
 window.onSimulatorReady = function(){
@@ -1246,11 +1247,16 @@ window.onSimulatorReady = function(){
     }
 };
 
-window.onRun = function(){
+let executionGeneration = 0;
+let preparedLoopRunner = null;
 
-    sim.running = true;
+window.onInit = function(){
+
+    const generation = ++executionGeneration;
+    sim.running = false;
     sim.setupOk = false;
     sim.loopFunction = null;
+    preparedLoopRunner = null;
 
     warningBox.classList.remove(
         "visible"
@@ -1310,8 +1316,6 @@ window.onRun = function(){
         );
 
         updateRequirementStates();
-        sim.running = false;
-
         if(window.stopExecution){
             window.stopExecution();
         }
@@ -1319,13 +1323,14 @@ window.onRun = function(){
         return;
     }
 
-    function loopRunner(){
+    preparedLoopRunner = function loopRunner(){
 
-        if(!sim.running)
+        if(!sim.running || generation !== executionGeneration)
             return;
 
         try{
 
+            window.clearTelemetry?.();
             sim.loopFunction?.();
 
         }catch(err){
@@ -1337,16 +1342,22 @@ window.onRun = function(){
             loopRunner,
             50
         );
-    }
+    };
+};
 
-    loopRunner();
+window.onStart = function(){
+    if(!sim.setupOk || !preparedLoopRunner) return;
 
-    physicsLoop();
+    sim.running = true;
+    preparedLoopRunner();
+    physicsLoop(executionGeneration);
 };
 
 window.onStop = function(){
 
+    executionGeneration++;
     sim.running = false;
+    preparedLoopRunner = null;
 
     sim.commandedPower = 0;
     sim.requestedPower = 0;

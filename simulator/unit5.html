@@ -346,6 +346,7 @@
     .dpad-center { position: absolute; left: 33%; top: 33%; width: 34%; height: 34%; background: rgba(30,30,30,0.9); border-radius: 2px; pointer-events: none; }
   </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 
@@ -357,7 +358,7 @@
     </div>
   </div>
   <div class="code-wrapper">
-    <textarea id="code-editor" spellcheck="false" oninput="updateCode(this.value); syncScroll(this);" onscroll="syncScroll(this);">@TeleOp(name="TeleOpTest", group="Practice")
+    <textarea id="code-editor" spellcheck="false" onscroll="syncScroll(this);">@TeleOp(name="TeleOpTest", group="Practice")
 public class TeleOpTest extends OpMode {
     @Override
     public void init() {
@@ -583,34 +584,18 @@ function syncScroll(el) {
 }
 
 // ─── Smart Editor ────────────────────────────────────────────────────────────
-codeEditor.addEventListener('keydown', function(e) {
-  var start = this.selectionStart, end = this.selectionEnd;
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
-    this.selectionStart = this.selectionEnd = start + 4;
-    updateCode(this.value); runStaticAnalysis(); return;
-  }
-  var pairs = { '(': ')', '{': '}', '[': ']', '"': '"', "'": "'" };
-  if (pairs[e.key]) {
-    e.preventDefault();
-    this.value = this.value.substring(0, start) + e.key + pairs[e.key] + this.value.substring(end);
-    this.selectionStart = this.selectionEnd = start + 1;
-    updateCode(this.value); runStaticAnalysis(); return;
-  }
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    var before = this.value.substring(0, start);
-    var lastLine = before.split('\n').pop();
-    var indent = lastLine.match(/^\s*/)[0];
-    var extra = lastLine.trimEnd().endsWith('{') ? '    ' : '';
-    var insert = '\n' + indent + extra;
-    this.value = before + insert + this.value.substring(end);
-    this.selectionStart = this.selectionEnd = start + insert.length;
-    updateCode(this.value); runStaticAnalysis(); return;
+TelemarkEditor.attach(codeEditor, {
+  onChange: function(editor) {
+    updateCode(editor.value);
+    syncScroll(editor);
+    runStaticAnalysis();
   }
 });
-codeEditor.addEventListener('input', function() { updateCode(codeEditor.value); runStaticAnalysis(); });
+codeEditor.addEventListener('input', function() {
+  updateCode(codeEditor.value);
+  syncScroll(codeEditor);
+  runStaticAnalysis();
+});
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function getRuntime() { return runtimeOffset === 0 ? 0 : (Date.now() - runtimeOffset) / 1000; }
@@ -1241,7 +1226,10 @@ function executeMethod(methodName) {
         onTelemetry: function(key, value) {
           sharedTelemetry.push('<div class="telemetry-line"><span class="telemetry-key">' + key + '</span>: ' + String(value) + '</div>');
         },
-        onTelemetryClear: function() { sharedTelemetry.length = 0; },
+        onTelemetryClear: function(event) {
+          sharedTelemetry.length = 0;
+          if (!event || !event.automatic) document.getElementById('telemetry-log').innerHTML = '';
+        },
         onTelemetryUpdate: function() {
           if (sharedTelemetry.length) document.getElementById('telemetry-log').innerHTML = sharedTelemetry.join('');
         }
@@ -1254,9 +1242,13 @@ function executeMethod(methodName) {
         return;
       }
     }
+    if (!window.__telemarkUnit5Program || !window.__telemarkUnit5Program.ok) return;
     var sharedMethod = window.__telemarkUnit5Program.methods[methodName];
-    if (sharedMethod) sharedMethod();
-    window.__telemarkUnit5Runtime.updateTelemetry();
+    if (sharedMethod) {
+      if (methodName === 'loop' || methodName === 'init_loop') window.__telemarkUnit5Runtime.clearTelemetry();
+      sharedMethod();
+      window.__telemarkUnit5Runtime.updateTelemetry();
+    }
     Object.keys(window.__telemarkUnit5Program.scope || {}).forEach(function(name) {
       if (declaredVars[name]) declaredVars[name].value = window.__telemarkUnit5Program.scope[name];
     });

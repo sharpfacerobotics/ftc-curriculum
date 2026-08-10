@@ -157,6 +157,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 .dpad-center{position:absolute;left:33%;top:33%;width:34%;height:34%;background:rgba(30,30,30,.9);pointer-events:none}
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 <div id="editor-container">
@@ -291,9 +292,17 @@ var runtimeOffset = 0;
 var loopIntervalId = null, timerIntervalId = null;
 var stopRequested = false;
 var linearResolve = null; // for waitForStart promise
+var linearReject = null;
 var linearRunning = false;
+var linearRunToken = 0;
+var LINEAR_STOP_SIGNAL = {name:'LinearOpModeStopped'};
 var activeHints = [];
 var fieldVars = {}; // persistent field variables across loop calls
+var compiledSource = '';
+var compiledProgram = null;
+var compiledRuntime = null;
+var telemetryPending = false;
+var telemetryUpdateVersion = 0;
 
 // Step visualizer state
 var stepForLoop = null; // {varName, init, limit, op, step, body, totalIters}
@@ -309,7 +318,7 @@ var initialMode = urlParams.get('mode') === 'linear' ? 'linear' : 'opmode';
 function updateCode(t){var el=document.getElementById('highlighting-content');if(t&&t[t.length-1]==='\n')t+=' ';el.innerHTML=(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');Prism.highlightElement(el)}
 function syncScroll(el){document.getElementById('highlighting').scrollTop=el.scrollTop;document.getElementById('highlighting').scrollLeft=el.scrollLeft}
 function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor);runAnalysis()}
-codeEditor.addEventListener('keydown',function(e){var s=this.selectionStart,end=this.selectionEnd;if(e.key==='Tab'){e.preventDefault();this.value=this.value.substring(0,s)+'    '+this.value.substring(end);this.selectionStart=this.selectionEnd=s+4;onCodeChange();return}var p={'(':')','{':'}','[':']','"':'"',"'":"'"};if(p[e.key]){e.preventDefault();this.value=this.value.substring(0,s)+e.key+p[e.key]+this.value.substring(end);this.selectionStart=this.selectionEnd=s+1;onCodeChange();return}if(e.key==='Enter'){e.preventDefault();var before=this.value.substring(0,s),ll=before.split('\n').pop(),indent=ll.match(/^\s*/)[0],extra=ll.trimEnd().endsWith('{')?'    ':'',ins='\n'+indent+extra;this.value=before+ins+this.value.substring(end);this.selectionStart=this.selectionEnd=s+ins.length;onCodeChange()}});
+TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 // ── Resizer ──
 var resizer=document.getElementById('resizer'),leftPanel=document.getElementById('editor-container'),isResizing=false;
@@ -406,29 +415,9 @@ function buildTelemetryCollector(){
 }
 
 function renderTelemetry(lines){
-  if(!lines.length)return;
-  document.getElementById('telemetry-log').innerHTML=lines.map(function(l){
+  document.getElementById('telemetry-log').innerHTML=lines.length?lines.map(function(l){
     return'<div class="telemetry-line"><span class="telemetry-key">'+esc(l.key)+'</span>: '+esc(l.val)+'</div>';
-  }).join('');
-}
-
-function executeBody(javaBody,extraVars){
-  var tc=buildTelemetryCollector();
-  var js=transpile(javaBody);
-  var varSetup='';
-  // Inject field vars
-  for(var k in fieldVars){varSetup+='var '+k+'=__fv.'+k+';'}
-  var code='"use strict";\n'+varSetup+'\n'+js+'\n';
-  // Collect field var names to write back
-  var fieldKeys=Object.keys(fieldVars);
-  if(fieldKeys.length){code+='\n__fv.__writeback={'+fieldKeys.map(function(k){return k+':typeof '+k+'!=="undefined"?'+k+':__fv.'+k}).join(',')+'};\n'}
-  try{
-    var fn=new Function('gamepad','__tel','__runtime','__fv',code);
-    fn(gamepad,tc.fn,getRuntime,fieldVars);
-    // Write back
-    if(fieldVars.__writeback){for(var wk in fieldVars.__writeback)fieldVars[wk]=fieldVars.__writeback[wk];delete fieldVars.__writeback}
-  }catch(e){/* silent */}
-  return tc.lines;
+  }).join(''):'<span style="color:#666">No telemetry data</span>';
 }
 
 // ── OpMode Lifecycle ──
@@ -440,184 +429,244 @@ function setState(s,color){
 function updateTimer(){document.getElementById('timer-val').textContent=getRuntime().toFixed(2)}
 function updateLoopCounter(){document.getElementById('loop-counter').textContent='Loops: '+loopCount}
 
-function handleInit(){
-  if(simState!=='STOPPED')return;
-  handleStop();
-  // Parse field vars
-  parseFieldVars();
-  loopCount=0;updateLoopCounter();
-  runtimeOffset=0;document.getElementById('timer-val').textContent='0.00';
-  document.getElementById('telemetry-log').innerHTML='';
-  setState('INIT','#ffcc00');
-  // Execute init()
-  var body=getMethodBody(codeEditor.value,'init');
-  if(body){var lines=executeBody(body);renderTelemetry(lines)}
-  document.getElementById('btn-start-op').disabled=false;
-  document.getElementById('btn-init').disabled=true;
-}
-
-function handleStart(){
-  if(simState!=='INIT')return;
-  runtimeOffset=Date.now();
-  setState('RUNNING','var(--good)');
-  document.getElementById('btn-start-op').disabled=true;
-  timerIntervalId=setInterval(updateTimer,50);
-  var hasBlocking=checkBlocking();
-  if(hasBlocking)return;
-  // Start loop() interval
-  var delay=Math.max(50,1000/getSpeed());
-  loopIntervalId=setInterval(function(){
-    loopCount++;updateLoopCounter();
-    var body=getMethodBody(codeEditor.value,'loop');
-    if(body){var lines=executeBody(body);renderTelemetry(lines)}
-  },delay);
-}
-
-function handleStop(){
-  clearInterval(loopIntervalId);clearInterval(timerIntervalId);
-  loopIntervalId=null;timerIntervalId=null;
-  stopRequested=true;
-  linearRunning=false;
-  if(linearResolve){linearResolve();linearResolve=null}
-  runtimeOffset=0;
-  document.getElementById('timer-val').textContent='0.00';
-  document.getElementById('waiting-indicator').classList.remove('visible');
-  setState('STOPPED','var(--danger)');
+function resetControlState(){
   document.getElementById('btn-init').disabled=false;
   document.getElementById('btn-start-op').disabled=true;
   document.getElementById('btn-run').disabled=false;
   document.getElementById('btn-linear-start').disabled=true;
+  document.getElementById('waiting-indicator').classList.remove('visible');
+}
+
+function clearExecutionTimers(){
+  clearInterval(loopIntervalId);
+  clearInterval(timerIntervalId);
+  loopIntervalId=null;
+  timerIntervalId=null;
+}
+
+function showExecutionError(context,error){
+  var message=error&&error.message?error.message:String(error||'Unknown error');
+  document.getElementById('telemetry-log').innerHTML='<div class="telemetry-line" style="color:var(--danger)"><strong>'+esc(context)+':</strong> '+esc(message)+'</div>';
+}
+
+function failExecution(context,error){
+  clearExecutionTimers();
+  stopRequested=true;
+  linearRunning=false;
+  if(linearReject){linearReject(LINEAR_STOP_SIGNAL)}
+  linearResolve=null;
+  linearReject=null;
+  runtimeOffset=0;
+  document.getElementById('timer-val').textContent='0.00';
+  showExecutionError(context,error);
+  setState('STOPPED','var(--danger)');
+  resetControlState();
+  return false;
+}
+
+function flushCompiledTelemetry(force){
+  if(!compiledRuntime)return;
+  if(force||telemetryPending)compiledRuntime.updateTelemetry();
+}
+
+function createCompiledRuntime(){
+  telemetryPending=false;
+  telemetryUpdateVersion=0;
+  var isLinearRuntime=currentMode==='linear';
+  var runtimeToken=linearRunToken;
+  function ensureLinearExecutionCurrent(){
+    if(isLinearRuntime&&(stopRequested||runtimeToken!==linearRunToken))throw LINEAR_STOP_SIGNAL;
+  }
+  var runtime=TelemarkJava.createRuntime({
+    gamepad:gamepad,
+    getRuntime:getRuntime,
+    isStopRequested:function(){return stopRequested},
+    opModeIsActive:function(){return simState==='RUNNING'&&!stopRequested},
+    waitForStart:function(){
+      flushCompiledTelemetry(false);
+      if(stopRequested)return Promise.reject(LINEAR_STOP_SIGNAL);
+      if(simState==='RUNNING')return Promise.resolve();
+      setState('WAITING','var(--warn)');
+      document.getElementById('waiting-indicator').classList.add('visible');
+      document.getElementById('btn-linear-start').disabled=false;
+      return new Promise(function(resolve,reject){linearResolve=resolve;linearReject=reject});
+    },
+    sleep:function(ms){
+      return new Promise(function(resolve,reject){
+        setTimeout(function(){
+          try{
+            ensureLinearExecutionCurrent();
+            resolve();
+          }catch(error){
+            reject(error);
+          }
+        },Math.max(0,Number(ms)||0));
+      });
+    },
+    onTelemetry:function(){telemetryPending=true},
+    onTelemetryUpdate:function(items){
+      renderTelemetry(items.map(function(item){return{key:item.key,val:item.value}}));
+    }
+  });
+  var rawClear=runtime.clearTelemetry.bind(runtime);
+  var rawUpdate=runtime.updateTelemetry.bind(runtime);
+  runtime.clearTelemetry=function(){rawClear();telemetryPending=false};
+  runtime.updateTelemetry=function(){
+    rawUpdate();
+    // Keep this page correct with both auto-clearing and older runtimes.
+    rawClear();
+    telemetryPending=false;
+    telemetryUpdateVersion++;
+  };
+  runtime.linearTick=function(){
+    if(telemetryPending)runtime.updateTelemetry();
+    loopCount++;
+    updateLoopCounter();
+    return runtime.sleep(Math.max(50,1000/getSpeed()));
+  };
+  return runtime;
+}
+
+function compileStudentProgram(expectedKind){
+  if(!window.TelemarkJava)return failExecution('Compiler unavailable',new Error('TelemarkJava did not load'));
+  compiledRuntime=createCompiledRuntime();
+  compiledProgram=TelemarkJava.compile(codeEditor.value,compiledRuntime);
+  compiledSource=codeEditor.value;
+  if(!compiledProgram.ok){
+    var diagnostic=compiledProgram.diagnostics&&compiledProgram.diagnostics[0]||{};
+    var location=diagnostic.line?' (line '+diagnostic.line+', column '+diagnostic.column+')':'';
+    return failExecution('Java compile error',new Error((diagnostic.message||'Unable to compile Java')+location));
+  }
+  if(expectedKind&&compiledProgram.kind!==expectedKind){
+    return failExecution('OpMode type mismatch',new Error(expectedKind==='linear'?'Switch the editor to LinearOpMode or extend LinearOpMode':'Switch the editor to OpMode or extend OpMode'));
+  }
+  return true;
+}
+
+function invokeCompiledMethod(name,replaceFrame){
+  var method=compiledProgram&&compiledProgram.methods&&compiledProgram.methods[name];
+  if(!method)return true;
+  if(replaceFrame!==false)compiledRuntime.clearTelemetry();
+  var updateBefore=telemetryUpdateVersion;
+  try{
+    method();
+    if(telemetryPending||telemetryUpdateVersion===updateBefore)compiledRuntime.updateTelemetry();
+    return true;
+  }catch(error){
+    return failExecution(name+'() runtime error',error);
+  }
+}
+
+function handleInit(){
+  if(simState!=='STOPPED')return;
+  clearExecutionTimers();
+  stopRequested=false;
+  linearRunning=false;
+  loopCount=0;updateLoopCounter();
+  runtimeOffset=0;
+  document.getElementById('timer-val').textContent='0.00';
+  document.getElementById('telemetry-log').innerHTML='';
+  runAnalysis();
+  if(!compileStudentProgram('iterative'))return;
+  setState('INIT','var(--warn)');
+  if(!invokeCompiledMethod('init',true))return;
+  document.getElementById('btn-start-op').disabled=false;
+  document.getElementById('btn-init').disabled=true;
+  if(compiledProgram.methods.init_loop){
+    loopIntervalId=setInterval(function(){invokeCompiledMethod('init_loop',true)},Math.max(50,1000/getSpeed()));
+  }
+}
+
+function handleStart(){
+  if(simState!=='INIT')return;
+  clearInterval(loopIntervalId);loopIntervalId=null;
+  if(checkBlocking()){
+    showExecutionError('loop() blocked',new Error('Blocking while loops are not allowed inside iterative loop()'));
+    return;
+  }
+  stopRequested=false;
+  runtimeOffset=Date.now();
+  setState('RUNNING','var(--good)');
+  if(!invokeCompiledMethod('start',true))return;
+  document.getElementById('btn-start-op').disabled=true;
+  timerIntervalId=setInterval(updateTimer,50);
+  var delay=Math.max(50,1000/getSpeed());
+  if(compiledProgram.methods.loop){
+    loopIntervalId=setInterval(function(){
+      loopCount++;updateLoopCounter();
+      invokeCompiledMethod('loop',true);
+    },delay);
+  }
+}
+
+function handleStop(){
+  var previousState=simState;
+  clearExecutionTimers();
+  stopRequested=true;
+  linearRunning=false;
+  if(currentMode==='linear'&&previousState!=='STOPPED')linearRunToken++;
+  if(linearReject){linearReject(LINEAR_STOP_SIGNAL)}
+  linearResolve=null;
+  linearReject=null;
+  if(currentMode==='opmode'&&previousState!=='STOPPED'&&compiledProgram&&compiledProgram.kind==='iterative'){
+    invokeCompiledMethod('stop',true);
+  }
+  runtimeOffset=0;
+  document.getElementById('timer-val').textContent='0.00';
+  setState('STOPPED','var(--danger)');
+  resetControlState();
 }
 
 // ── LinearOpMode Lifecycle ──
 function handleLinearRun(){
   if(simState!=='STOPPED')return;
-  handleStop();
-  parseFieldVars();
+  clearExecutionTimers();
+  linearRunToken++;
+  var token=linearRunToken;
   loopCount=0;updateLoopCounter();
-  runtimeOffset=Date.now();
+  runtimeOffset=0;
+  document.getElementById('timer-val').textContent='0.00';
   document.getElementById('telemetry-log').innerHTML='';
   stopRequested=false;
   linearRunning=true;
-  setState('RUNNING','var(--good)');
+  runAnalysis();
+  if(!compileStudentProgram('linear'))return;
+  if(!compiledProgram.methods.runOpMode)return failExecution('Java compile error',new Error('No runOpMode() method was found'));
   document.getElementById('btn-run').disabled=true;
-  timerIntervalId=setInterval(updateTimer,50);
-  runLinearOpMode();
-}
-
-async function runLinearOpMode(){
   var body=getMethodBody(codeEditor.value,'runOpMode');
-  if(!body){handleStop();return}
-  // Split at waitForStart()
-  var wsIdx=body.indexOf('waitForStart()');
-  var beforeWait=wsIdx!==-1?body.substring(0,wsIdx):'';
-  var afterWait=wsIdx!==-1?body.substring(wsIdx+'waitForStart()'.length):'';
-  if(wsIdx===-1)afterWait=body;
-  // Execute pre-wait
-  if(beforeWait.trim()){var lines=executeBody(beforeWait);renderTelemetry(lines)}
-  // Wait for start
-  if(wsIdx!==-1){
-    setState('WAITING','var(--warn)');
-    document.getElementById('waiting-indicator').classList.add('visible');
-    document.getElementById('btn-linear-start').disabled=false;
-    await new Promise(function(resolve){linearResolve=resolve});
-    if(stopRequested)return;
-    document.getElementById('waiting-indicator').classList.remove('visible');
-    document.getElementById('btn-linear-start').disabled=true;
+  if(!/\bwaitForStart\s*\(/.test(body||'')){
+    runtimeOffset=Date.now();
     setState('RUNNING','var(--good)');
+    timerIntervalId=setInterval(updateTimer,50);
+  }else{
+    setState('INIT','var(--warn)');
   }
-  // Execute after wait — handle while(!isStopRequested()) via stepping
-  // Split afterWait into: before-while, while-body, after-while
-  var whileMatch=afterWait.match(/while\s*\(\s*!isStopRequested\s*\(\s*\)\s*\)\s*\{/);
-  if(whileMatch){
-    var preWhile=afterWait.substring(0,whileMatch.index);
-    // Extract while body with balanced braces
-    var braceStart=afterWait.indexOf('{',whileMatch.index+whileMatch[0].length-1);
-    var depth=1,ci=braceStart+1;
-    for(;ci<afterWait.length;ci++){if(afterWait[ci]==='{')depth++;else if(afterWait[ci]==='}'){depth--;if(depth===0)break}}
-    var whileBody=afterWait.substring(braceStart+1,ci);
-    var postWhile=afterWait.substring(ci+1);
-    // Execute pre-while and capture any local vars it declared
-    var localVars = {};
-    if(preWhile.trim()){
-      // Execute pre-while, capturing locals into localVars
-      var preTC = buildTelemetryCollector();
-      var preJS = transpile(preWhile);
-      // Inject field vars
-      var preSetup = '';
-      for(var fk in fieldVars) preSetup += 'var ' + fk + '=__fv.' + fk + ';';
-      var preCode = '"use strict";\n' + preSetup + '\n' + preJS + '\n';
-      // Detect declared locals: look for "let varname" patterns in transpiled code
-      var localNames = [];
-      var letRe = /\blet\s+(\w+)/g;
-      var lm;
-      while((lm = letRe.exec(preJS)) !== null) { localNames.push(lm[1]); }
-      if(localNames.length) {
-        preCode += 'Object.assign(__locals, {' + localNames.map(function(n){return n+':typeof '+n+'!=="undefined"?'+n+':0'}).join(',') + '});\n';
-      }
-      try {
-        var __locals = {};
-        var preFn = new Function('gamepad','__tel','__runtime','__fv','__locals', preCode);
-        preFn(gamepad, preTC.fn, getRuntime, fieldVars, __locals);
-        localVars = __locals;
-      } catch(e) {}
-      renderTelemetry(preTC.lines);
-    }
-    // Step through while loop — inject both fieldVars and localVars
-    while(!stopRequested){
-      loopCount++;updateLoopCounter();
-      var tc2 = buildTelemetryCollector();
-      var whileJS = transpile(whileBody);
-      var setup2 = '';
-      for(var fk2 in fieldVars) setup2 += 'var ' + fk2 + '=__fv.' + fk2 + ';';
-      for(var lk in localVars) setup2 += 'var ' + lk + '=__lv.' + lk + ';';
-      var localKeys = Object.keys(localVars);
-      var code2 = '"use strict";\n' + setup2 + '\n' + whileJS + '\n';
-      // Write back locals
-      if(localKeys.length) {
-        code2 += '__lv.__wb={' + localKeys.map(function(n){return n+':typeof '+n+'!=="undefined"?'+n+':__lv.'+n}).join(',') + '};\n';
-      }
-      // Write back fields
-      var fKeys = Object.keys(fieldVars);
-      if(fKeys.length) {
-        code2 += '__fv.__writeback={' + fKeys.map(function(n){return n+':typeof '+n+'!=="undefined"?'+n+':__fv.'+n}).join(',') + '};\n';
-      }
-      try {
-        var fn2 = new Function('gamepad','__tel','__runtime','__fv','__lv', code2);
-        fn2(gamepad, tc2.fn, getRuntime, fieldVars, localVars);
-        if(localVars.__wb){for(var wk2 in localVars.__wb)localVars[wk2]=localVars.__wb[wk2];delete localVars.__wb}
-        if(fieldVars.__writeback){for(var wk3 in fieldVars.__writeback)fieldVars[wk3]=fieldVars.__writeback[wk3];delete fieldVars.__writeback}
-      } catch(e) {}
-      renderTelemetry(tc2.lines);
-      var delay=Math.max(50,1000/getSpeed());
-      await new Promise(function(r){setTimeout(r,delay)});
-    }
-    // Execute post-while
-    if(postWhile.trim()){
-      postWhile=postWhile.replace(/^\s*;/,'');
-      if(postWhile.trim()){
-        // Inject locals for post-while too
-        var postTC = buildTelemetryCollector();
-        var postJS = transpile(postWhile);
-        var postSetup = '';
-        for(var fk3 in fieldVars) postSetup += 'var ' + fk3 + '=__fv.' + fk3 + ';';
-        for(var lk2 in localVars) postSetup += 'var ' + lk2 + '=__lv.' + lk2 + ';';
-        try {
-          var postFn = new Function('gamepad','__tel','__runtime','__fv','__lv', '"use strict";\n' + postSetup + '\n' + postJS);
-          postFn(gamepad, postTC.fn, getRuntime, fieldVars, localVars);
-        } catch(e) {}
-        renderTelemetry(postTC.lines);
-      }
-    }
-  } else {
-    // No while loop, just execute everything
-    if(afterWait.trim()){var lines3=executeBody(afterWait);renderTelemetry(lines3)}
-  }
-  handleStop();
+  Promise.resolve(compiledProgram.methods.runOpMode()).then(function(){
+    if(token!==linearRunToken)return;
+    flushCompiledTelemetry(false);
+    clearExecutionTimers();
+    linearRunning=false;
+    runtimeOffset=0;
+    document.getElementById('timer-val').textContent='0.00';
+    setState('STOPPED','var(--danger)');
+    resetControlState();
+  }).catch(function(error){
+    if(error===LINEAR_STOP_SIGNAL)return;
+    if(token===linearRunToken)failExecution('runOpMode() runtime error',error);
+  });
 }
 
 function handleLinearStart(){
-  if(linearResolve){linearResolve();linearResolve=null}
+  if(!linearResolve||stopRequested)return;
+  runtimeOffset=Date.now();
+  setState('RUNNING','var(--good)');
+  document.getElementById('waiting-indicator').classList.remove('visible');
+  document.getElementById('btn-linear-start').disabled=true;
+  timerIntervalId=setInterval(updateTimer,50);
+  var resolve=linearResolve;
+  linearResolve=null;
+  linearReject=null;
+  resolve();
 }
 
 // ── Field Var Parser ──
@@ -709,7 +758,13 @@ function stepOnce(){
   var tc=buildTelemetryCollector();
   var js=transpile(stepForLoop.body);
   js=js.replace(new RegExp('\\b'+stepForLoop.varName+'\\b','g'),String(iterVal));
-  try{var fn=new Function('gamepad','__tel','__runtime','"use strict";\n'+js);fn(gamepad,tc.fn,getRuntime)}catch(e){}
+  try{
+    var fn=new Function('gamepad','__tel','__runtime','"use strict";\n'+js);
+    fn(gamepad,tc.fn,getRuntime);
+  }catch(e){
+    showExecutionError('Loop visualizer error',e);
+    return false;
+  }
   stepHistory.push({iter:stepIter,varVal:iterVal,tel:tc.lines});
   stepIter++;
   renderStepUI();

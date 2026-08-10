@@ -171,6 +171,7 @@ html, body {
     }
     </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 
@@ -326,6 +327,41 @@ function createHeadingPanel() {
     }
 }
 
+function installHeadingIMUSdkShims() {
+    window.IMU = window.IMU || {};
+
+    if (typeof window.IMU.Parameters !== "function") {
+        window.IMU.Parameters = function Parameters(orientationOnRobot) {
+            this.orientationOnRobot = orientationOnRobot;
+        };
+    }
+
+    if (typeof window.RevHubOrientationOnRobot !== "function") {
+        const RevHubOrientationOnRobot = function (logoFacingDirection, usbFacingDirection) {
+            this.logoFacingDirection = logoFacingDirection;
+            this.usbFacingDirection = usbFacingDirection;
+        };
+
+        RevHubOrientationOnRobot.LogoFacingDirection = Object.freeze({
+            UP: "UP",
+            DOWN: "DOWN",
+            FORWARD: "FORWARD",
+            BACKWARD: "BACKWARD",
+            LEFT: "LEFT",
+            RIGHT: "RIGHT"
+        });
+        RevHubOrientationOnRobot.UsbFacingDirection = Object.freeze({
+            UP: "UP",
+            DOWN: "DOWN",
+            FORWARD: "FORWARD",
+            BACKWARD: "BACKWARD",
+            LEFT: "LEFT",
+            RIGHT: "RIGHT"
+        });
+        window.RevHubOrientationOnRobot = RevHubOrientationOnRobot;
+    }
+}
+
 window.onSimulatorReady = () => {
 
     const starterCode = `@TeleOp(name="Heading_Display")
@@ -440,6 +476,22 @@ public class HeadingDisplay extends OpMode {
     let startHeading     = 0;
     let driftOffset      = 0;
     const headingHistory = [];
+
+    function syncStudentIMU() {
+        const imu = window.hardwareMap &&
+            window.hardwareMap._devices &&
+            window.hardwareMap._devices.imu;
+
+        if (!imu) return;
+
+        const heading = reportedHeading(currentHeading);
+        imu._heading = heading;
+        if (imu._orientation) {
+            imu._orientation.heading = heading;
+            imu._orientation.pitch = 0;
+            imu._orientation.roll = 0;
+        }
+    }
 
     function reportedHeading(heading) {
         if (window.isFaultActive && isFaultActive("imu-drift")) {
@@ -843,6 +895,21 @@ public class HeadingDisplay extends OpMode {
         driftOffset = 0;
         headingHistory.length = 0;
         updateVisuals();
+
+        installHeadingIMUSdkShims();
+        syncStudentIMU();
+
+        const code = window.getCode ? window.getCode() : starterCode;
+        window.transpileAndRun(
+            code,
+            null,
+            function(loopFn) {
+                window._simStartLoop(function() {
+                    syncStudentIMU();
+                    loopFn();
+                });
+            }
+        );
     };
 
     window.onStop = function() {};

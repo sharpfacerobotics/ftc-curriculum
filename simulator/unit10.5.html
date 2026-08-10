@@ -255,6 +255,7 @@
     }
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 
@@ -343,6 +344,9 @@ let gearRack;
 let gameSphere;
 
 let startResolver = null;
+let executionToken = 0;
+let compiledProgram = null;
+const STOP_SIGNAL = {};
 
 function clamp(v,min,max){
     return Math.max(min,Math.min(max,v));
@@ -1087,20 +1091,6 @@ function installHooks(){
                 sim.requirements[3] = true;
             }
 
-            if(
-                !sim.mode.includes(
-                    "RUN_TO_POSITION"
-                )
-            ){
-
-                setWarning(
-                    "Set RUN_TO_POSITION mode before calling setTargetPosition()",
-                    "error"
-                );
-
-                return;
-            }
-
             setStep(2);
 
             updateRequirements();
@@ -1146,6 +1136,10 @@ function installHooks(){
                     sim.currentTicks
                 );
             };
+
+        motor.getTargetPosition = function(){
+            return Math.round(sim.targetTicks);
+        };
 
         motor.isBusy = function(){
             return sim.busy;
@@ -1292,202 +1286,135 @@ function beginMotion(){
     },50);
 }
 
-async function runCode(code){
-
+function validateStudentCode(code){
     sim.requirements[0] =
-        code.includes(
-            'hardwareMap.get(DcMotorEx.class, "slider")'
-        ) ||
-        code.includes(
-            'hardwareMap.get(DcMotor.class, "slider")'
-        );
-
+        /hardwareMap\s*\.\s*get\s*\(\s*DcMotor(?:Ex)?\s*\.\s*class\s*,\s*"slider"\s*\)/.test(code);
     sim.requirements[5] =
-        code.includes(
-            "while (opModeIsActive() && slider.isBusy())"
-        ) ||
-        code.includes(
-            "while(opModeIsActive() && slider.isBusy())"
-        );
-
+        /while\s*\(\s*opModeIsActive\s*\(\s*\)\s*&&\s*slider\s*\.\s*isBusy\s*\(\s*\)\s*\)/.test(code);
     sim.requirements[6] =
-        code.includes(
-            "getCurrentPosition()"
-        );
-
+        /slider\s*\.\s*getCurrentPosition\s*\(\s*\)/.test(code);
     updateRequirements();
 
-    if(
-        !code.includes(
-            "STOP_AND_RESET_ENCODER"
-        )
-    ){
-
+    if(!code.includes("STOP_AND_RESET_ENCODER")){
         setWarning(
             "Reset your encoder first — without this you don't know your starting position",
             "warn"
         );
     }
 
-    if(
-        !code.includes(
-            "setPower(0.0)"
-        )
-    ){
-
+    if(!/setPower\s*\(\s*0(?:\.0+)?\s*\)/.test(code)){
         setWarning(
             "Cut motor power after reaching target — leaving it at full power wastes battery and can damage hardware",
             "warn"
         );
     }
 
-    if(
-        !code.includes(
-            "telemetry.update()"
-        )
-    ){
-
+    if(!/telemetry\s*\.\s*update\s*\(\s*\)/.test(code)){
         setWarning(
             "Call telemetry.update() inside the loop so position updates appear on the Driver Station in real time",
             "warn"
         );
     }
 
-    const slider =
-        hardwareMap.get(
-            "DcMotorEx",
-            "slider"
-        );
-
-    if(
-        code.includes(
-            "STOP_AND_RESET_ENCODER"
-        )
-    ){
-        slider.setMode(
-            "STOP_AND_RESET_ENCODER"
-        );
-    }
-
-    if(
-        code.includes(
-            "RUN_TO_POSITION"
-        )
-    ){
-        slider.setMode(
-            "RUN_TO_POSITION"
-        );
-    }
-
     const targetMatch =
-        code.match(
-            /setTargetPosition\s*\(\s*(\d+)\s*\)/
-        );
-
-    if(targetMatch){
-
-        const target =
-            parseInt(
-                targetMatch[1],
-                10
-            );
-
-        if(target !== 500){
-
-            setWarning(
-                "Challenge requires exactly 500 ticks — check your setTargetPosition() call",
-                "error"
-            );
-        }
-
-        slider.setTargetPosition(
-            target
+        /setTargetPosition\s*\(\s*(-?\d+)\s*\)/.exec(code);
+    if(targetMatch && Number(targetMatch[1]) !== 500){
+        setWarning(
+            "Challenge requires exactly 500 ticks — check your setTargetPosition() call",
+            "error"
         );
     }
 
-    const powerMatch =
-        code.match(
-            /setPower\s*\(\s*([0-9.]+)\s*\)/
-        );
-
-    if(powerMatch){
-
-        slider.setPower(
-            parseFloat(
-                powerMatch[1]
-            )
-        );
-    }
-
-    if(
-        code.includes(
-            "waitForStart()"
-        )
-    ){
-
-        sim.waiting = true;
-        sim.active = false;
-        sim.started = false;
-        setStep(3);
-        pushSliderTelemetry("Waiting for start");
-
-        overlay.classList.add(
-            "visible"
-        );
-
-        await new Promise(
-            resolve=>{
-                startResolver =
-                    resolve;
-                if(sim.startRequested){
-                    releaseDriverStationStart(false);
-                }
-            }
-        );
-
-        sim.waiting = false;
-
-        if(!sim.running){
-            return;
-        }
-    }else{
+    if(!/\bwaitForStart\s*\(\s*\)/.test(code)){
         setWarning(
             "Autonomous code should call waitForStart() before moving",
             "error"
         );
     }
+}
 
-    if(!sim.running){
-        return;
-    }
+function ensureCurrentExecution(token){
+    if(token !== executionToken || !sim.running) throw STOP_SIGNAL;
+}
 
+async function waitForDriverStationStart(token){
+    sim.waiting = true;
+    sim.active = false;
+    sim.started = false;
+    setStep(3);
+    pushSliderTelemetry("Waiting for start");
+    overlay.classList.add("visible");
+
+    await new Promise(resolve=>{
+        startResolver = resolve;
+        if(sim.startRequested) releaseDriverStationStart(false);
+    });
+
+    ensureCurrentExecution(token);
+    sim.waiting = false;
     sim.active = true;
     sim.started = true;
-
     maybeBeginMotion();
     pushSliderTelemetry("Started");
+}
 
-    while(
-        sim.active &&
-        slider.isBusy()
-    ){
+async function runCode(code,token){
+    validateStudentCode(code);
 
+    if(!/\bwaitForStart\s*\(\s*\)/.test(code)){
+        sim.active = true;
+        sim.started = true;
+    }
+
+    const runtime = window.TelemarkJava.createRuntime({
+        gamepad1: window.gamepad || {},
+        gamepad2: window.gamepad2 || {},
+        getRuntime: window.getRuntime,
+        isStopRequested: function(){
+            return token !== executionToken || !sim.running;
+        },
+        opModeIsActive: function(){
+            return token === executionToken && sim.running && sim.active;
+        },
+        waitForStart: function(){
+            return waitForDriverStationStart(token);
+        },
+        sleep: async function(ms){
+            await sleep(ms);
+            ensureCurrentExecution(token);
+        },
+        onTelemetryUpdate: function(frame){
+            window.clearTelemetry();
+            frame.forEach(function(item){
+                window.addTelemetry(item.key,item.value);
+            });
+            window.updateTelemetry();
+        },
+        onTelemetryClear: function(event){
+            if(!event || !event.automatic) window.clearTelemetry();
+        }
+    });
+    runtime.hardwareMap = window.hardwareMap;
+    runtime.linearTick = async function(){
         await sleep(50);
+        ensureCurrentExecution(token);
+    };
+
+    compiledProgram = window.TelemarkJava.compile(code,runtime);
+    if(!compiledProgram.ok){
+        const diagnostic = compiledProgram.diagnostics[0];
+        throw new Error(
+            diagnostic.message +
+            " (line " + diagnostic.line +
+            ", column " + diagnostic.column + ")"
+        );
     }
 
-    if(
-        code.includes("setPower(0.0)") ||
-        code.includes("setPower(0)")
-    ){
-        slider.setPower(0);
+    if(compiledProgram.kind !== "linear" || !compiledProgram.methods.runOpMode){
+        throw new Error("This challenge requires a LinearOpMode with runOpMode().");
     }
 
-    pushSliderTelemetry(
-        Math.abs(sim.currentTicks - 500) <= 5
-            ? "Complete"
-            : "Stopped"
-    );
-
+    await compiledProgram.methods.runOpMode();
     updatePanel();
 }
 
@@ -1566,6 +1493,8 @@ window.onInit = async function(){
     sim.started = false;
     sim.waiting = false;
     sim.startRequested = false;
+    const token = ++executionToken;
+    compiledProgram = null;
 
     setWarning(null);
     pushSliderTelemetry("Initialized");
@@ -1580,9 +1509,16 @@ window.onInit = async function(){
         starterCode;
 
     try{
-        await runCode(code);
+        await runCode(code,token);
     }catch(err){
+        if(err === STOP_SIGNAL) return;
         console.error(err);
+        if(window._simShowTelemetryError){
+            window._simShowTelemetryError(err.message || String(err));
+        }else if(window.addTelemetry && window.updateTelemetry){
+            window.addTelemetry("ERROR",err.message || String(err));
+            window.updateTelemetry();
+        }
     }
 	};
 
@@ -1592,6 +1528,7 @@ window.onStart = function(){
 	
 	window.onStop = function(){
 
+    executionToken++;
     sim.running = false;
     sim.active = false;
     sim.busy = false;
@@ -1612,6 +1549,7 @@ window.onStart = function(){
         releaseDriverStationStart(false);
     }
     sim.startRequested = false;
+    compiledProgram = null;
 
     pushSliderTelemetry("Stopped");
     updatePanel();

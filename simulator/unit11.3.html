@@ -177,6 +177,7 @@ input[type=range]{
 }
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 
 <body>
@@ -1250,9 +1251,14 @@ function(){
     bindSlider("bSlider","b");
 };
 
-window.onRun = function(){
+let executionGeneration = 0;
+let preparedLoopRunner = null;
 
-    sim.running = true;
+window.onInit = function(){
+
+    const generation = ++executionGeneration;
+    sim.running = false;
+    preparedLoopRunner = null;
 
     installMocks();
 
@@ -1336,9 +1342,9 @@ window.onRun = function(){
                 `
             );
 
-        function tick(){
+        preparedLoopRunner = function tick(){
 
-            if(!sim.running)
+            if(!sim.running || generation !== executionGeneration)
                 return;
 
             try{
@@ -1376,9 +1382,7 @@ window.onRun = function(){
                 tick,
                 50
             );
-        }
-
-        tick();
+        };
 
     }catch(err){
 
@@ -1391,17 +1395,24 @@ window.onRun = function(){
             );
         }
 
-        sim.running = false;
-
         if(window.stopExecution){
             stopExecution();
         }
     }
 };
 
+window.onStart = function(){
+    if(!preparedLoopRunner) return;
+
+    sim.running = true;
+    preparedLoopRunner();
+};
+
 window.onStop = function(){
 
+    executionGeneration++;
     sim.running = false;
+    preparedLoopRunner = null;
 };
 
 window.onReset = function(){

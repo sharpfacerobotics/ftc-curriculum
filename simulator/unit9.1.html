@@ -128,12 +128,9 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 }
   </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
-
-<!-- Hidden React root (required by build system) -->
-<div id="root" style="display:none"></div>
-<script type="module" src="/src/main.tsx"></script>
 
 <div id="app">
   <div id="main">
@@ -234,24 +231,65 @@ function validateCode(c){var ib=getMethodBody(c,'init')||'',lb=getMethodBody(c,'
 // Editor
 var cmEditor=null;
 function currentIndent(s){var m=(s||'').match(/^\s*/);return m?m[0]:''}
+function shouldIndentUnbracedControl(line){var t=(line||'').trim();return /^(?:(?:if|for|while|switch|catch|synchronized)\s*\(.*\)|else(?:\s+if\s*\(.*\))?|do|try|finally)$/.test(t)||/^(?:case\b.*|default)\s*:$/.test(t)}
 function installCodeMirrorAutocomplete(cm){
-  function wrapSelection(open,close){var ranges=cm.listSelections();cm.operation(function(){ranges.forEach(function(r){var txt=cm.getRange(r.anchor,r.head);cm.replaceRange(open+txt+close,r.anchor,r.head);});var cur=cm.getCursor();if(ranges.length===1&&ranges[0].empty())cm.setCursor({line:cur.line,ch:cur.ch-1});});}
-  function smartBrace(){
-    var cur=cm.getCursor(),line=cm.getLine(cur.line),before=line.slice(0,cur.ch),after=line.slice(cur.ch),indent=currentIndent(before);
-    if(/(?:^|\s)(?:if\s*\([^)]*\)|else\s+if\s*\([^)]*\)|else)\s*$/.test(before)&&after.trim()===''){
-      var inner=indent+'    ';
-      cm.replaceRange(' {\n'+inner+'\n'+indent+'}',cur);
-      cm.setCursor({line:cur.line+1,ch:inner.length});
+  var pairs={'(':')','[':']','{':'}','"':'"',"'":"'"};
+  function pairOrOvertype(open,close){
+    var ranges=cm.listSelections();
+    if(ranges.length===1&&ranges[0].empty()){
+      var cursor=cm.getCursor();
+      if(open===close&&cm.getRange(cursor,{line:cursor.line,ch:cursor.ch+1})===close){
+        cm.setCursor({line:cursor.line,ch:cursor.ch+1});
+        return;
+      }
+    }
+    cm.operation(function(){
+      ranges.forEach(function(range){
+        var selected=cm.getRange(range.anchor,range.head);
+        cm.replaceRange(open+selected+close,range.anchor,range.head);
+      });
+      var cursor=cm.getCursor();
+      if(ranges.length===1&&ranges[0].empty())cm.setCursor({line:cursor.line,ch:cursor.ch-1});
+    });
+  }
+  function closeOrOvertype(close){
+    var cursor=cm.getCursor(),line=cm.getLine(cursor.line),before=line.slice(0,cursor.ch);
+    if(close==='}'&&/^\s+$/.test(before)){
+      var remove=before.endsWith('\t')?1:Math.min(4,(before.match(/ +$/)||[''])[0].length);
+      if(remove){
+        var existing=line.charAt(cursor.ch)==='}';
+        cm.replaceRange(existing?'':'}',{line:cursor.line,ch:cursor.ch-remove},cursor);
+        cm.setCursor({line:cursor.line,ch:cursor.ch-remove+1});
+        return;
+      }
+    }
+    if(cm.getRange(cursor,{line:cursor.line,ch:cursor.ch+1})===close){
+      cm.setCursor({line:cursor.line,ch:cursor.ch+1});
     }else{
-      wrapSelection('{','}');
+      cm.replaceSelection(close,'end');
     }
   }
   cm.addKeyMap({
-    "'('":function(){wrapSelection('(',')')},
-    "'['":function(){wrapSelection('[',']')},
-    "'{'":smartBrace,
-    "'\"'":function(){wrapSelection('"','"')},
-    "'''":function(){wrapSelection("'","'")},
+    "'('":function(){pairOrOvertype('(',')')},
+    "'['":function(){pairOrOvertype('[',']')},
+    "'{'":function(){pairOrOvertype('{','}')},
+    "'\"'":function(){pairOrOvertype('"','"')},
+    "'''":function(){pairOrOvertype("'","'")},
+    "')'":function(){closeOrOvertype(')')},
+    "']'":function(){closeOrOvertype(']')},
+    "'}'":function(){closeOrOvertype('}')},
+    "Backspace":function(){
+      var range=cm.listSelections()[0],cursor=cm.getCursor();
+      if(range&&range.empty()&&cursor.ch>0){
+        var before=cm.getRange({line:cursor.line,ch:cursor.ch-1},cursor);
+        var after=cm.getRange(cursor,{line:cursor.line,ch:cursor.ch+1});
+        if(pairs[before]===after){
+          cm.replaceRange('',{line:cursor.line,ch:cursor.ch-1},{line:cursor.line,ch:cursor.ch+1});
+          return;
+        }
+      }
+      return CodeMirror.Pass;
+    },
     "Enter":function(){
       var cur=cm.getCursor(),line=cm.getLine(cur.line),before=line.slice(0,cur.ch),after=line.slice(cur.ch),indent=currentIndent(before);
       if(before.trimEnd().endsWith('{')&&after.trimStart().startsWith('}')){
@@ -259,14 +297,14 @@ function installCodeMirrorAutocomplete(cm){
         cm.replaceRange('\n'+inner+'\n'+indent,cur);
         cm.setCursor({line:cur.line+1,ch:inner.length});
       }else{
-        var extra=before.trimEnd().endsWith('{')?'    ':'';
+        var extra=before.trimEnd().endsWith('{')||shouldIndentUnbracedControl(before)?'    ':'';
         cm.replaceSelection('\n'+indent+extra);
       }
     }
   });
   cm.on('keydown',function(_cm,e){e.stopPropagation();});
 }
-function initEditor(){cmEditor=CodeMirror(document.getElementById('editor-wrap'),{value:STARTER_CODE,mode:'text/x-java',theme:'dracula',lineNumbers:true,indentUnit:4,tabSize:4,indentWithTabs:false,extraKeys:{Tab:function(cm){cm.replaceSelection('    ','end')}}});installCodeMirrorAutocomplete(cmEditor);cmEditor.on('change',function(){state.code=cmEditor.getValue();renderChallenge()})}
+function initEditor(){cmEditor=CodeMirror(document.getElementById('editor-wrap'),{value:STARTER_CODE,mode:'text/x-java',theme:'dracula',lineNumbers:true,indentUnit:4,tabSize:4,indentWithTabs:false,extraKeys:{Tab:'indentMore','Shift-Tab':'indentLess'}});installCodeMirrorAutocomplete(cmEditor);cmEditor.on('change',function(){state.code=cmEditor.getValue();renderChallenge()})}
 
 // Rendering
 function renderTelemetry(){

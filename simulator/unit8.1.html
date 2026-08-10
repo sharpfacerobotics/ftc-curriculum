@@ -109,6 +109,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 .dpad-center{position:absolute;left:33%;top:33%;width:34%;height:34%;background:rgba(30,30,30,.9)}
 </style>
   <script src="./telemark-java.js"></script>
+  <script src="./telemark-editor.js"></script>
 </head>
 <body>
 <div id="left-panel">
@@ -235,7 +236,7 @@ function renderHints(){var c=document.getElementById('hint-container');c.innerHT
 function updateCode(t){var el=document.getElementById('highlighting-content');if(t&&t[t.length-1]==='\n')t+=' ';el.innerHTML=(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');Prism.highlightElement(el)}
 function syncScroll(el){document.getElementById('highlighting').scrollTop=el.scrollTop;document.getElementById('highlighting').scrollLeft=el.scrollLeft}
 function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor);validate()}
-codeEditor.addEventListener('keydown',function(e){var s=this.selectionStart,end=this.selectionEnd;if(e.key==='Tab'){e.preventDefault();this.value=this.value.substring(0,s)+'    '+this.value.substring(end);this.selectionStart=this.selectionEnd=s+4;onCodeChange();return}var p={'(':')','{':'}','[':']','"':'"',"'":"'"};if(p[e.key]){e.preventDefault();this.value=this.value.substring(0,s)+e.key+p[e.key]+this.value.substring(end);this.selectionStart=this.selectionEnd=s+1;onCodeChange();return}if(e.key==='Enter'){e.preventDefault();var before=this.value.substring(0,s),ll=before.split('\n').pop(),indent=ll.match(/^\s*/)[0],extra=ll.trimEnd().endsWith('{')?'    ':'',ins='\n'+indent+extra;this.value=before+ins+this.value.substring(end);this.selectionStart=this.selectionEnd=s+ins.length;onCodeChange()}});
+TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 // ── Resizer ──
 var resizer=document.getElementById('resizer'),leftPanel=document.getElementById('left-panel'),isResizing=false;
