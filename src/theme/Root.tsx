@@ -2,7 +2,7 @@ import React, {type ReactNode} from 'react';
 import {useLocation} from '@docusaurus/router';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import ContentLock from '@site/src/components/ContentLock';
-import {getUnitNumber} from '@site/src/telemark/accessPolicy';
+import {getUnitNumber, isProtectedUnit} from '@site/src/telemark/accessPolicy';
 import {useAuth} from '@site/src/telemark/useAuth';
 
 interface RootProps {
@@ -28,12 +28,13 @@ export default function Root({children}: RootProps): React.JSX.Element {
   const {pathname} = useLocation();
   const {user, loading} = useAuth();
   const relativePath = siteRelativePath(pathname, siteConfig.baseUrl);
+  const unitNumber = getUnitNumber(relativePath);
+  const publicUnit = unitNumber !== null && !isProtectedUnit(unitNumber);
 
-  if (isPublicRoute(relativePath) || user) {
+  if (isPublicRoute(relativePath) || publicUnit || user) {
     return <>{children}</>;
   }
 
-  const unitNumber = getUnitNumber(relativePath);
   const contentType = unitNumber !== null
     ? 'lesson'
     : relativePath === '/simulator'

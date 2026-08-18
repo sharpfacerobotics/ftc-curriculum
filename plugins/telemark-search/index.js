@@ -57,7 +57,7 @@ module.exports = function telemarkSearchPlugin(context) {
         .map((file) => {
           const source = fs.readFileSync(file, 'utf8');
           const unit = unitNumberFor(file);
-          const isProtected = unit !== null;
+          const isProtected = unit !== null && unit >= 1;
           const title = readFrontMatter(source, 'title')
             || source.match(/^#\s+(.+)$/m)?.[1]?.trim()
             || path.basename(file, '.mdx');

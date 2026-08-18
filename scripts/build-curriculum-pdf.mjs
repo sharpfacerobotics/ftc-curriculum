@@ -9,8 +9,8 @@ const curriculumSource = readFileSync(path.join(root, 'src/telemark/curriculum.t
 
 const docs = [
   'docs/learning-paths.mdx',
-  ...Array.from({ length: 15 }, (_, i) => {
-    const unit = String(i + 1).padStart(2, '0');
+  ...Array.from({ length: 16 }, (_, i) => {
+    const unit = String(i).padStart(2, '0');
     return listUnitDocs(`docs/unit-${unit}`);
   }).flat(),
 ];

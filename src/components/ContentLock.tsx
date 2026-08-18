@@ -102,7 +102,7 @@ export default function ContentLock({
       {!loading && (
         <>
           <div className={styles.benefits}>
-            <span>Unlock all 15 units</span>
+            <span>Unlock Units 1-15</span>
             <span>Use every simulator</span>
             <span>Track completed lessons</span>
           </div>

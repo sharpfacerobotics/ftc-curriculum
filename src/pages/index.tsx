@@ -132,8 +132,8 @@ function HeroSection(): React.JSX.Element {
       </div>
 
       <div className={styles.heroActions}>
-        <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
-          Begin Unit 1
+        <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
+          Begin Unit 0
         </Link>
         <Link to="/curriculum" className={styles.btnSecondary}>
           View All Units
@@ -314,8 +314,8 @@ function CtaSection(): React.JSX.Element {
         <p className={styles.ctaSub}>
           Begin in the browser, then choose the deployment tools that fit your team.
         </p>
-        <Link to="/docs/unit-01/prerequisites" className={styles.btnPrimary}>
-          Begin Unit 1 →
+        <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
+          Begin Unit 0 →
         </Link>
       </div>
     </div>

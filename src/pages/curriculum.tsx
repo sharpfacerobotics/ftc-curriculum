@@ -113,7 +113,7 @@ export default function CurriculumPage(): React.JSX.Element {
 
           <div className={pageStyles.heroActions}>
             <Link to={CURRICULUM_UNITS[0].startPath} className={pageStyles.btnPrimary}>
-              Begin Unit 1
+              Begin Unit 0
             </Link>
             <Link to="/docs/learning-paths" className={pageStyles.btnSecondary}>
               Learning Paths

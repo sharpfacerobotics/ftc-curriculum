@@ -30,12 +30,14 @@ assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MIN = 2/);
 assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MAX = 5/);
 assert.match(docItem, /isProtectedUnit\(unitNumber\)/);
 assert.match(rootTheme, /isPublicRoute/);
+assert.match(rootTheme, /const publicUnit = unitNumber !== null && !isProtectedUnit\(unitNumber\)/);
+assert.match(rootTheme, /isPublicRoute\(relativePath\) \|\| publicUnit \|\| user/);
 assert.match(rootTheme, /<ContentLock/);
 assert.match(navbarItem, /isAuthItem && loading[\s\S]*return null/);
 assert.doesNotMatch(homepage, /useState<string>\(isNumeric \? '0'/);
 assert.match(homepage, /CURRICULUM_UNIT_COUNT/);
 assert.match(homepage, /CURRICULUM_LESSON_COUNT/);
-assert.match(searchPlugin, /const isProtected = unit !== null/);
+assert.match(searchPlugin, /const isProtected = unit !== null && unit >= 1/);
 assert.match(searchPlugin, /excerpt: isProtected \? '' : cleanExcerpt/);
 assert.match(searchPlugin, /actions\.setGlobalData\(content\)/);
 assert.match(deployedSmoke, /deployedMeta\.commit !== expectedCommit/);
@@ -49,6 +51,7 @@ assert.match(
 assert.match(customCss, /\.telemark-navbar-center[\s\S]*left: 50%/);
 assert.match(customCss, /\.footer[\s\S]*padding: 0\.85rem 1\.5rem/);
 
+assert.equal(Number.isInteger(0) && 0 >= 1, false);
 for (let unit = 1; unit <= 15; unit += 1) {
   const protectedUnit = Number.isInteger(unit) && unit >= 1;
   assert.equal(protectedUnit, true);

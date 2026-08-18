@@ -23,13 +23,15 @@ function walk(directory) {
 }
 
 const homepage = fs.readFileSync(path.join(buildRoot, 'index.html'), 'utf8');
-assert.match(homepage, />15</, 'Homepage must render 15 in static HTML');
-assert.match(homepage, />95</, 'Homepage must render 95 in static HTML');
+assert.match(homepage, />16</, 'Homepage must render 16 in static HTML');
+assert.match(homepage, />97</, 'Homepage must render 97 in static HTML');
 assert.match(homepage, /telemark-build-commit/);
 
 findRoute('/curriculum');
 findRoute('/simulator');
 findRoute('/search');
+findRoute('/docs/unit-00');
+findRoute('/docs/unit-00/classes-and-objects');
 findRoute('/docs/unit-01/prerequisites');
 findRoute('/docs/unit-06/opmode-active');
 

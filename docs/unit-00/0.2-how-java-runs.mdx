@@ -1,0 +1,277 @@
+---
+id: how-java-runs
+title: "Lesson 0.2: How Java Runs"
+sidebar_label: "0.2 · How Java Runs"
+sidebar_position: 2
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+
+# Lesson 0.2: How Java Runs
+
+It is easy to read a Java file as one long list of instructions. However, much of the file contains definitions rather than instructions that run immediately. Those definitions specify the fields and methods that an object will have.
+
+Execution occurs when the program creates an object or calls a method. Following that process also explains why FTC OpModes use syntax such as `extends`, `new`, and `@Override`.
+
+---
+
+## From Source File to Robot
+
+Several steps occur between saving Java source code and seeing an arm move.
+
+1. **You write source code.** Files such as `RobotArm.java` and `ArmTeleOp.java` contain classes that humans can read.
+2. **The build tools compile it.** The compiler checks grammar, names, and types. Android build tools convert the compiled program into the format used by the Robot Controller app.
+3. **The Robot Controller loads the program.** Android's runtime executes the app and loads class definitions when they are needed.
+4. **The FTC SDK controls the lifecycle.** It finds registered OpModes, creates the selected OpMode object, and calls lifecycle methods such as `init()`, `start()`, `loop()`, and `stop()` at the correct time.
+
+In a normal introductory Java application, execution often begins in a method named `main`. FTC code is different because the Robot Controller app is already running. The FTC SDK is the framework that calls your OpMode.
+
+:::info Compile time versus run time
+A missing semicolon or incompatible type is usually a **compile-time error**, so the build stops before the code runs. A null reference or invalid hardware name can become a **run-time error**, which happens after the program has started.
+:::
+
+---
+
+## Class Definitions and Instructions
+
+Look again at a shortened class:
+
+```java
+public class RobotArm {
+    private double power;
+
+    public RobotArm() {
+        power = 0.0;
+    }
+
+    public void move(double requestedPower) {
+        power = requestedPower;
+    }
+
+    public void stop() {
+        move(0.0);
+    }
+}
+```
+
+When Java loads this class, the `RobotArm` definition becomes available. The `move` method does not run at that point. It runs only when another part of the program calls it on an object.
+
+```java
+RobotArm arm = new RobotArm(); // constructor runs now
+arm.move(0.6);                 // move runs now
+```
+
+The first statement creates an object and runs the constructor. The second statement calls a method on that object.
+
+---
+
+## Creating Objects with `new`
+
+```java
+RobotArm arm = new RobotArm();
+```
+
+That statement involves several steps:
+
+1. Java reserves memory for a new `RobotArm` object.
+2. Its fields receive initial values. Numeric fields begin at zero, booleans begin as `false`, and object references begin as `null` unless code gives them other values.
+3. The matching constructor runs and prepares the object.
+4. A reference to the object is assigned to `arm`.
+
+The type on the left tells Java what kind of reference the variable can hold. The `new` expression on the right creates the actual object.
+
+### Shared Object References
+
+```java
+RobotArm firstName = new RobotArm();
+RobotArm secondName = firstName;
+
+secondName.move(0.8);
+```
+
+Only one object was created because the code used `new` once. Both variables refer to it, so a call through `secondName` changes the same object referenced by `firstName`.
+
+Compare that with:
+
+```java
+RobotArm firstArm = new RobotArm();
+RobotArm secondArm = new RobotArm();
+```
+
+Here `new` appears twice, so Java creates two independent objects.
+
+### Null References
+
+```java
+RobotArm arm = null;
+arm.move(0.8); // run-time error
+```
+
+The variable exists, but it does not refer to a `RobotArm` object. Calling `move` here produces a `NullPointerException`. In robot code, this often means an object or hardware field was used before `init()` initialized it.
+
+---
+
+## How a Method Call Runs
+
+Now the running code reaches this line:
+
+```java
+arm.move(0.6);
+```
+
+Java uses the reference in `arm` to invoke that object's `move` method and passes `0.6` into the `requestedPower` parameter. The calling method pauses while `move` executes. When `move` finishes, execution returns to the next statement after the call.
+
+This nested order is managed through the **call stack**:
+
+1. `loop()` is active on the call stack.
+2. Calling `move()` adds a new stack frame while that method runs.
+3. When `move()` finishes, its frame is removed and execution returns to `loop()`.
+
+Local variables and parameters belong to the current method call. Fields belong to the object and remain available after the method returns.
+
+```java
+public void move(double requestedPower) {
+    double safePower = Math.max(-1.0, Math.min(1.0, requestedPower));
+    power = safePower;
+}
+```
+
+`requestedPower` and `safePower` exist for this call to `move`. The field `power` remains part of the object, which is why a later call to `status()` can report it.
+
+---
+
+## OOP in an FTC OpMode
+
+```java
+@TeleOp(name = "Arm Demo")
+public class ArmTeleOp extends OpMode {
+    private RobotArm arm;
+
+    @Override
+    public void init() {
+        arm = new RobotArm();
+        telemetry.addData("Status", "Ready");
+    }
+
+    @Override
+    public void loop() {
+        if (gamepad1.a) {
+            arm.move(0.6);
+        } else {
+            arm.stop();
+        }
+    }
+}
+```
+
+When the driver selects this OpMode and presses Init, the important events occur in this order:
+
+1. `@TeleOp` gives the FTC SDK registration information about the class.
+2. When this OpMode is selected, the SDK creates an `ArmTeleOp` object.
+3. Before the match starts, the SDK calls `init()` on that object.
+4. `init()` creates one `RobotArm` object and stores its reference in the `arm` field.
+5. After Start, the SDK calls `loop()` repeatedly.
+6. Each pass through `loop()` chooses one branch and calls either `arm.move(...)` or `arm.stop()`.
+7. When the OpMode ends, the SDK stops calling `loop()` and calls `stop()` if the class provides it.
+
+Inside a called method, Java moves through statements in order until `if`, `else`, a loop, or `return` sends it elsewhere. It does not reread the entire class from top to bottom on every pass through `loop()`.
+
+:::note About `@TeleOp` and `@Override`
+These names beginning with `@` are **annotations**, which add information for tools and the compiler. They are important Java syntax, but they are not Java keywords. `@Override` asks the compiler to verify that a method really replaces an inherited method.
+:::
+
+---
+
+## Inheritance with `extends`
+
+The following declaration uses inheritance:
+
+```java
+public class ArmTeleOp extends OpMode {
+```
+
+`ArmTeleOp` is the **child class**, and `OpMode` is its **parent class**. The keyword `extends` says that an `ArmTeleOp` is a specialized kind of `OpMode`. It inherits accessible fields and methods supplied by `OpMode`, which is why code can use FTC members such as `gamepad1`, `hardwareMap`, and `telemetry` without declaring them again.
+
+The child class can provide its own implementation of a parent method:
+
+```java
+@Override
+public void loop() {
+    // ArmTeleOp's loop behavior
+}
+```
+
+This is **method overriding**. When the SDK calls `loop()` on an `ArmTeleOp` object, Java runs the child's implementation.
+
+Inheritance represents an **is-a** relationship: `ArmTeleOp` is an `OpMode`. It should not be used just to avoid typing. Java classes can extend only one parent class.
+
+By contrast, the field `private RobotArm arm;` represents composition, or a **has-a** relationship: `ArmTeleOp` has a `RobotArm`. Robot programs commonly use both patterns. OpModes extend an FTC base class and contain mechanism objects.
+
+Unit 13 returns to inheritance, encapsulation, and composition after you have written enough robot code to apply them to a full competition architecture.
+
+---
+
+## Important Java Words
+
+| Word or syntax | What it tells Java |
+|---|---|
+| `class` | Define a class. |
+| `new` | Create an object and call a constructor. |
+| `extends` | Define a child class that inherits from one parent class. |
+| `this` | Refer to the current object. |
+| `public` | Make a declaration accessible from other code. |
+| `private` | Keep a member accessible only inside its own class. |
+| `protected` | Allow access in the class, its child classes, and its package. |
+| `static` | Put one member on the class itself rather than one copy on every object. |
+| `final` | Prevent reassignment, overriding, or inheritance, depending on where it is used. |
+| `void` | Declare that a method returns no value. |
+| `return` | Finish the current method and optionally provide a result. |
+| `null` | Represent a reference to no object. |
+| `if` / `else` | Choose which block of statements runs. |
+| `boolean`, `int`, `double` | Store primitive true/false, whole-number, and decimal values. |
+| `@Override` | Ask the compiler to verify an overridden method. It is an annotation, not a keyword. |
+
+There is no need to memorize the whole table now. When `new` appears, look for the object being created. At a dot, notice which object receives the call. At `extends`, look for behavior coming from a parent class.
+
+---
+
+## Check Your Understanding
+
+```java
+RobotArm a = new RobotArm();
+RobotArm b = a;
+RobotArm c = new RobotArm();
+
+b.move(0.4);
+c.move(-0.2);
+a.stop();
+```
+
+<details>
+<summary>How many RobotArm objects exist?</summary>
+
+Two. The two `new RobotArm()` expressions create two objects. Assigning `a` to `b` copies a reference, not the object.
+
+</details>
+
+<details>
+<summary>Which variables refer to the same object?</summary>
+
+`a` and `b` refer to the first object. `c` refers to the second object.
+
+</details>
+
+<details>
+<summary>What are the final power values?</summary>
+
+The first object's power is `0.0`. The call through `b` first sets it to `0.4`, then `a.stop()` changes that same object to zero. The second object's power is `-0.2`.
+
+</details>
+
+These ideas continue throughout the curriculum: a class defines behavior, an object stores state, a reference identifies an object, and a method call runs a specific section of code before returning to its caller.
+
+<MarkComplete
+  lessonId="unit-00/how-java-runs"
+  nextUnit="/docs/unit-01"
+  nextUnitName="Unit 1: Environment Setup"
+/>

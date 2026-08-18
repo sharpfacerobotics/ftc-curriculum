@@ -49,8 +49,8 @@ export default function SimulatorPage(): React.JSX.Element {
             <Link to="/curriculum" className={pageStyles.btnSecondary}>
               View Curriculum
             </Link>
-            <Link to="/docs/unit-01/prerequisites" className={pageStyles.btnPrimary}>
-              Begin Unit 1
+            <Link to="/docs/unit-00/classes-and-objects" className={pageStyles.btnPrimary}>
+              Begin Unit 0
             </Link>
           </div>
         </section>

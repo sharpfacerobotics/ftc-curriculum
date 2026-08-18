@@ -46,13 +46,15 @@ async function main() {
   ).then((response) => response.json());
 
   const homepage = await fetchWithRetry('/').then((response) => response.text());
-  assert.match(homepage, />15</);
-  assert.match(homepage, />95</);
+  assert.match(homepage, />16</);
+  assert.match(homepage, />97</);
 
   for (const route of [
     '/curriculum',
     '/simulator',
     '/search',
+    '/docs/unit-00',
+    '/docs/unit-00/classes-and-objects',
     '/docs/unit-01/prerequisites',
     '/docs/unit-06/opmode-active',
   ]) {

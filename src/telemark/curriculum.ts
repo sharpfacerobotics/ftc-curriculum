@@ -28,10 +28,31 @@ export interface CurriculumLesson {
 
 export const CURRICULUM_UNITS: CurriculumUnit[] = [
   {
+    id: 'UNIT_00',
+    label: 'Unit 0',
+    title: 'Objects, Classes, and Java',
+    desc: 'Learn how classes define reusable objects without scattering the same rules across robot code.',
+    tier: 'Beginner',
+    slug: 'unit-00',
+    overviewPath: '/docs/unit-00',
+    startPath: '/docs/unit-00/classes-and-objects',
+    nextPath: '/docs/unit-01',
+    nextLabel: 'Unit 1: Environment Setup',
+    lessonCount: 2,
+    overview:
+      'Two robot arms can be built from the same design while using separate names, power levels, and roles. Java classes and objects follow a similar pattern.',
+    outcomes: [
+      'Tell a class from an object, and see where fields, methods, and constructors fit.',
+      'Follow object creation, references, and method calls while Java runs.',
+      'Read common Java words such as class, new, this, extends, public, private, static, void, return, and @Override.',
+      'Give shared robot behavior one home instead of copying it from OpMode to OpMode.',
+    ],
+  },
+  {
     id: 'UNIT_01',
     label: 'Unit 1',
     title: 'Environment Setup',
-    desc: 'Start in the browser, then set up the deployment workflow your team uses.',
+    desc: 'Start in the built-in simulator; Android Studio is only an optional head start for an advanced team workflow.',
     tier: 'Beginner',
     slug: 'unit-01',
     overviewPath: '/docs/unit-01',
@@ -40,10 +61,11 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 2: OpMode Structure',
     lessonCount: 10,
     overview:
-      'In this unit, we separate browser-based learning from the tools used to build and deploy code to a physical robot.',
+      'In this unit, we separate browser-based learning from the optional tools used to build and deploy code to a physical robot. If local setup becomes a serious blocker, continue in Telemark\'s built-in simulator and return to it later with your team.',
     outcomes: [
       'Use Telemark lessons and simulators without installing local development software.',
-      'Choose between OnBot Java, Android Studio, or a supported team workflow.',
+      'Treat Android Studio as an optional head start for joining an advanced team, not a requirement for learning Java.',
+      'Return to the built-in simulator if Android Studio installation or configuration causes serious issues.',
       'Build a diagnostic OpMode and connect to the Robot Controller when hardware is available.',
     ],
   },
@@ -330,6 +352,24 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
 ];
 
 export const CURRICULUM_LESSONS: CurriculumLesson[] = [
+  {
+    id: 'unit-00/classes-and-objects',
+    label: '0.1 · Classes, Objects & DRY Code',
+    title: 'Lesson 0.1: Classes, Objects, and DRY Code',
+    path: '/docs/unit-00/classes-and-objects',
+    unitSlug: 'unit-00',
+    unitLabel: 'Unit 0',
+    unitTitle: 'Objects, Classes, and Java',
+  },
+  {
+    id: 'unit-00/how-java-runs',
+    label: '0.2 · How Java Runs',
+    title: 'Lesson 0.2: How Java Runs',
+    path: '/docs/unit-00/how-java-runs',
+    unitSlug: 'unit-00',
+    unitLabel: 'Unit 0',
+    unitTitle: 'Objects, Classes, and Java',
+  },
   {
     id: 'unit-01/prerequisites',
     label: '1 · Prerequisites',
