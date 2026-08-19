@@ -10,19 +10,19 @@
 
   <style>
     :root {
-      --bg: #1e1e1e;
-      --panel: #252526;
-      --panel-2: #121212;
-      --text: #d4d4d4;
-      --muted: #9aa0a6;
-      --accent: #007acc;
-      --accent-2: #0098ff;
+      --bg: #05080d;
+      --panel: #0b1118;
+      --panel-2: #071019;
+      --text: #eaf8ff;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22d3ee;
       --danger: #cc0000;
       --good: #00cc00;
       --warn: #ffcc00;
-      --border: #333;
+      --border: #243746;
       
-      --type-string: #007acc;
+      --type-string: #38bdf8;
       --type-double: #00cc00;
       --type-int: #ff8c00;
       --type-boolean: #d7ba7d;
@@ -31,13 +31,13 @@
     /* Custom Scrollbars */
     * {
       scrollbar-width: thin;
-      scrollbar-color: #444 #1e1e1e;
+      scrollbar-color: #22d3ee #05080d;
     }
     *::-webkit-scrollbar { width: 6px; height: 6px; }
-    *::-webkit-scrollbar-track { background: #1e1e1e; }
-    *::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-    *::-webkit-scrollbar-thumb:hover { background: #666; }
-    *::-webkit-scrollbar-corner { background: #1e1e1e; }
+    *::-webkit-scrollbar-track { background: #05080d; }
+    *::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 3px; }
+    *::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
+    *::-webkit-scrollbar-corner { background: #05080d; }
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -50,16 +50,16 @@
     /* Editor Side */
     #editor-container {
       width: 55%; min-width: 320px; height: 100%;
-      display: flex; flex-direction: column; background: #1b1b1b;
+      display: flex; flex-direction: column; background: #080d13;
     }
     .editor-header {
-      padding: 12px 14px; background: #111; border-bottom: 1px solid #2f2f2f;
+      padding: 12px 14px; background: #05080d; border-bottom: 1px solid #243746;
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
     }
     .editor-title { font-weight: 700; color: white; }
     .editor-subtitle { color: #9aa0a6; font-size: 0.9rem; }
 
-    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: #1e1e1e; }
+    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: var(--bg); }
     #code-editor, #highlighting {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: 0; padding: 16px;
       font-family: "Consolas", "Courier New", monospace; font-size: 14px; line-height: 1.5;
@@ -69,7 +69,7 @@
     #highlighting { z-index: 1; overflow: hidden; }
     #highlighting code { font-family: inherit; font-size: inherit; line-height: inherit; text-shadow: none; }
     
-    #resizer { width: 6px; background: #333; cursor: col-resize; z-index: 10; transition: background 0.2s; }
+    #resizer { width: 6px; background: #243746; cursor: col-resize; z-index: 10; transition: background 0.2s; }
     #resizer:hover, #resizer.active { background: var(--accent); }
 
     /* Driver Station Side */
@@ -118,13 +118,13 @@
       align-items: center;
       padding: 4px;
       border-radius: 4px;
-      background: #1a1a1a;
+      background: #0d1721;
     }
     .button-indicator .dot {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: #333;
+      background: #101d29;
       margin-bottom: 2px;
       transition: background 0.1s;
     }
@@ -142,7 +142,7 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 6px;
-      background: #1a1a1a;
+      background: #0d1721;
       padding: 6px 8px;
       border-radius: 4px;
     }
@@ -155,7 +155,7 @@
     .axis-bar-container {
       flex: 1;
       height: 14px;
-      background: #333;
+      background: #101d29;
       border-radius: 7px;
       position: relative;
       overflow: hidden;
@@ -196,7 +196,7 @@
     .trigger-bar-container {
       width: 30px;
       height: 60px;
-      background: #333;
+      background: #101d29;
       border-radius: 6px;
       position: relative;
       overflow: hidden;
@@ -238,7 +238,7 @@
       margin-bottom: 8px;
     }
     .curve-canvas-container {
-      background: #1a1a1a;
+      background: #0d1721;
       border-radius: 6px;
       padding: 10px;
     }
@@ -884,7 +884,7 @@ public class TeleOpTest extends OpMode {
         <span>Linear</span>
       </div>
       <div class="curve-legend-item">
-        <div class="curve-legend-color" style="background:#007acc;"></div>
+        <div class="curve-legend-color" style="background:#38bdf8;"></div>
         <span id="curve-type-label">Squared</span>
       </div>
     </div>
@@ -1175,7 +1175,7 @@ function drawCurveGraph() {
   ctx.lineTo(pad + graphW, pad);
   ctx.stroke();
   
-  ctx.strokeStyle = '#007acc';
+  ctx.strokeStyle = '#38bdf8';
   ctx.lineWidth = 2;
   ctx.beginPath();
   

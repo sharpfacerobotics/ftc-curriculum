@@ -44,14 +44,14 @@
 
     /* ── CSS Custom Properties ── */
     :root {
-      --bg: #0d0d0f;
-      --panel: #13131a;
-      --border: #2a2a3a;
-      --active: #ff6600;
+      --bg: #05080d;
+      --panel: #0b1118;
+      --border: #243746;
+      --active: #22d3ee;
       --good: #22cc66;
       --danger: #cc2222;
-      --text-primary: #e0e0e0;
-      --text-secondary: #888;
+      --text-primary: #eaf8ff;
+      --text-secondary: #94a3b8;
       --font-ui: 'IBM Plex Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       --font-code: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
       --editor-line-height: 20.8px;
@@ -60,23 +60,23 @@
     /* ── Scrollbar Styling ── */
     * {
       scrollbar-width: thin;
-      scrollbar-color: #ff6600 #08080c;
+      scrollbar-color: #22d3ee #05080d;
       box-sizing: border-box;
     }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track {
-      background: #08080c;
+      background: #05080d;
       border-radius: 999px;
     }
     ::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, #ff6600, #c94f00);
-      border: 2px solid #08080c;
+      background: #22d3ee;
+      border: 2px solid #05080d;
       border-radius: 999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(180deg, #ff8533, #ff6600);
+      background: #22d3ee;
     }
-    ::-webkit-scrollbar-corner { background: #08080c; }
+    ::-webkit-scrollbar-corner { background: #05080d; }
 
     /* ── Full Page Layout ── */
     html, body {
@@ -463,7 +463,7 @@
     .sim-hw-badge.active {
       border-color: var(--active);
       color: var(--active);
-      background: rgba(255, 102, 0, 0.1);
+      background: rgba(34, 211, 238, 0.1);
     }
     .sim-hw-badge.inactive {
       background: #111;
@@ -697,7 +697,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(to top, var(--active), #cc4400);
+      background: linear-gradient(to top, #2563eb, var(--active));
       border-radius: 0 0 5px 5px;
       transition: height 0.05s;
     }
@@ -920,7 +920,7 @@
       left: 0;
       right: 0;
       height: 0%;
-      background: linear-gradient(to top, #0098ff, #007acc);
+      background: linear-gradient(to top, #38bdf8, #22d3ee);
     }
     .sim-dpad-overlay { left:21.5%; top:41%; width:16%; height:24%; transform:translate(-50%,-50%); pointer-events:none; }
     .sim-dpad-image-btn {
@@ -962,7 +962,7 @@
     }
     .sim-hint.info {
       background: rgba(0,122,204,0.12);
-      border-left-color: #007acc;
+      border-left-color: #38bdf8;
       color: #6db3f2;
     }
 

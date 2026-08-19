@@ -9,39 +9,39 @@
 
   <style>
     :root {
-      --bg: #1e1e1e;
-      --panel: #252526;
-      --panel-2: #121212;
-      --text: #d4d4d4;
-      --muted: #9aa0a6;
-      --accent: #007acc;
-      --accent-2: #0098ff;
+      --bg: #05080d;
+      --panel: #0b1118;
+      --panel-2: #071019;
+      --text: #eaf8ff;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22d3ee;
       --danger: #cc0000;
       --good: #00cc00;
       --warn: #ffcc00;
-      --border: #333;
+      --border: #243746;
     }
 
     * {
       scrollbar-width: thin;
-      scrollbar-color: #444 #1e1e1e;
+      scrollbar-color: #22d3ee #05080d;
     }
     *::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     *::-webkit-scrollbar-track {
-      background: #1e1e1e;
+      background: #05080d;
     }
     *::-webkit-scrollbar-thumb {
-      background: #444;
+      background: #22d3ee;
       border-radius: 3px;
     }
     *::-webkit-scrollbar-thumb:hover {
-      background: #666;
+      background: #22d3ee;
     }
     *::-webkit-scrollbar-corner {
-      background: #1e1e1e;
+      background: #05080d;
     }
 
     * { box-sizing: border-box; }
@@ -62,13 +62,13 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      background: #1b1b1b;
+      background: #080d13;
     }
 
     .editor-header {
       padding: 12px 14px;
-      background: #111;
-      border-bottom: 1px solid #2f2f2f;
+      background: #05080d;
+      border-bottom: 1px solid #243746;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -82,7 +82,7 @@
       position: relative;
       flex: 1;
       overflow: hidden;
-      background: #1e1e1e;
+      background: var(--bg);
     }
 
     #code-editor, #highlighting {
@@ -118,7 +118,7 @@
     
     #resizer {
       width: 6px;
-      background: #333;
+      background: #243746;
       cursor: col-resize;
       z-index: 10;
       transition: background 0.2s;
