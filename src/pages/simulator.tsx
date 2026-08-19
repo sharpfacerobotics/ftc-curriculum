@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import pageStyles from './simulator.module.css';
@@ -49,6 +49,17 @@ export default function SimulatorPage(): React.JSX.Element {
       ? 'mechanical'
       : 'software';
   });
+
+  // A lesson link arriving while the page is already open should also switch
+  // to the calculators, not leave the visitor on the Java simulator.
+  useEffect(() => {
+    function onHashChange() {
+      const hash = window.location.hash.replace('#', '');
+      if (TOOL_CATALOG.some((t) => t.id === hash)) setBench('mechanical');
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   return (
     <Layout title="Tools · Telemark" noFooter>

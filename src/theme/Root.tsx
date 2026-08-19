@@ -1,5 +1,7 @@
 import React, {type ReactNode} from 'react';
 import {useLocation} from '@docusaurus/router';
+import {matchRoutes} from 'react-router-config';
+import routes from '@generated/routes';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import ContentLock from '@site/src/components/ContentLock';
 import ReadingProgress from '@site/src/components/ui/ReadingProgress';
@@ -51,7 +53,18 @@ export default function Root({children}: RootProps): React.JSX.Element {
   const unitSlug = getUnitSlug(relativePath);
   const publicUnit = unitNumber !== null && !isProtectedUnit(unitNumber);
 
-  if (isPublicRoute(relativePath) || publicUnit || user) {
+  // A path that matches nothing is a 404, not protected content. Without this
+  // a mistyped URL told a signed out visitor to sign in, and signing in then
+  // showed them the real 404 anyway.
+  // Routes are registered with the site's baseUrl, so the full pathname has to
+  // be matched rather than the site-relative one. Matching the relative path
+  // silently matched nothing, which made every page look like a 404 and turned
+  // the gate off entirely.
+  const matched = matchRoutes(routes, pathname);
+  const isNotFound =
+    matched.length === 0 || matched.every((entry) => entry.route.path === '*');
+
+  if (isNotFound || isPublicRoute(relativePath) || publicUnit || user) {
     return (
       <>
         <ReadingProgress />

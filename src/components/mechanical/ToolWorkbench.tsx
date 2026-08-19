@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import Link from '@docusaurus/Link';
 import {trackEvent} from '@site/src/telemark/analytics';
 import {TOOL_CATALOG, TOOL_GROUPS, type ToolEntry} from './toolCatalog';
@@ -31,6 +31,18 @@ export default function ToolWorkbench({
   const [query, setQuery] = useState('');
   const shellRef = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
+
+  // Changing only the hash does not remount, so the initialiser above never
+  // re-runs. Following hashchange means a second link from another lesson
+  // still lands on the right tool.
+  useEffect(() => {
+    function onHashChange() {
+      const hash = window.location.hash.replace('#', '');
+      if (TOOL_CATALOG.some((t) => t.id === hash)) setActiveId(hash);
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   const active: ToolEntry =
     TOOL_CATALOG.find((t) => t.id === activeId) ?? TOOL_CATALOG[0];
