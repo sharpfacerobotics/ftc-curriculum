@@ -15,7 +15,7 @@
     "typecheck": "tsc",
     "functions:build": "npm --prefix functions run build",
     "functions:test": "npm --prefix functions test",
-    "test:simulator": "node scripts/telemark-java.test.cjs && node scripts/telemark-editor.test.cjs && node scripts/unit6-unit7-runtime.test.cjs",
+    "test:simulator": "node scripts/telemark-java.test.cjs && node scripts/telemark-editor.test.cjs && node scripts/simulator-base-runtime.test.cjs && node scripts/unit2-runtime.test.cjs && node scripts/unit6-unit7-runtime.test.cjs",
     "test:simulator:audit": "node scripts/audit-simulators.cjs",
     "test:site": "node scripts/site-regression.test.cjs",
     "check:content": "node scripts/check-content.cjs",

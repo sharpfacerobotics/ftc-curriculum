@@ -173,6 +173,41 @@ function testTelemetryFramesAutoClear() {
   ]);
 }
 
+function testResetRuntimeBindingInEditedStart() {
+  let resetCalls = 0;
+  const telemetry = [];
+  const runtime = TelemarkJava.createRuntime({
+    resetRuntime() {
+      resetCalls += 1;
+    },
+    onTelemetry(key, value) {
+      telemetry.push([key, value]);
+    },
+  });
+  const program = compile(`
+    public class EditedStartTest extends OpMode {
+      int startStatements = 0;
+
+      public void start() {
+        startStatements++;
+        resetRuntime();
+        telemetry.addData("Start", "continued");
+        startStatements++;
+      }
+    }
+  `, runtime);
+
+  program.methods.start();
+
+  assert.equal(resetCalls, 1, 'student resetRuntime() must call the browser runtime hook');
+  assert.equal(
+    program.scope.startStatements,
+    2,
+    'statements after resetRuntime() in an edited start() body must still execute',
+  );
+  assert.deepEqual(telemetry, [['Start', 'continued']]);
+}
+
 async function testLifecycleController() {
   const events = [];
   const lifecycle = TelemarkJava.createLifecycle({
@@ -371,6 +406,31 @@ function testDiagnostics() {
   assert.equal(result.diagnostics[0].column > 0, true);
 }
 
+function testMethodExtractionDistinguishesMissingAndMalformedMethods() {
+  const missing = TelemarkJava.findMethod(`
+    public class MissingLoop extends OpMode {
+      public void init() { }
+    }
+  `, 'loop');
+  assert.equal(missing, null, 'a genuinely missing method must return null');
+
+  assert.throws(
+    () => TelemarkJava.findMethod(`
+      public class MalformedLoop extends OpMode {
+        public void loop() {
+          telemetry.addData("Status", "broken");
+      }
+    `, 'loop'),
+    (error) => {
+      assert.match(error.message, /Missing closing delimiter|Unexpected/i);
+      assert.equal(error.line > 0, true);
+      assert.equal(error.column > 0, true);
+      return true;
+    },
+    'malformed method extraction must preserve a visible source diagnostic',
+  );
+}
+
 function testInfiniteLoopProtection() {
   const program = compile(`
     public class GuardTest extends OpMode {
@@ -472,6 +532,7 @@ async function main() {
   testEnumsAndSwitch();
   testHardwareAndTelemetry();
   testTelemetryFramesAutoClear();
+  testResetRuntimeBindingInEditedStart();
   await testLifecycleController();
   await testLinearWaitForStart();
   await testLinearLoopsYieldToRuntime();
@@ -479,6 +540,7 @@ async function main() {
   testAsyncLoopInstrumentation();
   await testUnbracedLoopsAreInstrumented();
   testDiagnostics();
+  testMethodExtractionDistinguishesMissingAndMalformedMethods();
   testInfiniteLoopProtection();
   testQualifiedTypesAndArrayInitializers();
   await testReinitializationResetsFields();

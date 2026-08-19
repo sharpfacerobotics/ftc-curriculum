@@ -319,8 +319,8 @@ public class ProcessFrame extends OpMode {
   window.onRun = function () {
     state.running = true;
     state.frames = 0;
-    compileStudentCode();
-    runInit();
+    if (!compileStudentCode()) return;
+    if (!runInit()) return;
     startLoop();
   };
 
@@ -682,7 +682,7 @@ public class ProcessFrame extends OpMode {
     const processBody = extractMethodBody(opBody, "processFrame");
     const loopBody = extractMethodBody(opBody, "loop");
     if (!processBody || !loopBody) {
-      showStudentError("processFrame() or loop() was not found.");
+      failStudentExecution("processFrame() or loop() was not found.");
       return false;
     }
 
@@ -700,9 +700,9 @@ public class ProcessFrame extends OpMode {
         '"use strict";\n' + transpileLoop(loopBody)
       );
     } catch (err) {
-      showStudentError("compile error: " + err.message);
       processFn = null;
       loopFn = null;
+      failStudentExecution("compile error: " + err.message);
       return false;
     }
     return true;
@@ -711,14 +711,16 @@ public class ProcessFrame extends OpMode {
   function runInit() {
     const opBody = extractOpModeBody(getCodeSafe());
     const initBody = extractMethodBody(opBody, "init");
-    if (!initBody) return;
+    if (!initBody) return true;
     try {
       const initFn = new Function("addTelemetry", "updateTelemetry", '"use strict";\n' + transpileLoop(initBody));
       clearTelemetry();
       initFn(addTelemetry, updateTelemetry);
       updateTelemetry();
+      return true;
     } catch (err) {
-      showStudentError("init() runtime error: " + err.message);
+      failStudentExecution("init() runtime error: " + err.message);
+      return false;
     }
   }
 
@@ -735,8 +737,7 @@ public class ProcessFrame extends OpMode {
         loopFn(state.detectedLocation, addTelemetry, updateTelemetry);
         validateCode();
       } catch (err) {
-        showStudentError("runtime error: " + err.message);
-        if (typeof stopExecution === "function") stopExecution();
+        failStudentExecution("runtime error: " + err.message);
       }
     };
 
@@ -906,6 +907,16 @@ public class ProcessFrame extends OpMode {
       warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message);
     }
     safeCall(addHint, '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message), "error");
+    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(message);
+    else {
+      safeCall(addTelemetry, "ERROR", message);
+      safeCall(updateTelemetry);
+    }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 
   function getCodeSafe() {

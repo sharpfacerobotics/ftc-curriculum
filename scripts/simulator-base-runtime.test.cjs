@@ -1,0 +1,262 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const repoRoot = path.resolve(__dirname, '..');
+const simulatorRoot = path.join(repoRoot, 'static/simulator');
+const telemarkJavaSource = fs.readFileSync(
+  path.join(simulatorRoot, 'telemark-java.js'),
+  'utf8',
+);
+const simulatorBaseSource = fs.readFileSync(
+  path.join(simulatorRoot, 'simulator_base.js'),
+  'utf8',
+);
+
+function createBaseHarness() {
+  const elements = new Map();
+  const intervals = new Map();
+  const errors = [];
+  let nextInterval = 1;
+
+  function element(id = '') {
+    if (id && elements.has(id)) return elements.get(id);
+    let html = '';
+    const value = {
+      id,
+      value: '',
+      textContent: '',
+      get innerHTML() { return html; },
+      set innerHTML(next) {
+        html = String(next);
+        value.children.length = 0;
+      },
+      disabled: false,
+      scrollTop: 0,
+      scrollHeight: 0,
+      style: {},
+      children: [],
+      classList: {add() {}, remove() {}, toggle() {}},
+      addEventListener() {},
+      appendChild(child) { value.children.push(child); return child; },
+      setAttribute() {},
+    };
+    if (id) elements.set(id, value);
+    return value;
+  }
+
+  const document = {
+    readyState: 'loading',
+    getElementById: element,
+    createElement() { return element(); },
+    addEventListener() {},
+  };
+  const context = {
+    console: {
+      ...console,
+      error(...args) { errors.push(args); },
+    },
+    document,
+    setTimeout,
+    clearTimeout,
+    setInterval(callback) {
+      const id = nextInterval++;
+      intervals.set(id, callback);
+      return id;
+    },
+    clearInterval(id) { intervals.delete(id); },
+    addEventListener() {},
+  };
+  context.window = context;
+
+  vm.createContext(context);
+  vm.runInContext(telemarkJavaSource, context, {filename: 'telemark-java.js'});
+  vm.runInContext(simulatorBaseSource, context, {filename: 'simulator_base.js'});
+
+  return {
+    context,
+    elements,
+    errors,
+    runIntervals() {
+      for (const callback of [...intervals.values()]) callback();
+    },
+  };
+}
+
+function telemetryText(page) {
+  const panel = page.elements.get('sim-telemetry-log');
+  return [
+    panel.textContent,
+    panel.innerHTML,
+    ...panel.children.map((child) => child.textContent),
+  ].join('\n');
+}
+
+function iterativeSource(methods) {
+  return `
+    public class SharedLifecycleRegression extends OpMode {
+      public void init() { ${methods.init || ''} }
+      ${methods.initLoop === undefined ? '' : `public void init_loop() { ${methods.initLoop} }`}
+      ${methods.start === undefined ? '' : `public void start() { ${methods.start} }`}
+      public void loop() { ${methods.loop || ''} }
+    }
+  `;
+}
+
+function installStudentSource(page, source) {
+  page.context.document.getElementById('sim-code-editor').value = source;
+  page.context.onInit = function () {
+    return page.context.transpileAndRun(source);
+  };
+}
+
+function assertStopped(page, message) {
+  assert.equal(page.context._simIsInitialized(), false, message);
+  assert.equal(page.context._simIsRunning(), false, message);
+  assert.equal(page.elements.get('sim-ds-state').textContent, 'STOPPED', message);
+  assert.equal(page.elements.get('sim-btn-run').textContent, 'Init', message);
+  assert.equal(page.elements.get('sim-btn-run').disabled, false, message);
+}
+
+function testCompileErrorGatesInit() {
+  const page = createBaseHarness();
+  installStudentSource(page, iterativeSource({start: 'int broken = ;'}));
+
+  assert.equal(page.context._simHandleInit(), false);
+  assertStopped(page, 'a compile failure must reset the shared lifecycle');
+  assert.match(telemetryText(page), /Java compile error|Unexpected token/i);
+}
+
+function testMissingCompilerFailsClosed() {
+  const page = createBaseHarness();
+  const editor = page.context.document.getElementById('sim-code-editor');
+  editor.value = iterativeSource({loop: 'telemetry.addData("Loop", "valid");'});
+  page.context.TelemarkJava = undefined;
+
+  assert.equal(page.context._simHandleInit(), false);
+  assertStopped(page, 'a missing Java compiler must never fall back to direct execution');
+  assert.match(telemetryText(page), /Java compiler is unavailable/i);
+}
+
+function testFullSourceGateRejectsUnusedMalformedMethodAndRetries() {
+  const page = createBaseHarness();
+  const editor = page.context.document.getElementById('sim-code-editor');
+  let pageInitCalls = 0;
+
+  page.context.onInit = function () {
+    // Represents a custom simulator that only prepares init()/loop() and would
+    // otherwise never inspect the malformed start() method.
+    pageInitCalls += 1;
+  };
+
+  editor.value = iterativeSource({
+    init: 'telemetry.addData("Init", "valid");',
+    start: 'int broken = ;',
+    loop: 'telemetry.addData("Loop", "valid");',
+  });
+
+  assert.equal(page.context._simHandleInit(), false);
+  assertStopped(page, 'malformed Java anywhere in the source must gate Init');
+  assert.equal(pageInitCalls, 0, 'page callbacks must not run before full-source validation');
+  assert.match(telemetryText(page), /Java compile error|Unexpected token/i);
+
+  editor.value = iterativeSource({
+    init: 'telemetry.addData("Init", "valid");',
+    start: 'telemetry.addData("Start", "corrected");',
+    loop: 'telemetry.addData("Loop", "valid");',
+  });
+
+  assert.equal(page.context._simHandleInit(), true, 'corrected Java must initialize on retry');
+  assert.equal(pageInitCalls, 1, 'the page callback must run after validation succeeds');
+  assert.equal(page.context._simHandleStart(), true, 'corrected Java must remain startable');
+}
+
+function testCompileErrorCleansPageStateForRetry() {
+  const page = createBaseHarness();
+  let pageRunning = false;
+  let stopCalls = 0;
+  let source = iterativeSource({init: 'missingInitAction();'});
+  const editor = page.context.document.getElementById('sim-code-editor');
+  editor.value = source;
+
+  page.context.onInit = function () {
+    if (pageRunning) return false;
+    pageRunning = true;
+    return page.context.transpileAndRun(source);
+  };
+  page.context.onStop = function () {
+    pageRunning = false;
+    stopCalls += 1;
+  };
+
+  assert.equal(page.context._simHandleInit(), false);
+  assert.equal(pageRunning, false, 'error cleanup must reset challenge-owned running guards');
+  assert.equal(stopCalls, 1, 'error cleanup must notify the challenge page exactly once');
+
+  source = iterativeSource({
+    start: 'telemetry.addData("Start", "retry succeeded"); telemetry.update();',
+  });
+  editor.value = source;
+  assert.equal(page.context._simHandleInit(), true, 'corrected Java must compile on the next Init');
+  assert.equal(page.context._simHandleStart(), true, 'corrected Java must be startable immediately');
+  assert.equal(page.context._simIsRunning(), true);
+  assert.match(telemetryText(page), /retry succeeded/);
+}
+
+function testResetRuntimeBindingAndStartContinuation() {
+  const page = createBaseHarness();
+  installStudentSource(page, iterativeSource({
+    start: `
+      resetRuntime();
+      telemetry.addData("Start", "continued");
+      telemetry.update();
+    `,
+  }));
+
+  assert.equal(page.context._simHandleInit(), true);
+  assert.equal(page.context._simHandleStart(), true);
+  assert.equal(page.context._simIsRunning(), true);
+  assert.match(telemetryText(page), /continued/);
+}
+
+function testStartRuntimeErrorGatesRunning() {
+  const page = createBaseHarness();
+  installStudentSource(page, iterativeSource({start: 'missingStartAction();'}));
+
+  assert.equal(page.context._simHandleInit(), true);
+  assert.equal(page.context._simHandleStart(), false);
+  assertStopped(page, 'a start() runtime failure must not leave the simulator running');
+  assert.match(telemetryText(page), /start\(\) runtime error.*missingStartAction/is);
+}
+
+function testInitLoopRuntimeErrorGatesInitialized() {
+  const page = createBaseHarness();
+  installStudentSource(page, iterativeSource({initLoop: 'missingInitLoopAction();'}));
+
+  assert.equal(page.context._simHandleInit(), true);
+  page.runIntervals();
+  assertStopped(page, 'an init_loop() runtime failure must reset the shared lifecycle');
+  assert.match(telemetryText(page), /init_loop\(\) runtime error.*missingInitLoopAction/is);
+}
+
+function testLoopRuntimeErrorStopsExecution() {
+  const page = createBaseHarness();
+  installStudentSource(page, iterativeSource({loop: 'missingLoopAction();'}));
+
+  assert.equal(page.context._simHandleInit(), true);
+  assert.equal(page.context._simHandleStart(), true);
+  page.runIntervals();
+  assertStopped(page, 'a loop() runtime failure must stop shared execution');
+  assert.match(telemetryText(page), /loop\(\) runtime error.*missingLoopAction/is);
+}
+
+testCompileErrorGatesInit();
+testMissingCompilerFailsClosed();
+testFullSourceGateRejectsUnusedMalformedMethodAndRetries();
+testCompileErrorCleansPageStateForRetry();
+testResetRuntimeBindingAndStartContinuation();
+testStartRuntimeErrorGatesRunning();
+testInitLoopRuntimeErrorGatesInitialized();
+testLoopRuntimeErrorStopsExecution();
+console.log('Shared simulator lifecycle regression tests passed.');

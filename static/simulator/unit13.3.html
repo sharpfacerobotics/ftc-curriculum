@@ -1154,6 +1154,17 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
         return starterCode;
     }
 
+    function failStudentExecution(message){
+        simulationRunning = false;
+        if(typeof stopExecution === "function") stopExecution();
+        if(typeof _simShowTelemetryError === "function"){
+            _simShowTelemetryError(message);
+        } else {
+            addTelemetry("ERROR", message);
+            updateTelemetry();
+        }
+    }
+
     function compileStudentSimulation(){
         const code = getCodeSafe();
         if(code === compiledSource && compiledMoveFn && compiledLoopFn) return true;
@@ -1168,7 +1179,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
         const loopBody = extractMethodBody(opBody, "loop");
 
         if(!moveBody || !loopBody){
-            showStudentError("SafetySlide.move() or loop() was not found.");
+            failStudentExecution("SafetySlide.move() or loop() was not found.");
             return false;
         }
 
@@ -1199,7 +1210,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
             compiledInitFn = null;
             compiledLoopFn = null;
             compiledSource = "";
-            showStudentError("compile error: " + err.message);
+            failStudentExecution("compile error: " + err.message);
             return false;
         }
     }
@@ -1241,8 +1252,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
         try{
             compiledMoveFn(rawInput, setSlidePower);
         } catch(err){
-            showStudentError("SafetySlide.move() runtime error: " + err.message);
-            simulationRunning = false;
+            failStudentExecution("SafetySlide.move() runtime error: " + err.message);
         }
         refreshPanels();
     }
@@ -1264,7 +1274,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
             compiledInitFn(hardwareMap, callSlideInit, addTelemetry, updateTelemetry);
             updateTelemetry();
         } catch(err){
-            showStudentError("init() runtime error: " + err.message);
+            failStudentExecution("init() runtime error: " + err.message);
         }
     }
 
@@ -1321,9 +1331,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
                 compiledLoopFn(window.gamepad || {}, callSlideMove, addTelemetry, updateTelemetry);
                 updateTelemetry();
             } catch(err){
-                showStudentError("loop() runtime error: " + err.message);
-                simulationRunning = false;
-                if(typeof stopExecution === "function") stopExecution();
+                failStudentExecution("loop() runtime error: " + err.message);
                 return;
             }
 
@@ -1347,14 +1355,14 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
 
     window.onInit = () => {
         simulationRunning = false;
-        compileStudentSimulation();
+        if(!compileStudentSimulation()) return;
         runStudentInit();
         validateCode(getCodeSafe());
     };
 
     window.onStart = () => {
+        if(!compileStudentSimulation()) return;
         simulationRunning = true;
-        compileStudentSimulation();
         validateCode(getCodeSafe());
         publishTelemetry();
     };

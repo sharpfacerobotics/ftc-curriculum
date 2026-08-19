@@ -53,6 +53,16 @@ for (const name of htmlFiles) {
       true,
       `${name} must convert student Java and execute the result in the browser`,
     );
+
+    const usesSharedBase = /<script\b[^>]*\bsrc\s*=\s*["'][^"']*simulator_base\.js["']/i.test(source);
+    const validatesFullSource = usesSharedBase
+      || /TelemarkJava\s*\.\s*compile\s*\(/.test(source)
+      || /window\s*\.\s*TelemarkJava\s*\.\s*compile\s*\(/.test(source);
+    assert.equal(
+      validatesFullSource,
+      true,
+      `${name} must validate the complete Java source before executing selected methods`,
+    );
   }
 
   const starter = source.match(
@@ -139,6 +149,252 @@ const baseSource = fs.readFileSync(
   path.join(simulatorRoot, 'simulator_base.js'),
   'utf8',
 );
+
+const baseInitLifecycle = baseSource.slice(
+  baseSource.indexOf('function handleInit()'),
+  baseSource.indexOf('function handleStart()'),
+);
+const baseStartLifecycle = baseSource.slice(
+  baseSource.indexOf('function handleStart()'),
+  baseSource.indexOf('function handleRun()'),
+);
+const baseTranspiler = baseSource.slice(
+  baseSource.indexOf('window.transpileAndRun ='),
+  baseSource.indexOf('window.stopExecution ='),
+);
+
+assert.match(
+  baseSource,
+  /function reportLifecycleError\s*\([\s\S]*lifecycleError\s*=\s*true[\s\S]*showTelemetryError/,
+  'simulator_base.js must surface lifecycle failures and mark the lifecycle invalid',
+);
+assert.match(
+  baseSource,
+  /function resetAfterLifecycleError\s*\([\s\S]*initialized\s*=\s*false[\s\S]*running\s*=\s*false[\s\S]*setPrimaryButton\s*\(\s*["']Init["']/,
+  'simulator_base.js must reset controls after lifecycle failures',
+);
+assert.match(
+  baseInitLifecycle,
+  /if\s*\(\s*lifecycleError\s*\)\s*\{[\s\S]*resetAfterLifecycleError\s*\(\s*\)[\s\S]*return false/,
+  'shared Init must not advance after a Java compile/runtime failure',
+);
+assert.match(
+  baseSource,
+  /function validateFullStudentSource\s*\(\s*\)[\s\S]*TelemarkJava\.compile\s*\(\s*source\s*\)[\s\S]*reportLifecycleError\s*\(\s*["']Java compile error["']/,
+  'simulator_base.js must compile and report diagnostics for the complete editor source',
+);
+assert.match(
+  baseInitLifecycle,
+  /if\s*\(\s*!validateFullStudentSource\s*\(\s*\)\s*\)\s*\{[\s\S]*resetAfterLifecycleError\s*\(\s*\)[\s\S]*return false[\s\S]*window\.onInit/,
+  'shared Init must validate all Java before invoking a challenge-specific callback',
+);
+assert.match(
+  baseInitLifecycle,
+  /init_loop\(\) runtime error[\s\S]*resetAfterLifecycleError\s*\(\s*\)/,
+  'shared init_loop() failures must stop and reset the simulator',
+);
+assert.match(
+  baseStartLifecycle,
+  /start\(\) runtime error[\s\S]*resetAfterLifecycleError\s*\(\s*\)[\s\S]*return false/,
+  'shared start() failures must not leave the simulator running',
+);
+assert.match(
+  baseTranspiler,
+  /resetRuntime\s*:\s*function\s*\(\s*\)\s*\{\s*runtimeStart\s*=\s*Date\.now\s*\(\s*\)/,
+  'shared Java execution must expose resetRuntime() to student code',
+);
+assert.match(
+  baseTranspiler,
+  /if\s*\(\s*!compiled\.ok\s*\)[\s\S]*reportLifecycleError\s*\([\s\S]*return false/,
+  'shared Java compile errors must invalidate Init and return failure',
+);
+assert.match(
+  baseTranspiler,
+  /loop\(\) runtime error[\s\S]*window\.stopExecution\s*\(\s*\)/,
+  'shared loop() runtime failures must stop execution',
+);
+
+for (const name of ['unit3.html', 'unit4.html', 'unit5.html']) {
+  const source = fs.readFileSync(path.join(simulatorRoot, name), 'utf8');
+  assert.match(
+    source,
+    /resetRuntime\s*(?::\s*function\s*\(\s*\)|\(\s*\))\s*\{[\s\S]{0,100}runtimeOffset\s*=\s*Date\.now\s*\(\s*\)/,
+    `${name} must expose resetRuntime() to compiled student lifecycle methods`,
+  );
+  assert.match(
+    source,
+    /Java compile error[\s\S]{0,500}failJavaExecution|failJavaExecution[\s\S]{0,500}Java compile error/,
+    `${name} must surface full-compiler diagnostics and reset its controls`,
+  );
+  assert.match(
+    source,
+    /runtime error[\s\S]{0,300}failJavaExecution|failJavaExecution[\s\S]{0,300}runtime error/,
+    `${name} must visibly stop after lifecycle runtime failures`,
+  );
+  assert.match(
+    source,
+    /if\s*\(\s*!executeMethod\s*\(\s*['"](?:init|start)['"]\s*\)\s*\)\s*return/,
+    `${name} must not advance after failed Init or Start execution`,
+  );
+}
+
+const requiredMethodSources = Object.fromEntries(
+  [
+    'unit8.1.html',
+    'unit8.2.html',
+    'unit8.3.html',
+    'unit8.4.html',
+    'unit8.5.html',
+    'unit9.1.html',
+    'unit11.1.html',
+    'unit12.1.html',
+    'unit12.3.html',
+  ].map((name) => [name, fs.readFileSync(path.join(simulatorRoot, name), 'utf8')]),
+);
+
+assert.match(
+  requiredMethodSources['unit8.1.html'],
+  /body\s*===\s*null[\s\S]{0,180}Java compile error[\s\S]{0,180}Required loop\(\) method is missing or has unmatched braces/,
+  'unit8.1.html must visibly reject a missing or malformed loop()',
+);
+assert.match(
+  requiredMethodSources['unit8.1.html'],
+  /function failJavaExecution\s*\([\s\S]{0,500}handleStop\s*\(\s*\)[\s\S]{0,120}return false/,
+  'unit8.1.html Java failures must stop and re-enable its controls',
+);
+
+const unit82Source = requiredMethodSources['unit8.2.html'];
+assert.match(
+  unit82Source,
+  /initBody\s*===\s*null[\s\S]{0,180}Java compile error[\s\S]{0,180}Required init\(\) method is missing or has unmatched braces[\s\S]{0,100}return false/,
+  'unit8.2.html must visibly reject a missing or malformed init()',
+);
+assert.match(
+  unit82Source,
+  /loopBody\s*===\s*null[\s\S]{0,180}Java compile error[\s\S]{0,180}Required loop\(\) method is missing or has unmatched braces[\s\S]{0,100}handleStop\s*\(\s*\)[\s\S]{0,100}return false/,
+  'unit8.2.html must stop after a missing or malformed loop()',
+);
+assert.match(
+  unit82Source,
+  /if\s*\(\s*!executeInit\s*\(\s*\)\s*\)\s*\{\s*handleStop\s*\(\s*\)\s*;\s*return/,
+  'unit8.2.html must not begin its loop after Init compilation fails',
+);
+
+for (const name of ['unit8.3.html', 'unit8.4.html', 'unit8.5.html']) {
+  const source = requiredMethodSources[name];
+  const runStart = source.indexOf('function handleRun()');
+  const preflight = source.indexOf("const requiredInitBody = getMethodBody(codeEditor.value, 'init');", runStart);
+  const runningAssignment = source.indexOf('running = true', runStart);
+  assert.ok(
+    preflight > runStart && runningAssignment > preflight,
+    `${name} must validate init() and loop() before entering RUNNING`,
+  );
+  assert.match(
+    source.slice(preflight, runningAssignment),
+    /requiredLoopBody[\s\S]*Java compile error:[\s\S]*method is missing or has unmatched braces[\s\S]*return/,
+    `${name} must visibly reject missing or malformed required methods`,
+  );
+  assert.match(
+    source,
+    /loopBody\s*===\s*null[\s\S]{0,500}Java compile error:[\s\S]{0,500}handleStop\s*\(\s*\)/,
+    `${name} must stop if loop() becomes missing or malformed while running`,
+  );
+  assert.doesNotMatch(
+    source,
+    /catch\s*\([^)]*\)\s*\{\s*\}/,
+    `${name} must not silently swallow Java compile/runtime errors`,
+  );
+}
+
+const unit91Source = requiredMethodSources['unit9.1.html'];
+assert.match(
+  unit91Source,
+  /ib\s*===\s*null[\s\S]{0,180}telemetryError\s*=[\s\S]{0,180}Required init\(\) method is missing or has unmatched braces[\s\S]{0,100}return false/,
+  'unit9.1.html must visibly reject a missing or malformed init()',
+);
+const unit91RunStart = unit91Source.indexOf('function handleRun()');
+const unit91LoopGuard = unit91Source.indexOf('if(lb===null)', unit91RunStart);
+const unit91Running = unit91Source.indexOf('state.running=true', unit91RunStart);
+assert.ok(
+  unit91LoopGuard > unit91RunStart && unit91Running > unit91LoopGuard,
+  'unit9.1.html must reject a missing or malformed loop() before entering RUNNING',
+);
+assert.match(
+  unit91Source.slice(unit91LoopGuard, unit91Running),
+  /Java compile error:[\s\S]*Required loop\(\) method is missing or has unmatched braces[\s\S]*return/,
+  'unit9.1.html must render the loop() extraction error',
+);
+assert.match(
+  unit91Source,
+  /loop\(\) runtime error[\s\S]{0,300}handleStop\s*\(\s*\)/,
+  'unit9.1.html must stop after a loop() runtime error',
+);
+
+for (const name of ['unit11.1.html', 'unit12.1.html']) {
+  const source = requiredMethodSources[name];
+  assert.match(
+    source,
+    /Required init\(\) method is missing or has unmatched braces/,
+    `${name} must reject a missing or malformed init()`,
+  );
+  assert.match(
+    source,
+    /Required loop\(\) method is missing or has unmatched braces/,
+    `${name} must reject a missing or malformed loop()`,
+  );
+  assert.match(
+    source,
+    /Java compile\/runtime error[\s\S]{0,500}(?:stopExecution\s*\(\s*\)|throw)/,
+    `${name} must surface extraction/compilation failures and stop lifecycle execution`,
+  );
+  assert.match(
+    source,
+    /loop\(\) runtime error[\s\S]{0,500}stopExecution\s*\(\s*\)/,
+    `${name} must visibly report and stop after loop() runtime errors`,
+  );
+}
+
+assert.match(
+  requiredMethodSources['unit12.3.html'],
+  /getFieldRelativeStrafe\(\) was not found or is missing a closing brace/,
+  'unit12.3.html must distinguish a missing/malformed required student method',
+);
+assert.match(
+  requiredMethodSources['unit12.3.html'],
+  /getFieldRelativeStrafe\(\) (?:compile|runtime) error/,
+  'unit12.3.html must visibly report student formula failures',
+);
+
+for (const name of [
+  'unit12.3.html',
+  'unit13.1.html',
+  'unit13.2.html',
+  'unit13.3.html',
+  'unit13.4.html',
+  'unit13.5.html',
+  'unit14.1.html',
+  'unit14.2.html',
+  'unit14.3.html',
+  'unit14.4.html',
+  'unit14.5.html',
+  'unit15.1.html',
+  'unit15.2.html',
+  'unit15.3.html',
+  'unit15.4.html',
+  'unit15.5.html',
+]) {
+  const source = fs.readFileSync(path.join(simulatorRoot, name), 'utf8');
+  const helper = source.match(/function\s+(failStudent(?:Execution|Formula))\s*\([^)]*\)\s*\{([\s\S]{0,700}?)\n\s*\}/);
+  assert.ok(helper, `${name} must provide a shared student-failure path`);
+  assert.match(helper[2], /stopExecution\s*\(/, `${name} student failures must reset execution`);
+  assert.match(
+    helper[2],
+    /showStudentError\s*\(|reportStudentFormulaError\s*\(|_simShowTelemetryError/,
+    `${name} student failures must remain visible after reset`,
+  );
+  const helperUses = source.match(new RegExp(`${helper[1]}\\s*\\(`, 'g')) || [];
+  assert.ok(helperUses.length >= 2, `${name} must route caught student failures through its reset path`);
+}
 for (const api of [
   'setFaultModes',
   'getActiveFault',

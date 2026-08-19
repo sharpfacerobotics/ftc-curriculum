@@ -1273,28 +1273,36 @@ window.onInit = function(){
 
     evaluateStudentLogic(code);
 
-    const transpiled =
-        transpile(code);
-
-    createRuntime();
-
     try{
 
+        const transpiled =
+            transpile(code);
+
+        createRuntime();
+
+        if(!window._simGetMethodBody){
+            throw new Error("Java method parser is unavailable");
+        }
+
         const initBody =
-            window._simGetMethodBody
-                ? window._simGetMethodBody(
-                    transpiled,
-                    "init"
-                )
-                : "";
+            window._simGetMethodBody(
+                transpiled,
+                "init"
+            );
 
         const loopBody =
-            window._simGetMethodBody
-                ? window._simGetMethodBody(
-                    transpiled,
-                    "loop"
-                )
-                : "";
+            window._simGetMethodBody(
+                transpiled,
+                "loop"
+            );
+
+        if(initBody === null){
+            throw new Error("Required init() method is missing or has unmatched braces");
+        }
+
+        if(loopBody === null){
+            throw new Error("Required loop() method is missing or has unmatched braces");
+        }
 
         new Function(initBody)();
 
@@ -1308,12 +1316,23 @@ window.onInit = function(){
 
         console.error(err);
 
-        warningBox.innerHTML =
-            '<i class="fa-solid fa-circle-xmark"></i> Setup error in OpMode';
+        const message =
+            err && err.message
+                ? err.message
+                : String(err);
+
+        warningBox.textContent =
+            'Setup error in OpMode: ' + message;
 
         warningBox.classList.add(
             "visible"
         );
+
+        if(window._simShowTelemetryError){
+            window._simShowTelemetryError(
+                "Java compile/runtime error: " + message
+            );
+        }
 
         updateRequirementStates();
         if(window.stopExecution){
@@ -1336,6 +1355,22 @@ window.onInit = function(){
         }catch(err){
 
             console.error(err);
+            const message =
+                err && err.message
+                    ? err.message
+                    : String(err);
+
+            if(window._simShowTelemetryError){
+                window._simShowTelemetryError(
+                    "loop() runtime error: " + message
+                );
+            }
+
+            if(window.stopExecution){
+                window.stopExecution();
+            }
+
+            return;
         }
 
         setTimeout(

@@ -358,14 +358,27 @@ function renderBadges(){
 }
 
 // Run / Stop / Reset
+function validateFullJavaSource(code){
+  var result=window.TelemarkJava
+    ? window.TelemarkJava.compile(code)
+    : {ok:false,diagnostics:[{message:'Telemark Java compiler is unavailable',line:1,column:1}]};
+  if(result.ok)return true;
+  var diagnostic=result.diagnostics&&result.diagnostics[0]||{};
+  state.telemetryError='Java compile error: '+(diagnostic.message||'Invalid Java source')+' (line '+(diagnostic.line||1)+', column '+(diagnostic.column||1)+')';
+  console.error('Unit 9.1 Java compile error',diagnostic);
+  renderTelemetry();
+  return false;
+}
+
 function handleInit(){
   state.telemetryError=null; state.telemetry=[]; state.telemetryBuffer=[]; renderTelemetry();
+  if(!validateFullJavaSource(state.code))return false;
   var c = state.code, cf = extractClassFields(c), ib = getMethodBody(c,'init');
-  if(ib === null){ state.telemetryError = 'No init() method found'; renderTelemetry(); return false; }
+  if(ib === null){ state.telemetryError = 'Java compile error: Required init() method is missing or has unmatched braces'; renderTelemetry(); return false; }
   var hn = extractHardwareNames(ib), ssScope = {};
   Object.keys(cf).forEach(function(f){ ssScope[f] = undefined; });
-  var ijs = transpileJava(ib, cf, hn);
   try{
+    var ijs = transpileJava(ib, cf, hn);
     var fn = Object.keys(cf), iw = fn.map(function(f){return 'var '+f+'=__scope.'+f+';'}).join('\n') + '\n' + ijs + '\n' + fn.map(function(f){return '__scope.'+f+'='+f+';'}).join('\n');
     var ifn = new Function('gamepad','hardwareMap','addTelemetry','updateTelemetry','clearTelemetry','getRuntime','setServoPosition','__scope','"use strict";\n'+iw);
     ifn(state.gamepad, mockHardwareMap, addTelemetry, updateTelemetry, clearTelemetryBuffer, function(){return state.runtimeSeconds}, setServoPosition, ssScope);
@@ -381,14 +394,50 @@ function handleInit(){
 }
 
 function handleRun(){
-  state.telemetryError=null;state.telemetryBuffer=[];state.runtimeSeconds=0;renderTelemetry();
-  if(!state.initialized){ if(!handleInit()) return; }
-  var c=state.code,cf=extractClassFields(c),ib=getMethodBody(c,'init'),lb=getMethodBody(c,'loop'),hn=ib?extractHardwareNames(ib):{};
+  state.telemetryError=null;
+  state.telemetryBuffer=[];
+  state.runtimeSeconds=0;
+  renderTelemetry();
+  if(!validateFullJavaSource(state.code))return;
+  if(!state.initialized && !handleInit()) return;
+  var c=state.code;
+  var cf=extractClassFields(c);
+  var ib=getMethodBody(c,'init');
+  var lb=getMethodBody(c,'loop');
+  var hn=ib!==null?extractHardwareNames(ib):{};
+  if(lb===null){state.telemetryError='Java compile error: Required loop() method is missing or has unmatched braces';renderTelemetry();return}
   // reuse the scope populated during init, or create a fresh scope
   var ss = state.initScope || {}; Object.keys(cf).forEach(function(f){ if(!(f in ss)) ss[f]=undefined });
-  if(lb!==null&&detectBlockingLoop(lb)){state.telemetryError='Blocking loop detected in loop()!';renderTelemetry();return}
-  state.running=true;updateRunUI();state.runtimeInterval=setInterval(function(){state.runtimeSeconds+=0.05;var tv=document.getElementById('timer-val'); if(tv) tv.textContent = state.runtimeSeconds.toFixed(2)},50);
-  if(lb!==null){var ljs=transpileJava(lb,cf,hn);try{var fn2=Object.keys(cf),lw=fn2.map(function(f){return'var '+f+'=__scope.'+f+';'}).join('\n')+'\n'+ljs+'\n'+fn2.map(function(f){return'__scope.'+f+'='+f+';'}).join('\n');var lfn=new Function('gamepad','hardwareMap','addTelemetry','updateTelemetry','clearTelemetry','getRuntime','setServoPosition','__scope','"use strict";\n'+lw);var runLoopOnce=function(){try{clearTelemetryBuffer();lfn(state.gamepad,mockHardwareMap,addTelemetry,updateTelemetry,clearTelemetryBuffer,function(){return state.runtimeSeconds},setServoPosition,ss)}catch(e){state.telemetryError='loop() error: '+e.message;renderTelemetry();handleStop()}};runLoopOnce();state.loopInterval=setInterval(runLoopOnce,50)}catch(e){state.telemetryError='loop() compile error: '+e.message;renderTelemetry();handleStop()}}
+  if(detectBlockingLoop(lb)){state.telemetryError='Blocking loop detected in loop()!';renderTelemetry();return}
+  var runLoopOnce;
+  try{
+    var ljs=transpileJava(lb,cf,hn);
+    var fn2=Object.keys(cf);
+    var lw=fn2.map(function(f){return'var '+f+'=__scope.'+f+';'}).join('\n')+'\n'+ljs+'\n'+fn2.map(function(f){return'__scope.'+f+'='+f+';'}).join('\n');
+    var lfn=new Function('gamepad','hardwareMap','addTelemetry','updateTelemetry','clearTelemetry','getRuntime','setServoPosition','__scope','"use strict";\n'+lw);
+    runLoopOnce=function(){
+      if(!state.running)return false;
+      try{
+        clearTelemetryBuffer();
+        lfn(state.gamepad,mockHardwareMap,addTelemetry,updateTelemetry,clearTelemetryBuffer,function(){return state.runtimeSeconds},setServoPosition,ss);
+        return true;
+      }catch(e){
+        state.telemetryError='loop() runtime error: '+e.message;
+        renderTelemetry();
+        handleStop();
+        return false;
+      }
+    };
+  }catch(e){
+    state.telemetryError='loop() compile error: '+e.message;
+    renderTelemetry();
+    return;
+  }
+  state.running=true;
+  updateRunUI();
+  state.runtimeInterval=setInterval(function(){state.runtimeSeconds+=0.05;var tv=document.getElementById('timer-val'); if(tv) tv.textContent = state.runtimeSeconds.toFixed(2)},50);
+  if(!runLoopOnce())return;
+  state.loopInterval=setInterval(runLoopOnce,50);
   renderChallenge();
 }
 

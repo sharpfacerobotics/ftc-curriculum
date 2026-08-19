@@ -642,7 +642,7 @@ public class GrabberOOP extends OpMode {
     const code = typeof getCode === "function" ? getCode() : starterCode;
     const loopBody = extractMethodBody(extractOpModeBody(code), "loop");
     if (!loopBody) {
-      showStudentError("loop() was not found.");
+      failStudentExecution("loop() was not found.");
       return;
     }
 
@@ -660,7 +660,7 @@ public class GrabberOOP extends OpMode {
         '"use strict";\n' + js
       );
     } catch (err) {
-      showStudentError("loop() compile error: " + err.message);
+      failStudentExecution("loop() compile error: " + err.message);
       return;
     }
 
@@ -679,8 +679,7 @@ public class GrabberOOP extends OpMode {
         updateTelemetry();
       validateCode();
     } catch (err) {
-        showStudentError("loop() runtime error: " + err.message);
-        if (typeof stopExecution === "function") stopExecution();
+        failStudentExecution("loop() runtime error: " + err.message);
       }
     };
 
@@ -746,7 +745,7 @@ public class GrabberOOP extends OpMode {
       initFn(hardwareMap, callGrabberInit, addTelemetry, updateTelemetry);
       updateTelemetry();
     } catch (err) {
-      showStudentError("init() runtime error: " + err.message);
+      failStudentExecution("init() runtime error: " + err.message);
     }
   }
 
@@ -874,6 +873,12 @@ public class GrabberOOP extends OpMode {
       addTelemetry("ERROR", message);
       updateTelemetry();
     }
+  }
+
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 };
 </script>

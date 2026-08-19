@@ -895,7 +895,7 @@ public class RobotComposition extends OpMode {
     const initBody = extractMethodBody(opBody, "init");
     const loopBody = extractMethodBody(opBody, "loop");
     if (!loopBody) {
-      showStudentError("loop() was not found.");
+      failStudentExecution("loop() was not found.");
       return;
     }
 
@@ -930,7 +930,7 @@ public class RobotComposition extends OpMode {
         '"use strict";\n' + loopJS
       );
     } catch (err) {
-      showStudentError("compile error: " + err.message);
+      failStudentExecution("compile error: " + err.message);
       return;
     }
 
@@ -950,7 +950,7 @@ public class RobotComposition extends OpMode {
         );
         updateTelemetry();
       } catch (err) {
-        showStudentError("init() runtime error: " + err.message);
+        failStudentExecution("init() runtime error: " + err.message);
         return;
       }
     }
@@ -972,8 +972,7 @@ public class RobotComposition extends OpMode {
         updateTelemetry();
         validateCode();
       } catch (err) {
-        showStudentError("loop() runtime error: " + err.message);
-        if (typeof stopExecution === "function") stopExecution();
+        failStudentExecution("loop() runtime error: " + err.message);
       }
     };
 
@@ -1015,7 +1014,7 @@ public class RobotComposition extends OpMode {
       );
       updateTelemetry();
     } catch (err) {
-      showStudentError("init() runtime error: " + err.message);
+      failStudentExecution("init() runtime error: " + err.message);
     }
   }
 
@@ -1278,6 +1277,11 @@ public class RobotComposition extends OpMode {
       addTelemetry("ERROR", message);
       updateTelemetry();
     }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 };
 </script>
