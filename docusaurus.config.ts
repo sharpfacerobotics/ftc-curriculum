@@ -47,6 +47,23 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
 
+  // The gtag plugin calls window.gtag on every client side route change, but
+  // Docusaurus only injects its inline stub in production builds. In dev, or
+  // any time an ad blocker stops the remote script, window.gtag is undefined
+  // and navigation throws. This defines the standard queueing stub when one is
+  // missing, which is also how analytics is meant to degrade: events queue on
+  // dataLayer and are delivered if the real script ever loads.
+  headTags: [
+    {
+      tagName: 'script',
+      attributes: {},
+      innerHTML:
+        'window.dataLayer=window.dataLayer||[];'
+        + 'if(typeof window.gtag!=="function"){'
+        + 'window.gtag=function(){window.dataLayer.push(arguments)}}',
+    },
+  ],
+
   customFields: {
     buildCommit,
   },
