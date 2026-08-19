@@ -747,7 +747,7 @@ public class LimelightAutoLock extends OpMode {
     const initBody = extractMethodBody(opBody, "init");
     const loopBody = extractMethodBody(opBody, "loop");
     if (!loopBody) {
-      showStudentError("loop() was not found.");
+      failStudentExecution("loop() was not found.");
       return;
     }
 
@@ -758,8 +758,8 @@ public class LimelightAutoLock extends OpMode {
       initFn(hardwareMap, leftMotor, rightMotor, limelightDevice, switchPipeline, addTelemetry, updateTelemetry);
       updateTelemetry();
     } catch (err) {
-      showStudentError("compile/runtime error: " + err.message);
       loopFn = null;
+      failStudentExecution("compile/runtime error: " + err.message);
       return;
     }
 
@@ -770,8 +770,7 @@ public class LimelightAutoLock extends OpMode {
         loopFn(hardwareMap, leftMotor, rightMotor, limelightDevice, window.gamepad || {}, getLimelightResult, switchPipeline, setMotorPower, addTelemetry, updateTelemetry);
         validateCode();
       } catch (err) {
-        showStudentError("loop() runtime error: " + err.message);
-        if (typeof stopExecution === "function") stopExecution();
+        failStudentExecution("loop() runtime error: " + err.message);
       }
     };
 
@@ -974,6 +973,16 @@ public class LimelightAutoLock extends OpMode {
       warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message);
     }
     safeCall(addHint, '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message), "error");
+    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(message);
+    else {
+      safeCall(addTelemetry, "ERROR", message);
+      safeCall(updateTelemetry);
+    }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 
   function getCodeSafe() {

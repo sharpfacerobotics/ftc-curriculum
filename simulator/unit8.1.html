@@ -266,15 +266,15 @@ function transpile(java){
 }
 function runLoop(){
   var body=getMethodBody(codeEditor.value,'loop');
-  if(!body)return;
+  if(body===null)return failJavaExecution('Java compile error',new Error('Required loop() method is missing or has unmatched braces'));
   var telLines=[];
   function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);telLines.push({key:String(k),val:String(v)})}
   function setIntakePower(p){intakePower=Math.max(-1,Math.min(1,p))}
-  var js=transpile(body);
   try{
+    var js=transpile(body);
     var fn=new Function('gamepad','addTelemetry','setIntakePower','__runtime','"use strict";\n'+js);
     fn(gamepad,addTelemetry,setIntakePower,function(){return(Date.now()-runtimeStart)/1000});
-  }catch(e){}
+  }catch(e){return failJavaExecution('loop() compile/runtime error',e)}
   // Always append samples count
   telLines.push({key:'Samples',val:String(sampleCount)});
   if(telLines.length){
@@ -283,19 +283,40 @@ function runLoop(){
     }).join('');
   }
   updatePowerBar();
+  return true;
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function failJavaExecution(context,error){
+  document.getElementById('telemetry-log').innerHTML='<span style="color:#ff6666">'+esc(context+': '+(error&&error.message?error.message:String(error)))+'</span>';
+  console.error('Unit 8.1 simulator '+context,error);
+  handleStop();
+  return false;
+}
+
+function validateFullJavaSource(code){
+  if(!window.TelemarkJava){
+    return failJavaExecution('Java compile error',new Error('Telemark Java compiler is unavailable (line 1, column 1)'));
+  }
+  var result=window.TelemarkJava.compile(code);
+  if(result.ok)return true;
+  var diagnostic=result.diagnostics&&result.diagnostics[0]||{};
+  var line=diagnostic.line||1,column=diagnostic.column||1;
+  return failJavaExecution('Java compile error',new Error((diagnostic.message||'Invalid Java source')+' (line '+line+', column '+column+')'));
+}
 
 // ── Run/Stop ──
 function handleRun(){
   if(running)return;
+  if(!validateFullJavaSource(codeEditor.value))return;
   running=true;runtimeStart=Date.now();intakePower=0;
   document.getElementById('ds-state').textContent='RUNNING';
   document.getElementById('ds-state').style.color='var(--good)';
   document.getElementById('btn-run').disabled=true;
   document.getElementById('telemetry-log').innerHTML='';
+  if(!runLoop())return;
   timerInterval=setInterval(function(){document.getElementById('timer-val').textContent=((Date.now()-runtimeStart)/1000).toFixed(2)},50);
-  loopInterval=setInterval(runLoop,50);
+  loopInterval=setInterval(function(){runLoop()},50);
 }
 function handleStop(){
   running=false;

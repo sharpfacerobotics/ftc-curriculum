@@ -562,7 +562,7 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
 function getMethodBody(code, name) {
   var re = new RegExp('void\\s+' + name + '\\s*\\([^)]*\\)\\s*\\{', 'i');
   var m = re.exec(code);
-  if (!m) return '';
+  if (!m) return null;
   var idx = m.index + m[0].length;
   var depth = 1;
   while (idx < code.length) {
@@ -573,7 +573,7 @@ function getMethodBody(code, name) {
     }
     idx++;
   }
-  return '';
+  return null;
 }
 
 function transpile(code) {
@@ -882,8 +882,29 @@ function onCodeChange() {
 }
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
+function validateFullJavaSource(code) {
+  const result = window.TelemarkJava
+    ? window.TelemarkJava.compile(code)
+    : {ok: false, diagnostics: [{message: 'Telemark Java compiler is unavailable', line: 1, column: 1}]};
+  if (result.ok) return true;
+  const diagnostic = result.diagnostics?.[0] || {};
+  const message = `${diagnostic.message || 'Invalid Java source'} (line ${diagnostic.line || 1}, column ${diagnostic.column || 1})`;
+  document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">Java compile error: ${esc(message)}</span>`;
+  console.error('Unit 8.5 Java compile error', diagnostic);
+  return false;
+}
+
 function handleRun() {
   if (running) return;
+  if (!validateFullJavaSource(codeEditor.value)) return;
+  const requiredInitBody = getMethodBody(codeEditor.value, 'init');
+  const requiredLoopBody = getMethodBody(codeEditor.value, 'loop');
+  if (requiredInitBody === null || requiredLoopBody === null) {
+    const missingMethod = requiredInitBody === null ? 'init()' : 'loop()';
+    document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">Java compile error: Required ${missingMethod} method is missing or has unmatched braces</span>`;
+    console.error(`Unit 8.5 Java compile error: invalid ${missingMethod} method`);
+    return;
+  }
   running = true;
   runtimeStart = Date.now();
   telemetryBuffer = [];
@@ -895,13 +916,18 @@ function handleRun() {
   document.getElementById('telemetry-log').innerHTML = '';
 
   const initBody = getMethodBody(codeEditor.value, 'init');
-  if (initBody) {
+  if (initBody !== null) {
     try {
       const js = transpile(initBody);
       new Function('setZeroPowerBehavior', 'addTelemetry', 'updateTelemetry', '"use strict";\n' + js)(
         () => {}, addTelemetry, updateTelemetry
       );
-    } catch(e) {}
+    } catch(e) {
+      document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">init() compile/runtime error: ${esc(e.message)}</span>`;
+      console.error('Unit 8.5 init() failed', e);
+      handleStop();
+      return;
+    }
   }
 
   timerInterval = setInterval(() => {
@@ -910,15 +936,22 @@ function handleRun() {
 
   loopInterval = setInterval(() => {
     const loopBody = getMethodBody(codeEditor.value, 'loop');
-    if (loopBody) {
-      telemetryBuffer = [];
-      try {
-        const js = transpile(loopBody);
-        new Function('gamepad', 'setLiftPower', 'isLimitPressed', 'getLimitState', 'addTelemetry', 'updateTelemetry',
-          '"use strict";\n' + js)(gamepadState, setLiftPower, () => limitPressed, () => !limitPressed, addTelemetry, updateTelemetry);
-      } catch(e) {
-        console.error(e);
-      }
+    if (loopBody === null) {
+      document.getElementById('telemetry-log').innerHTML = '<span class="telemetry-error">Java compile error: Required loop() method is missing or has unmatched braces</span>';
+      console.error('Unit 8.5 Java compile error: invalid loop() method');
+      handleStop();
+      return;
+    }
+    telemetryBuffer = [];
+    try {
+      const js = transpile(loopBody);
+      new Function('gamepad', 'setLiftPower', 'isLimitPressed', 'getLimitState', 'addTelemetry', 'updateTelemetry',
+        '"use strict";\n' + js)(gamepadState, setLiftPower, () => limitPressed, () => !limitPressed, addTelemetry, updateTelemetry);
+    } catch(e) {
+      document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">loop() compile/runtime error: ${esc(e.message)}</span>`;
+      console.error('Unit 8.5 loop() failed', e);
+      handleStop();
+      return;
     }
 
     simulatePhysics();

@@ -417,9 +417,20 @@ function renderTelemetry(lines){
   log.innerHTML=lines?lines.map(function(l){return'<div class="telemetry-line"><span class="telemetry-key">'+esc(l.key)+'</span>: '+esc(l.val)+'</div>'}).join(''):'';
 }
 function renderError(msg){document.getElementById('telemetry-log').innerHTML='<div class="telemetry-error">'+esc(msg)+'</div>';}
+function validateFullJavaSource(code){
+  if(!window.TelemarkJava){renderError('Java compile error: Telemark Java compiler is unavailable (line 1, column 1)');handleStop();return false}
+  var result=window.TelemarkJava.compile(code);
+  if(result.ok)return true;
+  var diagnostic=result.diagnostics&&result.diagnostics[0]||{};
+  renderError('Java compile error: '+(diagnostic.message||'Invalid Java source')+' (line '+(diagnostic.line||1)+', column '+(diagnostic.column||1)+')');
+  console.error('Unit 8.2 Java compile error',diagnostic);
+  handleStop();
+  return false;
+}
 /* ── Execute Java ─────────────────────────────────────────────────────────── */
 function executeInit(){
-  var initBody=getMethodBody(codeEditor.value,'init')||'';
+  var initBody=getMethodBody(codeEditor.value,'init');
+  if(initBody===null){renderError('Java compile error: Required init() method is missing or has unmatched braces');return false}
   resetDirections();
   var telLines=[];
   function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);telLines.push({key:String(k),val:String(v)})}
@@ -429,12 +440,13 @@ function executeInit(){
     var js=transpileInit(initBody);
     var fn=new Function('mapHardware','setMotorDirection','addTelemetry','updateTelemetry','__runtime','"use strict";\n'+js);
     fn(mapHardware,setMotorDirection,addTelemetry,updateTelemetry,function(){return(Date.now()-runtimeStart)/1000});
-  }catch(e){renderError('Init error: '+e.message)}
+  }catch(e){renderError('init() compile/runtime error: '+e.message);console.error('Unit 8.2 init() failed',e);return false}
   updateDirectionPanel(motorDirections);
+  return true;
 }
 function runLoop(){
   var loopBody=getMethodBody(codeEditor.value,'loop');
-  if(!loopBody)return;
+  if(loopBody===null){renderError('Java compile error: Required loop() method is missing or has unmatched braces');handleStop();return false}
   var telLines=[];
   function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);telLines.push({key:String(k),val:String(v)})}
   function updateTelemetry(){renderTelemetry(telLines)}
@@ -444,24 +456,31 @@ function runLoop(){
     fn(gamepad,setMotorPower,setMotorDirection,addTelemetry,updateTelemetry,function(){return(Date.now()-runtimeStart)/1000});
     lastLoopError='';
   }catch(e){
-    if(e.message!==lastLoopError){renderError('Loop error: '+e.message);lastLoopError=e.message}
+    if(e.message!==lastLoopError){renderError('loop() compile/runtime error: '+e.message);lastLoopError=e.message}
+    console.error('Unit 8.2 loop() failed',e);
+    handleStop();
+    return false;
   }
   updateAppliedPowers();
   updateMotorBars();
   updateDirectionPanel(motorDirections);
+  return true;
 }
 /* ── Run control ──────────────────────────────────────────────────────────── */
 function handleRun(){
   if(running)return;
+  if(!validateFullJavaSource(codeEditor.value))return;
   running=true;runtimeStart=Date.now();lastLoopError='';
   commandPower={leftFront:0,rightFront:0,leftBack:0,rightBack:0};updateAppliedPowers();
   document.getElementById('ds-state').textContent='RUNNING';
   document.getElementById('ds-state').style.color='var(--good)';
   document.getElementById('btn-run').disabled=true;
   document.getElementById('telemetry-log').innerHTML='';
-  validate();executeInit();
+  validate();
+  if(!executeInit()){handleStop();return}
+  if(!runLoop())return;
   timerInterval=setInterval(function(){document.getElementById('timer-val').textContent=((Date.now()-runtimeStart)/1000).toFixed(2)},50);
-  loopInterval=setInterval(runLoop,40);
+  loopInterval=setInterval(function(){runLoop()},40);
 }
 function handleStop(){
   running=false;

@@ -1044,6 +1044,7 @@
         options.onTelemetryClear?.({automatic: false});
       },
       getRuntime: options.getRuntime || (() => 0),
+      resetRuntime: options.resetRuntime || (() => {}),
       isStopRequested: options.isStopRequested || (() => false),
       opModeIsActive: options.opModeIsActive || (() => true),
       waitForStart: options.waitForStart || (() => Promise.resolve()),
@@ -1068,6 +1069,7 @@ const addTelemetry=runtime.addTelemetry||(()=>{});
 const updateTelemetry=runtime.updateTelemetry||(()=>{});
 const clearTelemetry=runtime.clearTelemetry||(()=>{});
 const getRuntime=runtime.getRuntime||(()=>0);
+const resetRuntime=runtime.resetRuntime||(()=>{});
 const opModeIsActive=runtime.opModeIsActive||(()=>false);
 const isStopRequested=runtime.isStopRequested||(()=>false);
 const waitForStart=runtime.waitForStart||(()=>Promise.resolve());

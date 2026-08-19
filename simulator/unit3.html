@@ -900,6 +900,9 @@ function executeMethod(methodName) {
     const runtime = TelemarkJava.createRuntime({
       gamepad,
       getRuntime,
+      resetRuntime() {
+        runtimeOffset = Date.now();
+      },
       onPower(power) {
         updateMotorVisual(power);
       },
@@ -923,9 +926,10 @@ function executeMethod(methodName) {
     telemarkCompiledSource = code;
     if (!telemarkCompiledProgram.ok) {
       const error = telemarkCompiledProgram.diagnostics[0];
-      document.getElementById('telemetry-log').textContent =
-        `${error.message} (line ${error.line}, column ${error.column})`;
-      return;
+      return failJavaExecution(
+        'Java compile error',
+        new Error(`${error.message} (line ${error.line}, column ${error.column})`),
+      );
     }
   }
 
@@ -933,16 +937,21 @@ function executeMethod(methodName) {
     runtimeOffset = Date.now();
   }
   const method = telemarkCompiledProgram?.methods?.[methodName];
-  if (method) {
-    if (methodName === 'loop' || methodName === 'init_loop') telemarkRuntime?.clearTelemetry();
-    method();
-    telemarkRuntime?.updateTelemetry();
+  try {
+    if (method) {
+      if (methodName === 'loop' || methodName === 'init_loop') telemarkRuntime?.clearTelemetry();
+      method();
+      telemarkRuntime?.updateTelemetry();
+    }
+  } catch (error) {
+    return failJavaExecution(`${methodName}() runtime error`, error);
   }
   Object.entries(telemarkCompiledProgram?.scope || {}).forEach(([name, value]) => {
     if (declaredVars[name]) declaredVars[name].value = value;
   });
   renderVariableInspector();
   renderHints();
+  return true;
 }
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────────
@@ -960,18 +969,29 @@ function setLifecycle(s, color, btnLabel) {
 
 function stopAllIntervals() { clearInterval(intervalId); clearInterval(timerId); intervalId = timerId = null; }
 
+function failJavaExecution(context, error) {
+  stopAllIntervals();
+  runtimeOffset = 0;
+  document.getElementById('timer-val').textContent = '0.00';
+  updateMotorVisual(0);
+  document.getElementById('telemetry-log').textContent =
+    `${context}: ${error?.message || String(error)}`;
+  setLifecycle('STOPPED', '#cc0000', 'INIT');
+  return false;
+}
+
 function handleMainButton() {
   if (currentState === 'STOPPED') {
     runStaticAnalysis();
     document.getElementById('telemetry-log').innerHTML = '';
     document.getElementById('timer-val').textContent = '0.00';
     runtimeOffset = 0; updateMotorVisual(0);
-    executeMethod('init');
+    if (!executeMethod('init')) return;
     setLifecycle('INIT_LOOP', '#ffcc00', 'START');
-    intervalId = setInterval(() => executeMethod('init_loop'), 100);
+    intervalId = setInterval(() => { executeMethod('init_loop'); }, 100);
   } else if (currentState === 'INIT_LOOP') {
     stopAllIntervals();
-    executeMethod('start');
+    if (!executeMethod('start')) return;
     if (runtimeOffset === 0) runtimeOffset = Date.now();
     setLifecycle('RUNNING', '#00ff00', 'RUNNING');
     intervalId = setInterval(() => executeMethod('loop'), 100);

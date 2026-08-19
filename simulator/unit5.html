@@ -1222,6 +1222,7 @@ function executeMethod(methodName) {
       window.__telemarkUnit5Runtime = TelemarkJava.createRuntime({
         gamepad: gamepad,
         getRuntime: getRuntime,
+        resetRuntime: function() { runtimeOffset = Date.now(); },
         onPower: function(power) { updateMotorVisual(power); },
         onTelemetry: function(key, value) {
           sharedTelemetry.push('<div class="telemetry-line"><span class="telemetry-key">' + key + '</span>: ' + String(value) + '</div>');
@@ -1238,16 +1239,22 @@ function executeMethod(methodName) {
       window.__telemarkUnit5Source = sharedSource;
       if (!window.__telemarkUnit5Program.ok) {
         var sharedDiagnostic = window.__telemarkUnit5Program.diagnostics[0];
-        document.getElementById('telemetry-log').textContent = sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')';
-        return;
+        return failJavaExecution(
+          'Java compile error',
+          new Error(sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')')
+        );
       }
     }
-    if (!window.__telemarkUnit5Program || !window.__telemarkUnit5Program.ok) return;
+    if (!window.__telemarkUnit5Program || !window.__telemarkUnit5Program.ok) return false;
     var sharedMethod = window.__telemarkUnit5Program.methods[methodName];
-    if (sharedMethod) {
-      if (methodName === 'loop' || methodName === 'init_loop') window.__telemarkUnit5Runtime.clearTelemetry();
-      sharedMethod();
-      window.__telemarkUnit5Runtime.updateTelemetry();
+    try {
+      if (sharedMethod) {
+        if (methodName === 'loop' || methodName === 'init_loop') window.__telemarkUnit5Runtime.clearTelemetry();
+        sharedMethod();
+        window.__telemarkUnit5Runtime.updateTelemetry();
+      }
+    } catch (error) {
+      return failJavaExecution(methodName + '() runtime error', error);
     }
     Object.keys(window.__telemarkUnit5Program.scope || {}).forEach(function(name) {
       if (declaredVars[name]) declaredVars[name].value = window.__telemarkUnit5Program.scope[name];
@@ -1255,12 +1262,12 @@ function executeMethod(methodName) {
     drawFlowchart();
     renderConditionInspector();
     renderTruthTable();
-    return;
+    return true;
   }
 
   var code = codeEditor.value;
   var body = getMethodBody(code, methodName);
-  if (!body) return;
+  if (!body) return true;
 
   // Walk through the method body top-to-bottom, executing statements in order.
   // If-chains are resolved to their active branch; everything else runs directly.
@@ -1293,6 +1300,7 @@ function executeMethod(methodName) {
   drawFlowchart();
   renderConditionInspector();
   renderTruthTable();
+  return true;
 }
 
 // Split a method body into an ordered list of plain-code segments and if-chain segments.
@@ -1590,18 +1598,29 @@ function setLifecycle(s, color, btnLabel) {
 
 function stopAllIntervals() { clearInterval(intervalId); clearInterval(timerId); intervalId = timerId = null; }
 
+function failJavaExecution(context, error) {
+  stopAllIntervals();
+  runtimeOffset = 0;
+  document.getElementById('timer-val').textContent = '0.00';
+  updateMotorVisual(0);
+  document.getElementById('telemetry-log').textContent =
+    context + ': ' + (error && error.message ? error.message : String(error));
+  setLifecycle('STOPPED', '#cc0000', 'INIT');
+  return false;
+}
+
 function handleMainButton() {
   if (currentState === 'STOPPED') {
     runStaticAnalysis();
     document.getElementById('telemetry-log').innerHTML = '';
     document.getElementById('timer-val').textContent = '0.00';
     runtimeOffset = 0; updateMotorVisual(0);
-    executeMethod('init');
+    if (!executeMethod('init')) return;
     setLifecycle('INIT_LOOP', '#ffcc00', 'START');
     intervalId = setInterval(function() { executeMethod('init_loop'); }, 100);
   } else if (currentState === 'INIT_LOOP') {
     stopAllIntervals();
-    executeMethod('start');
+    if (!executeMethod('start')) return;
     if (runtimeOffset === 0) runtimeOffset = Date.now();
     setLifecycle('RUNNING', '#00ff00', 'RUNNING');
     intervalId = setInterval(function() { executeMethod('loop'); }, 100);

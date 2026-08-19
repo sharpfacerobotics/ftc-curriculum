@@ -796,7 +796,7 @@ public class PedroLifecycle extends LinearOpMode {
     const code = getCodeSafe();
     const runBody = extractMethodBody(code, "runOpMode");
     if (!runBody) {
-      showStudentError("runOpMode() was not found.");
+      failStudentExecution("runOpMode() was not found.");
       return;
     }
 
@@ -821,7 +821,7 @@ public class PedroLifecycle extends LinearOpMode {
         '"use strict"; let follower; return (async function(){\n' + js + '\n})();'
       );
     } catch (err) {
-      showStudentError("compile error: " + err.message);
+      failStudentExecution("compile error: " + err.message);
       return;
     }
 
@@ -851,7 +851,7 @@ public class PedroLifecycle extends LinearOpMode {
       }
     } catch (err) {
       if (token === state.runToken && !state.stopRequested) {
-        showStudentError("runOpMode() runtime error: " + err.message);
+        failStudentExecution("runOpMode() runtime error: " + err.message);
       }
     }
   }
@@ -1155,6 +1155,26 @@ public class PedroLifecycle extends LinearOpMode {
     return String(code || "")
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\/\/.*$/gm, "");
+  }
+
+  function showStudentError(message) {
+    const text = String(message || "Unknown simulator error");
+    const warning = el("u152-warning");
+    if (warning) {
+      warning.classList.add("error");
+      warning.style.display = "block";
+      warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(text);
+    }
+    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(text);
+    else {
+      safeCall(addTelemetry, "ERROR", text);
+      safeCall(updateTelemetry);
+    }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 
   function getCodeSafe() {

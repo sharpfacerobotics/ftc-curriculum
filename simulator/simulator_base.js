@@ -2242,10 +2242,11 @@
   let runtimeStart = 0;
   let stopRequested = true;
   let studentLifecycle = null;
+  let lifecycleError = false;
   const pendingSleepTimers = new Map();
 
   window.getRuntime = function () {
-    return (Date.now() - runtimeStart) / 1000;
+    return runtimeStart ? (Date.now() - runtimeStart) / 1000 : 0;
   };
 
   window.isStopRequested = function () {
@@ -2318,12 +2319,100 @@
     window._simStartLoop(fn);
   }
 
+  function reportLifecycleError(context, error) {
+    lifecycleError = true;
+    const message = error && error.message ? error.message : String(error || "Unknown error");
+    showTelemetryError(context + ": " + message);
+    console.error("Telemark simulator " + context, error);
+  }
+
+  function validateFullStudentSource() {
+    if (!window.TelemarkJava || typeof window.TelemarkJava.compile !== "function") {
+      reportLifecycleError(
+        "Java compile error",
+        new Error("Telemark Java compiler is unavailable")
+      );
+      return false;
+    }
+
+    if (typeof window.getCode !== "function") {
+      reportLifecycleError(
+        "Java compile error",
+        new Error("The simulator code editor is unavailable")
+      );
+      return false;
+    }
+
+    try {
+      const source = window.getCode();
+      if (typeof source !== "string") {
+        throw new Error("The simulator did not provide Java source text");
+      }
+      const validation = window.TelemarkJava.compile(source);
+      if (validation.ok) return true;
+
+      const diagnostic = validation.diagnostics && validation.diagnostics[0];
+      const message = diagnostic
+        ? `${diagnostic.message} (line ${diagnostic.line}, column ${diagnostic.column})`
+        : "The Java source could not be compiled.";
+      reportLifecycleError("Java compile error", new Error(message));
+    } catch (error) {
+      reportLifecycleError("Java compile error", error);
+    }
+
+    return false;
+  }
+
+  function resetAfterLifecycleError() {
+    initialized = false;
+    running = false;
+    stopRequested = true;
+    pendingLoopFn = null;
+    if (loopInterval) clearInterval(loopInterval);
+    if (initLoopInterval) clearInterval(initLoopInterval);
+    if (timerInterval) clearInterval(timerInterval);
+    loopInterval = null;
+    initLoopInterval = null;
+    timerInterval = null;
+    pendingSleepTimers.forEach(function (resolve, timer) {
+      clearTimeout(timer);
+      resolve();
+    });
+    pendingSleepTimers.clear();
+    studentLifecycle = null;
+    runtimeStart = 0;
+
+    // Challenge pages often keep their own running flags, animation tokens,
+    // and hardware state. Give them the same cleanup notification as a normal
+    // Stop so a corrected program can be initialized immediately after an
+    // error. Do not call the student's stop() method here: the lifecycle that
+    // just failed is no longer safe to execute.
+    if (typeof window.onStop === "function") {
+      try {
+        window.onStop();
+      } catch (cleanupError) {
+        const cleanupMessage = cleanupError && cleanupError.message
+          ? cleanupError.message
+          : String(cleanupError || "Unknown error");
+        showTelemetryError("simulator cleanup error: " + cleanupMessage);
+        console.error("Telemark simulator error cleanup", cleanupError);
+      }
+    }
+
+    setDriverStationState("STOPPED", "var(--danger)");
+    setPrimaryButton("Init", false);
+    const timerVal = document.getElementById("sim-timer-val");
+    if (timerVal) timerVal.textContent = "0.00";
+  }
+
   function handleInit() {
     if (initialized || running) return;
     initialized = true;
     running = false;
     stopRequested = false;
     pendingLoopFn = null;
+    studentLifecycle = null;
+    lifecycleError = false;
 
     const telLog = document.getElementById("sim-telemetry-log");
 
@@ -2334,19 +2423,44 @@
     // Clear pending telemetry
     window.clearTelemetry();
 
+    // Validate the complete editor source before a challenge-specific callback
+    // can selectively extract or execute methods. This prevents malformed code
+    // in an unused lifecycle method from being silently ignored by pages with
+    // custom runners.
+    if (!validateFullStudentSource()) {
+      resetAfterLifecycleError();
+      return false;
+    }
+
     // Call the challenge's explicit init callback. Existing challenge files
     // that still define onRun are treated as init for backward compatibility.
-    if (typeof window.onInit === "function") {
-      window.onInit();
-    } else if (typeof window.onRun === "function") {
-      window.onRun();
+    try {
+      if (typeof window.onInit === "function") {
+        window.onInit();
+      } else if (typeof window.onRun === "function") {
+        window.onRun();
+      }
+    } catch (error) {
+      reportLifecycleError("init() runtime error", error);
+    }
+
+    if (lifecycleError) {
+      resetAfterLifecycleError();
+      return false;
     }
 
     if (studentLifecycle && typeof studentLifecycle.initLoop === "function") {
       initLoopInterval = setInterval(function () {
-        if (initialized && !running) studentLifecycle.initLoop();
+        if (!initialized || running) return;
+        try {
+          studentLifecycle.initLoop();
+        } catch (error) {
+          reportLifecycleError("init_loop() runtime error", error);
+          resetAfterLifecycleError();
+        }
       }, 50);
     }
+    return true;
   }
 
   function handleStart() {
@@ -2363,14 +2477,21 @@
     setPrimaryButton("Start", true);
     startTimer();
 
-    if (studentLifecycle && typeof studentLifecycle.start === "function") {
-      studentLifecycle.start();
-    }
-    startPendingLoop();
+    try {
+      if (studentLifecycle && typeof studentLifecycle.start === "function") {
+        studentLifecycle.start();
+      }
+      startPendingLoop();
 
-    if (typeof window.onStart === "function") {
-      window.onStart();
+      if (typeof window.onStart === "function") {
+        window.onStart();
+      }
+    } catch (error) {
+      reportLifecycleError("start() runtime error", error);
+      resetAfterLifecycleError();
+      return false;
     }
+    return true;
   }
 
   function handleRun() {
@@ -2417,13 +2538,21 @@
     if (timerVal) timerVal.textContent = "0.00";
 
     if (studentLifecycle && typeof studentLifecycle.stop === "function") {
-      studentLifecycle.stop();
+      try {
+        studentLifecycle.stop();
+      } catch (error) {
+        reportLifecycleError("stop() runtime error", error);
+      }
     }
     studentLifecycle = null;
 
     // Call the challenge's onStop callback
     if (typeof window.onStop === "function") {
-      window.onStop();
+      try {
+        window.onStop();
+      } catch (error) {
+        reportLifecycleError("simulator stop callback error", error);
+      }
     }
   }
 
@@ -2723,6 +2852,9 @@
           updateTelemetry: window.updateTelemetry,
           clearTelemetry: window.clearTelemetry,
           getRuntime: window.getRuntime,
+          resetRuntime: function () {
+            runtimeStart = Date.now();
+          },
           isStopRequested: window.isStopRequested,
           opModeIsActive: function () {
             return initialized && running && !stopRequested;
@@ -2742,10 +2874,12 @@
 
         if (!compiled.ok) {
           const diagnostic = compiled.diagnostics[0];
-          showTelemetryError(
-            `${diagnostic.message} (line ${diagnostic.line}, column ${diagnostic.column})`
+          reportLifecycleError(
+            "Java compile error",
+            new Error(`${diagnostic.message} (line ${diagnostic.line}, column ${diagnostic.column})`)
           );
-          return;
+          studentLifecycle = null;
+          return false;
         }
 
         studentLifecycle = {
@@ -2756,10 +2890,10 @@
 
         if (compiled.kind === "linear") {
           Promise.resolve(compiled.methods.runOpMode?.()).catch(function (error) {
-            showTelemetryError("runOpMode() runtime error: " + error.message);
+            reportLifecycleError("runOpMode() runtime error", error);
             window.stopExecution();
           });
-          return;
+          return true;
         }
 
         if (compiled.methods.init && initHandler) {
@@ -2782,7 +2916,7 @@
           if (loopHandler) loopHandler(wrappedLoop);
           else window._simStartLoop(wrappedLoop);
         }
-        return;
+        return true;
       }
 
       // Extract method bodies
@@ -2825,8 +2959,8 @@
             });
           }
         } catch (e) {
-          showTelemetryError("init() error: " + e.message);
-          return;
+          reportLifecycleError("init() compile/runtime error", e);
+          return false;
         }
       }
 
@@ -2834,10 +2968,11 @@
       if (loopBody !== null) {
         // Check for blocking loops
         if (detectBlockingLoop(loopBody)) {
-          showTelemetryError(
-            "Blocking loop detected in loop()! Do not use while(gamepad...) or while(true) inside loop(). The loop() method is already called repeatedly."
+          reportLifecycleError(
+            "Java compile error",
+            new Error("Blocking loop detected in loop()! Do not use while(gamepad...) or while(true) inside loop(). The loop() method is already called repeatedly.")
           );
-          return;
+          return false;
         }
 
         const loopJS = wrapWithClassFieldScope(
@@ -2885,12 +3020,14 @@
             window._simStartLoop(wrappedLoop);
           }
         } catch (e) {
-          showTelemetryError("loop() compile error: " + e.message);
-          return;
+          reportLifecycleError("loop() compile error", e);
+          return false;
         }
       }
+      return true;
     } catch (e) {
-      showTelemetryError("Transpiler error: " + e.message);
+      reportLifecycleError("Transpiler error", e);
+      return false;
     }
   };
 

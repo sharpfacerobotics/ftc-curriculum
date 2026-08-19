@@ -1088,8 +1088,7 @@ public class PathChainBezier extends LinearOpMode {
   function followPathChain(chain) {
     const segments = chain && Array.isArray(chain.segments) ? chain.segments : [];
     if (!segments.length) {
-      showStudentError("followPathChain() received an empty PathChain.");
-      return;
+      throw new Error("followPathChain() received an empty PathChain.");
     }
     setPathSegments(segments);
     state.following = true;
@@ -1208,7 +1207,7 @@ public class PathChainBezier extends LinearOpMode {
     const code = getCodeSafe();
     const runBody = extractMethodBody(code, "runOpMode");
     if (!runBody) {
-      showStudentError("runOpMode() was not found.");
+      failStudentExecution("runOpMode() was not found.");
       return;
     }
 
@@ -1239,7 +1238,7 @@ public class PathChainBezier extends LinearOpMode {
         '"use strict"; let follower; let scoringRoutine; return (async function(){\n' + js + '\n})();'
       );
     } catch (err) {
-      showStudentError("compile error: " + err.message);
+      failStudentExecution("compile error: " + err.message);
       return;
     }
 
@@ -1273,7 +1272,7 @@ public class PathChainBezier extends LinearOpMode {
       }
     } catch (err) {
       if (token === state.runToken && !state.stopRequested) {
-        showStudentError("runOpMode() runtime error: " + err.message);
+        failStudentExecution("runOpMode() runtime error: " + err.message);
       }
     }
   }
@@ -1857,6 +1856,16 @@ public class PathChainBezier extends LinearOpMode {
       warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message);
     }
     safeCall(addHint, '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message), "error");
+    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(message);
+    else {
+      safeCall(addTelemetry, "ERROR", message);
+      safeCall(updateTelemetry);
+    }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 
   function escapeHTML(value) {
