@@ -635,7 +635,7 @@ public class ZoneDefinitions extends OpMode {
     const initBody = extractMethodBody(opBody, "init");
     const loopBody = extractMethodBody(opBody, "loop");
     if (!loopBody) {
-      failStudentExecution("loop() was not found.");
+      showStudentError("loop() was not found.");
       return;
     }
 
@@ -645,7 +645,7 @@ public class ZoneDefinitions extends OpMode {
       initFn = new Function("LEFT_ZONE", "CENTER_ZONE", "RIGHT_ZONE", "addTelemetry", "updateTelemetry", '"use strict";\n' + transpileBody(initBody || ""));
       loopFn = new Function("LEFT_ZONE", "CENTER_ZONE", "RIGHT_ZONE", "addTelemetry", "updateTelemetry", '"use strict";\n' + transpileBody(loopBody));
     } catch (err) {
-      failStudentExecution("compile error: " + err.message);
+      showStudentError("compile error: " + err.message);
       return;
     }
 
@@ -655,7 +655,7 @@ public class ZoneDefinitions extends OpMode {
       initFn(zones.LEFT_ZONE, zones.CENTER_ZONE, zones.RIGHT_ZONE, addTelemetry, updateTelemetry);
       updateTelemetry();
     } catch (err) {
-      failStudentExecution("init() runtime error: " + err.message);
+      showStudentError("init() runtime error: " + err.message);
       return;
     }
 
@@ -667,7 +667,8 @@ public class ZoneDefinitions extends OpMode {
         loopFn(zones.LEFT_ZONE, zones.CENTER_ZONE, zones.RIGHT_ZONE, addTelemetry, updateTelemetry);
         validateCode();
       } catch (err) {
-        failStudentExecution("loop() runtime error: " + err.message);
+        showStudentError("loop() runtime error: " + err.message);
+        if (typeof stopExecution === "function") stopExecution();
       }
     };
 
@@ -975,16 +976,6 @@ public class ZoneDefinitions extends OpMode {
       warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message);
     }
     safeCall(addHint, '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message), "error");
-    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(message);
-    else {
-      safeCall(addTelemetry, "ERROR", message);
-      safeCall(updateTelemetry);
-    }
-  }
-
-  function failStudentExecution(message) {
-    if (typeof stopExecution === "function") stopExecution();
-    showStudentError(message);
   }
 
   function getCodeSafe() {

@@ -44,12 +44,13 @@
     width: 72px;
     height: 3px;
     border-radius: 999px;
-    background: #22d3ee;
+    background: linear-gradient(90deg, #7c2d12, #ff6600, #7c2d12);
+    box-shadow: 0 0 12px rgba(255, 102, 0, 0.28);
   }
 
   #sim-right-panel .u153-vertical-resizer:hover,
   #sim-right-panel .u153-vertical-resizer.active {
-    border-color: #22d3ee;
+    border-color: #ff6600;
     background: #111118;
   }
 
@@ -133,7 +134,7 @@
   }
 
   #sim-right-panel .u153-button:hover {
-    border-color: #38bdf8;
+    border-color: #f97316;
     color: #ffffff;
   }
 
@@ -192,7 +193,7 @@
   #sim-right-panel .u153-fill {
     height: 100%;
     width: 0%;
-    background: #22d3ee;
+    background: #f97316;
   }
 
   #sim-right-panel .u153-visualizer-wrap {
@@ -206,7 +207,7 @@
     overflow: auto;
     resize: vertical;
     scrollbar-width: thin;
-    scrollbar-color: #22d3ee #05080d;
+    scrollbar-color: #ff6600 #08080c;
   }
 
   #sim-right-panel .u153-pedro-visualizer {
@@ -268,7 +269,7 @@
     padding: 8px;
     overflow: auto;
     scrollbar-width: thin;
-    scrollbar-color: #22d3ee #05080d;
+    scrollbar-color: #ff6600 #08080c;
   }
 
   .u153-modal-body .u153-pedro-visualizer {
@@ -279,7 +280,7 @@
     height: max(100%, 980px);
     border: 2px solid #ccc;
     border-radius: 8px;
-    background: #05080d;
+    background: #08080c;
   }
 
   #sim-right-panel .u153-visualizer-wrap::-webkit-scrollbar,
@@ -296,14 +297,14 @@
 
   #sim-right-panel .u153-visualizer-wrap::-webkit-scrollbar-thumb,
   .u153-modal-body::-webkit-scrollbar-thumb {
-    background: #22d3ee;
-    border: 2px solid #05080d;
+    background: linear-gradient(180deg, #ff6600, #c94f00);
+    border: 2px solid #08080c;
     border-radius: 999px;
   }
 
   #sim-right-panel .u153-visualizer-wrap::-webkit-scrollbar-thumb:hover,
   .u153-modal-body::-webkit-scrollbar-thumb:hover {
-    background: #22d3ee;
+    background: linear-gradient(180deg, #ff8533, #ff6600);
   }
 
   .u153-dock-note {
@@ -1088,7 +1089,8 @@ public class PathChainBezier extends LinearOpMode {
   function followPathChain(chain) {
     const segments = chain && Array.isArray(chain.segments) ? chain.segments : [];
     if (!segments.length) {
-      throw new Error("followPathChain() received an empty PathChain.");
+      showStudentError("followPathChain() received an empty PathChain.");
+      return;
     }
     setPathSegments(segments);
     state.following = true;
@@ -1207,7 +1209,7 @@ public class PathChainBezier extends LinearOpMode {
     const code = getCodeSafe();
     const runBody = extractMethodBody(code, "runOpMode");
     if (!runBody) {
-      failStudentExecution("runOpMode() was not found.");
+      showStudentError("runOpMode() was not found.");
       return;
     }
 
@@ -1238,7 +1240,7 @@ public class PathChainBezier extends LinearOpMode {
         '"use strict"; let follower; let scoringRoutine; return (async function(){\n' + js + '\n})();'
       );
     } catch (err) {
-      failStudentExecution("compile error: " + err.message);
+      showStudentError("compile error: " + err.message);
       return;
     }
 
@@ -1272,7 +1274,7 @@ public class PathChainBezier extends LinearOpMode {
       }
     } catch (err) {
       if (token === state.runToken && !state.stopRequested) {
-        failStudentExecution("runOpMode() runtime error: " + err.message);
+        showStudentError("runOpMode() runtime error: " + err.message);
       }
     }
   }
@@ -1856,16 +1858,6 @@ public class PathChainBezier extends LinearOpMode {
       warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message);
     }
     safeCall(addHint, '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message), "error");
-    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(message);
-    else {
-      safeCall(addTelemetry, "ERROR", message);
-      safeCall(updateTelemetry);
-    }
-  }
-
-  function failStudentExecution(message) {
-    if (typeof stopExecution === "function") stopExecution();
-    showStudentError(message);
   }
 
   function escapeHTML(value) {

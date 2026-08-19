@@ -987,7 +987,7 @@ public class StateMachine extends LinearOpMode {
     const code = getCodeSafe();
     const runBody = extractMethodBody(code, "runOpMode");
     if (!runBody) {
-      failStudentExecution("runOpMode() was not found.");
+      showStudentError("runOpMode() was not found.");
       return;
     }
 
@@ -1021,7 +1021,7 @@ public class StateMachine extends LinearOpMode {
         '"use strict"; let follower; let claw; let scoringPath; let deliverTimer = 0; return (async function(){\n' + js + '\n})();'
       );
     } catch (err) {
-      failStudentExecution("compile error: " + err.message);
+      showStudentError("compile error: " + err.message);
       return;
     }
 
@@ -1058,7 +1058,7 @@ public class StateMachine extends LinearOpMode {
       }
     } catch (err) {
       if (token === state.runToken && !state.stopRequested) {
-        failStudentExecution("runOpMode() runtime error: " + err.message);
+        showStudentError("runOpMode() runtime error: " + err.message);
       }
     }
   }
@@ -1397,11 +1397,6 @@ public class StateMachine extends LinearOpMode {
       safeCall(addTelemetry, "ERROR", text);
       safeCall(updateTelemetry);
     }
-  }
-
-  function failStudentExecution(message) {
-    if (typeof stopExecution === "function") stopExecution();
-    showStudentError(message);
   }
 
   function escapeHTML(value) {

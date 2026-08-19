@@ -492,8 +492,6 @@ function updateVectors() {
             : expectedResult;
     } catch (err) {
         studentResult = Number.NaN;
-        studentStrafeFunction = null;
-        failStudentFormula("getFieldRelativeStrafe() runtime error",err);
     }
 
     const rawAngle = Math.atan2(rawStrafe, rawForward);
@@ -590,20 +588,6 @@ function getMethodBody(code,name) {
     return "";
 }
 
-let studentFormulaError = "";
-
-function reportStudentFormulaError(context,err) {
-    const message = context + ": " + (err && err.message ? err.message : String(err));
-    studentFormulaError = message;
-    console.error("Unit 12.3 " + context,err);
-    if (window._simShowTelemetryError) window._simShowTelemetryError(message);
-}
-
-function failStudentFormula(context,err) {
-    if (typeof stopExecution === "function") stopExecution();
-    reportStudentFormulaError(context,err);
-}
-
 function compileStudentFormula() {
     const code = window.getCode ? getCode() : starterCode;
     const body = getMethodBody(code,"getFieldRelativeStrafe")
@@ -613,8 +597,7 @@ function compileStudentFormula() {
 
     if (!body) {
         studentStrafeFunction = null;
-        failStudentFormula("Java compile error",new Error("getFieldRelativeStrafe() was not found or is missing a closing brace"));
-        return false;
+        return;
     }
 
     try {
@@ -625,12 +608,8 @@ function compileStudentFormula() {
                 "headingRadians",
                 body
             );
-        studentFormulaError = "";
-        return true;
     } catch (err) {
         studentStrafeFunction = null;
-        failStudentFormula("getFieldRelativeStrafe() compile error",err);
-        return false;
     }
 }
 
@@ -639,8 +618,6 @@ function runFormula(rawS,rawF,headingRad) {
     try {
         return Number(studentStrafeFunction(rawS,rawF,headingRad));
     } catch (err) {
-        studentStrafeFunction = null;
-        failStudentFormula("getFieldRelativeStrafe() runtime error",err);
         return Number.NaN;
     }
 }

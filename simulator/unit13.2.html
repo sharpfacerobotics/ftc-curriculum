@@ -95,9 +95,9 @@
   }
 
   #sim-right-panel .u132-node.active {
-    color: #93c5fd;
-    border-color: #22d3ee;
-    box-shadow: 0 0 12px rgba(34, 211, 238, 0.2);
+    color: #ffcc66;
+    border-color: #ff6600;
+    box-shadow: 0 0 12px rgba(255, 102, 0, 0.24);
   }
 
   #sim-right-panel .u132-stats {
@@ -642,7 +642,7 @@ public class GrabberOOP extends OpMode {
     const code = typeof getCode === "function" ? getCode() : starterCode;
     const loopBody = extractMethodBody(extractOpModeBody(code), "loop");
     if (!loopBody) {
-      failStudentExecution("loop() was not found.");
+      showStudentError("loop() was not found.");
       return;
     }
 
@@ -660,7 +660,7 @@ public class GrabberOOP extends OpMode {
         '"use strict";\n' + js
       );
     } catch (err) {
-      failStudentExecution("loop() compile error: " + err.message);
+      showStudentError("loop() compile error: " + err.message);
       return;
     }
 
@@ -679,7 +679,8 @@ public class GrabberOOP extends OpMode {
         updateTelemetry();
       validateCode();
     } catch (err) {
-        failStudentExecution("loop() runtime error: " + err.message);
+        showStudentError("loop() runtime error: " + err.message);
+        if (typeof stopExecution === "function") stopExecution();
       }
     };
 
@@ -745,7 +746,7 @@ public class GrabberOOP extends OpMode {
       initFn(hardwareMap, callGrabberInit, addTelemetry, updateTelemetry);
       updateTelemetry();
     } catch (err) {
-      failStudentExecution("init() runtime error: " + err.message);
+      showStudentError("init() runtime error: " + err.message);
     }
   }
 
@@ -873,12 +874,6 @@ public class GrabberOOP extends OpMode {
       addTelemetry("ERROR", message);
       updateTelemetry();
     }
-  }
-
-
-  function failStudentExecution(message) {
-    if (typeof stopExecution === "function") stopExecution();
-    showStudentError(message);
   }
 };
 </script>

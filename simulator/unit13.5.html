@@ -57,7 +57,7 @@
 
   #sim-scene-container .u135-label {
     padding: 6px 9px;
-    color: #22d3ee;
+    color: #ff6600;
     font-size: 0.76rem;
   }
 
@@ -895,7 +895,7 @@ public class RobotComposition extends OpMode {
     const initBody = extractMethodBody(opBody, "init");
     const loopBody = extractMethodBody(opBody, "loop");
     if (!loopBody) {
-      failStudentExecution("loop() was not found.");
+      showStudentError("loop() was not found.");
       return;
     }
 
@@ -930,7 +930,7 @@ public class RobotComposition extends OpMode {
         '"use strict";\n' + loopJS
       );
     } catch (err) {
-      failStudentExecution("compile error: " + err.message);
+      showStudentError("compile error: " + err.message);
       return;
     }
 
@@ -950,7 +950,7 @@ public class RobotComposition extends OpMode {
         );
         updateTelemetry();
       } catch (err) {
-        failStudentExecution("init() runtime error: " + err.message);
+        showStudentError("init() runtime error: " + err.message);
         return;
       }
     }
@@ -972,7 +972,8 @@ public class RobotComposition extends OpMode {
         updateTelemetry();
         validateCode();
       } catch (err) {
-        failStudentExecution("loop() runtime error: " + err.message);
+        showStudentError("loop() runtime error: " + err.message);
+        if (typeof stopExecution === "function") stopExecution();
       }
     };
 
@@ -1014,7 +1015,7 @@ public class RobotComposition extends OpMode {
       );
       updateTelemetry();
     } catch (err) {
-      failStudentExecution("init() runtime error: " + err.message);
+      showStudentError("init() runtime error: " + err.message);
     }
   }
 
@@ -1277,11 +1278,6 @@ public class RobotComposition extends OpMode {
       addTelemetry("ERROR", message);
       updateTelemetry();
     }
-  }
-
-  function failStudentExecution(message) {
-    if (typeof stopExecution === "function") stopExecution();
-    showStudentError(message);
   }
 };
 </script>

@@ -22,7 +22,7 @@
         --yellow:#f59e0b;
         --red:#ef4444;
         --blue:#38bdf8;
-        --orange:#22d3ee;
+        --orange:#ff6600;
         --purple:#a855f7;
     }
 
@@ -1154,17 +1154,6 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
         return starterCode;
     }
 
-    function failStudentExecution(message){
-        simulationRunning = false;
-        if(typeof stopExecution === "function") stopExecution();
-        if(typeof _simShowTelemetryError === "function"){
-            _simShowTelemetryError(message);
-        } else {
-            addTelemetry("ERROR", message);
-            updateTelemetry();
-        }
-    }
-
     function compileStudentSimulation(){
         const code = getCodeSafe();
         if(code === compiledSource && compiledMoveFn && compiledLoopFn) return true;
@@ -1179,7 +1168,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
         const loopBody = extractMethodBody(opBody, "loop");
 
         if(!moveBody || !loopBody){
-            failStudentExecution("SafetySlide.move() or loop() was not found.");
+            showStudentError("SafetySlide.move() or loop() was not found.");
             return false;
         }
 
@@ -1210,7 +1199,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
             compiledInitFn = null;
             compiledLoopFn = null;
             compiledSource = "";
-            failStudentExecution("compile error: " + err.message);
+            showStudentError("compile error: " + err.message);
             return false;
         }
     }
@@ -1252,7 +1241,8 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
         try{
             compiledMoveFn(rawInput, setSlidePower);
         } catch(err){
-            failStudentExecution("SafetySlide.move() runtime error: " + err.message);
+            showStudentError("SafetySlide.move() runtime error: " + err.message);
+            simulationRunning = false;
         }
         refreshPanels();
     }
@@ -1274,7 +1264,7 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
             compiledInitFn(hardwareMap, callSlideInit, addTelemetry, updateTelemetry);
             updateTelemetry();
         } catch(err){
-            failStudentExecution("init() runtime error: " + err.message);
+            showStudentError("init() runtime error: " + err.message);
         }
     }
 
@@ -1331,7 +1321,9 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
                 compiledLoopFn(window.gamepad || {}, callSlideMove, addTelemetry, updateTelemetry);
                 updateTelemetry();
             } catch(err){
-                failStudentExecution("loop() runtime error: " + err.message);
+                showStudentError("loop() runtime error: " + err.message);
+                simulationRunning = false;
+                if(typeof stopExecution === "function") stopExecution();
                 return;
             }
 
@@ -1355,14 +1347,14 @@ FINAL SAFE POWER: ${safePower.toFixed(2)}`;
 
     window.onInit = () => {
         simulationRunning = false;
-        if(!compileStudentSimulation()) return;
+        compileStudentSimulation();
         runStudentInit();
         validateCode(getCodeSafe());
     };
 
     window.onStart = () => {
-        if(!compileStudentSimulation()) return;
         simulationRunning = true;
+        compileStudentSimulation();
         validateCode(getCodeSafe());
         publishTelemetry();
     };

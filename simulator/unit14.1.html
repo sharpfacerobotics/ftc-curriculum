@@ -888,7 +888,7 @@ public class AprilTagInit extends LinearOpMode {
     const code = getCodeSafe();
     const runBody = extractMethodBody(code, "runOpMode");
     if (!runBody) {
-      failStudentExecution("runOpMode() was not found.");
+      showStudentError("runOpMode() was not found.");
       return;
     }
 
@@ -911,7 +911,7 @@ public class AprilTagInit extends LinearOpMode {
         '"use strict"; let aprilTagProcessor; let visionPortal; return (async function(){\n' + js + '\n})();'
       );
     } catch (err) {
-      failStudentExecution("compile error: " + err.message);
+      showStudentError("compile error: " + err.message);
       return;
     }
 
@@ -933,7 +933,7 @@ public class AprilTagInit extends LinearOpMode {
       );
     } catch (err) {
       if (token === state.runToken && !state.stopRequested) {
-        failStudentExecution("runOpMode() runtime error: " + err.message);
+        showStudentError("runOpMode() runtime error: " + err.message);
       }
     }
   }
@@ -1110,16 +1110,6 @@ public class AprilTagInit extends LinearOpMode {
       warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message);
     }
     safeCall(addHint, '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message), "error");
-    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(message);
-    else {
-      safeCall(addTelemetry, "ERROR", message);
-      safeCall(updateTelemetry);
-    }
-  }
-
-  function failStudentExecution(message) {
-    if (typeof stopExecution === "function") stopExecution();
-    showStudentError(message);
   }
 
   function getCodeSafe() {

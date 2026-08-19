@@ -29,7 +29,8 @@ html, body {
     flex: 1;
     min-height: 420px;
     position: relative;
-    background: #0b1118;
+    background:
+        radial-gradient(circle at top, #18233d 0%, #0b1020 65%);
     border-top: 1px solid #334155;
     border-bottom: 1px solid #334155;
 }
@@ -750,7 +751,7 @@ public class HeadingDisplay extends OpMode {
         ctx.lineTo(w,h / 2);
         ctx.stroke();
 
-        ctx.strokeStyle = "#22d3ee";
+        ctx.strokeStyle = "#ff6600";
         ctx.beginPath();
 
         headingHistory.forEach((value,index) => {

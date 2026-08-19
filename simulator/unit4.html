@@ -10,19 +10,19 @@
 
   <style>
     :root {
-      --bg: #05080d;
-      --panel: #0b1118;
-      --panel-2: #071019;
-      --text: #eaf8ff;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-2: #22d3ee;
+      --bg: #1e1e1e;
+      --panel: #252526;
+      --panel-2: #121212;
+      --text: #d4d4d4;
+      --muted: #9aa0a6;
+      --accent: #007acc;
+      --accent-2: #0098ff;
       --danger: #cc0000;
       --good: #00cc00;
       --warn: #ffcc00;
-      --border: #243746;
+      --border: #333;
       
-      --type-string: #38bdf8;
+      --type-string: #007acc;
       --type-double: #00cc00;
       --type-int: #ff8c00;
       --type-boolean: #d7ba7d;
@@ -31,13 +31,13 @@
     /* Custom Scrollbars */
     * {
       scrollbar-width: thin;
-      scrollbar-color: #22d3ee #05080d;
+      scrollbar-color: #444 #1e1e1e;
     }
     *::-webkit-scrollbar { width: 6px; height: 6px; }
-    *::-webkit-scrollbar-track { background: #05080d; }
-    *::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 3px; }
-    *::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
-    *::-webkit-scrollbar-corner { background: #05080d; }
+    *::-webkit-scrollbar-track { background: #1e1e1e; }
+    *::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+    *::-webkit-scrollbar-thumb:hover { background: #666; }
+    *::-webkit-scrollbar-corner { background: #1e1e1e; }
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -50,16 +50,16 @@
     /* Editor Side */
     #editor-container {
       width: 55%; min-width: 320px; height: 100%;
-      display: flex; flex-direction: column; background: #080d13;
+      display: flex; flex-direction: column; background: #1b1b1b;
     }
     .editor-header {
-      padding: 12px 14px; background: #05080d; border-bottom: 1px solid #243746;
+      padding: 12px 14px; background: #111; border-bottom: 1px solid #2f2f2f;
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
     }
     .editor-title { font-weight: 700; color: white; }
     .editor-subtitle { color: #9aa0a6; font-size: 0.9rem; }
 
-    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: var(--bg); }
+    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: #1e1e1e; }
     #code-editor, #highlighting {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: 0; padding: 16px;
       font-family: "Consolas", "Courier New", monospace; font-size: 14px; line-height: 1.5;
@@ -69,7 +69,7 @@
     #highlighting { z-index: 1; overflow: hidden; }
     #highlighting code { font-family: inherit; font-size: inherit; line-height: inherit; text-shadow: none; }
     
-    #resizer { width: 6px; background: #243746; cursor: col-resize; z-index: 10; transition: background 0.2s; }
+    #resizer { width: 6px; background: #333; cursor: col-resize; z-index: 10; transition: background 0.2s; }
     #resizer:hover, #resizer.active { background: var(--accent); }
 
     /* Driver Station Side */
@@ -118,13 +118,13 @@
       align-items: center;
       padding: 4px;
       border-radius: 4px;
-      background: #0d1721;
+      background: #1a1a1a;
     }
     .button-indicator .dot {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: #101d29;
+      background: #333;
       margin-bottom: 2px;
       transition: background 0.1s;
     }
@@ -142,7 +142,7 @@
       align-items: center;
       gap: 8px;
       margin-bottom: 6px;
-      background: #0d1721;
+      background: #1a1a1a;
       padding: 6px 8px;
       border-radius: 4px;
     }
@@ -155,7 +155,7 @@
     .axis-bar-container {
       flex: 1;
       height: 14px;
-      background: #101d29;
+      background: #333;
       border-radius: 7px;
       position: relative;
       overflow: hidden;
@@ -196,7 +196,7 @@
     .trigger-bar-container {
       width: 30px;
       height: 60px;
-      background: #101d29;
+      background: #333;
       border-radius: 6px;
       position: relative;
       overflow: hidden;
@@ -238,7 +238,7 @@
       margin-bottom: 8px;
     }
     .curve-canvas-container {
-      background: #0d1721;
+      background: #1a1a1a;
       border-radius: 6px;
       padding: 10px;
     }
@@ -884,7 +884,7 @@ public class TeleOpTest extends OpMode {
         <span>Linear</span>
       </div>
       <div class="curve-legend-item">
-        <div class="curve-legend-color" style="background:#38bdf8;"></div>
+        <div class="curve-legend-color" style="background:#007acc;"></div>
         <span id="curve-type-label">Squared</span>
       </div>
     </div>
@@ -1175,7 +1175,7 @@ function drawCurveGraph() {
   ctx.lineTo(pad + graphW, pad);
   ctx.stroke();
   
-  ctx.strokeStyle = '#38bdf8';
+  ctx.strokeStyle = '#007acc';
   ctx.lineWidth = 2;
   ctx.beginPath();
   
@@ -1549,7 +1549,6 @@ function executeMethod(methodName) {
       window.__telemarkUnit4Runtime = TelemarkJava.createRuntime({
         gamepad: gamepad,
         getRuntime: getRuntime,
-        resetRuntime: function() { runtimeOffset = Date.now(); },
         onPower: function(power) { updateMotorVisual(power); },
         onTelemetry: function(key, value) {
           sharedTelemetry.push('<div class="telemetry-line"><span class="telemetry-key">' + key + '</span>: ' + String(value) + '</div>');
@@ -1566,22 +1565,16 @@ function executeMethod(methodName) {
       window.__telemarkUnit4Source = sharedSource;
       if (!window.__telemarkUnit4Program.ok) {
         var sharedDiagnostic = window.__telemarkUnit4Program.diagnostics[0];
-        return failJavaExecution(
-          'Java compile error',
-          new Error(sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')')
-        );
+        document.getElementById('telemetry-log').textContent = sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')';
+        return;
       }
     }
-    if (!window.__telemarkUnit4Program || !window.__telemarkUnit4Program.ok) return false;
+    if (!window.__telemarkUnit4Program || !window.__telemarkUnit4Program.ok) return;
     var sharedMethod = window.__telemarkUnit4Program.methods[methodName];
-    try {
-      if (sharedMethod) {
-        if (methodName === 'loop' || methodName === 'init_loop') window.__telemarkUnit4Runtime.clearTelemetry();
-        sharedMethod();
-        window.__telemarkUnit4Runtime.updateTelemetry();
-      }
-    } catch (error) {
-      return failJavaExecution(methodName + '() runtime error', error);
+    if (sharedMethod) {
+      if (methodName === 'loop' || methodName === 'init_loop') window.__telemarkUnit4Runtime.clearTelemetry();
+      sharedMethod();
+      window.__telemarkUnit4Runtime.updateTelemetry();
     }
     Object.keys(window.__telemarkUnit4Program.scope || {}).forEach(function(name) {
       if (declaredVars[name]) declaredVars[name].value = window.__telemarkUnit4Program.scope[name];
@@ -1589,12 +1582,12 @@ function executeMethod(methodName) {
     renderHints();
     drawCurveGraph();
     updateDeadzoneOverlays();
-    return true;
+    return;
   }
 
   var code = codeEditor.value;
   var body = getMethodBody(code, methodName);
-  if (!body) return true;
+  if (!body) return;
 
   if (methodName === 'start' && /resetRuntime\(\)/.test(body)) runtimeOffset = Date.now();
 
@@ -1698,7 +1691,6 @@ function executeMethod(methodName) {
   }
 
   if (telemetryLines.length > 0) document.getElementById('telemetry-log').innerHTML = telemetryLines.join('');
-  return true;
 }
 
 // Process full if / else-if / else chains involving gamepad buttons
@@ -1868,17 +1860,6 @@ function setLifecycle(s, color, btnLabel) {
 
 function stopAllIntervals() { clearInterval(intervalId); clearInterval(timerId); intervalId = timerId = null; }
 
-function failJavaExecution(context, error) {
-  stopAllIntervals();
-  runtimeOffset = 0;
-  document.getElementById('timer-val').textContent = '0.00';
-  updateMotorVisual(0);
-  document.getElementById('telemetry-log').textContent =
-    context + ': ' + (error && error.message ? error.message : String(error));
-  setLifecycle('STOPPED', '#cc0000', 'INIT');
-  return false;
-}
-
 function handleMainButton() {
   if (currentState === 'STOPPED') {
     runStaticAnalysis();
@@ -1886,12 +1867,12 @@ function handleMainButton() {
     document.getElementById('timer-val').textContent = '0.00';
     runtimeOffset = 0;
     updateMotorVisual(0);
-    if (!executeMethod('init')) return;
+    executeMethod('init');
     setLifecycle('INIT_LOOP', '#ffcc00', 'START');
     intervalId = setInterval(function() { executeMethod('init_loop'); }, 100);
   } else if (currentState === 'INIT_LOOP') {
     stopAllIntervals();
-    if (!executeMethod('start')) return;
+    executeMethod('start');
     if (runtimeOffset === 0) runtimeOffset = Date.now();
     setLifecycle('RUNNING', '#00ff00', 'RUNNING');
     intervalId = setInterval(function() { executeMethod('loop'); }, 100);
