@@ -16,15 +16,13 @@ export default function MarkComplete({
   nextUnit,
   nextUnitName,
 }: MarkCompleteProps): React.JSX.Element {
-  const { user }                     = useAuth();
-  const { isComplete, markComplete } = useProgress(user);
+  const { user } = useAuth();
+  const { isComplete, markComplete, unmarkComplete } = useProgress(user);
   const [saving, setSaving]          = useState(false);
   const [done, setDone]              = useState(isComplete(lessonId));
 
   useEffect(() => {
-    if (isComplete(lessonId)) {
-      setDone(true);
-    }
+    setDone(isComplete(lessonId));
   }, [isComplete, lessonId]);
 
   async function handleComplete() {
@@ -48,6 +46,18 @@ export default function MarkComplete({
       console.error(e);
     }
   }
+
+  async function handleUnmark() {
+    setSaving(true);
+    try {
+      await unmarkComplete(lessonId);
+      setDone(false);
+    } catch (e) {
+      console.error('Telemark unmark failed:', e);
+    } finally {
+      setSaving(false);
+    }
+  }
   
   // ── Completed ─────────────────────────────────────────────
   if (done) {
@@ -61,9 +71,21 @@ export default function MarkComplete({
         <p className={styles.successMsg}>
           Nice work. Hold yourself to it — there are no shortcuts in competition.
         </p>
-        <Link to={nextUnit} className={styles.nextBtn}>
-          Proceed to {nextUnitName} →
-        </Link>
+        <div className={styles.successActions}>
+          <Link to={nextUnit} className={styles.nextBtn}>
+            Proceed to {nextUnitName} →
+          </Link>
+          {user && (
+            <button
+              type="button"
+              className={styles.unmarkBtn}
+              onClick={handleUnmark}
+              disabled={saving}
+            >
+              {saving ? 'Updating...' : 'Unmark lesson'}
+            </button>
+          )}
+        </div>
       </div>
     );
   }

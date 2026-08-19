@@ -1,19 +1,15 @@
 .diagram {
   margin: 1.5rem 0;
   padding: 1rem;
-  border: 1px solid rgba(0, 191, 255, 0.22);
-  border-radius: 8px;
-  background:
-    linear-gradient(rgba(0, 191, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 191, 255, 0.04) 1px, transparent 1px),
-    rgba(7, 7, 15, 0.72);
-  background-size: 24px 24px;
-  color: #e8f4ff;
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  border-radius: 16px 22px 15px 24px;
+  background: #080d13;
+  color: #effbff;
 }
 
 .title {
   margin: 0 0 0.85rem;
-  color: #00bfff;
+  color: #22d3ee;
   font-family: "Share Tech Mono", monospace;
   font-size: 0.78rem;
   font-weight: 700;
@@ -32,9 +28,20 @@
   position: relative;
   min-height: 88px;
   padding: 0.85rem;
-  border: 1px solid rgba(0, 191, 255, 0.24);
-  border-radius: 7px;
-  background: rgba(13, 13, 30, 0.92);
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  border-radius: 13px 17px 12px 19px;
+  background: #0d151e;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.node:nth-child(even) {
+  border-radius: 18px 12px 20px 14px;
+  transform: translateY(3px);
+}
+
+.node:hover {
+  border-color: rgba(34, 211, 238, 0.42);
+  transform: translateY(-2px) rotate(-0.2deg);
 }
 
 .node::after {
@@ -44,7 +51,7 @@
   top: 50%;
   width: 0.5rem;
   height: 1px;
-  background: linear-gradient(90deg, rgba(0, 191, 255, 0.55), rgba(57, 255, 20, 0.55));
+  background: rgba(34, 211, 238, 0.55);
 }
 
 .node:last-child::after {
@@ -53,7 +60,7 @@
 
 .node strong {
   display: block;
-  color: #ffffff;
+  color: #effbff;
   font-family: "Rajdhani", sans-serif;
   font-size: 1.05rem;
   line-height: 1.1;
@@ -74,10 +81,10 @@
   min-width: 1.8rem;
   height: 1.8rem;
   margin-bottom: 0.55rem;
-  border: 1px solid rgba(57, 255, 20, 0.34);
+  border: 1px solid rgba(96, 165, 250, 0.4);
   border-radius: 999px;
-  color: #39ff14;
-  background: rgba(57, 255, 20, 0.08);
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.08);
   font-family: "Share Tech Mono", monospace;
   font-size: 0.8rem;
 }
@@ -90,14 +97,14 @@
 
 .modeCard {
   padding: 1rem;
-  border: 1px solid rgba(0, 191, 255, 0.24);
-  border-radius: 8px;
-  background: rgba(13, 13, 30, 0.92);
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  border-radius: 14px 19px 13px 20px;
+  background: #0d151e;
 }
 
 .modeCard h4 {
   margin: 0 0 0.65rem;
-  color: #39ff14;
+  color: #22d3ee;
   font-family: "Share Tech Mono", monospace;
   font-size: 0.76rem;
 }
@@ -146,5 +153,14 @@
 
   .node::after {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node,
+  .node:nth-child(even),
+  .node:hover {
+    transform: none;
+    transition: none;
   }
 }

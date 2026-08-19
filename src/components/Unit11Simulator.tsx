@@ -59,8 +59,8 @@ export default function Unit11Simulator({lesson}: Unit11SimulatorProps): React.J
           height: 900px;
           min-height: 700px;
           border: none;
-          border-radius: 8px;
-          background: #111;
+          border-radius: 14px;
+          background: #05080d;
         }
         @media (min-width: 997px) {
           .unit11-telemark-simulator {

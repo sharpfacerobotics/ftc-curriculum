@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
-import pageStyles from './index.module.css';
+import pageStyles from './simulator.module.css';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
 
@@ -14,13 +14,6 @@ export default function SimulatorPage(): React.JSX.Element {
       />
 
       <main className={pageStyles.lp}>
-        <div className={pageStyles.gridBg} aria-hidden="true" />
-        <div className={pageStyles.scanline} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.tl}`} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.tr}`} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.bl}`} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.br}`} aria-hidden="true" />
-
         <section className={pageStyles.section}>
           <p className={pageStyles.sectionLabel}>// simulator.live[]</p>
           <h1 className={pageStyles.sectionTitle}>Telemark Simulator</h1>

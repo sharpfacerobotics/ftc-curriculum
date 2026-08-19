@@ -4,35 +4,34 @@
   margin: 3rem auto;
   padding: clamp(2rem, 6vw, 4.5rem);
   overflow: hidden;
-  border: 1px solid rgba(0, 191, 255, 0.24);
-  background:
-    linear-gradient(rgba(0, 191, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 191, 255, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 50% 0%, rgba(0, 191, 255, 0.12), transparent 24rem),
-    #0d0d1e;
-  background-size: 36px 36px, 36px 36px, auto, auto;
-  color: #e8f4ff;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 22px 30px 20px 34px;
+  background: #0b1118;
+  color: #effbff;
   text-align: center;
+  animation: settleIn 0.5s ease-out both;
 }
 
 .corner {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  opacity: 0.7;
 }
 
 .topLeft {
-  top: -1px;
-  left: -1px;
-  border-top: 2px solid #00bfff;
-  border-left: 2px solid #00bfff;
+  top: 18px;
+  left: 20px;
+  background: #22d3ee;
 }
 
 .bottomRight {
-  right: -1px;
-  bottom: -1px;
-  border-right: 2px solid #39ff14;
-  border-bottom: 2px solid #39ff14;
+  right: 24px;
+  bottom: 18px;
+  width: 8px;
+  height: 8px;
+  background: #60a5fa;
 }
 
 .lockIcon {
@@ -41,27 +40,27 @@
   width: 72px;
   height: 72px;
   margin: 0 auto 1.5rem;
-  border: 1px solid rgba(0, 191, 255, 0.42);
-  background: rgba(0, 191, 255, 0.08);
-  box-shadow: 0 0 32px rgba(0, 191, 255, 0.12);
-  color: #00bfff;
+  border: 1px solid rgba(34, 211, 238, 0.36);
+  border-radius: 26px 30px 24px 32px;
+  background: rgba(34, 211, 238, 0.08);
+  color: #22d3ee;
   font-family: 'Share Tech Mono', monospace;
   font-size: 34px;
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  animation: iconFloat 4s ease-in-out infinite;
 }
 
 .spinner {
   width: 26px;
   height: 26px;
-  border: 2px solid rgba(0, 191, 255, 0.22);
-  border-top-color: #39ff14;
+  border: 2px solid rgba(34, 211, 238, 0.22);
+  border-top-color: #22d3ee;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .eyebrow {
   margin: 0 0 0.75rem;
-  color: #39ff14;
+  color: #22d3ee;
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
   letter-spacing: 3px;
@@ -70,7 +69,7 @@
 
 .title {
   margin: 0 auto 1rem;
-  color: #e8f4ff;
+  color: #effbff;
   font-family: 'Rajdhani', sans-serif;
   font-size: clamp(30px, 6vw, 50px);
   line-height: 1.05;
@@ -94,8 +93,9 @@
 
 .benefits span {
   padding: 6px 10px;
-  border: 1px solid rgba(57, 255, 20, 0.2);
-  background: rgba(57, 255, 20, 0.045);
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.06);
   color: rgba(232, 244, 255, 0.68);
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px;
@@ -107,20 +107,20 @@
   min-width: min(100%, 330px);
   padding: 14px 24px;
   border: 0;
-  background: linear-gradient(135deg, #00bfff, #0075d4);
-  color: #fff;
+  background: #22d3ee;
+  border-radius: 12px 16px 12px 18px;
+  color: #041014;
   cursor: pointer;
   font-family: 'Rajdhani', sans-serif;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
-  transition: box-shadow 0.2s, transform 0.2s, opacity 0.2s;
+  transition: background-color 0.2s, transform 0.2s, opacity 0.2s;
 }
 
 .signInButton:hover:not(:disabled) {
-  box-shadow: 0 0 30px rgba(0, 191, 255, 0.4);
+  background: #60a5fa;
   transform: translateY(-1px);
 }
 
@@ -147,6 +147,43 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes settleIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) rotate(-0.15deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+}
+
+@keyframes iconFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(1deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell,
+  .lockIcon,
+  .spinner {
+    animation: none;
+  }
+
+  .signInButton {
+    transition: none;
+  }
+
+  .signInButton:hover:not(:disabled) {
+    transform: none;
   }
 }
 

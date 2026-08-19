@@ -29,40 +29,14 @@ export default function LoginPage(): React.JSX.Element {
     <Layout title="Sign In — Telemark" noFooter>
 
       <main className={styles.page}>
-        <div className={styles.gridBg}   aria-hidden="true" />
-        <div className={styles.scanline} aria-hidden="true" />
-
         <div className={styles.card}>
-          {/* Corner accents */}
-          <span className={`${styles.corner} ${styles.tl}`} aria-hidden="true" />
-          <span className={`${styles.corner} ${styles.br}`} aria-hidden="true" />
-
-          {/* Logo hex */}
           <div className={styles.logoWrap}>
-            <svg width="56" height="56" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <path
-                d="M18 2L32 10V26L18 34L4 26V10L18 2Z"
-                stroke="url(#lg)"
-                strokeWidth="1.5"
-                fill="rgba(0,191,255,0.06)"
-              />
-              <text
-                x="18" y="22"
-                textAnchor="middle"
-                fontFamily="Rajdhani, sans-serif"
-                fontWeight="700"
-                fontSize="10"
-                fill="#00BFFF"
-              >
-                EHS
-              </text>
-              <defs>
-                <linearGradient id="lg" x1="4" y1="2" x2="32" y2="34">
-                  <stop stopColor="#00BFFF" />
-                  <stop offset="1" stopColor="#39FF14" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <img
+              className={styles.logoMark}
+              src="/telemark/img/telemark.png"
+              alt=""
+              aria-hidden="true"
+            />
           </div>
 
           <p className={styles.eyebrow}>Powered by</p>

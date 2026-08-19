@@ -12,48 +12,48 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
   <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#0d0d14;font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;color:#eee}
+*{margin:0;padding:0;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:#22d3ee #05080d}
+html,body{width:100%;height:100%;overflow:hidden;background:#05080d;font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;color:#eaf8ff}
 ::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:#111}
-::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:#555}
-.CodeMirror{height:100%!important;font-family:"JetBrains Mono","Fira Code","Consolas",monospace!important;font-size:13px;background:#1a1a2e!important}
-.CodeMirror-gutters{background:#1a1a2e!important;border-right:1px solid #333!important}
+::-webkit-scrollbar-track{background:#05080d}
+::-webkit-scrollbar-thumb{background:#22d3ee;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#22d3ee}
+.CodeMirror{height:100%!important;font-family:"JetBrains Mono","Fira Code","Consolas",monospace!important;font-size:13px;background:#071019!important}
+.CodeMirror-gutters{background:#071019!important;border-right:1px solid #243746!important}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 button:hover{filter:brightness(1.1)}
 button:active{filter:brightness(.9);transform:scale(.98)}
 code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 #app{display:flex;flex-direction:column;width:100vw;height:100vh;overflow:hidden}
 #controls{display:flex;gap:8px;align-items:center}
-.btn-run{padding:8px 20px;border-radius:6px;border:none;background:linear-gradient(135deg,#22cc66,#1aa855);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
-.btn-stop{padding:8px 20px;border-radius:6px;border:none;background:linear-gradient(135deg,#ff4444,#cc2222);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
-.btn-reset{padding:8px 16px;border-radius:6px;border:1px solid #555;background:#2a2a3a;color:#ccc;font-weight:600;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
-.btn-init{padding:8px 16px;border-radius:6px;border:none;background:linear-gradient(135deg,#007acc,#005aab);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-run{padding:8px 20px;border-radius:6px;border:none;background:#22cc66;color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-stop{padding:8px 20px;border-radius:6px;border:none;background:#cc2222;color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-reset{padding:8px 16px;border-radius:6px;border:1px solid #243746;background:#0b1118;color:#cbd5e1;font-weight:600;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-init{padding:8px 16px;border-radius:6px;border:none;background:#38bdf8;color:#031019;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px}
 #running-indicator{padding:4px 10px;border-radius:4px;background:rgba(34,204,102,.15);border:1px solid rgba(34,204,102,.3);color:#44cc66;font-size:.75rem;font-family:monospace;font-weight:600;animation:pulse 1.5s ease-in-out infinite;display:none}
 #main{flex:1;display:flex;overflow:hidden}
-#left-panel{width:55%;min-width:320px;display:flex;flex-direction:column;border-right:1px solid #2a2a3a;background:#1b1b1b}
-#split-resizer{width:6px;background:#2a2a3a;cursor:col-resize;z-index:30;flex-shrink:0;touch-action:none}
-#split-resizer:hover,#split-resizer.active{background:#ff6600}
-.panel-header{padding:10px 14px;background:#111;border-bottom:1px solid #2f2f2f;flex-shrink:0}
+#left-panel{width:55%;min-width:320px;display:flex;flex-direction:column;border-right:1px solid #243746;background:#080d13}
+#split-resizer{width:6px;background:#243746;cursor:col-resize;z-index:30;flex-shrink:0;touch-action:none}
+#split-resizer:hover,#split-resizer.active{background:#22d3ee}
+.panel-header{padding:10px 14px;background:#05080d;border-bottom:1px solid #243746;flex-shrink:0}
 .panel-header-title{font-weight:700;color:#fff;font-size:1rem}
 .panel-header-sub{color:#9aa0a6;font-size:.82rem}
 /* bottom bar matching other simulators */
-.bottom-bar{background:#0a0a14;border-top:1px solid #222;padding:10px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.bottom-bar{background:#071019;border-top:1px solid #243746;padding:10px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
 .controls-row{display:flex;gap:8px}
 .controls-row button{flex:1;padding:10px;border-radius:6px;border:none;font-size:.9rem;font-weight:700;cursor:pointer;color:#fff}
 .ds-status{display:flex;justify-content:space-between;align-items:center;font-family:monospace;font-size:.85rem}
 .ds-state{font-weight:700}.ds-timer{color:#569cd6}
 /* power bar */
-.power-bar-panel{margin:10px;background:#0f0f14;border:1px solid #222;border-radius:8px;padding:10px}
+.power-bar-panel{margin:10px;background:#0b1118;border:1px solid #243746;border-radius:8px;padding:10px}
 .power-bar-label{display:flex;justify-content:space-between;align-items:center;font-family:monospace;font-size:.85rem;margin-bottom:6px}
-.power-bar-name{color:#ff6600;font-weight:700}
+.power-bar-name{color:#22d3ee;font-weight:700}
 .power-bar-val{color:#fff;font-weight:700;min-width:40px;text-align:right}
-.power-bar-track{height:14px;background:#222;border-radius:7px;position:relative;overflow:hidden}
+.power-bar-track{height:14px;background:#101d29;border-radius:7px;position:relative;overflow:hidden}
 .power-bar-center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#555}
 .power-bar-fill{position:absolute;top:2px;bottom:2px;border-radius:5px;transition:left .05s,width .05s;background:#44cc66}
 #editor-header{padding:8px 12px;background:#14141e;border-bottom:1px solid #2a2a3a;font-size:.8rem;font-weight:600;color:#888;display:flex;align-items:center;gap:6px;flex-shrink:0}
-#editor-header span{color:#ff6600}
+#editor-header span{color:#22d3ee}
 #editor-wrap{flex:1;overflow:hidden}
 #right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
 #scene-wrap{flex:1;min-height:300px;position:relative}
@@ -61,7 +61,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 #bottom-panels{height:240px;display:flex;border-top:1px solid #2a2a3a;flex-shrink:0}
 #telemetry-wrap{flex:1;padding:8px;overflow:auto}
 #challenge-wrap{flex:0 0 auto;padding:8px;overflow:visible}
-.telem-panel{background:#0a0a14;border:1px solid #333;border-radius:8px;padding:12px;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.telem-panel{background:#071019;border:1px solid #243746;border-radius:8px;padding:12px;height:100%;display:flex;flex-direction:column;overflow:hidden}
 .telem-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-shrink:0}
 .telem-label{font-weight:700;font-size:.85rem;color:#aaa;text-transform:uppercase;letter-spacing:.5px}
 .telem-body{flex:1;overflow:auto;font-family:"Consolas","Courier New",monospace;font-size:.8rem;line-height:1.6}
@@ -69,13 +69,13 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 .telem-empty{color:#555;font-style:italic}
 .telem-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .telem-key{color:#4488ff}.telem-val{color:#88ff88}
-.challenge-panel{background:#12121a;border:1px solid #333;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto;max-height:34vh}
+.challenge-panel{background:#0b1118;border:1px solid #243746;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto;max-height:34vh}
 .challenge-panel.collapsed .challenge-body{display:none}
 .challenge-panel.collapsed{max-height:none}
 .challenge-header{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
 .challenge-title{font-size:1.1rem;font-weight:700;color:#fff;margin:0;display:flex;align-items:center;gap:8px}
 .challenge-desc{font-size:.85rem;color:#bbb;line-height:1.6}
-.challenge-desc code{background:#222;padding:1px 4px;border-radius:3px}
+.challenge-desc code{background:#101d29;padding:1px 4px;border-radius:3px}
 .badge-row{display:flex;gap:8px;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:.75rem;font-weight:600;background:rgba(68,136,255,.15);color:#4488ff;border:1px solid rgba(68,136,255,.3)}
 .req-section-title{font-size:.8rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -88,10 +88,10 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 .hint-warning{background:rgba(255,200,0,.1);border:1px solid rgba(255,200,0,.3);color:#ffcc44}
 #badge-strip{display:flex;gap:8px;padding:10px}
 .hw-badge{padding:6px 12px;border-radius:8px;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.04);background:#0f0f14;color:#cfe}
-#gamepad-card{position:fixed;bottom:12px;right:12px;width:380px;min-width:240px;background:#1e1e24;border:1px solid #333;border-radius:12px;z-index:1000;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(0,0,0,.5);overflow:hidden}
-#gamepad-titlebar{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#1a1a1a;border-bottom:1px solid #333;cursor:grab;user-select:none;flex-shrink:0}
+#gamepad-card{position:fixed;bottom:12px;right:12px;width:380px;min-width:240px;background:#0b1118;border:1px solid #243746;border-radius:12px;z-index:1000;display:flex;flex-direction:column;box-shadow:0 6px 24px rgba(0,0,0,.5);overflow:hidden}
+#gamepad-titlebar{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#0d1721;border-bottom:1px solid #243746;cursor:grab;user-select:none;flex-shrink:0}
 #gamepad-titlebar-label{font-weight:700;font-size:.9rem;color:#fff;display:flex;align-items:center;gap:6px}
-#gp-collapse-btn{width:24px;height:24px;padding:0;border-radius:4px;background:#333;border:1px solid #555;color:#ccc;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#gp-collapse-btn{width:24px;height:24px;padding:0;border-radius:4px;background:#101d29;border:1px solid #243746;color:#cbd5e1;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
 #gamepad-body{padding:10px;overflow:hidden;flex:1}
 .controller-wrap{width:100%;position:relative;aspect-ratio:768/512;border-radius:14px;overflow:hidden;background:#0f0f0f;touch-action:none;user-select:none}
 .controller-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;z-index:1}
@@ -101,7 +101,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 .gp-stick-zone.active{background:rgba(255,255,255,.12);box-shadow:0 0 0 2px rgba(255,255,255,.2)}
 .gp-stick-knob{position:absolute;left:50%;top:50%;width:52%;height:52%;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 35% 35%,rgba(80,80,80,.75),rgba(12,12,12,.55) 70%);border:1px solid rgba(255,255,255,.14);pointer-events:none;opacity:.55}
 .gp-trigger{position:absolute;top:0;width:10%;height:14%;transform:translate(-50%,0);background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;overflow:hidden;z-index:5;touch-action:none}
-.gp-trigger-fill{position:absolute;left:0;right:0;bottom:0;height:0%;background:linear-gradient(to top,#0098ff,#007acc)}
+.gp-trigger-fill{position:absolute;left:0;right:0;bottom:0;height:0%;background:linear-gradient(to top,#38bdf8,#22d3ee)}
 .dpad-overlay{position:absolute;left:21.5%;top:41%;width:16%;height:24%;transform:translate(-50%,-50%);pointer-events:none;z-index:4}
 .dpad-btn{position:absolute;width:33%;height:33%;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.06);pointer-events:auto;cursor:pointer}
 .dpad-btn.pressed{background:rgba(255,255,255,.18);box-shadow:0 0 0 2px rgba(255,255,255,.18)}
@@ -325,11 +325,11 @@ function renderChallenge(){
   var h = '';
   h += '<div class="challenge-panel'+(state.challengeCollapsed?' collapsed':'')+'">';
   h += '<div class="challenge-header" onclick="toggleChallenge(this)">';
-  h += '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.2rem;color:#ff6600"><i class="fa-solid fa-bullseye"></i></span><div class="challenge-title">Unit 9.1: Gate Servo Control</div></div>';
+  h += '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.2rem;color:#22d3ee"><i class="fa-solid fa-bullseye"></i></span><div class="challenge-title">Unit 9.1: Gate Servo Control</div></div>';
   h += '<i class="fa-solid fa-chevron-right chev" style="transition:transform .18s;transform:rotate('+(state.challengeCollapsed?0:90)+'deg)"></i>';
   h += '</div>';
   h += '<div class="challenge-body">';
-  h += '<div class="challenge-desc">Map a servo named <code style="color:#4488ff">"gate"</code> and control it with the gamepad. Press <strong style="color:#fff">Y</strong> to open the gate to position <code style="color:#ff6600">0.75</code>, and press <strong style="color:#fff">A</strong> to close it to position <code style="color:#ff6600">0.0</code>. Display the current gate state using telemetry.</div>';
+  h += '<div class="challenge-desc">Map a servo named <code style="color:#60a5fa">"gate"</code> and control it with the gamepad. Press <strong style="color:#fff">Y</strong> to open the gate to position <code style="color:#22d3ee">0.75</code>, and press <strong style="color:#fff">A</strong> to close it to position <code style="color:#22d3ee">0.0</code>. Display the current gate state using telemetry.</div>';
   h += '<div class="badge-row">'; BADGES.forEach(function(b){ h += '<span class="badge">'+b.icon+' '+b.label+'</span>'; }); h += '</div>';
   h += '<div><div class="req-section-title">Requirements</div>';
   REQUIREMENTS.forEach(function(r,i){ var p = v.requirements[i]; h += '<div class="req-row '+(p?'req-pass':'req-fail')+'"><span class="req-icon" style="background:'+(p?'rgba(68,204,102,.2)':'rgba(136,136,136,.15)')+';border:1px solid '+(p?'rgba(68,204,102,.5)':'rgba(136,136,136,.3)')+'">'+(p?'<i class="fa-solid fa-check"></i>':'<i class="fa-regular fa-circle"></i>')+'</span>'+r+'</div>'; });
@@ -476,7 +476,7 @@ function updateProt(deg){
   if(ss.angleLabel){
     var c = ss.angleLabel.canvas, t = ss.angleLabel.texture, cx = c.getContext('2d');
     cx.clearRect(0,0,c.width,c.height);
-    cx.fillStyle = '#ff6600';
+    cx.fillStyle = '#22d3ee';
     cx.font = 'bold 26px monospace';
     cx.textAlign = 'center';
     cx.fillText(Math.round(deg) + '°', 64, 34);
@@ -516,7 +516,7 @@ for(var d=0;d<=90;d+=15){var rd=(d*Math.PI)/180,ln=d%45===0?.12:.06;var tG=new T
 var aPts=[];for(var i=0;i<=36;i++){var r2=(i/36)*(Math.PI/2);aPts.push(new T.Vector3(0,-Math.cos(r2)*aR,Math.sin(r2)*aR))}pg.add(new T.Line(new T.BufferGeometry().setFromPoints(aPts),new T.LineBasicMaterial({color:0x444466})));
 var nd=new T.Mesh(new T.BoxGeometry(.01,aR+.08,.008),new T.MeshBasicMaterial({color:0xff6600}));nd.position.set(0,-(aR+.08)/2,0);var np=new T.Group();np.add(nd);pg.add(np);ss.needlePivot=np;
 var hub=new T.Mesh(new T.SphereGeometry(.035,12,8),new T.MeshBasicMaterial({color:0xff6600}));pg.add(hub);
-var lC=document.createElement('canvas');lC.width=128;lC.height=48;var lx=lC.getContext('2d');lx.fillStyle='#ff6600';lx.font='bold 26px monospace';lx.textAlign='center';lx.fillText('0°',64,34);var lT=new T.CanvasTexture(lC),aL=new T.Sprite(new T.SpriteMaterial({map:lT,transparent:true}));aL.scale.set(.55,.22,1);aL.position.set(.42,-aR-.22,.12);pg.add(aL);ss.angleLabel={sprite:aL,canvas:lC,texture:lT};sc.add(pg);
+var lC=document.createElement('canvas');lC.width=128;lC.height=48;var lx=lC.getContext('2d');lx.fillStyle='#22d3ee';lx.font='bold 26px monospace';lx.textAlign='center';lx.fillText('0°',64,34);var lT=new T.CanvasTexture(lC),aL=new T.Sprite(new T.SpriteMaterial({map:lT,transparent:true}));aL.scale.set(.55,.22,1);aL.position.set(.42,-aR-.22,.12);pg.add(aL);ss.angleLabel={sprite:aL,canvas:lC,texture:lT};sc.add(pg);
 // The samples wait behind the wall, then pass forward through the opening once the gate swings away.
 var sY = ob + OH*.65;
 var sP = [{x:-0.38,y:sY,z:-0.72},{x:0.0,y:sY+.04,z:-0.82},{x:0.38,y:sY-.02,z:-0.68}];

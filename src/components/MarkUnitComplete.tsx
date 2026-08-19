@@ -18,7 +18,7 @@ export default function MarkUnitComplete({
   const lessonIds = lessons.map((lesson) => lesson.id);
 
   const { user } = useAuth();
-  const { isComplete, markManyComplete } = useProgress(user);
+  const { isComplete, markManyComplete, unmarkMany } = useProgress(user);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(lessonIds.every((lessonId) => isComplete(lessonId)));
 
@@ -51,6 +51,18 @@ export default function MarkUnitComplete({
     }
   }
 
+  async function handleUnmarkUnit() {
+    setSaving(true);
+    try {
+      await unmarkMany(lessonIds);
+      setDone(false);
+    } catch (e) {
+      console.error('Telemark unit unmark failed:', e);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (done) {
     return (
       <div className={styles.successBox}>
@@ -62,9 +74,21 @@ export default function MarkUnitComplete({
         <p className={styles.successMsg}>
           This unit is marked complete. Move on when you are ready.
         </p>
-        <Link to={unit.nextPath} className={styles.nextBtn}>
-          Proceed to {unit.nextLabel} →
-        </Link>
+        <div className={styles.successActions}>
+          <Link to={unit.nextPath} className={styles.nextBtn}>
+            Proceed to {unit.nextLabel} →
+          </Link>
+          {user && (
+            <button
+              type="button"
+              className={styles.unmarkBtn}
+              onClick={handleUnmarkUnit}
+              disabled={saving}
+            >
+              {saving ? 'Updating...' : 'Unmark unit'}
+            </button>
+          )}
+        </div>
       </div>
     );
   }

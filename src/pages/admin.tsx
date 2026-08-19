@@ -168,8 +168,6 @@ export default function AdminPage(): React.JSX.Element {
   const shell = (content: React.ReactNode) => (
     <Layout title="Admin Analytics — Telemark" noFooter>
       <main className={styles.page}>
-        <div className={styles.gridBg} aria-hidden="true" />
-        <div className={styles.scanline} aria-hidden="true" />
         {content}
       </main>
     </Layout>

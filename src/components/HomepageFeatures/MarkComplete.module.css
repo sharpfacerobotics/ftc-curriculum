@@ -3,8 +3,9 @@
 /* ── Idle / not signed in ────────────────────────────────── */
 .completeBox {
   margin: 3rem 0 1rem;
-  border: 1px solid rgba(0, 191, 255, 0.25);
-  background: rgba(0, 191, 255, 0.04);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 17px 23px 16px 25px;
+  background: #0b1118;
   padding: 1.75rem 2rem;
   position: relative;
 }
@@ -12,19 +13,19 @@
 .completeBox::before {
   content: '';
   position: absolute;
-  top: -1px; left: -1px;
-  width: 20px; height: 20px;
-  border-top: 2px solid #00BFFF;
-  border-left: 2px solid #00BFFF;
+  top: 14px; left: 16px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #22d3ee;
 }
 
 .completeBox::after {
   content: '';
   position: absolute;
-  bottom: -1px; right: -1px;
-  width: 20px; height: 20px;
-  border-bottom: 2px solid #39FF14;
-  border-right: 2px solid #39FF14;
+  bottom: 14px; right: 18px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #60a5fa;
 }
 
 .completeInner {
@@ -41,7 +42,7 @@
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  color: #e8f4ff;
+  color: #effbff;
   margin: 0 0 6px;
 }
 
@@ -67,17 +68,18 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #00BFFF, #0075d4);
-  color: #fff;
+  background: #22d3ee;
+  color: #041014;
   border: none;
+  border-radius: 11px 15px 11px 17px;
   cursor: pointer;
   white-space: nowrap;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-  transition: box-shadow 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .signInBtn:hover {
-  box-shadow: 0 0 24px rgba(0, 191, 255, 0.4);
+  background: #60a5fa;
+  transform: translateY(-1px);
 }
 
 .completeBtn {
@@ -89,6 +91,7 @@
   background: transparent;
   color: rgba(232, 244, 255, 0.5);
   border: 1px solid rgba(232, 244, 255, 0.2);
+  border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
   transition: border-color 0.2s, color 0.2s;
@@ -106,21 +109,20 @@
 
 /* When signed in, the primary button gets the cyan treatment */
 .completeBox:not(:has(.signInBtn)) .completeBtn {
-  color: #00BFFF;
-  border-color: #00BFFF;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  color: #22d3ee;
+  border-color: #22d3ee;
 }
 
 .completeBox:not(:has(.signInBtn)) .completeBtn:hover:not(:disabled) {
-  background: rgba(0, 191, 255, 0.12);
-  box-shadow: 0 0 20px rgba(0, 191, 255, 0.25);
+  background: rgba(34, 211, 238, 0.1);
 }
 
 /* ── Success state ────────────────────────────────────────── */
 .successBox {
   margin: 3rem 0 1rem;
-  border: 1px solid rgba(57, 255, 20, 0.3);
-  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  border-radius: 19px 25px 17px 27px;
+  background: #0b1118;
   padding: 1.75rem 2rem;
   position: relative;
 }
@@ -128,19 +130,19 @@
 .successBox::before {
   content: '';
   position: absolute;
-  top: -1px; left: -1px;
-  width: 20px; height: 20px;
-  border-top: 2px solid #39FF14;
-  border-left: 2px solid #39FF14;
+  top: 14px; left: 16px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #60a5fa;
 }
 
 .successBox::after {
   content: '';
   position: absolute;
-  bottom: -1px; right: -1px;
-  width: 20px; height: 20px;
-  border-bottom: 2px solid #39FF14;
-  border-right: 2px solid #39FF14;
+  bottom: 14px; right: 18px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22d3ee;
 }
 
 .successHeader {
@@ -153,7 +155,7 @@
 
 .successIcon {
   font-size: 16px;
-  color: #39FF14;
+  color: #60a5fa;
   font-family: monospace;
 }
 
@@ -161,7 +163,7 @@
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  color: #39FF14;
+  color: #60a5fa;
 }
 
 .savedBadge {
@@ -170,10 +172,10 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 3px 10px;
-  background: rgba(57, 255, 20, 0.1);
-  border: 1px solid rgba(57, 255, 20, 0.3);
-  color: #39FF14;
-  border-radius: 1px;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: #60a5fa;
+  border-radius: 999px;
 }
 
 .successMsg {
@@ -190,16 +192,68 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #39FF14, #00c411);
-  color: #07070f !important;
+  background: #22d3ee;
+  border-radius: 11px 15px 11px 17px;
+  color: #041014 !important;
   text-decoration: none;
   font-weight: 700;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-  transition: box-shadow 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .nextBtn:hover {
-  box-shadow: 0 0 24px rgba(57, 255, 20, 0.4);
+  background: #60a5fa;
+  transform: translateY(-1px);
   text-decoration: none;
-  color: #07070f;
+  color: #041014;
+}
+
+.successActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.unmarkBtn {
+  padding: 10px 18px;
+  border: 1px solid rgba(96, 165, 250, 0.36);
+  border-radius: 999px;
+  background: transparent;
+  color: #a9cfff;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.unmarkBtn:hover:not(:disabled) {
+  border-color: #22d3ee;
+  background: rgba(34, 211, 238, 0.08);
+  color: #edfaff;
+}
+
+.unmarkBtn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.unmarkBtn:focus-visible {
+  outline: 3px solid rgba(34, 211, 238, 0.42);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signInBtn,
+  .completeBtn,
+  .nextBtn,
+  .unmarkBtn {
+    transition: none;
+  }
+
+  .signInBtn:hover,
+  .nextBtn:hover {
+    transform: none;
+  }
 }

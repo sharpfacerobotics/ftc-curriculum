@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
 import {useHistory} from '@docusaurus/router';
 import Layout from '@theme/Layout';
-import pageStyles from './index.module.css';
+import pageStyles from './curriculum.module.css';
 import {useAuth} from '../telemark/useAuth';
 import {signInWithGoogle} from '../telemark/googleAuth';
 import {trackEvent} from '../telemark/analytics';
@@ -47,13 +47,6 @@ export default function CurriculumPage(): React.JSX.Element {
     <Layout title="Curriculum — Telemark" noFooter>
 
       <main className={pageStyles.lp}>
-        <div className={pageStyles.gridBg} aria-hidden="true" />
-        <div className={pageStyles.scanline} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.tl}`} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.tr}`} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.bl}`} aria-hidden="true" />
-        <div className={`${pageStyles.cornerAccent} ${pageStyles.br}`} aria-hidden="true" />
-
         <section className={`${pageStyles.section} ${pageStyles.centeredSection}`}>
           <p className={pageStyles.sectionLabel}>// curriculum.live[]</p>
           <h1 className={pageStyles.sectionTitle}>FTC Java Curriculum</h1>

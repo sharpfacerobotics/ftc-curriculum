@@ -94,18 +94,18 @@ export function ImuAxesDiagram(): React.JSX.Element {
         <svg className={styles.svg} viewBox="0 0 720 320" role="img" aria-label="IMU yaw, pitch, and roll axes diagram">
           <defs>
             <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L9,3 z" fill="#39ff14" />
+              <path d="M0,0 L0,6 L9,3 z" fill="#60a5fa" />
             </marker>
           </defs>
-          <rect x="250" y="125" width="220" height="92" rx="10" fill="#0d0d1e" stroke="#00bfff" strokeWidth="2" />
-          <path d="M295 170 L425 170" stroke="#39ff14" strokeWidth="4" markerEnd="url(#arrow)" />
-          <path d="M360 210 L360 62" stroke="#39ff14" strokeWidth="4" markerEnd="url(#arrow)" />
-          <path d="M285 210 C210 170 210 100 285 78" fill="none" stroke="#00bfff" strokeWidth="4" markerEnd="url(#arrow)" />
-          <path d="M470 150 C555 150 584 204 536 252" fill="none" stroke="#00bfff" strokeWidth="4" markerEnd="url(#arrow)" />
+          <rect x="250" y="125" width="220" height="92" rx="14" fill="#0b1118" stroke="#22d3ee" strokeWidth="2" />
+          <path d="M295 170 L425 170" stroke="#60a5fa" strokeWidth="4" markerEnd="url(#arrow)" />
+          <path d="M360 210 L360 62" stroke="#60a5fa" strokeWidth="4" markerEnd="url(#arrow)" />
+          <path d="M285 210 C210 170 210 100 285 78" fill="none" stroke="#22d3ee" strokeWidth="4" markerEnd="url(#arrow)" />
+          <path d="M470 150 C555 150 584 204 536 252" fill="none" stroke="#22d3ee" strokeWidth="4" markerEnd="url(#arrow)" />
           <text x="330" y="176" fill="#e8f4ff" fontSize="18" fontFamily="Rajdhani, sans-serif">Forward</text>
-          <text x="374" y="73" fill="#39ff14" fontSize="18" fontFamily="Rajdhani, sans-serif">Z axis / yaw</text>
-          <text x="145" y="103" fill="#00bfff" fontSize="18" fontFamily="Rajdhani, sans-serif">Roll</text>
-          <text x="555" y="247" fill="#00bfff" fontSize="18" fontFamily="Rajdhani, sans-serif">Pitch</text>
+          <text x="374" y="73" fill="#60a5fa" fontSize="18" fontFamily="Rajdhani, sans-serif">Z axis / yaw</text>
+          <text x="145" y="103" fill="#22d3ee" fontSize="18" fontFamily="Rajdhani, sans-serif">Roll</text>
+          <text x="555" y="247" fill="#22d3ee" fontSize="18" fontFamily="Rajdhani, sans-serif">Pitch</text>
           <text x="303" y="246" fill="rgba(232,244,255,0.72)" fontSize="16" fontFamily="Exo 2, sans-serif">Orientation setup maps Hub axes onto the robot frame.</text>
         </svg>
       </div>
@@ -135,13 +135,13 @@ export function BezierComparisonDiagram(): React.JSX.Element {
         <svg className={styles.svg} viewBox="0 0 760 320" role="img" aria-label="Stop turn drive path and Bezier curve sharing the same start and end while avoiding obstacles">
           <defs>
             <marker id="cyanArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L9,3 z" fill="#00bfff" />
+              <path d="M0,0 L0,6 L9,3 z" fill="#22d3ee" />
             </marker>
-            <marker id="greenArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L9,3 z" fill="#39ff14" />
+            <marker id="blueArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#60a5fa" />
             </marker>
           </defs>
-          <rect x="30" y="48" width="700" height="224" rx="12" fill="#0d0d1e" stroke="rgba(0,191,255,0.24)" />
+          <rect x="30" y="48" width="700" height="224" rx="16" fill="#0b1118" stroke="rgba(34,211,238,0.24)" />
 
           <rect x="278" y="172" width="88" height="64" rx="8" fill="rgba(249,115,22,0.22)" stroke="#f97316" strokeWidth="2" />
           <rect x="472" y="220" width="92" height="44" rx="8" fill="rgba(249,115,22,0.18)" stroke="#f97316" strokeWidth="2" />
@@ -151,7 +151,7 @@ export function BezierComparisonDiagram(): React.JSX.Element {
           <path
             d="M100 225 L230 225 L230 92 L425 92 L425 132 L610 132 L650 82"
             fill="none"
-            stroke="#00bfff"
+            stroke="#22d3ee"
             strokeWidth="5"
             strokeDasharray="10 8"
             markerEnd="url(#cyanArrow)"
@@ -159,17 +159,17 @@ export function BezierComparisonDiagram(): React.JSX.Element {
           <path
             d="M100 225 C185 224 212 100 304 92 S410 84 425 132 S563 154 650 82"
             fill="none"
-            stroke="#39ff14"
+            stroke="#60a5fa"
             strokeWidth="6"
-            markerEnd="url(#greenArrow)"
+            markerEnd="url(#blueArrow)"
           />
 
           <circle cx="100" cy="225" r="9" fill="#e8f4ff" />
           <circle cx="650" cy="82" r="9" fill="#e8f4ff" />
           <text x="78" y="252" fill="#e8f4ff" fontSize="16" fontFamily="Rajdhani, sans-serif">Start</text>
           <text x="626" y="64" fill="#e8f4ff" fontSize="16" fontFamily="Rajdhani, sans-serif">Score</text>
-          <text x="86" y="75" fill="#00bfff" fontSize="18" fontFamily="Rajdhani, sans-serif">Waypoint route: same anchors, hard stops at corners</text>
-          <text x="86" y="295" fill="#39ff14" fontSize="18" fontFamily="Rajdhani, sans-serif">Bezier route: same anchors, smooth obstacle-aware curvature</text>
+          <text x="86" y="75" fill="#22d3ee" fontSize="18" fontFamily="Rajdhani, sans-serif">Waypoint route: same anchors, hard stops at corners</text>
+          <text x="86" y="295" fill="#60a5fa" fontSize="18" fontFamily="Rajdhani, sans-serif">Bezier route: same anchors, smooth obstacle-aware curvature</text>
         </svg>
       </div>
     </figure>

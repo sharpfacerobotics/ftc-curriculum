@@ -13,9 +13,22 @@ import styles from './dashboard.module.css';
 
 export default function DashboardPage(): React.JSX.Element {
   const { user, loading }          = useAuth();
-  const { progress, loading: progressLoading, isComplete } = useProgress(user);
+  const {
+    progress,
+    loading: progressLoading,
+    isComplete,
+    isSkipped,
+    isReviewingUnit,
+    markManyComplete,
+    markManySkipped,
+    reviewMany,
+    unmarkMany,
+  } = useProgress(user);
   const history                    = useHistory();
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
+  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+  const [savingUnit, setSavingUnit] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const previousStatusesRef = useRef<Record<string, string>>({});
 
   // Redirect to login if not signed in
@@ -25,17 +38,31 @@ export default function DashboardPage(): React.JSX.Element {
     }
   }, [user, loading, history]);
 
-  const completed  = CURRICULUM_LESSONS.filter((lesson) => isComplete(lesson.id)).length;
+  const handled    = CURRICULUM_LESSONS.filter((lesson) => isComplete(lesson.id)).length;
+  const skipped    = CURRICULUM_LESSONS.filter((lesson) => isSkipped(lesson.id)).length;
+  const completed  = handled - skipped;
   const total      = CURRICULUM_LESSONS.length;
-  const percentage = Math.round((completed / total) * 100);
-  const nextLesson = CURRICULUM_LESSONS.find((lesson) => !isComplete(lesson.id));
+  const percentage = Math.round((handled / total) * 100);
+  const lastOpenLesson = progress?.lastLesson
+    ? CURRICULUM_LESSONS.find(
+        (lesson) => lesson.id === progress.lastLesson && !isComplete(lesson.id),
+      )
+    : undefined;
+  const nextLesson = lastOpenLesson
+    ?? CURRICULUM_LESSONS.find((lesson) => !isComplete(lesson.id));
   const fallbackUnit = CURRICULUM_UNITS[CURRICULUM_UNITS.length - 1];
   const units = useMemo(() => {
     return CURRICULUM_UNITS.map((unit) => {
       const lessons = CURRICULUM_LESSONS.filter((lesson) => lesson.unitSlug === unit.slug);
       const completedCount = lessons.filter((lesson) => isComplete(lesson.id)).length;
+      const skippedCount = lessons.filter((lesson) => isSkipped(lesson.id)).length;
+      const reviewing = isReviewingUnit(unit.slug);
       const status =
-        completedCount === lessons.length
+        reviewing
+          ? 'reviewing'
+          : skippedCount === lessons.length
+            ? 'skipped'
+            : completedCount === lessons.length
           ? 'complete'
           : completedCount === 0
             ? 'untouched'
@@ -46,11 +73,35 @@ export default function DashboardPage(): React.JSX.Element {
         ...unit,
         lessons,
         completedCount,
+        skippedCount,
+        reviewing,
         status,
         unitNextLesson,
       };
     });
-  }, [isComplete]);
+  }, [isComplete, isSkipped, isReviewingUnit]);
+
+  useEffect(() => {
+    if (!openActionMenu) return undefined;
+
+    function closeMenu(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Element && !target.closest('[data-progress-action-menu]')) {
+        setOpenActionMenu(null);
+      }
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpenActionMenu(null);
+    }
+
+    document.addEventListener('pointerdown', closeMenu);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeMenu);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [openActionMenu]);
 
   useEffect(() => {
     setExpandedUnits((prev) => {
@@ -58,7 +109,11 @@ export default function DashboardPage(): React.JSX.Element {
 
       units.forEach((unit) => {
         const previousStatus = previousStatusesRef.current[unit.slug];
-        if (previousStatus && previousStatus !== unit.status) {
+        if (
+          previousStatus
+          && previousStatus !== unit.status
+          && next[unit.slug] !== true
+        ) {
           delete next[unit.slug];
         }
       });
@@ -83,6 +138,29 @@ export default function DashboardPage(): React.JSX.Element {
     }));
   }
 
+  async function handleUnitAction(
+    unit: (typeof units)[number],
+    action: 'complete' | 'skip' | 'review' | 'unmark',
+  ) {
+    const lessonIds = unit.lessons.map((lesson) => lesson.id);
+    setSavingUnit(unit.slug);
+    setActionError(null);
+
+    try {
+      if (action === 'complete') await markManyComplete(lessonIds);
+      if (action === 'skip') await markManySkipped(lessonIds);
+      if (action === 'review') await reviewMany(lessonIds);
+      if (action === 'unmark') await unmarkMany(lessonIds);
+      setOpenActionMenu(null);
+      setExpandedUnits((prev) => ({...prev, [unit.slug]: action === 'review' || action === 'unmark'}));
+    } catch (error) {
+      console.error(`Telemark ${action} action failed:`, error);
+      setActionError(`Could not update ${unit.label}. Please try again.`);
+    } finally {
+      setSavingUnit(null);
+    }
+  }
+
   if (loading || progressLoading || !user || !progress) {
     return (
       <Layout title="Dashboard — Telemark" noFooter>
@@ -99,9 +177,6 @@ export default function DashboardPage(): React.JSX.Element {
     <Layout title="Dashboard — Telemark" noFooter>
 
       <main className={styles.page}>
-        <div className={styles.gridBg}   aria-hidden="true" />
-        <div className={styles.scanline} aria-hidden="true" />
-
         <div className={styles.content}>
 
           {/* ── Header ── */}
@@ -132,7 +207,11 @@ export default function DashboardPage(): React.JSX.Element {
               <span className={styles.statLabel}>Lessons Complete</span>
             </div>
             <div className={styles.statCard}>
-              <span className={styles.statNum}>{total - completed}</span>
+              <span className={styles.statNum}>{skipped}</span>
+              <span className={styles.statLabel}>Skipped</span>
+            </div>
+            <div className={styles.statCard}>
+              <span className={styles.statNum}>{total - handled}</span>
               <span className={styles.statLabel}>Remaining</span>
             </div>
             <div className={styles.statCard}>
@@ -160,17 +239,27 @@ export default function DashboardPage(): React.JSX.Element {
           {/* ── Lesson list ── */}
           <div className={styles.lessonList}>
             <p className={styles.listLabel}>// progress.byUnit</p>
+            {actionError && <p className={styles.actionError} role="alert">{actionError}</p>}
             {units.map((unit) => {
-              const isExpanded = expandedUnits[unit.slug] ?? unit.status === 'in-progress';
+              const isExpanded = expandedUnits[unit.slug]
+                ?? (unit.status === 'in-progress' || unit.status === 'reviewing');
               const statusLabel =
-                unit.status === 'complete'
+                unit.status === 'reviewing'
+                  ? 'Reviewing'
+                  : unit.status === 'skipped'
+                    ? 'Skipped'
+                    : unit.status === 'complete'
                   ? 'Unit Complete'
                   : unit.status === 'untouched'
                     ? 'Not Started'
                     : 'In Progress';
+              const unitBusy = savingUnit === unit.slug;
 
               return (
-                <section key={unit.slug} className={styles.unitGroup}>
+                <section
+                  key={unit.slug}
+                  className={`${styles.unitGroup} ${unit.status === 'skipped' ? styles.unitSkipped : ''} ${unit.status === 'reviewing' ? styles.unitReviewing : ''}`}
+                >
                   <div className={styles.unitHeader}>
                     <button
                       type="button"
@@ -185,7 +274,10 @@ export default function DashboardPage(): React.JSX.Element {
                           {unit.label}: {unit.title}
                         </span>
                         <span className={styles.unitHeaderMeta}>
-                          {unit.completedCount}/{unit.lessons.length} complete · {statusLabel}
+                          {unit.completedCount}/{unit.lessons.length} handled
+                          {unit.skippedCount > 0 && ` · ${unit.skippedCount} skipped`}
+                          {' · '}
+                          <span className={styles.unitState}>{statusLabel}</span>
                         </span>
                       </span>
                     </button>
@@ -198,14 +290,86 @@ export default function DashboardPage(): React.JSX.Element {
                         to={unit.unitNextLesson?.path ?? unit.startPath}
                         className={styles.unitHeaderLink}
                       >
-                        {unit.unitNextLesson ? 'Resume' : 'Review'}
+                        {unit.status === 'reviewing'
+                          ? 'Resume review'
+                          : unit.unitNextLesson
+                            ? 'Resume'
+                            : 'Open'}
                       </Link>
+                      <div className={styles.actionMenu} data-progress-action-menu>
+                        <button
+                          type="button"
+                          className={styles.actionMenuTrigger}
+                          aria-haspopup="menu"
+                          aria-expanded={openActionMenu === unit.slug}
+                          aria-label={`Progress options for ${unit.label}`}
+                          onClick={() => setOpenActionMenu((current) => current === unit.slug ? null : unit.slug)}
+                          disabled={unitBusy}
+                        >
+                          <span aria-hidden="true">•••</span>
+                          <span>{unitBusy ? 'Saving' : 'Options'}</span>
+                        </button>
+                        {openActionMenu === unit.slug && (
+                          <div className={styles.actionMenuPopover} role="menu">
+                            <p className={styles.actionMenuLabel}>{unit.label} progress</p>
+                            {(unit.completedCount < unit.lessons.length || unit.skippedCount > 0) && (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className={styles.actionMenuItem}
+                                onClick={() => handleUnitAction(unit, 'complete')}
+                                disabled={unitBusy}
+                              >
+                                <span className={styles.actionMenuIcon} aria-hidden="true">✓</span>
+                                <span><strong>Mark done</strong><small>Count every lesson as completed.</small></span>
+                              </button>
+                            )}
+                            {unit.status !== 'skipped' && (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className={styles.actionMenuItem}
+                                onClick={() => handleUnitAction(unit, 'skip')}
+                                disabled={unitBusy}
+                              >
+                                <span className={`${styles.actionMenuIcon} ${styles.skipIcon}`} aria-hidden="true">→</span>
+                                <span><strong>Skip unit</strong><small>Treat it as done, with a skipped indicator.</small></span>
+                              </button>
+                            )}
+                            {(unit.completedCount > 0 || unit.reviewing) && (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className={styles.actionMenuItem}
+                                onClick={() => handleUnitAction(unit, 'review')}
+                                disabled={unitBusy}
+                              >
+                                <span className={`${styles.actionMenuIcon} ${styles.reviewIcon}`} aria-hidden="true">↺</span>
+                                <span><strong>{unit.reviewing ? 'Restart review' : 'Review unit'}</strong><small>Reopen it while remembering it was done before.</small></span>
+                              </button>
+                            )}
+                            {(unit.completedCount > 0 || unit.reviewing) && (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className={`${styles.actionMenuItem} ${styles.unmarkItem}`}
+                                onClick={() => handleUnitAction(unit, 'unmark')}
+                                disabled={unitBusy}
+                              >
+                                <span className={styles.actionMenuIcon} aria-hidden="true">○</span>
+                                <span><strong>Unmark unit</strong><small>Clear its progress and make it current.</small></span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   <div className={styles.unitProgressTrack} aria-hidden="true">
                     <div
                       className={styles.unitProgressFill}
+                      data-skipped={unit.status === 'skipped' ? 'true' : undefined}
                       style={{width: `${Math.round((unit.completedCount / unit.lessons.length) * 100)}%`}}
                     />
                   </div>
@@ -214,21 +378,22 @@ export default function DashboardPage(): React.JSX.Element {
                     <div className={styles.unitLessonRows}>
                       {unit.lessons.map((lesson) => {
                         const done = isComplete(lesson.id);
+                        const lessonSkipped = isSkipped(lesson.id);
                         return (
                           <Link
                             key={lesson.id}
                             to={lesson.path}
-                            className={`${styles.lessonRow} ${done ? styles.lessonDone : ''}`}
+                            className={`${styles.lessonRow} ${done ? styles.lessonDone : ''} ${lessonSkipped ? styles.lessonSkipped : ''} ${unit.reviewing && !done ? styles.lessonReviewing : ''}`}
                           >
                             <div className={styles.lessonCheck} aria-hidden="true">
-                              {done ? '✓' : '○'}
+                              {lessonSkipped ? '→' : done ? '✓' : unit.reviewing ? '↺' : '○'}
                             </div>
                             <div className={styles.lessonInfo}>
                               <span className={styles.lessonLabel}>{lesson.label}</span>
                               <span className={styles.lessonUnit}>{lesson.title}</span>
                             </div>
                             <span className={styles.lessonStatus}>
-                              {done ? 'Complete' : 'Incomplete'}
+                              {lessonSkipped ? 'Skipped' : done ? 'Complete' : unit.reviewing ? 'Review' : 'Incomplete'}
                             </span>
                           </Link>
                         );

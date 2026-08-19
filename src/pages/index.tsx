@@ -32,8 +32,8 @@ const FEATURES = [
     desc:  'Run lesson code against simulated FTC hardware in your browser.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <rect x="2" y="6" width="28" height="20" rx="2" stroke="#00BFFF" strokeWidth="1.5" />
-        <path d="M10 14l4 4-4 4M16 22h6" stroke="#39FF14" strokeWidth="1.5" strokeLinecap="round" />
+        <rect x="2" y="6" width="28" height="20" rx="2" stroke="#38BDF8" strokeWidth="1.5" />
+        <path d="M10 14l4 4-4 4M16 22h6" stroke="#22D3EE" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -42,8 +42,8 @@ const FEATURES = [
     desc:  'Sign in to save completed lessons and resume where you stopped.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#00BFFF" strokeWidth="1.5" />
-        <path d="M16 12v8M12 16h8" stroke="#39FF14" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#38BDF8" strokeWidth="1.5" />
+        <path d="M16 12v8M12 16h8" stroke="#22D3EE" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -52,8 +52,8 @@ const FEATURES = [
     desc:  'Move from guided examples to problems that require your own solution.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <circle cx="16" cy="16" r="10" stroke="#00BFFF" strokeWidth="1.5" />
-        <path d="M16 10v6l4 4" stroke="#39FF14" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="16" cy="16" r="10" stroke="#38BDF8" strokeWidth="1.5" />
+        <path d="M16 10v6l4 4" stroke="#22D3EE" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -62,8 +62,8 @@ const FEATURES = [
     desc:  'Read the source, adapt it for your team, or contribute a fix.',
     icon: (
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <path d="M6 26L14 6l8 12 4-6 4 14" stroke="#00BFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <circle cx="26" cy="26" r="3" stroke="#39FF14" strokeWidth="1.5" />
+        <path d="M6 26L14 6l8 12 4-6 4 14" stroke="#38BDF8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <circle cx="26" cy="26" r="3" stroke="#22D3EE" strokeWidth="1.5" />
       </svg>
     ),
   },
@@ -88,13 +88,7 @@ function NavLogo(): React.JSX.Element {
 }
 
 function Divider(): React.JSX.Element {
-  return (
-    <div className={styles.divider} aria-hidden="true">
-      <div className={styles.dividerLine} />
-      <div className={styles.dividerDiamond} />
-      <div className={styles.dividerLine} />
-    </div>
-  );
+  return <div className={styles.divider} aria-hidden="true" />;
 }
 
 function Stat({ num, label }: { num: string; label: string }): React.JSX.Element {
@@ -190,8 +184,8 @@ function CurriculumSection({
 
   return (
     <section className={styles.section} id="curriculum">
-      <p className={styles.sectionLabel}>// curriculum.units[]</p>
-      <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} Structured Units. One Clear Path.</h2>
+      <p className={styles.sectionLabel}>Curriculum</p>
+      <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} units that grow with your team</h2>
       <p className={styles.sectionDesc}>
         Follow the sequence or jump to the topic your team needs.
       </p>
@@ -253,7 +247,7 @@ function CurriculumSection({
 function FeaturesSection(): React.JSX.Element {
   return (
     <section className={styles.section}>
-      <p className={styles.sectionLabel}>// platform.features[]</p>
+      <p className={styles.sectionLabel}>Why Telemark</p>
       <h2 className={styles.sectionTitle}>Learn, test, and keep moving</h2>
       <p className={styles.sectionDesc}>
         Designed to keep the learning path practical, organized, and easy to resume.
@@ -275,7 +269,7 @@ function FeaturesSection(): React.JSX.Element {
 function SimulatorSection(): React.JSX.Element {
   return (
     <section className={styles.section}>
-      <p className={styles.sectionLabel}>// simulator.live[]</p>
+      <p className={styles.sectionLabel}>Browser simulator</p>
       <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
       <p className={styles.sectionDesc}>
         Write lesson code, run the FTC lifecycle, and debug the result with
@@ -306,7 +300,7 @@ function CtaSection(): React.JSX.Element {
     <div className={styles.ctaSection}>
       <div className={styles.ctaBox}>
         <p className={styles.sectionLabel} style={{ marginBottom: '1.5rem' }}>
-          // start.here
+          Start here
         </p>
         <h2 className={styles.ctaTitle}>
           Start with the fundamentals.<br />Build toward competition.
@@ -347,14 +341,6 @@ export default function Home(): React.JSX.Element {
       />
 
       <main className={styles.lp}>
-        {/* ── Decorative chrome ── */}
-        <div className={styles.gridBg}   aria-hidden="true" />
-        <div className={styles.scanline} aria-hidden="true" />
-        <div className={`${styles.cornerAccent} ${styles.tl}`} aria-hidden="true" />
-        <div className={`${styles.cornerAccent} ${styles.tr}`} aria-hidden="true" />
-        <div className={`${styles.cornerAccent} ${styles.bl}`} aria-hidden="true" />
-        <div className={`${styles.cornerAccent} ${styles.br}`} aria-hidden="true" />
-
         {/* ── Custom navbar ── */}
         <nav className={styles.navbar} aria-label="Site navigation">
           <div className={styles.navBrand}>
