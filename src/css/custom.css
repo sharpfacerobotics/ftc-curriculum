@@ -5,30 +5,155 @@
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
 
 :root {
-  --ifm-color-primary: #22d3ee;
+  /* ════════════════════════════════════════════════════════════════════
+     TELEMARK DESIGN TOKENS
+
+     One source of truth for colour, type, space, radius, and motion.
+     Component stylesheets reference these rather than repeating literals.
+     Before adding a new value here, check whether an existing step works:
+     the point of a scale is that it constrains choices.
+     ════════════════════════════════════════════════════════════════════ */
+
+  /* ── Surfaces, from deepest to most raised ────────────────────────── */
+  --tm-bg:              #05080d;   /* page background */
+  --tm-surface-1:       #080d13;   /* cards on the page */
+  --tm-surface-2:       #0b1118;   /* panels */
+  --tm-surface-3:       #0d151e;   /* controls, insets */
+  --tm-surface-4:       #111b25;   /* raised, hover */
+
+  /* ── Ink ──────────────────────────────────────────────────────────── */
+  --tm-text-strong:     #effbff;   /* headings */
+  --tm-text:            rgba(221, 241, 249, 0.82);
+  --tm-text-soft:       rgba(221, 241, 249, 0.68);
+  --tm-text-muted:      rgba(203, 230, 241, 0.5);
+  --tm-text-faint:      rgba(203, 230, 241, 0.36);
+  --tm-text-on-accent:  #05080d;
+
+  /* ── Accent: aqua is the primary, blue the secondary ──────────────── */
+  --tm-accent:          #22d3ee;
+  --tm-accent-bright:   #67e8f9;
+  --tm-accent-dim:      #15919f;
+  --tm-blue:            #38bdf8;
+  --tm-blue-soft:       #60a5fa;
+  --tm-indigo:          #818cf8;
+
+  /* Accent washes, used for fills and borders so opacity is not ad hoc */
+  --tm-accent-a08:      rgba(34, 211, 238, 0.08);
+  --tm-accent-a12:      rgba(34, 211, 238, 0.12);
+  --tm-accent-a20:      rgba(34, 211, 238, 0.20);
+  --tm-accent-a35:      rgba(34, 211, 238, 0.35);
+  --tm-accent-a55:      rgba(34, 211, 238, 0.55);
+  --tm-blue-a10:        rgba(96, 165, 250, 0.10);
+  --tm-blue-a32:        rgba(96, 165, 250, 0.32);
+
+  /* ── Semantic ─────────────────────────────────────────────────────── */
+  --tm-success:         #4ade80;
+  --tm-success-wash:    rgba(74, 222, 128, 0.10);
+  --tm-warn:            #fbbf24;
+  --tm-warn-wash:       rgba(251, 191, 36, 0.09);
+  --tm-danger:          #f87171;
+  --tm-danger-wash:     rgba(248, 113, 113, 0.10);
+
+  /* ── Borders ──────────────────────────────────────────────────────── */
+  --tm-border:          rgba(34, 211, 238, 0.16);
+  --tm-border-strong:   rgba(34, 211, 238, 0.35);
+  --tm-border-quiet:    rgba(156, 175, 194, 0.18);
+  --tm-border-hair:     rgba(34, 211, 238, 0.10);
+
+  /* ── Type ─────────────────────────────────────────────────────────── */
+  --tm-font-display:    'Rajdhani', 'Arial Narrow', sans-serif;
+  --tm-font-body:       'Exo 2', 'Segoe UI', sans-serif;
+  --tm-font-label:      'Share Tech Mono', 'JetBrains Mono', monospace;
+  --tm-font-mono:       'JetBrains Mono', 'Fira Code', monospace;
+
+  --tm-fs-2xs:          0.68rem;
+  --tm-fs-xs:           0.74rem;
+  --tm-fs-sm:           0.84rem;
+  --tm-fs-base:         0.94rem;
+  --tm-fs-md:           1.05rem;
+  --tm-fs-lg:           1.25rem;
+  --tm-fs-xl:           1.6rem;
+  --tm-fs-2xl:          2.1rem;
+  --tm-fs-3xl:          clamp(2.2rem, 5vw, 3.4rem);
+
+  --tm-lh-tight:        1.15;
+  --tm-lh-snug:         1.35;
+  --tm-lh-normal:       1.6;
+
+  /* Label styling recurs across every eyebrow and tag on the site */
+  --tm-track-label:     0.1em;
+  --tm-track-wide:      0.14em;
+
+  /* ── Space, on a 4px base ─────────────────────────────────────────── */
+  --tm-sp-1:            0.25rem;
+  --tm-sp-2:            0.5rem;
+  --tm-sp-3:            0.75rem;
+  --tm-sp-4:            1rem;
+  --tm-sp-5:            1.5rem;
+  --tm-sp-6:            2rem;
+  --tm-sp-7:            3rem;
+  --tm-sp-8:            4rem;
+
+  /* ── Radius ───────────────────────────────────────────────────────── */
+  --tm-r-sm:            8px;
+  --tm-r-md:            12px;
+  --tm-r-lg:            16px;
+  --tm-r-pill:          999px;
+  /* The slightly irregular corner is a Telemark signature. Two variants so
+     alternating cards do not look mechanically identical. */
+  --tm-r-hand:          14px 19px 13px 21px;
+  --tm-r-hand-alt:      20px 13px 22px 15px;
+
+  /* ── Elevation ────────────────────────────────────────────────────── */
+  --tm-shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.4);
+  --tm-shadow-md:       0 6px 18px rgba(0, 0, 0, 0.35);
+  --tm-shadow-glow:     0 0 0 1px var(--tm-accent-a20), 0 8px 24px rgba(34, 211, 238, 0.08);
+
+  /* ── Motion ───────────────────────────────────────────────────────── */
+  --tm-dur-fast:        0.12s;
+  --tm-dur:             0.18s;
+  --tm-dur-slow:        0.3s;
+  --tm-ease:            cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Layout ───────────────────────────────────────────────────────── */
+  --tm-measure:         68ch;
+  --tm-page-max:        1180px;
+
+  /* ── Docusaurus bindings ──────────────────────────────────────────── */
+  --ifm-color-primary: var(--tm-accent);
   --ifm-color-primary-dark: #1bbace;
   --ifm-color-primary-darker: #19b0c3;
-  --ifm-color-primary-darkest: #15919f;
+  --ifm-color-primary-darkest: var(--tm-accent-dim);
   --ifm-color-primary-light: #43daec;
   --ifm-color-primary-lighter: #54deee;
   --ifm-color-primary-lightest: #85e8f3;
 
   --ifm-code-font-size: 95%;
-  --ifm-font-family-base: 'Exo 2', 'Segoe UI', sans-serif;
-  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', monospace;
-  --telemark-font-display: 'Rajdhani', 'Arial Narrow', sans-serif;
-  --telemark-font-body: 'Exo 2', 'Segoe UI', sans-serif;
-  --telemark-font-label: 'Share Tech Mono', 'JetBrains Mono', monospace;
-  --telemark-color-black: #05080d;
-  --telemark-color-surface: #0b1118;
-  --telemark-color-surface-raised: #111b25;
-  --telemark-color-heading: #effbff;
-  --telemark-color-body: rgba(221, 241, 249, 0.76);
-  --telemark-color-muted: rgba(203, 230, 241, 0.55);
-  --telemark-color-blue: #38bdf8;
-  --telemark-color-blue-light: #60a5fa;
-  --telemark-color-aqua: #22d3ee;
-  --telemark-color-cyan: var(--telemark-color-aqua);
+  --ifm-font-family-base: var(--tm-font-body);
+  --ifm-font-family-monospace: var(--tm-font-mono);
+
+  /* ── Legacy aliases, kept so older stylesheets keep working ───────── */
+  --telemark-font-display: var(--tm-font-display);
+  --telemark-font-body: var(--tm-font-body);
+  --telemark-font-label: var(--tm-font-label);
+  --telemark-color-black: var(--tm-bg);
+  --telemark-color-surface: var(--tm-surface-2);
+  --telemark-color-surface-raised: var(--tm-surface-4);
+  --telemark-color-heading: var(--tm-text-strong);
+  --telemark-color-body: var(--tm-text);
+  --telemark-color-muted: var(--tm-text-muted);
+  --telemark-color-blue: var(--tm-blue);
+  --telemark-color-blue-light: var(--tm-blue-soft);
+  --telemark-color-aqua: var(--tm-accent);
+  --telemark-color-cyan: var(--tm-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --tm-dur-fast: 0.01ms;
+    --tm-dur: 0.01ms;
+    --tm-dur-slow: 0.01ms;
+  }
 }
 
 /* Dark mode overrides — this is the primary mode */
@@ -46,7 +171,7 @@
 .navbar {
   height: 72px;
   padding: 0 2rem;
-  border-bottom: 1px solid rgba(34, 211, 238, 0.18);
+  border-bottom: 1px solid var(--tm-border);
   background: rgba(5, 8, 13, 0.96);
   box-shadow: none;
   backdrop-filter: blur(12px);
@@ -79,7 +204,7 @@
 .telemark-navbar-center .navbar__link {
   color: rgba(221, 241, 249, 0.58);
   font-family: var(--telemark-font-label);
-  font-size: 12px;
+  font-size: var(--tm-fs-xs);
   font-weight: 400;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -97,7 +222,7 @@
 .navbar__title {
   font-family: var(--telemark-font-display);
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--tm-fs-md);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--telemark-color-aqua);
@@ -105,11 +230,11 @@
 
 .navbar-auth-link {
   border: 1px solid var(--telemark-color-aqua);
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   background: transparent;
   color: var(--telemark-color-aqua);
   font-family: var(--telemark-font-label);
-  font-size: 12px;
+  font-size: var(--tm-fs-xs);
   text-transform: uppercase;
   letter-spacing: 1px;
   padding: 8px 22px !important;
@@ -118,26 +243,27 @@
 }
 
 .navbar-auth-link:hover {
-  background: rgba(34, 211, 238, 0.1);
+  background: var(--tm-accent-a12);
   color: var(--telemark-color-aqua);
   transform: translateY(-1px);
 }
 
 /* ---- SIDEBAR ---- */
 .menu {
-  background: #0b1118;
-  border-right: 1px solid rgba(34, 211, 238, 0.14);
+  background: var(--tm-surface-2);
+  border-right: 1px solid var(--tm-accent-a12);
 }
 
 .menu__link--active {
   color: var(--telemark-color-aqua) !important;
-  border-left: 3px solid var(--telemark-color-blue-light);
-  background: rgba(34, 211, 238, 0.07);
+  border: 1px solid var(--telemark-color-blue-light);
+  background: var(--tm-blue-a10);
+  background: var(--tm-accent-a08);
 }
 
 .menu__link:hover {
   color: var(--telemark-color-aqua);
-  background: rgba(34, 211, 238, 0.05);
+  background: var(--tm-accent-a08);
 }
 
 /* ---- MAIN CONTENT AREA ---- */
@@ -147,9 +273,9 @@
 
 article {
   background: var(--telemark-color-surface);
-  border-radius: 14px 18px 13px 20px;
+  border-radius: var(--tm-r-hand);
   padding: 2rem;
-  border: 1px solid rgba(34, 211, 238, 0.1);
+  border: 1px solid var(--tm-accent-a12);
 }
 
 /* ---- HEADINGS ---- */
@@ -160,7 +286,7 @@ article {
 
 .theme-doc-markdown h2 {
   color: var(--telemark-color-aqua);
-  border-bottom: 1px solid rgba(34, 211, 238, 0.2);
+  border-bottom: 1px solid var(--tm-accent-a20);
   padding-bottom: 0.3rem;
 }
 
@@ -171,14 +297,14 @@ article {
 /* ---- CODE BLOCKS ---- */
 .prism-code {
   background: #03070c !important;
-  border: 1px solid rgba(34, 211, 238, 0.2);
-  border-radius: 8px;
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-sm);
 }
 
 code {
-  background: #111b25;
+  background: var(--tm-surface-4);
   color: var(--telemark-color-aqua);
-  border-radius: 4px;
+  border-radius: var(--tm-r-sm);
   padding: 0.1rem 0.35rem;
   font-size: 0.88em;
 }
@@ -187,9 +313,9 @@ code {
 .button--primary {
   background: var(--telemark-color-aqua);
   border: 1px solid var(--telemark-color-aqua);
-  border-radius: 10px 14px 10px 16px;
+  border-radius: var(--tm-r-hand);
   box-shadow: none;
-  color: #041014;
+  color: var(--tm-bg);
   transition: background-color 0.2s ease, border-color 0.2s ease,
     transform 0.2s ease;
 }
@@ -201,22 +327,20 @@ code {
   transform: translateY(-1px);
 }
 
-/* ---- ADMONITIONS (tip/warning boxes) ---- */
-.alert--info {
-  border-left: 4px solid var(--telemark-color-aqua);
-  background: rgba(34, 211, 238, 0.07);
-}
-
-.alert--success {
-  border-left: 4px solid var(--telemark-color-blue-light);
-  background: rgba(96, 165, 250, 0.08);
+/* ---- ADMONITIONS ----
+   Type is signalled by border colour and a background tint rather than a
+   stripe on one edge, so the whole callout is marked rather than an arbitrary
+   side of it. Colours are set once in the doc chrome section below. */
+.theme-admonition {
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
 }
 
 /* ---- FOOTER ---- */
 .footer {
-  border-top: 1px solid rgba(34, 211, 238, 0.2);
+  border-top: 1px solid var(--tm-accent-a20);
   padding: 0.85rem 1.5rem;
-  background: #030609;
+  background: var(--tm-bg);
 }
 
 .footer .container {
@@ -228,7 +352,7 @@ code {
 }
 
 .footer__copyright {
-  color: rgba(203, 230, 241, 0.5);
+  color: var(--tm-text-muted);
   font-family: var(--telemark-font-label);
   font-size: 10px;
   letter-spacing: 0.04em;
@@ -250,7 +374,7 @@ code {
   }
 
   .navbar__title {
-    font-size: 16px;
+    font-size: var(--tm-fs-md);
   }
 }
 
@@ -272,7 +396,7 @@ code {
 
 *::-webkit-scrollbar-thumb {
   background: var(--telemark-color-aqua);
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
 }
 
 *::-webkit-scrollbar-thumb:hover {
@@ -291,8 +415,8 @@ code {
 }
 
 .simulator-fullscreen-button {
-  border: 1px solid rgba(34, 211, 238, 0.4);
-  border-radius: 999px;
+  border: 1px solid var(--tm-border-strong);
+  border-radius: var(--tm-r-lg);
   background: var(--telemark-color-black);
   color: #e8f8ff;
   cursor: pointer;
@@ -302,7 +426,7 @@ code {
 
 .simulator-fullscreen-button:hover {
   border-color: var(--telemark-color-aqua);
-  color: #ffffff;
+  color: var(--tm-text-strong);
 }
 
 .simulator-fullscreen-shell:fullscreen {
@@ -334,5 +458,399 @@ code {
 
 .simulator-wrapper {
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--tm-r-sm);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   DOC CHROME
+   The lesson page is where students spend nearly all their time, so it gets
+   the same treatment as the marketing surfaces rather than Docusaurus
+   defaults sitting inside a themed shell.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--tm-border-hair) !important;
+  background: var(--tm-surface-1);
+}
+
+.menu {
+  padding: var(--tm-sp-4) var(--tm-sp-3) var(--tm-sp-7) !important;
+  font-size: var(--tm-fs-sm);
+}
+
+.menu__list-item-collapsible,
+.menu__link {
+  border-radius: var(--tm-r-sm);
+  transition: background var(--tm-dur) var(--tm-ease),
+              color var(--tm-dur) var(--tm-ease);
+}
+
+.menu__link {
+  color: var(--tm-text-soft);
+  line-height: var(--tm-lh-snug);
+}
+
+.menu__link:hover,
+.menu__list-item-collapsible:hover {
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-strong);
+}
+
+.menu__link--active {
+  position: relative;
+  background: var(--tm-accent-a12);
+  color: var(--tm-text-strong);
+  font-weight: 600;
+}
+
+/* A rail on the active item, so position in a 12 module list is obvious */
+.menu__link--active::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: calc(-1 * var(--tm-sp-3));
+  width: 2px;
+  height: 60%;
+  border-radius: var(--tm-r-pill);
+  background: var(--tm-accent);
+}
+
+.menu__list .menu__list {
+  margin-left: var(--tm-sp-2);
+  padding-left: var(--tm-sp-3);
+  border-left: 1px solid var(--tm-border-hair);
+}
+
+.menu__caret:before {
+  opacity: 0.6;
+}
+
+/* ── Breadcrumbs ─────────────────────────────────────────────────────── */
+.breadcrumbs__item--active .breadcrumbs__link {
+  background: var(--tm-accent-a12);
+  color: var(--tm-text-strong);
+}
+
+.breadcrumbs__link {
+  border-radius: var(--tm-r-sm);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  transition: color var(--tm-dur) var(--tm-ease);
+}
+
+.breadcrumbs__link:hover {
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-strong);
+}
+
+/* ── Table of contents ───────────────────────────────────────────────── */
+.table-of-contents {
+  border-left: 1px solid var(--tm-border-hair);
+  font-size: var(--tm-fs-xs);
+}
+
+.table-of-contents__link {
+  color: var(--tm-text-muted);
+  transition: color var(--tm-dur) var(--tm-ease);
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--tm-accent);
+}
+
+.table-of-contents__link--active {
+  font-weight: 600;
+}
+
+/* ── Reading measure and rhythm ──────────────────────────────────────── */
+.theme-doc-markdown {
+  font-size: var(--tm-fs-base);
+  line-height: var(--tm-lh-normal);
+}
+
+.theme-doc-markdown p,
+.theme-doc-markdown li {
+  max-width: var(--tm-measure);
+  color: var(--tm-text);
+}
+
+.theme-doc-markdown h2 {
+  margin-top: var(--tm-sp-7);
+  padding-bottom: var(--tm-sp-2);
+  border-bottom: 1px solid var(--tm-border-hair);
+}
+
+.theme-doc-markdown h3 {
+  margin-top: var(--tm-sp-5);
+}
+
+.theme-doc-markdown strong {
+  color: var(--tm-text-strong);
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────── */
+.theme-doc-markdown table {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  font-size: var(--tm-fs-sm);
+  overflow: hidden;
+}
+
+.theme-doc-markdown table thead {
+  background: var(--tm-accent-a08);
+}
+
+.theme-doc-markdown table th {
+  border: none;
+  border-bottom: 1px solid var(--tm-border);
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  font-weight: 700;
+  letter-spacing: var(--tm-track-label);
+  text-transform: uppercase;
+}
+
+.theme-doc-markdown table td {
+  border: none;
+  border-bottom: 1px solid var(--tm-border-hair);
+  color: var(--tm-text);
+}
+
+.theme-doc-markdown table tr:last-child td {
+  border-bottom: none;
+}
+
+.theme-doc-markdown table tbody tr {
+  background: transparent;
+  transition: background var(--tm-dur) var(--tm-ease);
+}
+
+.theme-doc-markdown table tbody tr:hover {
+  background: var(--tm-accent-a08);
+}
+
+/* Wide tables scroll inside their own container rather than the page */
+.theme-doc-markdown > table,
+.theme-doc-markdown .markdown > table {
+  display: block;
+  overflow-x: auto;
+}
+
+/* ── Admonitions ─────────────────────────────────────────────────────── */
+.theme-admonition {
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-1);
+  font-size: var(--tm-fs-sm);
+}
+
+.theme-admonition h5,
+.theme-admonition [class*='admonitionHeading'] {
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: var(--tm-track-label);
+  text-transform: uppercase;
+}
+
+.alert--info { border-color: var(--tm-accent-a35); background: var(--tm-accent-a08); }
+.alert--success { border-color: rgba(74, 222, 128, 0.35); background: var(--tm-success-wash); }
+.alert--warning { border-color: rgba(251, 191, 36, 0.35); background: var(--tm-warn-wash); }
+.alert--danger { border-color: rgba(248, 113, 113, 0.35); background: var(--tm-danger-wash); }
+
+/* ── Code ────────────────────────────────────────────────────────────── */
+.theme-code-block {
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  box-shadow: var(--tm-shadow-sm) !important;
+}
+
+code {
+  border: 1px solid var(--tm-border-hair);
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-surface-3);
+  color: var(--tm-accent-bright);
+  font-size: 0.88em;
+}
+
+a code {
+  color: inherit;
+}
+
+/* ── Details and summary, used by every practice answer ──────────────── */
+.theme-doc-markdown details {
+  border: 1px solid var(--tm-border) !important;
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-1) !important;
+}
+
+.theme-doc-markdown details > summary {
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────── */
+.pagination-nav__link {
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-1);
+  transition: border-color var(--tm-dur) var(--tm-ease),
+              transform var(--tm-dur) var(--tm-ease);
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--tm-border-strong);
+  transform: translateY(-2px);
+}
+
+.pagination-nav__sublabel {
+  color: var(--tm-text-muted);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: var(--tm-track-label);
+  text-transform: uppercase;
+}
+
+.pagination-nav__label {
+  color: var(--tm-text-strong);
+  font-family: var(--tm-font-display);
+  font-size: var(--tm-fs-md);
+}
+
+/* ── Focus, consistently, everywhere ─────────────────────────────────── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--tm-accent);
+  outline-offset: 2px;
+  border-radius: var(--tm-r-sm);
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────────────────
+   Thinned and neutralised rather than restyled. A brightly coloured custom
+   scrollbar is a reinvented standard affordance; this only reduces the
+   default's visual weight so it stops competing with the content. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--tm-border-quiet) transparent;
+}
+
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: var(--tm-r-pill);
+  background: var(--tm-border-quiet);
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--tm-text-faint);
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagination-nav__link:hover { transform: none; }
+}
+
+/* ── Quick search launcher placement ─────────────────────────────────── */
+.telemark-navbar-search {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin-left: auto;
+  margin-right: var(--tm-sp-3);
+}
+
+@media (max-width: 996px) {
+  /* On narrow screens the launcher label is dropped, keeping the icon */
+  .telemark-navbar-search { margin-right: var(--tm-sp-2); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MICRO-INTERACTIONS
+   Every interactive surface should acknowledge the pointer and the keyboard.
+   All of it is built from the duration tokens, which collapse to near-zero
+   under prefers-reduced-motion, so this whole layer turns itself off.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Cards lift slightly and their border warms on hover */
+.theme-doc-markdown a:not(.button):not([class*='card']) {
+  background-image: linear-gradient(var(--tm-accent), var(--tm-accent));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size var(--tm-dur) var(--tm-ease), color var(--tm-dur) var(--tm-ease);
+  text-decoration: none;
+}
+
+.theme-doc-markdown a:not(.button):not([class*='card']):hover {
+  background-size: 100% 1px;
+  text-decoration: none;
+}
+
+/* Buttons acknowledge the press, not just the hover */
+button,
+.button {
+  transition:
+    background var(--tm-dur) var(--tm-ease),
+    border-color var(--tm-dur) var(--tm-ease),
+    color var(--tm-dur) var(--tm-ease),
+    transform var(--tm-dur-fast) var(--tm-ease);
+}
+
+button:active:not(:disabled),
+.button:active {
+  transform: translateY(1px);
+}
+
+/* Sidebar items slide a touch toward the reader on hover */
+.menu__link {
+  transition:
+    background var(--tm-dur) var(--tm-ease),
+    color var(--tm-dur) var(--tm-ease),
+    padding-left var(--tm-dur) var(--tm-ease);
+}
+
+.menu__link:hover { padding-left: calc(var(--tm-sp-4) + 3px); }
+
+/* Table rows and details summaries respond */
+.theme-doc-markdown details > summary {
+  transition: color var(--tm-dur) var(--tm-ease);
+}
+
+.theme-doc-markdown details > summary:hover { color: var(--tm-accent); }
+
+/* Images and figures settle in rather than snapping */
+.theme-doc-markdown figure {
+  transition: border-color var(--tm-dur) var(--tm-ease);
+}
+
+.theme-doc-markdown figure:hover { border-color: var(--tm-border-strong); }
+
+/* Anchor links on headings fade in with the heading, not on hover alone */
+.hash-link {
+  transition: opacity var(--tm-dur) var(--tm-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled),
+  .button:active { transform: none; }
+  .menu__link:hover { padding-left: var(--tm-sp-4); }
+  .theme-doc-markdown a:not(.button):not([class*='card']) {
+    background-size: 100% 1px;
+    background-image: none;
+    text-decoration: underline;
+  }
 }

@@ -11,7 +11,12 @@ function walk(directory) {
   });
 }
 
-for (const file of walk(path.join(root, 'docs')).filter((name) => name.endsWith('.mdx'))) {
+// Both tracks share the same prose rules.
+const contentRoots = ['docs', 'mechanical']
+  .map((name) => path.join(root, name))
+  .filter((directory) => fs.existsSync(directory));
+
+for (const file of contentRoots.flatMap(walk).filter((name) => name.endsWith('.mdx'))) {
   const text = fs.readFileSync(file, 'utf8');
   if (text.includes('—')) failures.push(`${path.relative(root, file)} contains an em dash`);
   if (text.includes('Open the simulator in fullscreen before you start')) {
@@ -22,6 +27,7 @@ for (const file of walk(path.join(root, 'docs')).filter((name) => name.endsWith(
 const checkedSource = [
   path.join(root, 'src/pages/index.tsx'),
   path.join(root, 'src/telemark/curriculum.ts'),
+  path.join(root, 'src/telemark/mechanical.ts'),
   path.join(root, 'docusaurus.config.ts'),
 ].map((file) => fs.readFileSync(file, 'utf8')).join('\n');
 
@@ -50,9 +56,115 @@ if (guideCount !== 70) {
   failures.push(`Expected 70 lessons to use SimulatorRunGuide, found ${guideCount}`);
 }
 
+// The mechanical track uses calculators the way the software track uses
+// simulators. Each calculator must be reachable from at least one lesson,
+// otherwise it is dead code that nobody will notice has broken.
+const mechanicalText = fs.existsSync(path.join(root, 'mechanical'))
+  ? walk(path.join(root, 'mechanical'))
+      .filter((name) => name.endsWith('.mdx'))
+      .map((file) => fs.readFileSync(file, 'utf8'))
+      .join('\n')
+  : '';
+
+// The calculator list comes from the barrel export rather than from a
+// directory listing, so shared components and the diagram module are not
+// mistaken for calculators.
+const calculatorIndex = path.join(root, 'src/components/mechanical/index.ts');
+const calculators = fs.existsSync(calculatorIndex)
+  ? [...fs.readFileSync(calculatorIndex, 'utf8').matchAll(/export \{default as (\w+)\}/g)].map(
+      (match) => match[1],
+    )
+  : [];
+
+for (const calculator of calculators) {
+  if (!mechanicalText.includes(`<${calculator} />`)) {
+    failures.push(`Calculator ${calculator} is not used by any mechanical lesson`);
+  }
+}
+
+// Static lesson diagrams are held to the same rule.
+const diagramsPath = path.join(root, 'src/components/mechanical/EngineeringDiagrams.tsx');
+const diagrams = fs.existsSync(diagramsPath)
+  ? [...fs.readFileSync(diagramsPath, 'utf8').matchAll(/export function (\w+)\(/g)].map((m) => m[1])
+  : [];
+
+for (const diagram of diagrams) {
+  if (!mechanicalText.includes(`<${diagram} />`)) {
+    failures.push(`Diagram ${diagram} is not used by any mechanical lesson`);
+  }
+}
+
+// Interactive visuals are rendered by calculators rather than by MDX, so they
+// are checked against the calculator sources instead.
+const visualsDir = path.join(root, 'src/components/mechanical/visuals');
+const calculatorText = fs.existsSync(path.join(root, 'src/components/mechanical'))
+  ? fs
+      .readdirSync(path.join(root, 'src/components/mechanical'))
+      .filter((name) => name.endsWith('.tsx'))
+      .map((name) => fs.readFileSync(path.join(root, 'src/components/mechanical', name), 'utf8'))
+      .join('\n')
+  : '';
+
+const visuals = fs.existsSync(visualsDir)
+  ? fs
+      .readdirSync(visualsDir)
+      .filter((name) => name.endsWith('.tsx') && name !== 'Figure.tsx')
+      .map((name) => path.basename(name, '.tsx'))
+  : [];
+
+for (const visual of visuals) {
+  if (!calculatorText.includes(`<${visual}`)) {
+    failures.push(`Visual ${visual} is not rendered by any calculator`);
+  }
+}
+
+// Every figure must carry a description for assistive technology, since the
+// drawing itself carries the meaning.
+for (const file of [...visuals.map((v) => path.join(visualsDir, `${v}.tsx`)), diagramsPath].filter((f) => fs.existsSync(f))) {
+  const text = fs.readFileSync(file, 'utf8');
+  const figureUses = (text.match(/<Figure/g) || []).length;
+  const descriptions = (text.match(/description=/g) || []).length;
+  if (figureUses !== descriptions) {
+    failures.push(
+      `${path.relative(root, file)} has ${figureUses} figures but ${descriptions} descriptions`,
+    );
+  }
+}
+
+// Every photo slot must carry alt text and a shot description, or it is
+// neither accessible nor actionable.
+const photoSlots = [...mechanicalText.matchAll(/<LessonPhoto\b([\s\S]*?)\/>/g)];
+for (const [index, slot] of photoSlots.entries()) {
+  const block = slot[1];
+  for (const required of ['alt=', 'caption=', 'shot=']) {
+    if (!block.includes(required)) {
+      failures.push(`LessonPhoto slot ${index + 1} is missing ${required.replace('=', '')}`);
+    }
+  }
+}
+
+// Scored quizzes must exist for every module and must not be empty.
+const quizPath = path.join(root, 'src/telemark/mechanicalQuizzes.ts');
+if (fs.existsSync(quizPath)) {
+  const quizSource = fs.readFileSync(quizPath, 'utf8');
+  const quizModules = [...quizSource.matchAll(/'(module-\d{2})':/g)].map((m) => m[1]);
+  if (quizModules.length !== 12) {
+    failures.push(`Expected scored questions for 12 modules, found ${quizModules.length}`);
+  }
+  for (const moduleSlug of quizModules) {
+    if (!mechanicalText.includes(`MASTERY_QUESTIONS['${moduleSlug}']`)) {
+      failures.push(`${moduleSlug} has scored questions that no quiz page renders`);
+    }
+  }
+}
+
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exit(1);
 }
 
-console.log(`Content checks passed for ${simulatorFiles.length} simulator pages`);
+console.log(
+  `Content checks passed for ${simulatorFiles.length} simulator pages, ${calculators.length} calculators, `
+  + `${visuals.length} interactive visuals, ${diagrams.length} lesson diagrams, `
+  + `and ${photoSlots.length} photo slots`,
+);

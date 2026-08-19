@@ -8,38 +8,39 @@
 .step {
   padding: 0.9rem 1rem;
   border: 1px solid rgba(34, 211, 238, 0.17);
-  border-left: 3px solid #38bdf8;
-  border-radius: 4px 14px 14px 4px;
-  background: #0b1118;
+  border: 1px solid var(--tm-border-hair);
+  background: var(--tm-blue-a10);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-2);
   color: rgba(234, 248, 255, 0.68);
-  font-size: 0.86rem;
+  font-size: var(--tm-fs-sm);
   line-height: 1.5;
   transition: border-color 180ms ease, transform 180ms ease;
 }
 
 .step:nth-child(even) {
-  border-radius: 4px 18px 12px 4px;
+  border-radius: var(--tm-r-hand);
 }
 
 .step:hover {
   border-color: rgba(96, 165, 250, 0.46);
-  border-left-color: #22d3ee;
+  border-left-color: var(--tm-accent);
   transform: translateY(-2px);
 }
 
 .step strong {
   display: block;
   margin-bottom: 0.2rem;
-  color: #eaf8ff;
+  color: var(--tm-text-strong);
   font-family: var(--telemark-font-display);
-  font-size: 1rem;
+  font-size: var(--tm-fs-md);
 }
 
 .number {
   margin-right: 0.35rem;
-  color: #22d3ee;
+  color: var(--tm-accent);
   font-family: var(--telemark-font-label);
-  font-size: 0.78rem;
+  font-size: var(--tm-fs-xs);
 }
 
 @media (prefers-reduced-motion: reduce) {

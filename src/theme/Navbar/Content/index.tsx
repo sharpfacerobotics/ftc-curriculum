@@ -10,6 +10,7 @@ import {
 import NavbarItem, {type Props as NavbarItemConfig} from '@theme/NavbarItem';
 import NavbarMobileSidebarToggle from '@theme/Navbar/MobileSidebar/Toggle';
 import NavbarLogo from '@theme/Navbar/Logo';
+import CommandPalette from '@site/src/components/ui/CommandPalette';
 
 function useNavbarItems() {
   return useThemeConfig().navbar.items as NavbarItemConfig[];
@@ -46,6 +47,12 @@ export default function NavbarContent(): ReactNode {
 
       <div className="navbar__items telemark-navbar-center">
         <NavbarItems items={centerItems} />
+      </div>
+
+      {/* Quick search sits between the links and the account controls so it is
+          reachable from every page, by pointer or by keyboard. */}
+      <div className="telemark-navbar-search">
+        <CommandPalette />
       </div>
 
       <div className="navbar__items navbar__items--right telemark-navbar-account">

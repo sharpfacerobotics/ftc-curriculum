@@ -3,7 +3,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db } from './firebase';
 import { trackEvent } from './analytics';
-import { getLessonsForUnit } from './curriculum';
+import { getAnyLessonsForUnit } from './tracks';
 
 export interface ProgressData {
   completedLessons: string[];
@@ -77,7 +77,7 @@ export function useProgress(user: User | null) {
       ? progress.completedLessons
       : [...progress.completedLessons, lessonId];
     const unitSlug = lessonId.split('/')[0];
-    const unitLessonIds = getLessonsForUnit(unitSlug).map((lesson) => lesson.id);
+    const unitLessonIds = getAnyLessonsForUnit(unitSlug).map((lesson) => lesson.id);
     const unitNowComplete = unitLessonIds.length > 0
       && unitLessonIds.every((id) => newCompleted.includes(id));
     const nextProgress: ProgressData = {

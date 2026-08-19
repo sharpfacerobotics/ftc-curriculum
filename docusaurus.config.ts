@@ -26,7 +26,7 @@ const buildCommit = process.env.TELEMARK_BUILD_COMMIT
 
 const config: Config = {
   title: 'Telemark | Sharp Face Robotics',
-  tagline: 'FTC Java, from setup to autonomous.',
+  tagline: 'FTC software and engineering, from setup to competition.',
   favicon: 'img/telemark.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -98,6 +98,17 @@ const config: Config = {
 
   plugins: [
     './plugins/telemark-search',
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'mechanical',
+        path: 'mechanical',
+        routeBasePath: 'mechanical',
+        sidebarPath: './sidebarsMechanical.ts',
+        editUrl:
+          'https://github.com/sharpfacerobotics/ftc-curriculum/tree/main/',
+      },
+    ],
   ],
 
   themeConfig: {
@@ -114,13 +125,18 @@ const config: Config = {
       },
       items: [
         {
-          to: '/curriculum',
-          label: 'Curriculum',
+          to: '/docs',
+          label: 'Software',
+          position: 'left',
+        },
+        {
+          to: '/mechanical',
+          label: 'Mechanical',
           position: 'left',
         },
         {
           to: '/simulator',
-          label: 'Simulator',
+          label: 'Tools',
           position: 'left',
         },
         {

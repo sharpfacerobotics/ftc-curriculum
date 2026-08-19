@@ -4,10 +4,10 @@
   margin: 3rem auto;
   padding: clamp(2rem, 6vw, 4.5rem);
   overflow: hidden;
-  border: 1px solid rgba(34, 211, 238, 0.2);
-  border-radius: 22px 30px 20px 34px;
-  background: #0b1118;
-  color: #effbff;
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-2);
+  color: var(--tm-text-strong);
   text-align: center;
   animation: settleIn 0.5s ease-out both;
 }
@@ -23,7 +23,7 @@
 .topLeft {
   top: 18px;
   left: 20px;
-  background: #22d3ee;
+  background: var(--tm-accent);
 }
 
 .bottomRight {
@@ -31,7 +31,7 @@
   bottom: 18px;
   width: 8px;
   height: 8px;
-  background: #60a5fa;
+  background: var(--tm-blue-soft);
 }
 
 .lockIcon {
@@ -41,36 +41,36 @@
   height: 72px;
   margin: 0 auto 1.5rem;
   border: 1px solid rgba(34, 211, 238, 0.36);
-  border-radius: 26px 30px 24px 32px;
-  background: rgba(34, 211, 238, 0.08);
-  color: #22d3ee;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 34px;
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-accent-a08);
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xl);
   animation: iconFloat 4s ease-in-out infinite;
 }
 
 .spinner {
   width: 26px;
   height: 26px;
-  border: 2px solid rgba(34, 211, 238, 0.22);
-  border-top-color: #22d3ee;
+  border: 2px solid var(--tm-accent-a20);
+  border-top-color: var(--tm-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .eyebrow {
   margin: 0 0 0.75rem;
-  color: #22d3ee;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
   letter-spacing: 3px;
   text-transform: uppercase;
 }
 
 .title {
   margin: 0 auto 1rem;
-  color: #effbff;
-  font-family: 'Rajdhani', sans-serif;
+  color: var(--tm-text-strong);
+  font-family: var(--tm-font-display);
   font-size: clamp(30px, 6vw, 50px);
   line-height: 1.05;
 }
@@ -79,7 +79,7 @@
   max-width: 590px;
   margin: 0 auto 1.75rem;
   color: rgba(232, 244, 255, 0.62);
-  font-size: 16px;
+  font-size: var(--tm-fs-md);
   line-height: 1.75;
 }
 
@@ -94,10 +94,10 @@
 .benefits span {
   padding: 6px 10px;
   border: 1px solid rgba(96, 165, 250, 0.24);
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   background: rgba(96, 165, 250, 0.06);
   color: rgba(232, 244, 255, 0.68);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--tm-font-label);
   font-size: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -107,12 +107,12 @@
   min-width: min(100%, 330px);
   padding: 14px 24px;
   border: 0;
-  background: #22d3ee;
-  border-radius: 12px 16px 12px 18px;
-  color: #041014;
+  background: var(--tm-accent);
+  border-radius: var(--tm-r-hand);
+  color: var(--tm-bg);
   cursor: pointer;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 15px;
+  font-family: var(--tm-font-display);
+  font-size: var(--tm-fs-base);
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -120,7 +120,7 @@
 }
 
 .signInButton:hover:not(:disabled) {
-  background: #60a5fa;
+  background: var(--tm-blue-soft);
   transform: translateY(-1px);
 }
 
@@ -132,13 +132,13 @@
 .error {
   margin: 1rem 0 0;
   color: #ff9d7a;
-  font-size: 13px;
+  font-size: var(--tm-fs-sm);
 }
 
 .trialNote {
   margin: 1.25rem 0 0;
   color: rgba(232, 244, 255, 0.34);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--tm-font-label);
   font-size: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -196,4 +196,30 @@
     align-items: stretch;
     flex-direction: column;
   }
+}
+
+
+/* Navigation out of a locked page, which otherwise replaces the whole shell */
+.escapeHatch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tm-sp-4);
+  justify-content: center;
+  margin-top: var(--tm-sp-5);
+  padding-top: var(--tm-sp-4);
+  border-top: 1px solid var(--tm-border-hair);
+}
+
+.escapeHatch a {
+  color: var(--tm-text-muted);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color var(--tm-dur) var(--tm-ease);
+}
+
+.escapeHatch a:hover {
+  color: var(--tm-accent);
+  text-decoration: none;
 }

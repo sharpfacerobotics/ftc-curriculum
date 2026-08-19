@@ -166,7 +166,7 @@ export default function AdminPage(): React.JSX.Element {
   }
 
   const shell = (content: React.ReactNode) => (
-    <Layout title="Admin Analytics — Telemark" noFooter>
+    <Layout title="Admin Analytics · Telemark" noFooter>
       <main className={styles.page}>
         {content}
       </main>

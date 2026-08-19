@@ -16,14 +16,35 @@ export function isProtectedUnit(unitNumber: number): boolean {
   return Number.isInteger(unitNumber) && unitNumber >= 1;
 }
 
+/**
+ * Matches a software unit (unit-NN) or an engineering module (module-NN).
+ * Both tracks gate on the same rule: number 0 is public, 1 and above require
+ * an account.
+ */
+const TRACK_SEGMENT = /(?:^|\/)(unit|module)-(\d{1,2})(?:\/|$)/i;
+
 export function getUnitNumber(value: string | null | undefined): number | null {
   if (!value) return null;
 
-  const match = value.match(/(?:^|\/)unit-(\d{1,2})(?:\/|$)/i);
+  const match = value.match(TRACK_SEGMENT);
   if (!match) return null;
 
-  const unitNumber = Number.parseInt(match[1], 10);
+  const unitNumber = Number.parseInt(match[2], 10);
   return Number.isFinite(unitNumber) ? unitNumber : null;
+}
+
+/**
+ * Returns the canonical unit slug for a path, for example 'unit-03' or
+ * 'module-07'. Used so the lock screen can name the right unit in the right
+ * track.
+ */
+export function getUnitSlug(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const match = value.match(TRACK_SEGMENT);
+  if (!match) return null;
+
+  return `${match[1].toLowerCase()}-${match[2].padStart(2, '0')}`;
 }
 
 export function isProtectedUnitPath(value: string | null | undefined): boolean {

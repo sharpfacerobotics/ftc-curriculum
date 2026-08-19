@@ -15,6 +15,13 @@ const searchPlugin = read('plugins/telemark-search/index.js');
 const deployedSmoke = read('scripts/smoke-deployed.cjs');
 const config = read('docusaurus.config.ts');
 const customCss = read('src/css/custom.css');
+const mechanicalData = read('src/telemark/mechanical.ts');
+const tracks = read('src/telemark/tracks.ts');
+const trackOverview = read('src/components/TrackOverview.tsx');
+const unitOverview = read('src/components/UnitOverview.tsx');
+const contentLock = read('src/components/ContentLock.tsx');
+const useProgress = read('src/telemark/useProgress.ts');
+const dashboard = read('src/pages/dashboard.tsx');
 
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
@@ -57,4 +64,39 @@ for (let unit = 1; unit <= 15; unit += 1) {
   assert.equal(protectedUnit, true);
 }
 
-console.log('Site access, navbar, homepage demos, and protected search regression checks passed');
+// ── Mechanical track ──────────────────────────────────────────────────────
+// The mechanical track reuses the software track's components, so these
+// assertions guard the shared surfaces against being narrowed back to one
+// track.
+
+assert.match(config, /id: 'mechanical'/, 'engineering docs plugin instance missing');
+assert.match(config, /routeBasePath: 'mechanical'/);
+assert.match(config, /to: '\/mechanical'/, 'navbar must link to the mechanical track');
+assert.match(mechanicalData, /MECHANICAL_UNITS/);
+assert.match(mechanicalData, /MECHANICAL_LESSONS/);
+
+// Shared lookups must be track-aware, not curriculum-only.
+assert.match(tracks, /trackForUnitSlug/);
+assert.match(tracks, /unitSlug\.startsWith\('module-'\)/);
+assert.match(unitOverview, /getAnyUnitBySlug/, 'UnitOverview must resolve units in either track');
+assert.match(unitOverview, /getAnyLessonsForUnit/);
+assert.match(useProgress, /getAnyLessonsForUnit/, 'progress must complete units in either track');
+assert.match(contentLock, /getAnyUnitBySlug/, 'the lock screen must name mechanical modules');
+
+// Gating: module-NN follows the same public-unit-0 rule as unit-NN.
+assert.match(accessPolicy, /\(unit\|module\)-/);
+assert.match(accessPolicy, /export function getUnitSlug/);
+assert.match(rootTheme, /getUnitSlug/);
+assert.match(docItem, /getUnitSlug/);
+
+// Search indexes both tracks.
+assert.match(searchPlugin, /routeBase: '\/mechanical'/);
+assert.match(searchPlugin, /\(\?:unit\|module\)-/);
+
+// Discovery surfaces.
+assert.match(homepage, /TracksSection/, 'homepage must offer both tracks');
+assert.match(homepage, /MECHANICAL_LESSON_COUNT/);
+assert.match(trackOverview, /companionTrackId/);
+assert.match(dashboard, /activeTrack/, 'dashboard must switch between tracks');
+
+console.log('Site access, navbar, homepage demos, protected search, and mechanical track regression checks passed');

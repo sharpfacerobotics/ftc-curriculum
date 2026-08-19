@@ -3,19 +3,47 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import path from 'node:path';
 
 const root = process.cwd();
-const outHtml = path.join(root, 'build', 'java-ftc-curriculum.html');
-const outPdf = path.join(root, 'Java for FTC Curriculum.pdf');
-const curriculumSource = readFileSync(path.join(root, 'src/telemark/curriculum.ts'), 'utf8');
 
-const docs = [
-  'docs/learning-paths.mdx',
-  ...Array.from({ length: 16 }, (_, i) => {
-    const unit = String(i).padStart(2, '0');
-    return listUnitDocs(`docs/unit-${unit}`);
-  }).flat(),
-];
+// Which track to export. Pass "mechanical" as the first argument; anything
+// else, including no argument, builds the software curriculum.
+const track = process.argv[2] === 'mechanical' ? 'mechanical' : 'software';
+
+const TRACKS = {
+  software: {
+    title: 'Java for FTC Curriculum',
+    htmlName: 'java-ftc-curriculum.html',
+    pdfName: 'Java for FTC Curriculum.pdf',
+    dataFile: 'src/telemark/curriculum.ts',
+    docs: [
+      'docs/learning-paths.mdx',
+      ...Array.from({ length: 16 }, (_, i) =>
+        listUnitDocs(`docs/unit-${String(i).padStart(2, '0')}`),
+      ).flat(),
+    ],
+  },
+  engineering: {
+    title: 'Mechanical for FTC Curriculum',
+    htmlName: 'mechanical-ftc-curriculum.html',
+    pdfName: 'Mechanical for FTC Curriculum.pdf',
+    dataFile: 'src/telemark/mechanical.ts',
+    docs: [
+      'engineering/getting-started.mdx',
+      ...Array.from({ length: 12 }, (_, i) =>
+        listUnitDocs(`mechanical/module-${String(i).padStart(2, '0')}`),
+      ).flat(),
+    ],
+  },
+};
+
+const config = TRACKS[track];
+const outHtml = path.join(root, 'build', config.htmlName);
+const outPdf = path.join(root, config.pdfName);
+const curriculumSource = readFileSync(path.join(root, config.dataFile), 'utf8');
+
+const docs = config.docs;
 
 function listUnitDocs(dir) {
+  if (!existsSync(path.join(root, dir))) return [];
   return readdirSync(path.join(root, dir))
     .filter((file) => file.endsWith('.mdx'))
     .map((file) => path.join(dir, file))
@@ -315,7 +343,7 @@ const html = `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>Java for FTC Curriculum</title>
+<title>${config.title}</title>
 <style>
 @page { size: Letter; margin: 0.65in; }
 * { box-sizing: border-box; }
@@ -359,7 +387,7 @@ svg { width: 100%; height: auto; }
 </head>
 <body>
 <section class="cover">
-  <h1>Java for FTC Curriculum</h1>
+  <h1>${config.title}</h1>
   <p>Current Telemark FTC Java curriculum export, rebuilt from the Docusaurus website lessons, simulator challenge text, official-reference notes, mentor debugging notes, learning paths, and visual diagrams.</p>
   <div class="meta">Generated ${generatedAt} from the local Telemark curriculum source.</div>
 </section>
@@ -369,7 +397,30 @@ ${articles}
 
 mkdirSync(path.join(root, 'build'), { recursive: true });
 writeFileSync(outHtml, html);
-execFileSync('/usr/bin/google-chrome', [
+// Chrome lives in different places on Linux, macOS, and CI images. Pick the
+// first one that exists, or let CHROME_PATH override it.
+const chromeCandidates = [
+  process.env.CHROME_PATH,
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser',
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+].filter(Boolean);
+
+const chrome = chromeCandidates.find((candidate) => existsSync(candidate));
+
+if (!chrome) {
+  console.error(
+    `Wrote ${outHtml}, but no Chrome binary was found to render the PDF.\n`
+    + 'Set CHROME_PATH to a Chrome or Chromium executable and run again.',
+  );
+  process.exit(1);
+}
+
+execFileSync(chrome, [
   '--headless',
   '--disable-gpu',
   '--no-sandbox',

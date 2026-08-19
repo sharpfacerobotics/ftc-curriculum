@@ -3,9 +3,9 @@ import Link from '@docusaurus/Link';
 import { useAuth } from '@site/src/telemark/useAuth';
 import { useProgress } from '@site/src/telemark/useProgress';
 import {
-  getLessonsForUnit,
-  getUnitBySlug,
-} from '@site/src/telemark/curriculum';
+  getAnyLessonsForUnit,
+  getAnyUnitBySlug,
+} from '@site/src/telemark/tracks';
 import MarkUnitComplete from './MarkUnitComplete';
 import styles from './UnitOverview.module.css';
 
@@ -16,8 +16,8 @@ interface UnitOverviewProps {
 export default function UnitOverview({
   unitSlug,
 }: UnitOverviewProps): React.JSX.Element | null {
-  const unit = getUnitBySlug(unitSlug);
-  const lessons = getLessonsForUnit(unitSlug);
+  const unit = getAnyUnitBySlug(unitSlug);
+  const lessons = getAnyLessonsForUnit(unitSlug);
   const { user } = useAuth();
   const { isComplete } = useProgress(user);
 

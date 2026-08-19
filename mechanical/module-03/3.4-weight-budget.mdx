@@ -1,0 +1,128 @@
+---
+id: weight-budget
+title: "Lesson 3.4: Holding the Robot to a Weight Budget"
+sidebar_label: "3.4 · Weight Budget"
+sidebar_position: 4
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import LessonTool from '@site/src/components/mechanical/LessonTool';
+import WeightBudgetCalculator from '@site/src/components/mechanical/WeightBudgetCalculator';
+
+# Lesson 3.4: Holding the Robot to a Weight Budget
+
+---
+
+## Technical Context
+
+FTC does not impose a weight limit, which leads teams to conclude that weight does not matter. It matters constantly, just indirectly.
+
+Weight costs acceleration, raises the torque every lifting mechanism must produce, increases the load on every joint, drains the battery faster, and raises the center of gravity if it lands high. A robot that grew ten pounds without anyone deciding to add them is a robot with worse cycle times and a shorter battery life for no gained capability.
+
+---
+
+## What Weight Actually Costs
+
+**Acceleration.** In a short field, a robot spends most of its driving time accelerating and decelerating, not at top speed. Acceleration is force divided by mass, and the force available is capped by traction, which itself depends on weight. Adding weight adds traction proportionally, so pushing force scales but acceleration does not improve, because the same weight you gained is the mass you now have to accelerate.
+
+**Mechanism loads.** Every pound added to an arm at 18 in from the pivot adds directly to the torque the arm motor must produce, at every angle, for the whole match.
+
+**Battery life.** More mass means more current for the same motion. A robot that browns out in the last thirty seconds of the fourth match of the day usually has a weight problem as well as a battery problem.
+
+**Tipping.** Weight added high raises the center of gravity. Weight added low is nearly free, and is occasionally worth adding deliberately for stability.
+
+:::tip Not all pounds are equal
+A pound at the bottom of the drivetrain is close to free. A pound at the end of an extended arm is expensive in torque, in tipping, and in the structure needed to carry it. When cutting weight, start at the top and at the ends.
+:::
+
+---
+
+## Setting the Budget
+
+The budget is a team decision, derived from strategy. A reasonable process:
+
+1. Estimate the weight of the drivetrain and frame from a previous robot or a rough CAD estimate.
+2. Decide what the scoring mechanisms need to do, and estimate them generously.
+3. Add the fixed items: battery, Control Hub, wiring, fasteners.
+4. Add roughly 10% for the things nobody predicts, because there always are some.
+5. Write the total down and post it where the build team can see it.
+
+Then assign each subsystem a share, and give the subsystem lead responsibility for staying inside it. A number that belongs to somebody gets defended; a number that belongs to everybody gets ignored.
+
+---
+
+## Track It
+
+<LessonTool
+  toolId="weight"
+  bring="Subsystems weighed on a kitchen scale, not estimated."
+  change="The target, and see which subsystem dominates."
+  read="The heaviest band. Cut there first, and hold back roughly 10%."
+>
+  <WeightBudgetCalculator />
+</LessonTool>
+
+Replace the default rows with your robot's actual subsystems, and replace the estimates with measured weights as parts get built. A kitchen scale is entirely adequate and costs less than a single motor.
+
+:::warning Estimates drift upward, never downward
+Every subsystem comes in heavier than estimated, because estimates forget fasteners, wiring, brackets, and the second version of the part that was needed after the first one flexed. Budget for that with the 10% margin rather than discovering it in week eight.
+:::
+
+---
+
+## Where the Weight Actually Is
+
+When teams weigh their robot subsystem by subsystem for the first time, the surprises are consistent:
+
+- **Fasteners and hardware** are heavier in total than anyone guesses. A robot can carry a pound or more of screws, nuts, spacers, and standoffs.
+- **Wiring** is heavier than it looks, especially heavy gauge power wire and the connectors on it.
+- **Over-built brackets** account for a lot. A bracket sized for a load nobody calculated is usually two to three times heavier than it needs to be.
+- **Redundant structure** happens when two subsystems each add their own support for the same load.
+
+The remedy for all four is the same: measure, then look at the largest number first. A 10% cut on the heaviest subsystem saves more than removing a small part entirely.
+
+---
+
+## Cutting Weight Without Losing Stiffness
+
+Recall from Lesson 3.3 that material near the neutral axis of a beam contributes little stiffness. That is what lightening holes exploit: removing material from the middle of a plate or the web of a beam reduces weight substantially while costing relatively little stiffness.
+
+Rules for doing it safely:
+
+- Round every hole and every internal corner, since sharp corners concentrate stress
+- Leave material around fastener locations and at edges
+- Do not lighten a part until you know it is stiffer than it needs to be, which means measuring it first
+- Never lighten a part that is already the flexible one
+
+:::info Official references
+- Confirm current-season rules on robot size, weight, and materials before designing to any target: [FIRST Tech Challenge Game and Season Info](https://www.firstinspires.org/resource-library/ftc/game-and-season-info)
+:::
+
+---
+
+## Fill-in-the-Blank Practice
+
+1. Weight added at the end of an extended arm is expensive because it directly increases the `__________` the arm motor must produce.
+2. A weight budget should reserve roughly `__________` percent for unpredicted additions.
+3. Lightening holes work because material near the `__________` axis of a beam contributes little to stiffness.
+
+<details>
+<summary>Show answers</summary>
+
+1. **torque**
+2. **10**
+3. **neutral**
+
+</details>
+
+---
+
+## Exercise
+
+Weigh your robot's subsystems individually on a kitchen scale and enter the real numbers into the calculator above. Compare against whatever the team estimated. The gap between estimate and measurement is the number worth writing in the notebook.
+
+<MarkComplete
+  lessonId="module-03/weight-budget"
+  nextUnit="/mechanical/module-03/mastery-quiz"
+  nextUnitName="Module 3 Mastery Quiz: Materials and Structure"
+/>

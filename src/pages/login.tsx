@@ -26,7 +26,7 @@ export default function LoginPage(): React.JSX.Element {
   }
 
   return (
-    <Layout title="Sign In — Telemark" noFooter>
+    <Layout title="Sign In · Telemark" noFooter>
 
       <main className={styles.page}>
         <div className={styles.card}>

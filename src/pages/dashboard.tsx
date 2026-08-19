@@ -6,7 +6,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../telemark/firebase';
 import { useAuth } from '../telemark/useAuth';
 import { useProgress } from '../telemark/useProgress';
-import { CURRICULUM_LESSONS, CURRICULUM_UNITS } from '../telemark/curriculum';
+import { getTrack, TRACKS, type TrackId } from '../telemark/tracks';
 import styles from './dashboard.module.css';
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -25,6 +25,7 @@ export default function DashboardPage(): React.JSX.Element {
     unmarkMany,
   } = useProgress(user);
   const history                    = useHistory();
+  const [activeTrack, setActiveTrack] = useState<TrackId>('software');
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [savingUnit, setSavingUnit] = useState<string | null>(null);
@@ -38,22 +39,26 @@ export default function DashboardPage(): React.JSX.Element {
     }
   }, [user, loading, history]);
 
-  const handled    = CURRICULUM_LESSONS.filter((lesson) => isComplete(lesson.id)).length;
-  const skipped    = CURRICULUM_LESSONS.filter((lesson) => isSkipped(lesson.id)).length;
+  const track = getTrack(activeTrack);
+  const trackLessons = track.lessons;
+  const trackUnits = track.units;
+
+  const handled    = trackLessons.filter((lesson) => isComplete(lesson.id)).length;
+  const skipped    = trackLessons.filter((lesson) => isSkipped(lesson.id)).length;
   const completed  = handled - skipped;
-  const total      = CURRICULUM_LESSONS.length;
+  const total      = trackLessons.length;
   const percentage = Math.round((handled / total) * 100);
   const lastOpenLesson = progress?.lastLesson
-    ? CURRICULUM_LESSONS.find(
+    ? trackLessons.find(
         (lesson) => lesson.id === progress.lastLesson && !isComplete(lesson.id),
       )
     : undefined;
   const nextLesson = lastOpenLesson
-    ?? CURRICULUM_LESSONS.find((lesson) => !isComplete(lesson.id));
-  const fallbackUnit = CURRICULUM_UNITS[CURRICULUM_UNITS.length - 1];
+    ?? trackLessons.find((lesson) => !isComplete(lesson.id));
+  const fallbackUnit = trackUnits[trackUnits.length - 1];
   const units = useMemo(() => {
-    return CURRICULUM_UNITS.map((unit) => {
-      const lessons = CURRICULUM_LESSONS.filter((lesson) => lesson.unitSlug === unit.slug);
+    return trackUnits.map((unit) => {
+      const lessons = trackLessons.filter((lesson) => lesson.unitSlug === unit.slug);
       const completedCount = lessons.filter((lesson) => isComplete(lesson.id)).length;
       const skippedCount = lessons.filter((lesson) => isSkipped(lesson.id)).length;
       const reviewing = isReviewingUnit(unit.slug);
@@ -79,7 +84,7 @@ export default function DashboardPage(): React.JSX.Element {
         unitNextLesson,
       };
     });
-  }, [isComplete, isSkipped, isReviewingUnit]);
+  }, [isComplete, isSkipped, isReviewingUnit, trackUnits, trackLessons]);
 
   useEffect(() => {
     if (!openActionMenu) return undefined;
@@ -163,7 +168,7 @@ export default function DashboardPage(): React.JSX.Element {
 
   if (loading || progressLoading || !user || !progress) {
     return (
-      <Layout title="Dashboard — Telemark" noFooter>
+      <Layout title="Dashboard · Telemark" noFooter>
         <main className={styles.page}>
           <div className={styles.loading}>
             <span className={styles.loadingText}>Loading your curriculum progress...</span>
@@ -174,7 +179,7 @@ export default function DashboardPage(): React.JSX.Element {
   }
 
   return (
-    <Layout title="Dashboard — Telemark" noFooter>
+    <Layout title="Dashboard · Telemark" noFooter>
 
       <main className={styles.page}>
         <div className={styles.content}>
@@ -198,6 +203,31 @@ export default function DashboardPage(): React.JSX.Element {
                 Sign Out
               </button>
             </div>
+          </div>
+
+          {/* ── Track switcher ── */}
+          <div className={styles.trackSwitcher} role="group" aria-label="Choose a track">
+            {TRACKS.map((option) => {
+              const optionHandled = option.lessons.filter((lesson) =>
+                isComplete(lesson.id),
+              ).length;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`${styles.trackTab} ${
+                    activeTrack === option.id ? styles.trackTabActive : ''
+                  }`}
+                  aria-pressed={activeTrack === option.id}
+                  onClick={() => setActiveTrack(option.id)}
+                >
+                  <span className={styles.trackTabName}>{option.shortLabel}</span>
+                  <span className={styles.trackTabMeta}>
+                    {optionHandled} / {option.lessons.length}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {/* ── Progress overview ── */}
@@ -224,7 +254,9 @@ export default function DashboardPage(): React.JSX.Element {
           <div className={styles.progressSection}>
             <div className={styles.progressHeader}>
               <span className={styles.progressLabel}>
-                {CURRICULUM_UNITS.length} live units · {total} lessons
+                {trackUnits.length}{' '}
+                {activeTrack === 'mechanical' ? 'modules' : 'live units'} ·{' '}
+                {total} lessons
               </span>
               <span className={styles.progressPct}>{percentage}%</span>
             </div>

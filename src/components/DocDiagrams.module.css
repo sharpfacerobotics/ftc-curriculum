@@ -1,17 +1,17 @@
 .diagram {
   margin: 1.5rem 0;
   padding: 1rem;
-  border: 1px solid rgba(34, 211, 238, 0.18);
-  border-radius: 16px 22px 15px 24px;
-  background: #080d13;
-  color: #effbff;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-1);
+  color: var(--tm-text-strong);
 }
 
 .title {
   margin: 0 0 0.85rem;
-  color: #22d3ee;
+  color: var(--tm-accent);
   font-family: "Share Tech Mono", monospace;
-  font-size: 0.78rem;
+  font-size: var(--tm-fs-xs);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -28,19 +28,19 @@
   position: relative;
   min-height: 88px;
   padding: 0.85rem;
-  border: 1px solid rgba(34, 211, 238, 0.18);
-  border-radius: 13px 17px 12px 19px;
-  background: #0d151e;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-3);
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .node:nth-child(even) {
-  border-radius: 18px 12px 20px 14px;
+  border-radius: var(--tm-r-hand-alt);
   transform: translateY(3px);
 }
 
 .node:hover {
-  border-color: rgba(34, 211, 238, 0.42);
+  border-color: var(--tm-border-strong);
   transform: translateY(-2px) rotate(-0.2deg);
 }
 
@@ -51,7 +51,7 @@
   top: 50%;
   width: 0.5rem;
   height: 1px;
-  background: rgba(34, 211, 238, 0.55);
+  background: var(--tm-accent-a55);
 }
 
 .node:last-child::after {
@@ -60,9 +60,9 @@
 
 .node strong {
   display: block;
-  color: #effbff;
+  color: var(--tm-text-strong);
   font-family: "Rajdhani", sans-serif;
-  font-size: 1.05rem;
+  font-size: var(--tm-fs-md);
   line-height: 1.1;
 }
 
@@ -70,7 +70,7 @@
   display: block;
   margin-top: 0.4rem;
   color: rgba(232, 244, 255, 0.62);
-  font-size: 0.82rem;
+  font-size: var(--tm-fs-sm);
   line-height: 1.35;
 }
 
@@ -82,11 +82,11 @@
   height: 1.8rem;
   margin-bottom: 0.55rem;
   border: 1px solid rgba(96, 165, 250, 0.4);
-  border-radius: 999px;
-  color: #60a5fa;
-  background: rgba(96, 165, 250, 0.08);
+  border-radius: var(--tm-r-lg);
+  color: var(--tm-blue-soft);
+  background: var(--tm-blue-a10);
   font-family: "Share Tech Mono", monospace;
-  font-size: 0.8rem;
+  font-size: var(--tm-fs-sm);
 }
 
 .modeGrid {
@@ -97,22 +97,22 @@
 
 .modeCard {
   padding: 1rem;
-  border: 1px solid rgba(34, 211, 238, 0.18);
-  border-radius: 14px 19px 13px 20px;
-  background: #0d151e;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-3);
 }
 
 .modeCard h4 {
   margin: 0 0 0.65rem;
-  color: #22d3ee;
+  color: var(--tm-accent);
   font-family: "Share Tech Mono", monospace;
-  font-size: 0.76rem;
+  font-size: var(--tm-fs-xs);
 }
 
 .modeCard p {
   margin: 0;
   color: rgba(232, 244, 255, 0.72);
-  font-size: 0.88rem;
+  font-size: var(--tm-fs-sm);
   line-height: 1.45;
 }
 
@@ -131,7 +131,7 @@
 .caption {
   margin: 0.85rem 0 0;
   color: rgba(232, 244, 255, 0.58);
-  font-size: 0.86rem;
+  font-size: var(--tm-fs-sm);
   line-height: 1.45;
 }
 

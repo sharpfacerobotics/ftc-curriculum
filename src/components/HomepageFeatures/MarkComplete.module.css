@@ -3,9 +3,9 @@
 /* ── Idle / not signed in ────────────────────────────────── */
 .completeBox {
   margin: 3rem 0 1rem;
-  border: 1px solid rgba(34, 211, 238, 0.2);
-  border-radius: 17px 23px 16px 25px;
-  background: #0b1118;
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-2);
   padding: 1.75rem 2rem;
   position: relative;
 }
@@ -16,7 +16,7 @@
   top: 14px; left: 16px;
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: #22d3ee;
+  background: var(--tm-accent);
 }
 
 .completeBox::after {
@@ -25,7 +25,7 @@
   bottom: 14px; right: 18px;
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: #60a5fa;
+  background: var(--tm-blue-soft);
 }
 
 .completeInner {
@@ -39,16 +39,16 @@
 .completeText { flex: 1; }
 
 .completeTitle {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--tm-font-display);
   font-weight: 700;
-  font-size: 18px;
-  color: #effbff;
+  font-size: var(--tm-fs-md);
+  color: var(--tm-text-strong);
   margin: 0 0 6px;
 }
 
 .completeDesc {
-  font-size: 13px;
-  color: rgba(232, 244, 255, 0.5);
+  font-size: var(--tm-fs-sm);
+  color: var(--tm-text-muted);
   margin: 0;
   line-height: 1.6;
 }
@@ -62,44 +62,44 @@
 
 /* ── Buttons ─────────────────────────────────────────────── */
 .signInBtn {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--tm-font-display);
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--tm-fs-sm);
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 12px 24px;
-  background: #22d3ee;
-  color: #041014;
+  background: var(--tm-accent);
+  color: var(--tm-bg);
   border: none;
-  border-radius: 11px 15px 11px 17px;
+  border-radius: var(--tm-r-hand);
   cursor: pointer;
   white-space: nowrap;
   transition: background-color 0.2s, transform 0.2s;
 }
 
 .signInBtn:hover {
-  background: #60a5fa;
+  background: var(--tm-blue-soft);
   transform: translateY(-1px);
 }
 
 .completeBtn {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 10px 22px;
   background: transparent;
-  color: rgba(232, 244, 255, 0.5);
+  color: var(--tm-text-muted);
   border: 1px solid rgba(232, 244, 255, 0.2);
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   cursor: pointer;
   white-space: nowrap;
   transition: border-color 0.2s, color 0.2s;
 }
 
 .completeBtn:hover:not(:disabled) {
-  border-color: rgba(232, 244, 255, 0.5);
-  color: #e8f4ff;
+  border-color: var(--tm-text-muted);
+  color: var(--tm-text-strong);
 }
 
 .completeBtn:disabled {
@@ -109,20 +109,20 @@
 
 /* When signed in, the primary button gets the cyan treatment */
 .completeBox:not(:has(.signInBtn)) .completeBtn {
-  color: #22d3ee;
-  border-color: #22d3ee;
+  color: var(--tm-accent);
+  border-color: var(--tm-accent);
 }
 
 .completeBox:not(:has(.signInBtn)) .completeBtn:hover:not(:disabled) {
-  background: rgba(34, 211, 238, 0.1);
+  background: var(--tm-accent-a12);
 }
 
 /* ── Success state ────────────────────────────────────────── */
 .successBox {
   margin: 3rem 0 1rem;
   border: 1px solid rgba(96, 165, 250, 0.28);
-  border-radius: 19px 25px 17px 27px;
-  background: #0b1118;
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-2);
   padding: 1.75rem 2rem;
   position: relative;
 }
@@ -133,7 +133,7 @@
   top: 14px; left: 16px;
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: #60a5fa;
+  background: var(--tm-blue-soft);
 }
 
 .successBox::after {
@@ -142,7 +142,7 @@
   bottom: 14px; right: 18px;
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: #22d3ee;
+  background: var(--tm-accent);
 }
 
 .successHeader {
@@ -154,32 +154,32 @@
 }
 
 .successIcon {
-  font-size: 16px;
-  color: #60a5fa;
+  font-size: var(--tm-fs-md);
+  color: var(--tm-blue-soft);
   font-family: monospace;
 }
 
 .successTitle {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--tm-font-display);
   font-weight: 700;
-  font-size: 18px;
-  color: #60a5fa;
+  font-size: var(--tm-fs-md);
+  color: var(--tm-blue-soft);
 }
 
 .savedBadge {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--tm-font-label);
   font-size: 10px;
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 3px 10px;
-  background: rgba(96, 165, 250, 0.1);
-  border: 1px solid rgba(96, 165, 250, 0.3);
-  color: #60a5fa;
-  border-radius: 999px;
+  background: var(--tm-blue-a10);
+  border: 1px solid var(--tm-blue-a32);
+  color: var(--tm-blue-soft);
+  border-radius: var(--tm-r-lg);
 }
 
 .successMsg {
-  font-size: 13px;
+  font-size: var(--tm-fs-sm);
   color: rgba(232, 244, 255, 0.55);
   margin: 0 0 1.25rem;
   line-height: 1.6;
@@ -187,24 +187,24 @@
 
 .nextBtn {
   display: inline-block;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 12px;
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 12px 28px;
-  background: #22d3ee;
-  border-radius: 11px 15px 11px 17px;
-  color: #041014 !important;
+  background: var(--tm-accent);
+  border-radius: var(--tm-r-hand);
+  color: var(--tm-bg) !important;
   text-decoration: none;
   font-weight: 700;
   transition: background-color 0.2s, transform 0.2s;
 }
 
 .nextBtn:hover {
-  background: #60a5fa;
+  background: var(--tm-blue-soft);
   transform: translateY(-1px);
   text-decoration: none;
-  color: #041014;
+  color: var(--tm-bg);
 }
 
 .successActions {
@@ -217,11 +217,11 @@
 .unmarkBtn {
   padding: 10px 18px;
   border: 1px solid rgba(96, 165, 250, 0.36);
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   background: transparent;
   color: #a9cfff;
   cursor: pointer;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--tm-font-label);
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -229,8 +229,8 @@
 }
 
 .unmarkBtn:hover:not(:disabled) {
-  border-color: #22d3ee;
-  background: rgba(34, 211, 238, 0.08);
+  border-color: var(--tm-accent);
+  background: var(--tm-accent-a08);
   color: #edfaff;
 }
 
@@ -240,7 +240,7 @@
 }
 
 .unmarkBtn:focus-visible {
-  outline: 3px solid rgba(34, 211, 238, 0.42);
+  outline: 3px solid var(--tm-border-strong);
   outline-offset: 3px;
 }
 

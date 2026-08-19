@@ -7,15 +7,15 @@ import DocItemLayout from '@theme/DocItem/Layout';
 import DocBreadcrumbs from '@theme/DocBreadcrumbs';
 import ContentLock from '@site/src/components/ContentLock';
 import {useAuth} from '@site/src/telemark/useAuth';
-import {getUnitNumber, isProtectedUnit} from '@site/src/telemark/accessPolicy';
+import {getUnitNumber, getUnitSlug, isProtectedUnit} from '@site/src/telemark/accessPolicy';
 
 export default function DocItem(props: Props): React.JSX.Element {
   const {user, loading} = useAuth();
   const docHtmlClassName = `docs-doc-id-${props.content.metadata.id}`;
   const MDXComponent = props.content;
-  const unitNumber = getUnitNumber(
-    props.content.metadata.permalink ?? props.content.metadata.id,
-  );
+  const docPath = props.content.metadata.permalink ?? props.content.metadata.id;
+  const unitNumber = getUnitNumber(docPath);
+  const unitSlug = getUnitSlug(docPath);
   const protectedDocument =
     unitNumber !== null && isProtectedUnit(unitNumber);
 
@@ -28,7 +28,7 @@ export default function DocItem(props: Props): React.JSX.Element {
         {showGate ? (
           <div className="container margin-vert--lg">
             <DocBreadcrumbs />
-            <ContentLock unitNumber={unitNumber} loading={loading} />
+            <ContentLock unitNumber={unitNumber} unitSlug={unitSlug} loading={loading} />
           </div>
         ) : (
           <DocItemLayout>

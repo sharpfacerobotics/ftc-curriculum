@@ -6,6 +6,8 @@ sidebar_position: 6
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import ScoredQuiz from '@site/src/components/mechanical/ScoredQuiz';
+import {SOFTWARE_QUESTIONS} from '@site/src/telemark/softwareQuizzes';
 
 # Unit 9 Mastery Quiz: Servo Control
 
@@ -120,6 +122,17 @@ rightClaw.setPosition(1.0); // ← setPosition, not setPower
 ```
 
 </details>
+
+---
+
+## III. Scored Check
+
+The questions above are for working something through. These are graded, so you can find out whether it stuck. Everything is scored in your browser.
+
+<ScoredQuiz
+  lessonId="unit-09/mastery-quiz"
+  questions={SOFTWARE_QUESTIONS['unit-09']}
+/>
 
 <MarkComplete
   lessonId="unit-09/mastery-quiz"

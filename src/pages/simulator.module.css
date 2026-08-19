@@ -2,8 +2,8 @@
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  background: #05080d;
-  color: #eaf8ff;
+  background: var(--tm-bg);
+  color: var(--tm-text-strong);
   font-family: var(--telemark-font-body);
 }
 
@@ -20,7 +20,7 @@
   width: 22rem;
   height: 17rem;
   border-radius: 62% 38% 54% 46% / 45% 58% 42% 55%;
-  background: rgba(34, 211, 238, 0.07);
+  background: var(--tm-accent-a08);
   animation: simulator-drift 14s ease-in-out infinite alternate;
 }
 
@@ -44,9 +44,9 @@
 
 .sectionLabel {
   margin: 0 0 0.9rem;
-  color: #22d3ee;
+  color: var(--tm-accent);
   font-family: var(--telemark-font-label);
-  font-size: 0.72rem;
+  font-size: var(--tm-fs-xs);
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -63,7 +63,7 @@
   max-width: 46rem;
   margin: 0 0 2rem;
   color: rgba(234, 248, 255, 0.72);
-  font-size: 1rem;
+  font-size: var(--tm-fs-md);
   line-height: 1.7;
 }
 
@@ -79,14 +79,14 @@
   gap: 0.85rem;
   min-height: 8.5rem;
   padding: 1rem;
-  border: 1px solid rgba(34, 211, 238, 0.18);
-  border-radius: 14px;
-  background: #0b1118;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-2);
   transition: border-color 180ms ease, transform 180ms ease;
 }
 
 .simulatorStep:nth-child(even) {
-  border-radius: 18px 12px 18px 14px;
+  border-radius: var(--tm-r-hand-alt);
 }
 
 .simulatorStep:hover {
@@ -101,24 +101,24 @@
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
-  background: #22d3ee;
+  background: var(--tm-accent);
   color: #041018;
   font-family: var(--telemark-font-label);
-  font-size: 0.75rem;
+  font-size: var(--tm-fs-xs);
   font-weight: 700;
 }
 
 .simulatorStep strong {
   display: block;
-  color: #eaf8ff;
+  color: var(--tm-text-strong);
   font-family: var(--telemark-font-display);
-  font-size: 1.02rem;
+  font-size: var(--tm-fs-md);
 }
 
 .simulatorStep p {
   margin: 0.35rem 0 0;
   color: rgba(234, 248, 255, 0.58);
-  font-size: 0.8rem;
+  font-size: var(--tm-fs-sm);
   line-height: 1.55;
 }
 
@@ -132,20 +132,23 @@
 .simulatorTasks span {
   padding: 0.5rem 0.75rem;
   border: 1px solid rgba(56, 189, 248, 0.22);
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   background: rgba(56, 189, 248, 0.08);
   color: rgba(234, 248, 255, 0.76);
-  font-size: 0.78rem;
+  font-size: var(--tm-fs-xs);
 }
 
 .simulatorLimit {
-  max-width: 52rem;
-  margin: 0 0 2rem;
-  padding-left: 0.9rem;
-  border-left: 3px solid #38bdf8;
-  color: rgba(234, 248, 255, 0.56);
-  font-size: 0.84rem;
-  line-height: 1.6;
+  max-width: 64ch;
+  margin: var(--tm-sp-4) auto;
+  padding: var(--tm-sp-3) var(--tm-sp-4);
+  border: 1px solid var(--tm-border-hair);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-1);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+  text-align: center;
 }
 
 .simulatorToolbar {
@@ -159,13 +162,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.65rem 0.9rem;
-  border: 1px solid rgba(34, 211, 238, 0.5);
-  border-radius: 999px;
-  background: #0b1118;
-  color: #22d3ee;
+  border: 1px solid var(--tm-accent-a55);
+  border-radius: var(--tm-r-lg);
+  background: var(--tm-surface-2);
+  color: var(--tm-accent);
   cursor: pointer;
   font-family: var(--telemark-font-label);
-  font-size: 0.72rem;
+  font-size: var(--tm-fs-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
@@ -173,13 +176,13 @@
 
 .simulatorToolbarButton:hover,
 .simulatorToolbarButton:focus-visible {
-  border-color: #60a5fa;
+  border-color: var(--tm-blue-soft);
   background: rgba(56, 189, 248, 0.12);
   color: #b8efff;
 }
 
 .simulatorToolbarButton:focus-visible {
-  outline: 2px solid #22d3ee;
+  outline: 2px solid var(--tm-accent);
   outline-offset: 3px;
 }
 
@@ -188,8 +191,8 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border: 1px solid rgba(34, 211, 238, 0.32);
-  border-radius: 18px;
+  border: 1px solid var(--tm-border-strong);
+  border-radius: var(--tm-r-lg);
   background: #020407;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
 }
@@ -223,35 +226,35 @@
 .btnSecondary {
   display: inline-block;
   padding: 0.85rem 1.25rem;
-  border-radius: 10px;
+  border-radius: var(--tm-r-sm);
   font-weight: 700;
   text-decoration: none !important;
   transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
 .btnPrimary {
-  border: 1px solid #38bdf8;
-  background: #38bdf8;
-  color: #031019 !important;
+  border: 1px solid var(--tm-blue);
+  background: var(--tm-blue);
+  color: var(--tm-bg) !important;
 }
 
 .btnPrimary:hover {
-  border-color: #60a5fa;
-  background: #60a5fa;
+  border-color: var(--tm-blue-soft);
+  background: var(--tm-blue-soft);
   color: #020b12 !important;
   transform: translateY(-1px);
 }
 
 .btnSecondary {
   border: 1px solid rgba(96, 165, 250, 0.38);
-  background: #0b1118;
+  background: var(--tm-surface-2);
   color: #b9eaff !important;
 }
 
 .btnSecondary:hover {
-  border-color: #22d3ee;
-  background: rgba(34, 211, 238, 0.09);
-  color: #eaf8ff !important;
+  border-color: var(--tm-accent);
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-strong) !important;
   transform: translateY(-1px);
 }
 
@@ -300,4 +303,81 @@
   .btnSecondary:hover {
     transform: none;
   }
+}
+
+/* ── Bench and tool tabs ─────────────────────────────────────────────────
+   The page holds two benches: the Java simulator and the design calculators.
+   Tabs rather than two pages, because they are the same kind of thing. */
+.benchTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tm-sp-2);
+  justify-content: center;
+  margin: var(--tm-sp-5) 0 var(--tm-sp-4);
+}
+
+.benchTab {
+  padding: var(--tm-sp-2) var(--tm-sp-5);
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-pill);
+  background: transparent;
+  color: var(--tm-text-muted);
+  cursor: pointer;
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color var(--tm-dur) var(--tm-ease),
+              background var(--tm-dur) var(--tm-ease),
+              color var(--tm-dur) var(--tm-ease);
+}
+
+.benchTab:hover { border-color: var(--tm-border-strong); color: var(--tm-text-strong); }
+
+.benchTabActive {
+  border-color: var(--tm-accent-a55);
+  background: var(--tm-accent-a12);
+  color: var(--tm-text-strong);
+}
+
+.toolTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tm-sp-2);
+  justify-content: center;
+  margin: var(--tm-sp-5) 0 var(--tm-sp-3);
+}
+
+.toolTab {
+  padding: 6px 14px;
+  border: 1px solid var(--tm-border-quiet);
+  border-radius: var(--tm-r-pill);
+  background: transparent;
+  color: var(--tm-text-muted);
+  cursor: pointer;
+  font-size: var(--tm-fs-xs);
+  transition: border-color var(--tm-dur) var(--tm-ease), color var(--tm-dur) var(--tm-ease);
+}
+
+.toolTab:hover { border-color: var(--tm-border-strong); color: var(--tm-text-strong); }
+
+.toolTabActive {
+  border-color: var(--tm-accent-a55);
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-strong);
+}
+
+.toolBlurb {
+  max-width: 62ch;
+  margin: 0 auto var(--tm-sp-4);
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+  text-align: center;
+}
+
+.toolPanel {
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: left;
 }

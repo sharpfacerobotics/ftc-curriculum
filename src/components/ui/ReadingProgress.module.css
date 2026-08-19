@@ -1,0 +1,18 @@
+.bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 900;
+  height: 2px;
+  border-radius: var(--tm-r-pill);
+  background: linear-gradient(90deg, var(--tm-accent), var(--tm-blue-soft));
+  box-shadow: 0 0 8px var(--tm-accent-a55);
+  transition: width 0.08s linear, opacity var(--tm-dur) var(--tm-ease);
+  pointer-events: none;
+}
+
+.hidden { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bar { transition: none; }
+}

@@ -1,27 +1,39 @@
 import React, {useEffect, useRef, useState} from 'react';
+import Link from '@docusaurus/Link';
 import {signInWithGoogle} from '@site/src/telemark/googleAuth';
 import {trackEvent} from '@site/src/telemark/analytics';
-import {getUnitBySlug} from '@site/src/telemark/curriculum';
+import {getAnyUnitBySlug, trackForUnitSlug} from '@site/src/telemark/tracks';
 import styles from './ContentLock.module.css';
 
 interface ContentLockProps {
   unitNumber?: number;
+  /**
+   * Canonical slug such as 'unit-03' or 'module-07'. Supplied by callers that
+   * know which track the locked page belongs to. Falls back to the software
+   * track when omitted.
+   */
+  unitSlug?: string | null;
   loading?: boolean;
   contentType?: 'lesson' | 'simulator' | 'site';
 }
 
 export default function ContentLock({
   unitNumber,
+  unitSlug: unitSlugProp,
   loading = false,
   contentType = 'lesson',
 }: ContentLockProps): React.JSX.Element {
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const viewTrackedRef = useRef(false);
-  const unitSlug = unitNumber === undefined
-    ? null
-    : `unit-${String(unitNumber).padStart(2, '0')}`;
-  const unit = unitSlug ? getUnitBySlug(unitSlug) : undefined;
+  const unitSlug = unitSlugProp
+    ?? (unitNumber === undefined
+      ? null
+      : `unit-${String(unitNumber).padStart(2, '0')}`);
+  const unit = unitSlug ? getAnyUnitBySlug(unitSlug) : undefined;
+  const track = unitSlug ? trackForUnitSlug(unitSlug) : 'software';
+  const engineering = track === 'mechanical';
+  const unitNoun = engineering ? 'Module' : 'Unit';
   const surface = contentType === 'simulator'
     ? 'simulator_page'
     : contentType === 'site'
@@ -35,12 +47,12 @@ export default function ContentLock({
     ? 'Sign in to use the Telemark Simulator'
     : contentType === 'site'
       ? 'Sign in to access Telemark'
-      : `Sign in to unlock ${unit?.label ?? `Unit ${unitNumber}`}`;
+      : `Sign in to unlock ${unit?.label ?? `${unitNoun} ${unitNumber}`}`;
   const unlockedDescription = contentType === 'simulator'
     ? 'The complete simulator library is included with your free Telemark account. Sign in to write, run, and debug FTC Java in your browser.'
     : contentType === 'site'
       ? 'This page is included with your free Telemark account. Sign in with Google to continue.'
-      : `${unit?.title ?? 'This curriculum unit'} is included with your free Telemark account. Sign in to continue and save lesson progress across devices.`;
+      : `${unit?.title ?? 'This lesson'} is included with your free Telemark account. Sign in to continue and save lesson progress across devices.`;
 
   useEffect(() => {
     if (loading || viewTrackedRef.current) return;
@@ -102,8 +114,20 @@ export default function ContentLock({
       {!loading && (
         <>
           <div className={styles.benefits}>
-            <span>Unlock Units 1-15</span>
-            <span>Use every simulator</span>
+            <span>
+              {contentType === 'site'
+                ? 'Unlock both tracks'
+                : engineering
+                  ? 'Unlock Modules 1-11'
+                  : 'Unlock Units 1-15'}
+            </span>
+            <span>
+              {contentType === 'site'
+                ? 'Simulators and design calculators'
+                : engineering
+                  ? 'Use every design calculator'
+                  : 'Use every simulator'}
+            </span>
             <span>Track completed lessons</span>
           </div>
 
@@ -120,6 +144,14 @@ export default function ContentLock({
           <p className={styles.trialNote}>
             The home page and its demo simulators remain available without an account.
           </p>
+
+          {/* A locked page replaces the whole app shell, navbar included, so
+              without these it is a dead end reachable only by the back button. */}
+          <nav className={styles.escapeHatch} aria-label="Go elsewhere">
+            <Link to="/">Home</Link>
+            <Link to="/docs/unit-00/classes-and-objects">Free software lesson</Link>
+            <Link to="/mechanical/module-00/design-cycle">Free engineering lesson</Link>
+          </nav>
         </>
       )}
     </section>

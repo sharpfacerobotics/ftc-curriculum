@@ -1,6 +1,6 @@
 .hero {
-  border: 1px solid rgba(34, 211, 238, 0.22);
-  border-radius: 20px 16px 24px 16px;
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-hand-alt);
   background: #071019;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
   padding: 2rem;
@@ -17,7 +17,7 @@
   width: 13rem;
   height: 11rem;
   border-radius: 58% 42% 52% 48% / 43% 61% 39% 57%;
-  background: rgba(34, 211, 238, 0.06);
+  background: var(--tm-accent-a08);
   animation: overview-drift 12s ease-in-out infinite alternate;
 }
 
@@ -27,11 +27,11 @@
 }
 
 .eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-family: var(--tm-font-mono);
+  font-size: var(--tm-fs-xs);
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #22d3ee;
+  color: var(--tm-accent);
   margin-bottom: 0.75rem;
 }
 
@@ -65,11 +65,11 @@
   align-self: flex-start;
   padding: 0.45rem 0.85rem;
   border: 1px solid rgba(96, 165, 250, 0.4);
-  border-radius: 999px;
-  background: rgba(96, 165, 250, 0.1);
+  border-radius: var(--tm-r-lg);
+  background: var(--tm-blue-a10);
   color: #9ec5ff;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-family: var(--tm-font-mono);
+  font-size: var(--tm-fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -82,43 +82,43 @@
 }
 
 .stat {
-  border: 1px solid rgba(34, 211, 238, 0.15);
-  border-radius: 12px;
-  background: #0b1118;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-2);
   padding: 1rem 1.1rem;
 }
 
 .statValue {
   display: block;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 2rem;
+  font-family: var(--tm-font-display);
+  font-size: var(--tm-fs-2xl);
   font-weight: 700;
-  color: #e8f4ff;
+  color: var(--tm-text-strong);
   line-height: 1;
 }
 
 .statLabel {
   display: block;
   margin-top: 0.45rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
+  font-family: var(--tm-font-mono);
+  font-size: var(--tm-fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: rgba(232, 244, 255, 0.5);
+  color: var(--tm-text-muted);
 }
 
 .progressTrack {
   margin-top: 1rem;
   height: 6px;
-  border-radius: 999px;
-  background: rgba(34, 211, 238, 0.12);
+  border-radius: var(--tm-r-lg);
+  background: var(--tm-accent-a12);
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
   border-radius: inherit;
-  background: #22d3ee;
+  background: var(--tm-accent);
   transition: width 300ms ease;
 }
 
@@ -138,11 +138,11 @@
 
 .primaryAction {
   padding: 0.85rem 1.2rem;
-  border: 1px solid #38bdf8;
-  border-radius: 10px;
-  background: #38bdf8;
-  color: #031019 !important;
-  font-family: 'Rajdhani', sans-serif;
+  border: 1px solid var(--tm-border-hair);
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-blue);
+  color: var(--tm-bg) !important;
+  font-family: var(--tm-font-display);
   font-weight: 700;
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
@@ -150,31 +150,31 @@
 .secondaryAction {
   padding: 0.8rem 1.15rem;
   border: 1px solid rgba(96, 165, 250, 0.36);
-  border-radius: 10px;
-  background: #0b1118;
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-surface-2);
   color: rgba(232, 244, 255, 0.78) !important;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.82rem;
+  font-family: var(--tm-font-mono);
+  font-size: var(--tm-fs-sm);
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .primaryAction:hover,
 .primaryAction:focus-visible {
-  border-color: #60a5fa;
-  background: #60a5fa;
+  border-color: var(--tm-blue-soft);
+  background: var(--tm-blue-soft);
   transform: translateY(-1px);
 }
 
 .secondaryAction:hover,
 .secondaryAction:focus-visible {
-  border-color: #22d3ee;
-  background: rgba(34, 211, 238, 0.08);
+  border-color: var(--tm-accent);
+  background: var(--tm-accent-a08);
   transform: translateY(-1px);
 }
 
 .primaryAction:focus-visible,
 .secondaryAction:focus-visible {
-  outline: 2px solid #22d3ee;
+  outline: 2px solid var(--tm-accent);
   outline-offset: 3px;
 }
 
@@ -186,16 +186,16 @@
 }
 
 .panel {
-  border: 1px solid rgba(34, 211, 238, 0.15);
-  border-radius: 16px;
-  background: #0b1118;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-lg);
+  background: var(--tm-surface-2);
   padding: 1.35rem;
 }
 
 .panelTitle {
   margin: 0 0 1rem;
-  font-size: 1.1rem;
-  color: #e8f4ff;
+  font-size: var(--tm-fs-md);
+  color: var(--tm-text-strong);
 }
 
 .lessonList,
@@ -210,8 +210,8 @@
   gap: 0.9rem;
   align-items: center;
   padding: 0.9rem 1rem;
-  border: 1px solid rgba(34, 211, 238, 0.1);
-  border-radius: 11px;
+  border: 1px solid var(--tm-accent-a12);
+  border-radius: var(--tm-r-md);
   background: #0d1721;
   text-decoration: none !important;
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
@@ -228,16 +228,16 @@
   height: 2rem;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(34, 211, 238, 0.28);
+  border: 1px solid var(--tm-border-strong);
   border-radius: 50%;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.74rem;
-  color: #22d3ee;
+  font-family: var(--tm-font-mono);
+  font-size: var(--tm-fs-xs);
+  color: var(--tm-accent);
 }
 
 .lessonCardDone .lessonIndex {
-  border-color: rgba(96, 165, 250, 0.48);
-  color: #60a5fa;
+  border-color: var(--tm-blue-a32);
+  color: var(--tm-blue-soft);
 }
 
 .lessonText {
@@ -246,7 +246,7 @@
 
 .lessonLabel {
   display: block;
-  color: #e8f4ff;
+  color: var(--tm-text-strong);
   font-weight: 600;
 }
 
@@ -254,20 +254,20 @@
   display: block;
   margin-top: 0.18rem;
   color: rgba(232, 244, 255, 0.56);
-  font-size: 0.92rem;
+  font-size: var(--tm-fs-base);
   line-height: 1.45;
 }
 
 .lessonStatus {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-family: var(--tm-font-mono);
+  font-size: var(--tm-fs-2xs);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba(232, 244, 255, 0.42);
 }
 
 .lessonCardDone .lessonStatus {
-  color: #60a5fa;
+  color: var(--tm-blue-soft);
 }
 
 .outcomeItem {
@@ -285,14 +285,15 @@
   width: 0.35rem;
   height: 0.35rem;
   border-radius: 50%;
-  background: #22d3ee;
+  background: var(--tm-accent);
 }
 
 .coachNote {
   margin-top: 1rem;
   padding: 0.9rem 1rem;
-  border-left: 3px solid #38bdf8;
-  border-radius: 0 10px 10px 0;
+  border: 1px solid var(--tm-border-hair);
+  background: var(--tm-blue-a10);
+  border-radius: 10px;
   background: rgba(56, 189, 248, 0.08);
   color: rgba(232, 244, 255, 0.74);
   line-height: 1.6;

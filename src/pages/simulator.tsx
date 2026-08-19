@@ -1,13 +1,57 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import pageStyles from './simulator.module.css';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
+import ToolWorkbench from '../components/mechanical/ToolWorkbench';
+import {TOOL_CATALOG} from '../components/mechanical/toolCatalog';
+
+type Bench = 'software' | 'mechanical';
+
+/**
+ * Every interactive tool on the site, in one place.
+ *
+ * The page used to hold only the Java simulator, which meant a student on the
+ * mechanical track had no reason to open it. Both benches now live here under
+ * the same shell, matching how the two tracks are presented everywhere else.
+ */
+
+const MECHANICAL_STEPS = [
+  ['1', 'Bring real numbers', 'Weigh the arm, measure the wheel, read the motor spec page.'],
+  ['2', 'Enter the design', 'Type what you intend to build, not what you wish were true.'],
+  ['3', 'Read the verdict', 'The drawing and the safety factor say whether it works.'],
+  ['4', 'Change one thing', 'Adjust a ratio, a length, or a spool, and watch what moves.'],
+] as const;
+
+function MechanicalWorkflow(): React.JSX.Element {
+  return (
+    <div className={pageStyles.simulatorWorkflow} aria-label="Calculator workflow">
+      {MECHANICAL_STEPS.map(([number, title, description]) => (
+        <div className={pageStyles.simulatorStep} key={number}>
+          <span>{number}</span>
+          <div>
+            <strong>{title}</strong>
+            <p>{description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function SimulatorPage(): React.JSX.Element {
+  const [bench, setBench] = useState<Bench>(() => {
+    if (typeof window === 'undefined') return 'software';
+    // Arriving from a lesson's "open in the workbench" link lands on the
+    // calculators, not on the Java simulator.
+    return TOOL_CATALOG.some((t) => t.id === window.location.hash.replace('#', ''))
+      ? 'mechanical'
+      : 'software';
+  });
+
   return (
-    <Layout title="Simulator — Telemark" noFooter>
+    <Layout title="Tools · Telemark" noFooter>
       <link
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         rel="stylesheet"
@@ -15,37 +59,82 @@ export default function SimulatorPage(): React.JSX.Element {
 
       <main className={pageStyles.lp}>
         <section className={pageStyles.section}>
-          <p className={pageStyles.sectionLabel}>// simulator.live[]</p>
-          <h1 className={pageStyles.sectionTitle}>Telemark Simulator</h1>
+          <p className={pageStyles.sectionLabel}>// tools.live[]</p>
+          <h1 className={pageStyles.sectionTitle}>Telemark Tools</h1>
           <p className={pageStyles.sectionDesc}>
-            Write Java, run the same Init and Start sequence used in FTC, then
-            compare telemetry, requirements, and robot behavior as you debug.
-          </p>
-          <SimulatorWorkflow
-            className={pageStyles.simulatorWorkflow}
-            itemClassName={pageStyles.simulatorStep}
-            taskClassName={pageStyles.simulatorTasks}
-          />
-          <p className={pageStyles.simulatorLimit}>
-            Simulation checks code and modeled behavior. Use a physical robot
-            to verify wiring, motor direction, traction, and final tuning.
+            The Java simulator for code you can run, and {TOOL_CATALOG.length}{' '}
+            design calculators for the numbers you need before anything is cut.
           </p>
 
-          <AuthenticatedSimulatorNavigator
-            simulatorId="simulator_page_navigator"
-            wrapperClassName={pageStyles.simulatorWrapper}
-            toolbarClassName={pageStyles.simulatorToolbar}
-            toolbarButtonClassName={pageStyles.simulatorToolbarButton}
-          />
-
-          <div className={pageStyles.heroActions}>
-            <Link to="/curriculum" className={pageStyles.btnSecondary}>
-              View Curriculum
-            </Link>
-            <Link to="/docs/unit-00/classes-and-objects" className={pageStyles.btnPrimary}>
-              Begin Unit 0
-            </Link>
+          <div className={pageStyles.benchTabs} role="tablist" aria-label="Choose a bench">
+            {([
+              ['software', 'Java simulator'],
+              ['mechanical', 'Design calculators'],
+            ] as [Bench, string][]).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={bench === id}
+                className={`${pageStyles.benchTab} ${bench === id ? pageStyles.benchTabActive : ''}`}
+                onClick={() => setBench(id)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
+
+          {bench === 'software' ? (
+            <>
+              <SimulatorWorkflow
+                className={pageStyles.simulatorWorkflow}
+                itemClassName={pageStyles.simulatorStep}
+                taskClassName={pageStyles.simulatorTasks}
+              />
+              <p className={pageStyles.simulatorLimit}>
+                Simulation checks code and modeled behavior. Use a physical
+                robot to verify wiring, motor direction, traction, and final
+                tuning.
+              </p>
+
+              <AuthenticatedSimulatorNavigator
+                simulatorId="simulator_page_navigator"
+                wrapperClassName={pageStyles.simulatorWrapper}
+                toolbarClassName={pageStyles.simulatorToolbar}
+                toolbarButtonClassName={pageStyles.simulatorToolbarButton}
+              />
+
+              <div className={pageStyles.heroActions}>
+                <Link to="/docs" className={pageStyles.btnSecondary}>
+                  Software track
+                </Link>
+                <Link to="/docs/unit-00/classes-and-objects" className={pageStyles.btnPrimary}>
+                  Begin Unit 0
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <MechanicalWorkflow />
+
+              <ToolWorkbench />
+
+              <p className={pageStyles.simulatorLimit}>
+                A calculator checks the arithmetic behind a design. It cannot
+                tell you whether the mechanism grips the game element, which is
+                what a prototype is for.
+              </p>
+
+              <div className={pageStyles.heroActions}>
+                <Link to="/mechanical" className={pageStyles.btnSecondary}>
+                  Mechanical track
+                </Link>
+                <Link to="/mechanical/module-00/design-cycle" className={pageStyles.btnPrimary}>
+                  Begin Module 0
+                </Link>
+              </div>
+            </>
+          )}
         </section>
       </main>
     </Layout>

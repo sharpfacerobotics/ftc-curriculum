@@ -12,7 +12,9 @@ export type AnalyticsEventName =
   | 'content_lock_view'
   | 'content_unlock_attempt'
   | 'content_unlock_success'
-  | 'simulator_gate_request';
+  | 'simulator_gate_request'
+  | 'quiz_graded'
+  | 'calculator_used';
 
 type AnalyticsParameters = Record<string, string | number | boolean>;
 

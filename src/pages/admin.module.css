@@ -1,19 +1,11 @@
 .page {
-  --page-black: #05080d;
-  --page-surface: #0b1118;
-  --page-surface-raised: #101a25;
-  --page-blue: #60a5fa;
-  --page-aqua: #22d3ee;
-  --page-text: #edf8ff;
-  --page-muted: rgba(222, 239, 252, 0.62);
-  --page-border: rgba(34, 211, 238, 0.2);
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--page-black);
-  color: var(--page-text);
+  background: var(--tm-bg);
+  color: var(--tm-text-strong);
   color-scheme: dark;
   font-family: 'Exo 2', system-ui, sans-serif;
-  scrollbar-color: var(--page-aqua) var(--page-black);
+  scrollbar-color: var(--tm-accent) var(--tm-bg);
   scrollbar-width: thin;
 }
 
@@ -24,7 +16,7 @@
 }
 
 .page * {
-  scrollbar-color: var(--page-aqua) var(--page-black);
+  scrollbar-color: var(--tm-accent) var(--tm-bg);
   scrollbar-width: thin;
 }
 
@@ -36,14 +28,14 @@
 
 .page::-webkit-scrollbar-track,
 .page *::-webkit-scrollbar-track {
-  background: var(--page-black);
+  background: var(--tm-bg);
 }
 
 .page::-webkit-scrollbar-thumb,
 .page *::-webkit-scrollbar-thumb {
-  border: 2px solid var(--page-black);
-  border-radius: 999px;
-  background: var(--page-aqua);
+  border: 2px solid var(--tm-bg);
+  border-radius: var(--tm-r-lg);
+  background: var(--tm-accent);
 }
 
 .content {
@@ -57,9 +49,9 @@
 .loginCard {
   margin: 15vh auto 0;
   width: min(440px, calc(100% - 2rem));
-  border: 1px solid var(--page-border);
-  border-radius: 28px 14px 24px 16px;
-  background: var(--page-surface);
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-hand-alt);
+  background: var(--tm-surface-2);
   padding: 2.5rem;
   text-align: center;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
@@ -76,15 +68,15 @@
 }
 
 .loginCard p:not(.eyebrow):not(.errorText) {
-  color: var(--page-muted);
+  color: var(--tm-text-soft);
   line-height: 1.65;
   margin: 1rem 0 1.75rem;
 }
 
 .eyebrow {
   margin: 0 0 0.65rem;
-  color: var(--page-aqua);
-  font: 0.72rem/1.2 'Share Tech Mono', monospace;
+  color: var(--tm-accent);
+  font: 0.72rem/1.2 var(--tm-font-label);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -93,7 +85,7 @@
 .secondaryButton,
 .errorBanner button {
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   cursor: pointer;
   font: 700 0.8rem/1 'Exo 2', system-ui, sans-serif;
   letter-spacing: 0.04em;
@@ -107,7 +99,7 @@
   justify-content: center;
   gap: 0.7rem;
   padding: 0.95rem 1rem;
-  background: #fff;
+  background: var(--tm-text-strong);
   color: #10151c;
 }
 
@@ -115,7 +107,7 @@
   padding: 0.8rem 1.1rem;
   background: transparent;
   border: 1px solid rgba(96, 165, 250, 0.42);
-  color: var(--page-text);
+  color: var(--tm-text-strong);
 }
 
 .googleButton:hover,
@@ -125,21 +117,21 @@
 }
 
 .secondaryButton:hover {
-  border-color: var(--page-aqua);
-  background: rgba(34, 211, 238, 0.08);
+  border-color: var(--tm-accent);
+  background: var(--tm-accent-a08);
 }
 
 .googleButton:focus-visible,
 .secondaryButton:focus-visible,
 .errorBanner button:focus-visible,
 .rangePicker button:focus-visible {
-  outline: 3px solid rgba(34, 211, 238, 0.45);
+  outline: 3px solid var(--tm-accent-a55);
   outline-offset: 3px;
 }
 
 .errorText {
   color: #ff8da0;
-  font-size: 0.82rem;
+  font-size: var(--tm-fs-sm);
   margin: 1rem 0 0;
 }
 
@@ -149,11 +141,11 @@
   justify-content: space-between;
   gap: 2rem;
   padding: 0.5rem 0 2rem;
-  border-bottom: 1px solid var(--page-border);
+  border-bottom: 1px solid var(--tm-accent-a20);
 }
 
 .headerSub {
-  color: var(--page-muted);
+  color: var(--tm-text-soft);
   max-width: 680px;
   margin: 0.8rem 0 0;
   line-height: 1.6;
@@ -169,24 +161,24 @@
   display: flex;
   gap: 0.2rem;
   padding: 0.25rem;
-  border: 1px solid var(--page-border);
-  border-radius: 999px;
-  background: var(--page-surface);
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-lg);
+  background: var(--tm-surface-2);
 }
 
 .rangePicker button {
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   padding: 0.64rem 0.9rem;
   background: transparent;
-  color: var(--page-muted);
+  color: var(--tm-text-soft);
   cursor: pointer;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--tm-font-label);
   transition: color 160ms ease, background 160ms ease;
 }
 
 .rangePicker .rangeActive {
-  background: var(--page-blue);
+  background: var(--tm-blue-soft);
   color: #02060b;
 }
 
@@ -195,10 +187,10 @@
   margin-top: 1rem;
   padding: 0.85rem 1rem;
   border: 1px solid rgba(255, 190, 64, 0.38);
-  border-radius: 14px 8px 14px 10px;
+  border-radius: var(--tm-r-hand-alt);
   background: rgba(255, 190, 64, 0.08);
   color: #ffd58a;
-  font-size: 0.84rem;
+  font-size: var(--tm-fs-sm);
 }
 
 .errorBanner {
@@ -220,9 +212,9 @@
 .section,
 .panel {
   margin-top: 1.5rem;
-  border: 1px solid var(--page-border);
-  border-radius: 22px 10px 20px 14px;
-  background: var(--page-surface);
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-hand-alt);
+  background: var(--tm-surface-2);
   padding: 1.4rem;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
   transition: border-color 180ms ease, transform 180ms ease;
@@ -230,12 +222,12 @@
 
 .section:nth-of-type(even),
 .panel:nth-of-type(even) {
-  border-radius: 12px 22px 14px 20px;
+  border-radius: var(--tm-r-hand);
 }
 
 .section:hover,
 .panel:hover {
-  border-color: rgba(34, 211, 238, 0.35);
+  border-color: var(--tm-border-strong);
   transform: translateY(-2px);
 }
 
@@ -254,8 +246,8 @@
 }
 
 .sectionHeading span {
-  color: var(--page-aqua);
-  font: 0.7rem/1 'Share Tech Mono', monospace;
+  color: var(--tm-accent);
+  font: 0.7rem/1 var(--tm-font-label);
 }
 
 .sectionHeading h2 {
@@ -265,8 +257,8 @@
 
 .sectionHeading p {
   margin: 0;
-  color: var(--page-muted);
-  font-size: 0.78rem;
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-xs);
 }
 
 .statGrid,
@@ -279,10 +271,11 @@
 .statCard {
   min-width: 0;
   padding: 1rem;
-  border: 1px solid rgba(96, 165, 250, 0.16);
-  border-left: 3px solid var(--page-aqua);
-  border-radius: 8px 16px 12px 8px;
-  background: var(--page-surface-raised);
+  border: 1px solid var(--tm-blue-a10);
+  border: 1px solid var(--tm-accent);
+  background: var(--tm-accent-a08);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-4);
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -290,8 +283,8 @@
 }
 
 .statCard:nth-child(even) {
-  border-left-color: var(--page-blue);
-  border-radius: 15px 8px 14px 10px;
+  border-left-color: var(--tm-blue-soft);
+  border-radius: var(--tm-r-hand-alt);
 }
 
 .statCard:hover {
@@ -300,8 +293,8 @@
 }
 
 .statLabel {
-  color: var(--page-muted);
-  font: 0.65rem/1.3 'Share Tech Mono', monospace;
+  color: var(--tm-text-soft);
+  font: 0.65rem/1.3 var(--tm-font-label);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -311,12 +304,12 @@
   font-size: clamp(1.7rem, 3vw, 2.45rem);
   font-weight: 700;
   line-height: 1;
-  color: var(--page-text);
+  color: var(--tm-text-strong);
 }
 
 .statDetail {
-  color: var(--page-aqua);
-  font-size: 0.68rem;
+  color: var(--tm-accent);
+  font-size: var(--tm-fs-2xs);
 }
 
 .splitSection,
@@ -330,8 +323,8 @@
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--page-muted);
-  font-size: 0.68rem;
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-2xs);
 }
 
 .legend i {
@@ -342,13 +335,13 @@
 }
 
 .visitorsDot,
-.visitorsBar { background: var(--page-aqua); }
+.visitorsBar { background: var(--tm-accent); }
 .sessionsDot,
-.sessionsBar { background: var(--page-blue); }
+.sessionsBar { background: var(--tm-blue-soft); }
 .signupsDot,
-.signupsBar { background: #93c5fd; }
+.signupsBar { background: var(--tm-blue-soft); }
 .completionsDot,
-.completionsBar { background: #38bdf8; }
+.completionsBar { background: var(--tm-blue); }
 
 .chartScroller {
   overflow-x: auto;
@@ -360,9 +353,9 @@
   display: flex;
   align-items: stretch;
   gap: 4px;
-  border-bottom: 1px solid rgba(34, 211, 238, 0.22);
-  background: var(--page-surface-raised);
-  border-radius: 14px 8px 10px 6px;
+  border-bottom: 1px solid var(--tm-accent-a20);
+  background: var(--tm-surface-4);
+  border-radius: var(--tm-r-hand-alt);
   padding: 0.75rem 0.65rem 0;
 }
 
@@ -386,7 +379,7 @@
   flex: 1;
   min-height: 2px;
   opacity: 0.88;
-  border-radius: 5px 5px 1px 1px;
+  border-radius: var(--tm-r-hand);
   transition: opacity 160ms ease;
 }
 
@@ -400,7 +393,7 @@
   left: 0;
   white-space: nowrap;
   color: rgba(222, 239, 252, 0.7);
-  font: 0.58rem/1 'Share Tech Mono', monospace;
+  font: 0.58rem/1 var(--tm-font-label);
 }
 
 .tableWrap {
@@ -410,20 +403,20 @@
 .tableWrap table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.78rem;
+  font-size: var(--tm-fs-xs);
 }
 
 .tableWrap th {
   text-align: left;
-  color: var(--page-muted);
-  font: 0.65rem/1 'Share Tech Mono', monospace;
+  color: var(--tm-text-soft);
+  font: 0.65rem/1 var(--tm-font-label);
   text-transform: uppercase;
 }
 
 .tableWrap th,
 .tableWrap td {
   padding: 0.8rem 0.6rem;
-  border-bottom: 1px solid rgba(96, 165, 250, 0.12);
+  border-bottom: 1px solid var(--tm-blue-a10);
 }
 
 .tableWrap tbody tr {
@@ -431,7 +424,7 @@
 }
 
 .tableWrap tbody tr:hover {
-  background: rgba(34, 211, 238, 0.05);
+  background: var(--tm-accent-a08);
 }
 
 .tableWrap td:nth-child(n + 2),
@@ -477,38 +470,38 @@
 .unitRow > div:first-child span {
   margin-top: 0.3rem;
   color: rgba(222, 239, 252, 0.46);
-  font-size: 0.62rem;
+  font-size: var(--tm-fs-2xs);
 }
 
 .unitTrack {
   height: 6px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--tm-r-lg);
   background: rgba(96, 165, 250, 0.14);
 }
 
 .unitTrack span {
   height: 100%;
   border-radius: inherit;
-  background: var(--page-aqua);
+  background: var(--tm-accent);
 }
 
 .unitRow b {
   text-align: right;
-  color: var(--page-aqua);
-  font: 0.72rem/1 'Share Tech Mono', monospace;
+  color: var(--tm-accent);
+  font: 0.72rem/1 var(--tm-font-label);
 }
 
 .empty,
 .reportFooter {
-  color: var(--page-muted);
-  font-size: 0.76rem;
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-xs);
 }
 
 .reportFooter {
   text-align: right;
   padding-top: 1.5rem;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: var(--tm-font-label);
 }
 
 @keyframes contentEnter {

@@ -13,7 +13,7 @@ import {LifecycleDiagram} from '@site/src/components/DocDiagrams';
 
 ---
 
-## Context
+## Technical Context
 
 The `loop()` method controls the robot's performance during the match. Because it runs at a high frequency (approximately **50 times per second**), it allows for smooth movement and rapid sensor polling. Efficiency in this method is critical, any "blocking" code (like a sleep command) will freeze the robot and could cause a communication timeout with the Driver Station.
 

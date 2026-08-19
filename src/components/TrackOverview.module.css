@@ -1,0 +1,275 @@
+/* Landing grid for a whole track, rendered inside the docs layout. */
+
+.hero {
+  margin: 0 0 1.75rem;
+  padding: 1.4rem 1.5rem 1.6rem;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-hand);
+  background: linear-gradient(160deg, var(--tm-surface-2) 0%, var(--tm-bg) 100%);
+}
+
+.eyebrow {
+  margin-bottom: 0.6rem;
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 0.6rem;
+  font-family: var(--tm-font-display);
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--tm-text);
+  font-size: var(--tm-fs-md);
+  line-height: 1.6;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.stat {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-3);
+}
+
+.statValue {
+  display: block;
+  color: var(--tm-accent);
+  font-family: var(--tm-font-display);
+  font-size: var(--tm-fs-xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.statLabel {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--tm-text-muted);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  padding: 0.6rem 1.15rem;
+  border-radius: var(--tm-r-sm);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.primaryAction {
+  border: 1px solid var(--tm-accent-a55);
+  background: var(--tm-accent-a12);
+  color: var(--tm-text-strong);
+}
+
+.primaryAction:hover {
+  background: var(--tm-accent-a20);
+  color: var(--tm-text-strong);
+  text-decoration: none;
+}
+
+.secondaryAction {
+  border: 1px solid var(--tm-blue-a32);
+  background: transparent;
+  color: var(--tm-blue-soft);
+}
+
+.secondaryAction:hover {
+  border-color: rgba(96, 165, 250, 0.6);
+  color: var(--tm-text-strong);
+  text-decoration: none;
+}
+
+.sectionTitle {
+  margin: 2rem 0 0.9rem;
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+  gap: 0.85rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem 1.05rem 1.05rem;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-hand);
+  background: var(--tm-surface-3);
+  color: inherit;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:nth-child(even) {
+  border-radius: var(--tm-r-hand-alt);
+}
+
+.card:hover {
+  border-color: var(--tm-accent-a55);
+  color: inherit;
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.cardNum {
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  font-family: var(--tm-font-display);
+  font-size: var(--tm-fs-lg);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cardDesc {
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-sm);
+  line-height: 1.5;
+}
+
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 4px 9px;
+  border-radius: var(--tm-r-lg);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tagBeginner {
+  border: 1px solid var(--tm-blue-a32);
+  background: var(--tm-blue-a10);
+  color: var(--tm-blue-soft);
+}
+
+.tagIntermediate {
+  border: 1px solid var(--tm-border-strong);
+  background: var(--tm-accent-a08);
+  color: var(--tm-accent);
+}
+
+.tagAdvanced {
+  border: 1px solid rgba(56, 189, 248, 0.34);
+  background: rgba(56, 189, 248, 0.09);
+  color: var(--tm-blue);
+}
+
+.tagProgress {
+  border: 1px solid var(--tm-border-quiet);
+  background: var(--tm-surface-3);
+  color: var(--tm-text-muted);
+}
+
+.tagDone {
+  border: 1px solid var(--tm-accent-a55);
+  background: var(--tm-border);
+  color: var(--tm-text-strong);
+}
+
+.switcher {
+  margin-top: 2.25rem;
+  padding: 1rem 1.15rem;
+  border: 1px dashed var(--tm-accent-a20);
+  border-radius: var(--tm-r-hand);
+  background: rgba(13, 21, 30, 0.6);
+}
+
+.switcherTitle {
+  margin: 0 0 0.35rem;
+  font-family: var(--tm-font-display);
+  font-size: var(--tm-fs-md);
+  font-weight: 700;
+}
+
+.switcherDesc {
+  margin: 0 0 0.75rem;
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-sm);
+  line-height: 1.55;
+}
+
+/* Locked cards are buttons rather than links, so they need the card reset. */
+.cardLocked {
+  border-style: dashed;
+  border-color: var(--tm-border-quiet);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.cardLocked:hover:not(:disabled) {
+  border-color: var(--tm-border-strong);
+}
+
+.cardLocked:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.tagLocked {
+  border: 1px solid var(--tm-border-quiet);
+  background: var(--tm-surface-3);
+  color: var(--tm-text-muted);
+}
+
+.unlockError {
+  margin: var(--tm-sp-4) 0 0;
+  color: var(--tm-danger);
+  font-size: var(--tm-fs-sm);
+  text-align: center;
+}
+
+/* Reveal wraps each card, so the wrapper must not collapse the grid cell. */
+.grid > * { display: flex; }
+.grid > * > .card { flex: 1; }

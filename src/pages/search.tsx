@@ -10,10 +10,19 @@ interface SearchEntry {
   title: string;
   label: string;
   path: string;
+  track: 'software' | 'mechanical';
   unit: number | null;
   protected: boolean;
   excerpt: string;
 }
+
+type TrackFilter = 'all' | 'software' | 'mechanical';
+
+const TRACK_FILTERS: {value: TrackFilter; label: string}[] = [
+  {value: 'all', label: 'All'},
+  {value: 'software', label: 'Software'},
+  {value: 'mechanical', label: 'Mechanical'},
+];
 
 export default function SearchPage(): React.JSX.Element {
   const entries = usePluginData('telemark-search') as SearchEntry[];
@@ -22,26 +31,28 @@ export default function SearchPage(): React.JSX.Element {
   const [query, setQuery] = useState(
     () => new URLSearchParams(location.search).get('q') ?? '',
   );
+  const [track, setTrack] = useState<TrackFilter>('all');
   const normalized = query.trim().toLowerCase();
 
   const results = useMemo(() => {
     if (normalized.length < 2) return [];
     return entries
+      .filter((entry) => track === 'all' || entry.track === track)
       .filter((entry) => (
         `${entry.title} ${entry.label} ${entry.excerpt}`.toLowerCase().includes(normalized)
       ))
       .slice(0, 30);
-  }, [entries, normalized]);
+  }, [entries, normalized, track]);
 
   return (
-    <Layout title="Search — Telemark" description="Search Telemark FTC Java lessons.">
+    <Layout title="Search · Telemark" description="Search Telemark FTC software and engineering lessons.">
       <main className={styles.page}>
         <div className={styles.shell}>
           <p className={styles.eyebrow}>// curriculum.search</p>
           <h1 className={styles.title}>Find a Telemark lesson</h1>
           <p className={styles.intro}>
-            Search lesson titles and public lesson text. Protected units are
-            indexed by title only.
+            Search both tracks by lesson title and public lesson text.
+            Protected units and modules are indexed by title only.
           </p>
 
           <label htmlFor="telemark-search" className="sr-only">Search lessons</label>
@@ -56,6 +67,22 @@ export default function SearchPage(): React.JSX.Element {
             autoFocus
           />
 
+          <div className={styles.trackFilter} role="group" aria-label="Filter by track">
+            {TRACK_FILTERS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`${styles.trackButton} ${
+                  track === option.value ? styles.trackButtonActive : ''
+                }`}
+                aria-pressed={track === option.value}
+                onClick={() => setTrack(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
           <p className={styles.status} role="status" aria-live="polite">
             {normalized.length < 2
               ? 'Enter at least two characters.'
@@ -69,6 +96,9 @@ export default function SearchPage(): React.JSX.Element {
                 <Link className={styles.result} to={entry.path} key={entry.path}>
                   <div className={styles.resultHeader}>
                     <h2 className={styles.resultTitle}>{entry.title}</h2>
+                    <span className={styles.badge}>
+                      {entry.track === 'mechanical' ? 'Mechanical' : 'Software'}
+                    </span>
                     {locked && (
                       <span className={styles.badge}>
                         {loading ? 'Checking access' : 'Sign in required'}

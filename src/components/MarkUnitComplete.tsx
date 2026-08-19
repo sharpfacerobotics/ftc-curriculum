@@ -3,7 +3,7 @@ import Link from '@docusaurus/Link';
 import { useAuth } from '@site/src/telemark/useAuth';
 import { useProgress } from '@site/src/telemark/useProgress';
 import { signInWithGoogle } from '@site/src/telemark/googleAuth';
-import { getLessonsForUnit, getUnitBySlug } from '@site/src/telemark/curriculum';
+import { getAnyLessonsForUnit, getAnyUnitBySlug } from '@site/src/telemark/tracks';
 import styles from '@site/src/components/HomepageFeatures/MarkComplete.module.css';
 
 interface MarkUnitCompleteProps {
@@ -13,8 +13,8 @@ interface MarkUnitCompleteProps {
 export default function MarkUnitComplete({
   unitSlug,
 }: MarkUnitCompleteProps): React.JSX.Element | null {
-  const unit = getUnitBySlug(unitSlug);
-  const lessons = getLessonsForUnit(unitSlug);
+  const unit = getAnyUnitBySlug(unitSlug);
+  const lessons = getAnyLessonsForUnit(unitSlug);
   const lessonIds = lessons.map((lesson) => lesson.id);
 
   const { user } = useAuth();

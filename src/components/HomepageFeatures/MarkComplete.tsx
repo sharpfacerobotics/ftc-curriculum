@@ -69,7 +69,7 @@ export default function MarkComplete({
           {user && <span className={styles.savedBadge}>saved to Telemark</span>}
         </div>
         <p className={styles.successMsg}>
-          Nice work. Hold yourself to it — there are no shortcuts in competition.
+          Nice work. Hold yourself to it: there are no shortcuts in competition.
         </p>
         <div className={styles.successActions}>
           <Link to={nextUnit} className={styles.nextBtn}>

@@ -14,7 +14,9 @@ function readFrontMatter(source, key) {
 }
 
 function unitNumberFor(file) {
-  const match = file.match(/unit-(\d{2})/);
+  // Software units are unit-NN, engineering modules are module-NN. Both gate
+  // on the same rule: 0 is public, 1 and above require an account.
+  const match = file.match(/(?:unit|module)-(\d{2})/);
   return match ? Number.parseInt(match[1], 10) : null;
 }
 
@@ -35,15 +37,19 @@ function cleanExcerpt(source) {
   return `${cleaned.slice(0, 260).replace(/\s+\S*$/, '')}…`;
 }
 
-function routeFor(file, source) {
+function routeFor(file, source, collection) {
   const slug = readFrontMatter(source, 'slug');
   if (slug) {
-    return `/docs/${slug.replace(/^\/+/, '')}`;
+    const trimmed = slug.replace(/^\/+/, '');
+    return trimmed
+      ? `${collection.routeBase}/${trimmed}`
+      : collection.routeBase;
   }
-  const relative = path.relative(path.resolve(__dirname, '../../docs'), file);
+  const relative = path.relative(collection.root, file);
   const directory = path.dirname(relative).replaceAll(path.sep, '/');
   const id = readFrontMatter(source, 'id') || path.basename(file, '.mdx');
-  return `/docs/${directory === '.' ? '' : `${directory}/`}${id}`.replace(/\/index$/, '');
+  return `${collection.routeBase}/${directory === '.' ? '' : `${directory}/`}${id}`
+    .replace(/\/index$/, '');
 }
 
 module.exports = function telemarkSearchPlugin(context) {
@@ -51,27 +57,45 @@ module.exports = function telemarkSearchPlugin(context) {
     name: 'telemark-search',
 
     async loadContent() {
-      const docsRoot = path.resolve(context.siteDir, 'docs');
-      return walk(docsRoot)
-        .filter((file) => file.endsWith('.mdx'))
-        .map((file) => {
-          const source = fs.readFileSync(file, 'utf8');
-          const unit = unitNumberFor(file);
-          const isProtected = unit !== null && unit >= 1;
-          const title = readFrontMatter(source, 'title')
-            || source.match(/^#\s+(.+)$/m)?.[1]?.trim()
-            || path.basename(file, '.mdx');
-          const label = readFrontMatter(source, 'sidebar_label') || title;
+      // Both tracks are indexed: the software curriculum under /docs and the
+      // engineering track under /engineering.
+      const collections = [
+        {
+          track: 'software',
+          root: path.resolve(context.siteDir, 'docs'),
+          routeBase: '/docs',
+        },
+        {
+          track: 'mechanical',
+          root: path.resolve(context.siteDir, 'mechanical'),
+          routeBase: '/mechanical',
+        },
+      ].filter((collection) => fs.existsSync(collection.root));
 
-          return {
-            title,
-            label,
-            path: routeFor(file, source),
-            unit,
-            protected: isProtected,
-            excerpt: isProtected ? '' : cleanExcerpt(source),
-          };
-        })
+      return collections
+        .flatMap((collection) =>
+          walk(collection.root)
+            .filter((file) => file.endsWith('.mdx'))
+            .map((file) => {
+              const source = fs.readFileSync(file, 'utf8');
+              const unit = unitNumberFor(file);
+              const isProtected = unit !== null && unit >= 1;
+              const title = readFrontMatter(source, 'title')
+                || source.match(/^#\s+(.+)$/m)?.[1]?.trim()
+                || path.basename(file, '.mdx');
+              const label = readFrontMatter(source, 'sidebar_label') || title;
+
+              return {
+                title,
+                label,
+                path: routeFor(file, source, collection),
+                track: collection.track,
+                unit,
+                protected: isProtected,
+                excerpt: isProtected ? '' : cleanExcerpt(source),
+              };
+            }),
+        )
         .sort((a, b) => a.path.localeCompare(b.path));
     },
 
