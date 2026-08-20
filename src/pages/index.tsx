@@ -5,6 +5,8 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
+import CodeStream from '@site/src/components/ui/CodeStream';
+import RobotAssembly from '@site/src/components/ui/RobotAssembly';
 import styles from './index.module.css';
 import { useAuth } from '../telemark/useAuth';
 import { trackEvent } from '../telemark/analytics';
@@ -313,6 +315,10 @@ function SimulatorSection(): React.JSX.Element {
         Write lesson code, run the FTC lifecycle, and debug the result with
         telemetry, requirement checks, and simulated hardware.
       </p>
+      <div className={styles.showcase}>
+        <CodeStream />
+      </div>
+
       <SimulatorWorkflow
         className={styles.simulatorWorkflow}
         itemClassName={styles.simulatorStep}
@@ -350,6 +356,10 @@ function ToolsSection(): React.JSX.Element {
         decide whether a mechanism works, plus a file check that reads your
         exported CAD and measures it.
       </p>
+
+      <div className={styles.showcase}>
+        <RobotAssembly />
+      </div>
 
       <div className={styles.toolStrip}>
         {HOME_TOOLS.map((tool) => (

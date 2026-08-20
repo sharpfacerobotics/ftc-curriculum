@@ -1184,3 +1184,10 @@
   font-size: var(--tm-fs-sm);
   line-height: var(--tm-lh-normal);
 }
+
+/* Holds the two animated figures. Wider than the prose column so a drawing can
+   breathe, but not full bleed: these illustrate the section, they are not the
+   section. */
+.showcase {
+  margin: var(--tm-sp-5) 0 var(--tm-sp-6);
+}

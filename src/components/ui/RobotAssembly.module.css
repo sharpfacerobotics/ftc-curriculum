@@ -1,0 +1,65 @@
+.figure {
+  margin: 0;
+}
+
+/* currentColor drives every stroke, so the whole drawing is one ink and the
+   page keeps its single accent. */
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 30rem;
+  height: auto;
+  margin-inline: auto;
+  color: var(--tm-text-strong);
+}
+
+/* Parts arrive in build order. The offset is small on purpose: a part sliding
+   in from off-screen reads as a slideshow, while a few pixels reads as
+   something being set down. */
+.part {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: settle 9s var(--tm-ease) infinite;
+}
+
+.p1 { animation-delay: 0s; }
+.p2 { animation-delay: 0.45s; }
+.p3 { animation-delay: 0.9s; }
+.p4 { animation-delay: 1.35s; }
+.p5 { animation-delay: 1.8s; }
+.p6 { animation-delay: 2.25s; }
+
+@keyframes settle {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  /* Assembled by a fifth of the loop, then held, so the finished robot is what
+     the visitor actually looks at rather than a constant flicker of parts. */
+  8%, 88% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+.caption {
+  max-width: 30rem;
+  margin: var(--tm-sp-4) auto 0;
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
+  text-align: center;
+}
+
+/* Reduced motion gets the assembled robot, which is the informative state. */
+@media (prefers-reduced-motion: reduce) {
+  .part {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
