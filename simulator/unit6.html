@@ -158,6 +158,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 </head>
 <body>
 <div id="editor-container">
@@ -841,9 +842,6 @@ function handlePointerEnd(e){Object.values(sticks).forEach(function(s){if(s.drag
 window.addEventListener('pointerup',handlePointerEnd);window.addEventListener('pointercancel',handlePointerEnd);window.addEventListener('blur',function(){Object.values(sticks).forEach(resetStick)});
 // Float card
 (function(){var card=document.getElementById('gamepad-float-card'),tb=document.getElementById('gamepad-titlebar'),cb=document.getElementById('gp-collapse-btn'),bd=document.getElementById('gamepad-card-body'),rh=document.getElementById('gamepad-resize-handle'),collapsed=false,sw=null,sh=null;cb.addEventListener('click',function(e){e.stopPropagation();collapsed=!collapsed;if(collapsed){sw=card.style.width||null;sh=card.style.height||null;bd.style.display='none';rh.style.display='none';card.style.height='auto';cb.textContent='+'}else{bd.style.display='';rh.style.display='';if(sw)card.style.width=sw;if(sh)card.style.height=sh;cb.textContent='\u2212'}});var dr=false,dox=0,doy=0;tb.addEventListener('pointerdown',function(e){if(e.target===cb)return;dr=true;var r=card.getBoundingClientRect();dox=e.clientX-r.left;doy=e.clientY-r.top;tb.setPointerCapture(e.pointerId);e.preventDefault()});tb.addEventListener('pointermove',function(e){if(!dr)return;card.style.left=Math.max(0,Math.min(window.innerWidth-card.offsetWidth,e.clientX-dox))+'px';card.style.top=Math.max(0,Math.min(window.innerHeight-40,e.clientY-doy))+'px';card.style.right='auto';card.style.bottom='auto'});tb.addEventListener('pointerup',function(){dr=false});tb.addEventListener('pointercancel',function(){dr=false});var cr=false,crx=0,cry=0,crw=0,crh=0;rh.addEventListener('pointerdown',function(e){cr=true;crx=e.clientX;cry=e.clientY;crw=card.offsetWidth;crh=card.offsetHeight;rh.setPointerCapture(e.pointerId);e.preventDefault();e.stopPropagation()});rh.addEventListener('pointermove',function(e){if(!cr)return;card.style.width=Math.max(240,crw+(e.clientX-crx))+'px';card.style.height=Math.max(80,crh+(e.clientY-cry))+'px'});rh.addEventListener('pointerup',function(){cr=false});rh.addEventListener('pointercancel',function(){cr=false})})();
-window.addEventListener('keydown',function(e){if(e.target===codeEditor)return;if(e.code==='Space')setButtonState('a',true,'btn-a-visual');if(e.code==='KeyW')setButtonState('dpad_up',true,'dpad-up');if(e.code==='KeyS')setButtonState('dpad_down',true,'dpad-down');if(e.code==='KeyA')setButtonState('dpad_left',true,'dpad-left');if(e.code==='KeyD')setButtonState('dpad_right',true,'dpad-right')});
-window.addEventListener('keyup',function(e){if(e.code==='Space')setButtonState('a',false,'btn-a-visual');if(e.code==='KeyW')setButtonState('dpad_up',false,'dpad-up');if(e.code==='KeyS')setButtonState('dpad_down',false,'dpad-down');if(e.code==='KeyA')setButtonState('dpad_left',false,'dpad-left');if(e.code==='KeyD')setButtonState('dpad_right',false,'dpad-right')});
-
 // ── Boot ──
 window.addEventListener('load',function(){
   if(customCode){
@@ -854,6 +852,7 @@ window.addEventListener('load',function(){
   switchMode(initialMode);
   Object.values(sticks).forEach(resetStick);
 });
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
 </script>
 </body>
 </html>

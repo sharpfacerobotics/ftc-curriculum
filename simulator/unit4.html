@@ -737,6 +737,7 @@
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 </head>
 <body>
 
@@ -1915,23 +1916,6 @@ buttonMap.forEach(function(pair) {
   el.addEventListener('pointercancel', function() { setButtonState(prop, false, id); });
 });
 
-// Keyboard shortcuts
-window.addEventListener('keydown', function(e) {
-  if (e.target === codeEditor) return;
-  if (e.code === 'Space') setButtonState('a', true, 'btn-a-visual');
-  if (e.code === 'KeyW') setButtonState('dpad_up', true, 'dpad-up');
-  if (e.code === 'KeyS') setButtonState('dpad_down', true, 'dpad-down');
-  if (e.code === 'KeyA') setButtonState('dpad_left', true, 'dpad-left');
-  if (e.code === 'KeyD') setButtonState('dpad_right', true, 'dpad-right');
-});
-window.addEventListener('keyup', function(e) {
-  if (e.code === 'Space') setButtonState('a', false, 'btn-a-visual');
-  if (e.code === 'KeyW') setButtonState('dpad_up', false, 'dpad-up');
-  if (e.code === 'KeyS') setButtonState('dpad_down', false, 'dpad-down');
-  if (e.code === 'KeyA') setButtonState('dpad_left', false, 'dpad-left');
-  if (e.code === 'KeyD') setButtonState('dpad_right', false, 'dpad-right');
-});
-
 // ─── Trigger Sliders ─────────────────────────────────────────────────────────
 function setupTriggerSlider(sliderId, fillId, prop) {
   var slider = document.getElementById(sliderId);
@@ -2166,6 +2150,7 @@ window.addEventListener('load', function() {
 
 // Periodic input monitor update
 setInterval(updateInputMonitor, 50);
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
 </script>
 </body>
 </html>

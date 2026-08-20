@@ -513,6 +513,7 @@
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 </head>
 <body>
 
@@ -919,7 +920,9 @@ function executeMethod(methodName) {
       },
     });
     telemarkRuntime = runtime;
-    telemarkCompiledProgram = TelemarkJava.compile(code, runtime);
+    telemarkCompiledProgram = TelemarkJava.compile(code, runtime, {
+      trackVariables: true,
+    });
     telemarkCompiledSource = code;
     if (!telemarkCompiledProgram.ok) {
       const error = telemarkCompiledProgram.diagnostics[0];
@@ -939,6 +942,9 @@ function executeMethod(methodName) {
     telemarkRuntime?.updateTelemetry();
   }
   Object.entries(telemarkCompiledProgram?.scope || {}).forEach(([name, value]) => {
+    if (declaredVars[name]) declaredVars[name].value = value;
+  });
+  Object.entries(telemarkCompiledProgram?.locals || {}).forEach(([name, value]) => {
     if (declaredVars[name]) declaredVars[name].value = value;
   });
   renderVariableInspector();
@@ -998,16 +1004,6 @@ buttonMap.forEach(([id, prop]) => {
   el.addEventListener('pointerup', () => setButtonState(prop, false, id));
   el.addEventListener('pointerleave', () => setButtonState(prop, false, id));
   el.addEventListener('pointercancel', () => setButtonState(prop, false, id));
-});
-
-window.addEventListener('keydown', (e) => {
-  if (e.target === codeEditor) return;
-  if (e.code === 'Space') setButtonState('a', true, 'btn-a-visual');
-  if (e.code === 'ShiftLeft') setButtonState('left_bumper', true, 'btn-left-bumper');
-});
-window.addEventListener('keyup', (e) => {
-  if (e.code === 'Space') setButtonState('a', false, 'btn-a-visual');
-  if (e.code === 'ShiftLeft') setButtonState('left_bumper', false, 'btn-left-bumper');
 });
 
 // ─── Joystick ────────────────────────────────────────────────────────────────
@@ -1155,6 +1151,7 @@ window.addEventListener('load', () => {
   runStaticAnalysis();
   Object.values(sticks).forEach(resetStick);
 });
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
 </script>
 </body>
 </html>

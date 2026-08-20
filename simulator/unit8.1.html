@@ -110,6 +110,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 </head>
 <body>
 <div id="left-panel">
@@ -729,6 +730,7 @@ window.addEventListener('load',function(){
   animateScene();
   updatePowerBar();
 });
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
 </script>
 </body>
 </html>
