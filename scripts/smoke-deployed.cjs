@@ -1,4 +1,35 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const ts = require('typescript');
+
+/**
+ * Counts come from the curriculum data rather than being written in here.
+ *
+ * This check previously asserted a literal 97, which silently became wrong the
+ * moment the homepage stopped rendering that figure on its own, and the failure
+ * surfaced as a red deploy rather than as an obviously stale test.
+ */
+const tsCache = new Map();
+
+function loadTelemark(name) {
+  const file = path.resolve(__dirname, '..', 'src/telemark', `${name}.ts`);
+  if (tsCache.has(file)) return tsCache.get(file);
+  const {outputText} = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
+    compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022},
+  });
+  const module = {};
+  tsCache.set(file, module);
+  new Function('exports', 'require', 'module', outputText)(
+    module,
+    (id) => (id.startsWith('./') ? loadTelemark(id.slice(2)) : require(id)),
+    {exports: module},
+  );
+  return module;
+}
+
+const software = loadTelemark('curriculum');
+const mechanical = loadTelemark('mechanical');
 
 const baseUrl = (process.env.TELEMARK_DEPLOY_URL
   || 'https://sharpfacerobotics.github.io/telemark').replace(/\/$/, '');
@@ -46,8 +77,15 @@ async function main() {
   ).then((response) => response.json());
 
   const homepage = await fetchWithRetry('/').then((response) => response.text());
-  assert.match(homepage, />16</);
-  assert.match(homepage, />97</);
+  // Both track cards must render their own counts, and the summary line the
+  // combined total. Between them these prove the homepage is showing real
+  // curriculum data for both tracks rather than one track and a placeholder.
+  const softwareStat = `${software.CURRICULUM_UNIT_COUNT} units · ${software.CURRICULUM_LESSON_COUNT} lessons`;
+  const mechanicalStat = `${mechanical.MECHANICAL_UNIT_COUNT} modules · ${mechanical.MECHANICAL_LESSON_COUNT} lessons`;
+  const combined = software.CURRICULUM_LESSON_COUNT + mechanical.MECHANICAL_LESSON_COUNT;
+  assert.ok(homepage.includes(softwareStat), `homepage missing "${softwareStat}"`);
+  assert.ok(homepage.includes(mechanicalStat), `homepage missing "${mechanicalStat}"`);
+  assert.match(homepage, new RegExp(`>${combined}<`), `homepage missing combined count ${combined}`);
 
   for (const route of [
     '/curriculum',

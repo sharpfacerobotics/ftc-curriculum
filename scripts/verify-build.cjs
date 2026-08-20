@@ -1,6 +1,30 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const ts = require('typescript');
+
+/** Counts read from the curriculum data, so adding a module cannot leave a
+    stale literal here to fail a later build. */
+const tsCache = new Map();
+
+function loadTelemark(name) {
+  const file = path.resolve(__dirname, '..', 'src/telemark', `${name}.ts`);
+  if (tsCache.has(file)) return tsCache.get(file);
+  const {outputText} = ts.transpileModule(fs.readFileSync(file, 'utf8'), {
+    compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022},
+  });
+  const module = {};
+  tsCache.set(file, module);
+  new Function('exports', 'require', 'module', outputText)(
+    module,
+    (id) => (id.startsWith('./') ? loadTelemark(id.slice(2)) : require(id)),
+    {exports: module},
+  );
+  return module;
+}
+
+const software = loadTelemark('curriculum');
+const mechanical = loadTelemark('mechanical');
 
 const buildRoot = path.resolve(__dirname, '../build');
 
@@ -28,9 +52,12 @@ const homepage = fs.readFileSync(path.join(buildRoot, 'index.html'), 'utf8');
 // counts, the mechanical module and lesson counts, and the combined total in
 // the stats bar.
 assert.match(homepage, />16</, 'Homepage must render the 16 software units');
-assert.match(homepage, /16 units · 97 lessons/, 'Homepage must render the software lesson count');
-assert.match(homepage, /14 modules · 70 lessons/, 'Homepage must render the mechanical module and lesson counts');
-assert.match(homepage, />167</, 'Homepage stats bar must render the combined lesson count');
+const softwareStat = `${software.CURRICULUM_UNIT_COUNT} units · ${software.CURRICULUM_LESSON_COUNT} lessons`;
+const mechanicalStat = `${mechanical.MECHANICAL_UNIT_COUNT} modules · ${mechanical.MECHANICAL_LESSON_COUNT} lessons`;
+const combinedLessons = software.CURRICULUM_LESSON_COUNT + mechanical.MECHANICAL_LESSON_COUNT;
+assert.ok(homepage.includes(softwareStat), `Homepage must render "${softwareStat}"`);
+assert.ok(homepage.includes(mechanicalStat), `Homepage must render "${mechanicalStat}"`);
+assert.match(homepage, new RegExp(`>${combinedLessons}<`), `Homepage must render the combined lesson count ${combinedLessons}`);
 assert.match(homepage, />2</, 'Homepage stats bar must render the track count');
 assert.match(homepage, /telemark-build-commit/);
 
