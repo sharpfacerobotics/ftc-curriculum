@@ -3,7 +3,7 @@ import Figure, {visualStyles as s} from './Figure';
 import {fmt} from '@site/src/telemark/mechanicalMath';
 
 const W = 420;
-const H = 210;
+const H = 232;
 
 /**
  * Draws the stages at a chosen point in the travel so the speed and force
@@ -31,10 +31,19 @@ export default function SlideRiggingVisual({
   progress?: number;
 }): React.JSX.Element {
   const stageCount = Math.max(1, Math.min(stages, 6));
-  const baseX = 40;
-  const baseY = 150;
-  const stageLen = 120;
+  const baseX = 30;
+  const baseY = 158;
   const stageGap = 13;
+  /** Room on the right for the load marker and its label. */
+  const rightPad = 36;
+
+  // Stage length is derived rather than fixed. A cascading rigging pushes the
+  // tip out by stageCount lengths plus the last stage's own body, so a constant
+  // length ran the bars clean off the canvas as soon as the stage count or the
+  // extension grew. Solving for the length that just fits at full extension
+  // means the drawing always fills the width and never leaves it.
+  const spans = cascading ? stageCount + 1 : 2;
+  const stageLen = (W - baseX - rightPad) / spans;
 
   // Clamped so an animated value cannot push a stage off the drawing.
   const extension = Math.min(Math.max(progress, 0), 1);
@@ -129,27 +138,32 @@ export default function SlideRiggingVisual({
         string take-up x{multiplier} at the tip
       </text>
 
-      {/* Readouts */}
-      <text className={s.pointLabel} x={W - 8} y={22} textAnchor="end">
+      {/* Readouts run across the top rather than stacking in the right margin,
+          which is the same margin the stages extend into. Stacked there they
+          crowded the load marker at full extension and left the left third of
+          the drawing empty. */}
+      <text className={s.pointLabel} x={baseX} y={20}>
         {fmt(extendSpeedIps, 1)} in/s
       </text>
-      <text className={s.tickLabel} x={W - 8} y={36} textAnchor="end">
+      <text className={s.tickLabel} x={baseX} y={34}>
         extension speed
       </text>
       <text
         className={s.pointLabel}
-        x={W - 8}
-        y={58}
-        textAnchor="end"
+        x={baseX + 150}
+        y={20}
         fill={liftForceLbf < loadWeightLb ? '#f87171' : '#22d3ee'}
       >
         {fmt(liftForceLbf, 1)} lbf
       </text>
-      <text className={s.tickLabel} x={W - 8} y={72} textAnchor="end">
+      <text className={s.tickLabel} x={baseX + 150} y={34}>
         lifting force
       </text>
-      <text className={s.tickLabel} x={W - 8} y={92} textAnchor="end">
-        {fmt(travelIn, 0)} in total travel
+      <text className={s.pointLabel} x={baseX + 280} y={20}>
+        {fmt(travelIn, 0)} in
+      </text>
+      <text className={s.tickLabel} x={baseX + 280} y={34}>
+        total travel
       </text>
     </Figure>
   );
