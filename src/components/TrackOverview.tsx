@@ -10,6 +10,7 @@ import {getTrack, type TrackId} from '@site/src/telemark/tracks';
 import type {Tier} from '@site/src/telemark/curriculum';
 import Reveal from '@site/src/components/ui/Reveal';
 import styles from './TrackOverview.module.css';
+import {useBasePath} from '@site/src/telemark/useBasePath';
 
 const TIER_CLASS: Record<Tier, string> = {
   Beginner: styles.tagBeginner,
@@ -39,6 +40,7 @@ export default function TrackOverview({
   const {user, loading} = useAuth();
   const {isComplete} = useProgress(user);
   const history = useHistory();
+  const basePath = useBasePath();
   const [unlocking, setUnlocking] = useState<string | null>(null);
   const [unlockError, setUnlockError] = useState<string | null>(null);
 
@@ -58,7 +60,7 @@ export default function TrackOverview({
         unit_number: unitNumber,
         surface: `${trackId}_track_card`,
       });
-      history.push(unit.overviewPath);
+      history.push(basePath(unit.overviewPath));
     } catch (error) {
       console.error('Telemark unlock failed:', error);
       setUnlockError('Sign-in did not finish. Select a locked card to try again.');

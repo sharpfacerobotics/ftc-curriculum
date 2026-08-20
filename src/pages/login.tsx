@@ -5,22 +5,24 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import { useAuth } from '../telemark/useAuth';
 import { signInWithGoogle } from '../telemark/googleAuth';
 import styles from './login.module.css';
+import {useBasePath} from '@site/src/telemark/useBasePath';
 
 export default function LoginPage(): React.JSX.Element {
   const { user, loading } = useAuth();
   const history           = useHistory();
+  const basePath = useBasePath();
 
   // Redirect to dashboard if already signed in
   useEffect(() => {
     if (!loading && user) {
-      history.push('/telemark/dashboard');
+      history.push(basePath('/dashboard'));
     }
   }, [user, loading, history]);
 
   async function handleSignIn() {
     try {
       await signInWithGoogle();
-      history.push('/telemark/dashboard');
+      history.push(basePath('/dashboard'));
     } catch (e) {
       console.error(e);
     }

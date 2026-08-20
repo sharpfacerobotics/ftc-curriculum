@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useHistory} from '@docusaurus/router';
+import {useBasePath} from '@site/src/telemark/useBasePath';
 import {usePluginData} from '@docusaurus/useGlobalData';
 import {useAuth} from '@site/src/telemark/useAuth';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
@@ -79,6 +80,7 @@ export default function CommandPalette(): React.JSX.Element | null {
   const entries = usePluginData('telemark-search') as SearchEntry[] | undefined;
   const {user} = useAuth();
   const history = useHistory();
+  const basePath = useBasePath();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
@@ -135,9 +137,9 @@ export default function CommandPalette(): React.JSX.Element | null {
   const go = useCallback(
     (command: Command) => {
       close();
-      history.push(command.path);
+      history.push(basePath(command.path));
     },
-    [close, history],
+    [close, history, basePath],
   );
 
   // Global shortcut. Cmd+K on macOS, Ctrl+K elsewhere, and / when not typing.

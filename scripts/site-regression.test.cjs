@@ -100,3 +100,34 @@ assert.match(trackOverview, /companionTrackId/);
 assert.match(dashboard, /activeTrack/, 'dashboard must switch between tracks');
 
 console.log('Site access, navbar, homepage demos, protected search, and mechanical track regression checks passed');
+
+// ── Programmatic navigation must respect the base URL ───────────────────────
+
+// history.push takes its argument literally, so a raw app path sends the
+// browser to example.com/docs while the site lives at example.com/telemark/.
+// Hardcoding the prefix is the same bug mirrored: correct in production, broken
+// locally. Both forms shipped at once and made every quick-search result 404.
+{
+  const collect = (dir) =>
+    fs.readdirSync(dir, {withFileTypes: true}).flatMap((entry) => {
+      const full = path.join(dir, entry.name);
+      return entry.isDirectory() ? collect(full) : [full];
+    });
+  const sources = collect(path.join(root, 'src')).filter(
+    (file) => file.endsWith('.tsx') || file.endsWith('.ts'),
+  );
+  const offenders = [];
+  for (const file of sources) {
+    const text = fs.readFileSync(file, 'utf8');
+    for (const match of text.matchAll(/history\.(?:push|replace)\(\s*([^\n)]*)/g)) {
+      const argument = match[1].trim();
+      if (argument.startsWith('basePath(')) continue;
+      offenders.push(`${path.relative(root, file)}: history.push(${argument})`);
+    }
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `programmatic navigation must go through basePath():\n  ${offenders.join('\n  ')}`,
+  );
+}

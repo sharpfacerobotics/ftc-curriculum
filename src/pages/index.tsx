@@ -26,6 +26,7 @@ import {
   MECHANICAL_UNIT_COUNT,
 } from '../telemark/mechanical';
 import {TOTAL_LESSON_COUNT} from '../telemark/tracks';
+import {useBasePath} from '@site/src/telemark/useBasePath';
 
 const TRACKS_SUMMARY = [
   {
@@ -195,6 +196,7 @@ function CurriculumSection({
   blurb: string;
 }): React.JSX.Element {
   const history = useHistory();
+  const basePath = useBasePath();
   const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
   const [unlockError, setUnlockError] = useState<string | null>(null);
 
@@ -215,7 +217,7 @@ function CurriculumSection({
         unit_number: unitNumber,
         surface: `homepage_${id}_card`,
       });
-      history.push(unit.overviewPath);
+      history.push(basePath(unit.overviewPath));
     } catch (signInError) {
       console.error('Telemark unit unlock failed:', signInError);
       setUnlockError('Sign-in did not finish. Select a locked unit to try again.');

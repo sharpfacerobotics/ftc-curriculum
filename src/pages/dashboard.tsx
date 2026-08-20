@@ -8,6 +8,7 @@ import { useAuth } from '../telemark/useAuth';
 import { useProgress } from '../telemark/useProgress';
 import { getTrack, TRACKS, type TrackId } from '../telemark/tracks';
 import styles from './dashboard.module.css';
+import {useBasePath} from '@site/src/telemark/useBasePath';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ export default function DashboardPage(): React.JSX.Element {
     unmarkMany,
   } = useProgress(user);
   const history                    = useHistory();
+  const basePath = useBasePath();
   const [activeTrack, setActiveTrack] = useState<TrackId>('software');
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function DashboardPage(): React.JSX.Element {
   // Redirect to login if not signed in
   useEffect(() => {
     if (!loading && !user) {
-      history.push('/telemark/login');
+      history.push(basePath('/login'));
     }
   }, [user, loading, history]);
 
@@ -133,7 +135,7 @@ export default function DashboardPage(): React.JSX.Element {
 
   async function handleSignOut() {
     await signOut(auth);
-    history.push('/telemark/');
+    history.push(basePath('/'));
   }
 
   function toggleUnit(unitSlug: string, nextValue: boolean) {
