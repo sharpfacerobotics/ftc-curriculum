@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useHistory} from '@docusaurus/router';
 import {usePluginData} from '@docusaurus/useGlobalData';
 import {useAuth} from '@site/src/telemark/useAuth';
+import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
 import styles from './CommandPalette.module.css';
 
 interface SearchEntry {
@@ -19,19 +20,52 @@ interface Command {
   title: string;
   path: string;
   group: string;
-  track: 'software' | 'mechanical' | 'action';
+  track: 'software' | 'mechanical' | 'action' | 'tool';
   locked: boolean;
+  /** Title, label, and path: the things a person half remembers. */
+  meta: string;
+  /** Lesson body text, so a topic word finds the lesson that teaches it. */
+  body: string;
+}
+
+function action(id: string, title: string, path: string): Command {
+  return {
+    id,
+    title,
+    path,
+    group: 'Go to',
+    track: 'action',
+    locked: false,
+    meta: `${title} ${path}`.toLowerCase(),
+    body: '',
+  };
 }
 
 const ACTIONS: Command[] = [
-  {id: 'a-sw', title: 'Software track', path: '/curriculum', group: 'Go to', track: 'action', locked: false},
-  {id: 'a-eng', title: 'Engineering track', path: '/mechanical', group: 'Go to', track: 'action', locked: false},
-  {id: 'a-paths', title: 'Engineering learning paths', path: '/mechanical/learning-paths', group: 'Go to', track: 'action', locked: false},
-  {id: 'a-cad', title: 'CAD practice exercises', path: '/mechanical/cad-practice', group: 'Go to', track: 'action', locked: false},
-  {id: 'a-sim', title: 'Simulator', path: '/simulator', group: 'Go to', track: 'action', locked: false},
-  {id: 'a-dash', title: 'Dashboard', path: '/dashboard', group: 'Go to', track: 'action', locked: false},
-  {id: 'a-search', title: 'Full search page', path: '/search', group: 'Go to', track: 'action', locked: false},
+  action('a-sw', 'Software track', '/curriculum'),
+  action('a-eng', 'Engineering track', '/mechanical'),
+  action('a-paths', 'Engineering learning paths', '/mechanical/learning-paths'),
+  action('a-cad', 'CAD practice exercises', '/mechanical/cad-practice'),
+  action('a-sim', 'Simulator', '/simulator'),
+  action('a-dash', 'Dashboard', '/dashboard'),
+  action('a-search', 'Full search page', '/search'),
 ];
+
+/**
+ * The calculators and checkers, which live in a tab strip rather than at their
+ * own routes. Without these, searching "gear ratio" finds lessons about gears
+ * and not the tool that works one out.
+ */
+const TOOLS: Command[] = TOOL_CATALOG.map((tool) => ({
+  id: `tool-${tool.id}`,
+  title: tool.name,
+  path: `/simulator#${tool.id}`,
+  group: 'Tools',
+  track: 'tool',
+  locked: false,
+  meta: `${tool.name} ${tool.group} ${tool.keywords}`.toLowerCase(),
+  body: '',
+}));
 
 /**
  * Keyboard-first navigation across both tracks.
@@ -60,20 +94,33 @@ export default function CommandPalette(): React.JSX.Element | null {
         group: entry.track === 'mechanical' ? 'Mechanical' : 'Software',
         track: entry.track,
         locked: entry.protected && !user,
+        meta: `${entry.title} ${entry.label} ${entry.path}`.toLowerCase(),
+        // Empty for protected lessons by design, so gated content is not
+        // searchable by people who cannot read it.
+        body: entry.excerpt.toLowerCase(),
       })),
     [entries, user],
   );
 
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return ACTIONS.concat(lessons.slice(0, 8));
-    const scored = ACTIONS.concat(lessons)
+    if (!needle) return ACTIONS.concat(TOOLS.slice(0, 4)).concat(lessons.slice(0, 6));
+    const scored = ACTIONS.concat(TOOLS)
+      .concat(lessons)
       .map((command) => {
-        const haystack = `${command.title} ${command.path}`.toLowerCase();
-        const index = haystack.indexOf(needle);
-        if (index === -1) return null;
-        // Earlier matches and title matches rank higher.
-        return {command, score: index + (command.track === 'action' ? -20 : 0)};
+        // Three tiers, so a lesson whose title is the query always outranks one
+        // that merely mentions it in passing. Searching only titles was the
+        // reason a real topic word returned nothing at all.
+        const inTitle = command.title.toLowerCase().indexOf(needle);
+        const inMeta = command.meta.indexOf(needle);
+        const inBody = command.body.indexOf(needle);
+        let score: number;
+        if (inTitle >= 0) score = inTitle;
+        else if (inMeta >= 0) score = 100 + inMeta;
+        else if (inBody >= 0) score = 500 + inBody;
+        else return null;
+        if (command.track === 'action') score -= 20;
+        return {command, score};
       })
       .filter(Boolean) as {command: Command; score: number}[];
     return scored.sort((a, b) => a.score - b.score).slice(0, 24).map((s) => s.command);
@@ -213,7 +260,13 @@ export default function CommandPalette(): React.JSX.Element | null {
                   onClick={() => go(command)}
                 >
                   <span className={`${styles.badge} ${badgeClass}`}>
-                    {command.track === 'action' ? 'Page' : command.track === 'mechanical' ? 'Eng' : 'SW'}
+                    {command.track === 'action'
+                      ? 'Page'
+                      : command.track === 'tool'
+                        ? 'Tool'
+                        : command.track === 'mechanical'
+                          ? 'Eng'
+                          : 'SW'}
                   </span>
                   <span className={styles.itemBody}>
                     <span className={styles.itemTitle}>{command.title}</span>

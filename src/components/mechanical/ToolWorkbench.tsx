@@ -1,3 +1,4 @@
+import {useLocation} from '@docusaurus/router';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import Link from '@docusaurus/Link';
 import {trackEvent} from '@site/src/telemark/analytics';
@@ -33,16 +34,15 @@ export default function ToolWorkbench({
   const [fullscreen, setFullscreen] = useState(false);
 
   // Changing only the hash does not remount, so the initialiser above never
-  // re-runs. Following hashchange means a second link from another lesson
-  // still lands on the right tool.
+  // re-runs. Watching the router's location covers in-app navigation, which
+  // the browser's hashchange event does not: a client-side push to
+  // /simulator#deflection updates history without ever firing it, so the URL
+  // changed while the bench stayed on the previous tool.
+  const {hash} = useLocation();
   useEffect(() => {
-    function onHashChange() {
-      const hash = window.location.hash.replace('#', '');
-      if (TOOL_CATALOG.some((t) => t.id === hash)) setActiveId(hash);
-    }
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
+    const id = hash.replace('#', '');
+    if (TOOL_CATALOG.some((t) => t.id === id)) setActiveId(id);
+  }, [hash]);
 
   const active: ToolEntry =
     TOOL_CATALOG.find((t) => t.id === activeId) ?? TOOL_CATALOG[0];
