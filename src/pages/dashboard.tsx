@@ -13,7 +13,7 @@ import styles from './dashboard.module.css';
 
 export default function DashboardPage(): React.JSX.Element {
   const { user, loading }          = useAuth();
-  const { progress, loading: progressLoading, isComplete } = useProgress(user);
+  const { progress, loading: progressLoading, isComplete, isSkipped } = useProgress(user);
   const history                    = useHistory();
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const previousStatusesRef = useRef<Record<string, string>>({});
@@ -28,7 +28,7 @@ export default function DashboardPage(): React.JSX.Element {
   const completed  = CURRICULUM_LESSONS.filter((lesson) => isComplete(lesson.id)).length;
   const total      = CURRICULUM_LESSONS.length;
   const percentage = Math.round((completed / total) * 100);
-  const nextLesson = CURRICULUM_LESSONS.find((lesson) => !isComplete(lesson.id));
+  const nextLesson = CURRICULUM_LESSONS.find((lesson) => !isComplete(lesson.id) && !isSkipped(lesson.id));
   const fallbackUnit = CURRICULUM_UNITS[CURRICULUM_UNITS.length - 1];
   const units = useMemo(() => {
     return CURRICULUM_UNITS.map((unit) => {
@@ -40,7 +40,7 @@ export default function DashboardPage(): React.JSX.Element {
           : completedCount === 0
             ? 'untouched'
             : 'in-progress';
-      const unitNextLesson = lessons.find((lesson) => !isComplete(lesson.id));
+      const unitNextLesson = lessons.find((lesson) => !isComplete(lesson.id) && !isSkipped(lesson.id));
 
       return {
         ...unit,
@@ -214,21 +214,22 @@ export default function DashboardPage(): React.JSX.Element {
                     <div className={styles.unitLessonRows}>
                       {unit.lessons.map((lesson) => {
                         const done = isComplete(lesson.id);
+                        const skipped = isSkipped(lesson.id);
                         return (
                           <Link
                             key={lesson.id}
                             to={lesson.path}
-                            className={`${styles.lessonRow} ${done ? styles.lessonDone : ''}`}
+                            className={`${styles.lessonRow} ${done ? styles.lessonDone : ''} ${skipped ? styles.lessonSkipped : ''}`}
                           >
                             <div className={styles.lessonCheck} aria-hidden="true">
-                              {done ? '✓' : '○'}
+                              {done ? '✓' : skipped ? '→' : '○'}
                             </div>
                             <div className={styles.lessonInfo}>
                               <span className={styles.lessonLabel}>{lesson.label}</span>
                               <span className={styles.lessonUnit}>{lesson.title}</span>
                             </div>
                             <span className={styles.lessonStatus}>
-                              {done ? 'Complete' : 'Incomplete'}
+                              {done ? 'Complete' : skipped ? 'Skipped' : 'Incomplete'}
                             </span>
                           </Link>
                         );

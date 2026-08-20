@@ -295,6 +295,7 @@
   border: 1px solid var(--home-blue-strong);
   background: var(--home-blue-strong);
   color: #031019 !important;
+  border-radius: 999px;
   font-family: var(--telemark-font-display);
   font-size: 15px;
   font-weight: 700;
@@ -318,6 +319,7 @@
   border: 1px solid rgba(242, 248, 255, 0.24);
   background: transparent;
   color: rgba(242, 248, 255, 0.78) !important;
+  border-radius: 999px;
   font-family: var(--telemark-font-label);
   font-size: 12px;
   letter-spacing: 0.08em;

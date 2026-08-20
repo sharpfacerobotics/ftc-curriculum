@@ -70,6 +70,7 @@
   background: linear-gradient(135deg, #00BFFF, #0075d4);
   color: #fff;
   border: none;
+  border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
   clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
@@ -89,6 +90,7 @@
   background: transparent;
   color: rgba(232, 244, 255, 0.5);
   border: 1px solid rgba(232, 244, 255, 0.2);
+  border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
   transition: border-color 0.2s, color 0.2s;
@@ -108,7 +110,7 @@
 .completeBox:not(:has(.signInBtn)) .completeBtn {
   color: #00BFFF;
   border-color: #00BFFF;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  border-radius: 999px;
 }
 
 .completeBox:not(:has(.signInBtn)) .completeBtn:hover:not(:disabled) {
@@ -194,7 +196,7 @@
   color: #07070f !important;
   text-decoration: none;
   font-weight: 700;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  border-radius: 999px;
   transition: box-shadow 0.2s;
 }
 
@@ -202,4 +204,29 @@
   box-shadow: 0 0 24px rgba(57, 255, 20, 0.4);
   text-decoration: none;
   color: #07070f;
+}
+
+.successActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  border: 1px solid rgba(232, 244, 255, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(232, 244, 255, 0.7);
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 10px 18px;
+  text-transform: uppercase;
+}
+
+.actionBtn:hover:not(:disabled) {
+  border-color: #00BFFF;
+  color: #e8f4ff;
 }

@@ -114,7 +114,7 @@
   background: linear-gradient(135deg, #00BFFF, #0075d4);
   color: #fff !important;
   text-decoration: none;
-  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  border-radius: 999px;
   transition: box-shadow 0.2s;
   white-space: nowrap;
 }
@@ -133,6 +133,7 @@
   background: transparent;
   color: rgba(232, 244, 255, 0.35);
   border: 1px solid rgba(232, 244, 255, 0.15);
+  border-radius: 999px;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
 }
@@ -302,6 +303,7 @@
   text-transform: uppercase;
   padding: 0.5rem 0.8rem;
   border: 1px solid rgba(0, 191, 255, 0.18);
+    border-radius: 999px;
   color: rgba(232, 244, 255, 0.72);
   text-decoration: none;
 }
@@ -341,6 +343,11 @@
 .lessonRow:hover { background: #121230; text-decoration: none; color: inherit; }
 
 .lessonDone { border-left: 3px solid #39FF14; }
+
+.lessonSkipped { border-left: 3px solid rgba(232, 244, 255, 0.3); }
+
+.lessonSkipped .lessonCheck,
+.lessonSkipped .lessonStatus { color: rgba(232, 244, 255, 0.5); }
 
 .lessonCheck {
   font-family: 'Share Tech Mono', monospace;

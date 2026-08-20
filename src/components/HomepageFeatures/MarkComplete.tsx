@@ -17,15 +17,15 @@ export default function MarkComplete({
   nextUnitName,
 }: MarkCompleteProps): React.JSX.Element {
   const { user }                     = useAuth();
-  const { isComplete, markComplete } = useProgress(user);
+  const { isComplete, isSkipped, markComplete, markSkipped, unmarkComplete, unskip } = useProgress(user);
   const [saving, setSaving]          = useState(false);
   const [done, setDone]              = useState(isComplete(lessonId));
+  const [skipped, setSkipped]        = useState(isSkipped(lessonId));
 
   useEffect(() => {
-    if (isComplete(lessonId)) {
-      setDone(true);
-    }
-  }, [isComplete, lessonId]);
+    setDone(isComplete(lessonId));
+    setSkipped(isSkipped(lessonId));
+  }, [isComplete, isSkipped, lessonId]);
 
   async function handleComplete() {
     setSaving(true);
@@ -36,6 +36,36 @@ export default function MarkComplete({
       console.error('Telemark save failed:', e);
       // Still let the user proceed even if save fails
       setDone(true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUnmark() {
+    setSaving(true);
+    try {
+      await unmarkComplete(lessonId);
+      setDone(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSkip() {
+    setSaving(true);
+    try {
+      await markSkipped(lessonId);
+      setSkipped(true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUnskip() {
+    setSaving(true);
+    try {
+      await unskip(lessonId);
+      setSkipped(false);
     } finally {
       setSaving(false);
     }
@@ -61,9 +91,26 @@ export default function MarkComplete({
         <p className={styles.successMsg}>
           Nice work. Hold yourself to it — there are no shortcuts in competition.
         </p>
-        <Link to={nextUnit} className={styles.nextBtn}>
-          Proceed to {nextUnitName} →
-        </Link>
+        <div className={styles.successActions}>
+          <Link to={nextUnit} className={styles.nextBtn}>Proceed to {nextUnitName} →</Link>
+          {user && <button className={styles.actionBtn} onClick={handleUnmark} disabled={saving}>Unmark</button>}
+        </div>
+      </div>
+    );
+  }
+
+  if (skipped) {
+    return (
+      <div className={styles.successBox}>
+        <div className={styles.successHeader}>
+          <span className={styles.successTitle}>Section Skipped</span>
+          <span className={styles.savedBadge}>saved to Telemark</span>
+        </div>
+        <p className={styles.successMsg}>You can come back to this section whenever you are ready.</p>
+        <div className={styles.successActions}>
+          <Link to={nextUnit} className={styles.nextBtn}>Continue to {nextUnitName} →</Link>
+          <button className={styles.actionBtn} onClick={handleUnskip} disabled={saving}>Resume section</button>
+        </div>
       </div>
     );
   }
@@ -110,6 +157,9 @@ export default function MarkComplete({
           disabled={saving}
         >
           {saving ? 'Saving...' : 'Mark as Complete'}
+        </button>
+        <button className={styles.actionBtn} onClick={handleSkip} disabled={saving}>
+          Skip section
         </button>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { trackEvent } from './analytics';
 export interface ProgressData {
   completedLessons: string[];
   lastLesson: string | null;
+  skippedLessons: string[];
 }
 
 export function useProgress(user: User | null) {
@@ -23,9 +24,14 @@ export function useProgress(user: User | null) {
     const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
     getDoc(ref).then((snap) => {
       if (snap.exists()) {
-        setProgress(snap.data() as ProgressData);
+        const data = snap.data() as Partial<ProgressData>;
+        setProgress({
+          completedLessons: data.completedLessons ?? [],
+          skippedLessons: data.skippedLessons ?? [],
+          lastLesson: data.lastLesson ?? null,
+        });
       } else {
-        const initial: ProgressData = { completedLessons: [], lastLesson: null };
+        const initial: ProgressData = {completedLessons: [], skippedLessons: [], lastLesson: null};
         setDoc(ref, initial);
         setProgress(initial);
       }
@@ -42,17 +48,39 @@ export function useProgress(user: User | null) {
     const newCompleted = [...progress.completedLessons, lessonId];
     const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
 
-    // Strip any undefined values before sending to Firestore
-    const payload = JSON.parse(JSON.stringify({
-      completedLessons: newCompleted,
-      lastLesson: lessonId,
-    }));
+    const newSkipped = progress.skippedLessons.filter((id) => id !== lessonId);
+    const payload = {completedLessons: newCompleted, skippedLessons: newSkipped, lastLesson: lessonId};
     await setDoc(ref, payload, { merge: true });
-    setProgress({ completedLessons: newCompleted, lastLesson: lessonId });
+    setProgress({completedLessons: newCompleted, skippedLessons: newSkipped, lastLesson: lessonId});
     trackEvent('lesson_complete', {
       lesson_id: lessonId,
       unit_slug: lessonId.split('/')[0] ?? 'unknown',
     });
+  }, [user, progress]);
+
+  const unmarkComplete = useCallback(async (lessonId: string) => {
+    if (!user || !progress || !progress.completedLessons.includes(lessonId)) return;
+    const newCompleted = progress.completedLessons.filter((id) => id !== lessonId);
+    const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
+    await setDoc(ref, { completedLessons: newCompleted }, { merge: true });
+    setProgress({ ...progress, completedLessons: newCompleted });
+  }, [user, progress]);
+
+  const markSkipped = useCallback(async (lessonId: string) => {
+    if (!user || !progress || progress.skippedLessons.includes(lessonId)) return;
+    const newCompleted = progress.completedLessons.filter((id) => id !== lessonId);
+    const newSkipped = [...progress.skippedLessons, lessonId];
+    const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
+    await setDoc(ref, { completedLessons: newCompleted, skippedLessons: newSkipped }, { merge: true });
+    setProgress({ ...progress, completedLessons: newCompleted, skippedLessons: newSkipped });
+  }, [user, progress]);
+
+  const unskip = useCallback(async (lessonId: string) => {
+    if (!user || !progress || !progress.skippedLessons.includes(lessonId)) return;
+    const newSkipped = progress.skippedLessons.filter((id) => id !== lessonId);
+    const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
+    await setDoc(ref, { skippedLessons: newSkipped }, { merge: true });
+    setProgress({ ...progress, skippedLessons: newSkipped });
   }, [user, progress]);
 
   const markManyComplete = useCallback(async (lessonIds: string[]) => {
@@ -62,15 +90,13 @@ export function useProgress(user: User | null) {
     if (additions.length === 0) return;
 
     const newCompleted = [...progress.completedLessons, ...additions];
+    const newSkipped = progress.skippedLessons.filter((id) => !lessonIds.includes(id));
     const lastLesson = lessonIds[lessonIds.length - 1];
     const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
-    const payload = JSON.parse(JSON.stringify({
-      completedLessons: newCompleted,
-      lastLesson,
-    }));
+    const payload = {completedLessons: newCompleted, skippedLessons: newSkipped, lastLesson};
 
     await setDoc(ref, payload, { merge: true });
-    setProgress({ completedLessons: newCompleted, lastLesson });
+    setProgress({completedLessons: newCompleted, skippedLessons: newSkipped, lastLesson});
     additions.forEach((lessonId) => {
       trackEvent('lesson_complete', {
         lesson_id: lessonId,
@@ -88,5 +114,10 @@ export function useProgress(user: User | null) {
     [progress],
   );
 
-  return { progress, loading, markComplete, markManyComplete, isComplete };
+  const isSkipped = useCallback(
+    (lessonId: string) => progress?.skippedLessons.includes(lessonId) ?? false,
+    [progress],
+  );
+
+  return {progress, loading, markComplete, markManyComplete, unmarkComplete, markSkipped, unskip, isComplete, isSkipped};
 }
