@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import Link from '@docusaurus/Link';
 import { useHistory } from '@docusaurus/router';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
+import {useMotionReveal} from '@site/src/components/ui/useMotionReveal';
 import CodeStream from '@site/src/components/ui/CodeStream';
 import RobotAssembly from '@site/src/components/ui/RobotAssembly';
 import styles from './index.module.css';
@@ -207,6 +208,8 @@ function CurriculumSection({
 }): React.JSX.Element {
   const history = useHistory();
   const basePath = useBasePath();
+  const grid = useRef<HTMLElement>(null);
+  useMotionReveal(grid, `.${styles.unitCard}`);
   const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
   const [unlockError, setUnlockError] = useState<string | null>(null);
 
@@ -237,7 +240,7 @@ function CurriculumSection({
   }
 
   return (
-    <section className={styles.section} id={id}>
+    <section className={styles.section} id={id} ref={grid}>
       <p className={styles.sectionLabel}>{label}</p>
       <h2 className={styles.sectionTitle}>{heading}</h2>
       <p className={styles.sectionDesc}>{blurb}</p>
@@ -351,8 +354,11 @@ function SimulatorSection(): React.JSX.Element {
  * interactive and the other was reading. Both halves run something.
  */
 function ToolsSection(): React.JSX.Element {
+  const strip = useRef<HTMLElement>(null);
+  useMotionReveal(strip, `.${styles.toolCard}`);
+
   return (
-    <section className={styles.section} id="tools">
+    <section className={styles.section} id="tools" ref={strip}>
       <p className={styles.sectionLabel}>Design tools</p>
       <h2 className={styles.sectionTitle}>Check the design before you cut</h2>
       <p className={styles.sectionDesc}>

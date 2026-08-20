@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
+import {countTo} from '@site/src/telemark/motion';
 import styles from './Calculator.module.css';
 
 /**
@@ -226,6 +227,10 @@ export function Results({children}: {children: React.ReactNode}): React.JSX.Elem
   return <div className={styles.results}>{children}</div>;
 }
 
+function numberIn(value: string): number {
+  return Number.parseFloat(value.replace(/[^\d.-]/g, ''));
+}
+
 export function Result({
   value,
   label,
@@ -235,9 +240,29 @@ export function Result({
   label: string;
   note?: string;
 }): React.JSX.Element {
+  const ref = useRef<HTMLSpanElement>(null);
+  const previous = useRef(value);
+  const previousNumber = useRef(numberIn(value));
+
+  // A result that swaps instantly gives no clue which number answered the input
+  // you just edited. Counting to the new value points at itself. Values that
+  // are not numeric, like a fit class or a drill size, are swapped directly
+  // because there is nothing to count through.
+  useEffect(() => {
+    if (previous.current === value) return;
+    previous.current = value;
+    const target = numberIn(value);
+    const from = previousNumber.current;
+    previousNumber.current = target;
+    if (!Number.isFinite(target) || !Number.isFinite(from) || !ref.current) return;
+    const suffix = value.replace(/^[\d.,-]+/, '');
+    const decimals = (value.split('.')[1] ?? '').replace(/[^\d]/g, '').length;
+    return countTo(ref.current, target, (n) => `${n.toFixed(decimals)}${suffix}`, from);
+  }, [value]);
+
   return (
     <div className={styles.result}>
-      <span className={styles.resultValue}>{value}</span>
+      <span className={styles.resultValue} ref={ref}>{value}</span>
       <span className={styles.resultLabel}>{label}</span>
       {note && <span className={styles.resultNote}>{note}</span>}
     </div>

@@ -13,37 +13,13 @@
   color: var(--tm-text-strong);
 }
 
-/* Parts arrive in build order. The offset is small on purpose: a part sliding
-   in from off-screen reads as a slideshow, while a few pixels reads as
-   something being set down. */
+/* Parts start hidden and are brought in by the timeline in RobotAssembly.
+   Opacity lives here so the first paint has no flash of a finished robot
+   before the script runs. */
 .part {
   opacity: 0;
-  transform: translateY(6px);
-  animation: settle 9s var(--tm-ease) infinite;
-}
-
-.p1 { animation-delay: 0s; }
-.p2 { animation-delay: 0.45s; }
-.p3 { animation-delay: 0.9s; }
-.p4 { animation-delay: 1.35s; }
-.p5 { animation-delay: 1.8s; }
-.p6 { animation-delay: 2.25s; }
-
-@keyframes settle {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  /* Assembled by a fifth of the loop, then held, so the finished robot is what
-     the visitor actually looks at rather than a constant flicker of parts. */
-  8%, 88% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(0);
-  }
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .caption {
@@ -56,10 +32,10 @@
 }
 
 /* Reduced motion gets the assembled robot, which is the informative state. */
+/* Reduced motion gets the assembled robot, which is the informative state.
+   The timeline also checks, so this is the no-JavaScript path too. */
 @media (prefers-reduced-motion: reduce) {
   .part {
     opacity: 1;
-    transform: none;
-    animation: none;
   }
 }
