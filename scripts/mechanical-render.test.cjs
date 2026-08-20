@@ -121,12 +121,14 @@ assert.ok(
 for (const name of calculatorNames) {
   const markup = renders(name, React.createElement(calculators[name]));
   // Every tool must show output, not just its inputs. Calculators render a
-  // result block or a table; the simulator renders a live telemetry panel.
+  // result block, a table, or a record list; the simulator renders a live
+  // telemetry panel.
   assert.ok(
     markup.includes('resultValue')
       || markup.includes('table')
+      || markup.includes('record')
       || markup.includes('telemetry'),
-    `${name} rendered no result, table, or telemetry`,
+    `${name} rendered no result, table, record list, or telemetry`,
   );
 }
 
@@ -163,7 +165,7 @@ const {MASTERY_QUESTIONS} = require(path.join(root, 'src/telemark/mechanicalQuiz
 const ScoredQuiz = require(path.join(root, 'src/components/mechanical/ScoredQuiz.tsx')).default;
 
 const moduleKeys = Object.keys(MASTERY_QUESTIONS);
-assert.equal(moduleKeys.length, 12, 'expected scored questions for all 12 modules');
+assert.equal(moduleKeys.length, 13, 'expected scored questions for all 13 modules');
 
 for (const key of moduleKeys) {
   const questions = MASTERY_QUESTIONS[key];

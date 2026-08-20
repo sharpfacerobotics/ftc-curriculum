@@ -20,6 +20,22 @@ export interface ToolEntry {
  */
 export const TOOL_CATALOG: ToolEntry[] = [
   {
+    id: 'requirements',
+    name: 'Requirements table',
+    group: 'Deciding',
+    keywords: 'requirement constraint verification owner traceability id source',
+    lesson: {path: '/mechanical/module-00/requirements-and-constraints', label: 'Lesson 0.3: Writing Requirements'},
+    render: () => <Tools.RequirementsTable />,
+  },
+  {
+    id: 'combiner',
+    name: 'Concept combiner',
+    group: 'Deciding',
+    keywords: 'morphological function combination ideate cost benefit trade',
+    lesson: {path: '/mechanical/module-00/concept-generation', label: 'Lesson 0.4: Generating and Narrowing Concepts'},
+    render: () => <Tools.ConceptCombiner />,
+  },
+  {
     id: 'arm-sim',
     name: 'Arm simulator',
     group: 'Simulation',
@@ -118,7 +134,7 @@ export const TOOL_CATALOG: ToolEntry[] = [
   {
     id: 'decision-matrix',
     name: 'Weighted decision matrix',
-    group: 'Electrical and decisions',
+    group: 'Deciding',
     keywords: 'criteria weights score compare concepts choose design',
     lesson: {path: '/mechanical/module-01/decision-matrices', label: 'Lesson 1.4: Weighted Decision Matrices'},
     render: () => <Tools.DecisionMatrix />,

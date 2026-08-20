@@ -148,8 +148,8 @@ const quizPath = path.join(root, 'src/telemark/mechanicalQuizzes.ts');
 if (fs.existsSync(quizPath)) {
   const quizSource = fs.readFileSync(quizPath, 'utf8');
   const quizModules = [...quizSource.matchAll(/'(module-\d{2})':/g)].map((m) => m[1]);
-  if (quizModules.length !== 12) {
-    failures.push(`Expected scored questions for 12 modules, found ${quizModules.length}`);
+  if (quizModules.length !== 13) {
+    failures.push(`Expected scored questions for 13 modules, found ${quizModules.length}`);
   }
   for (const moduleSlug of quizModules) {
     if (!mechanicalText.includes(`MASTERY_QUESTIONS['${moduleSlug}']`)) {

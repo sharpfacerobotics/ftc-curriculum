@@ -393,6 +393,13 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
       explain: 'A half completed proper repair means missing the match with the robot disassembled. Play degraded, swap a spare, or make a safe temporary fix, then repair properly later.',
     },
   ],
+  'module-12': [
+    {prompt: 'What is the minimum clearance for a screw passing through a hole?', options: ['0.05 mm per side', '0.15 mm per side', '0.5 mm per side', 'No clearance is needed'], answer: 1, explain: '0.15 mm per side, so 0.3 mm on the diameter. It has to absorb drill error, position error, fastener runout, and surface finish together.'},
+    {prompt: 'The M3 close clearance hole is which size?', options: ['2.5 mm', '3.0 mm', '3.2 mm', '3.6 mm'], answer: 2, explain: '3.2 mm close, 3.4 mm free. 2.5 mm is the tap drill, and 3.0 mm is the screw itself, which binds.'},
+    {prompt: 'Minimum thread engagement for M3 in aluminium?', options: ['1.5 mm', '3.0 mm', '4.5 mm', '9.0 mm'], answer: 2, explain: '1.5 times the diameter. 1/8 in plate is 3.175 mm, which is below standard, so use a nut, an insert, or a thicker section.'},
+    {prompt: 'A shaft spins freely with one bearing and stiffly with both. What does that mean?', options: ['The bearings are the wrong size', 'The two bores are not coaxial', 'The shaft is too long', 'That is normal'], answer: 1, explain: 'The shaft bends to pass through both, which permanently loads the bearings and adds friction. Ten seconds to check during assembly, a spacer to fix.'},
+    {prompt: 'Why is a safety factor of 6 also a mistake?', options: ['It is not, more margin is always better', 'Margin is bought with reduction, and reduction costs speed proportionally', 'It makes the part too heavy to move', 'It voids the warranty'], answer: 1, explain: 'An arm with six times the needed torque takes several seconds to raise and loses the cycle it was built for. Aim for 2 to 3 and spend the rest on speed.'},
+  ],
 };
 
 export const QUIZ_MODULE_COUNT = Object.keys(MASTERY_QUESTIONS).length;

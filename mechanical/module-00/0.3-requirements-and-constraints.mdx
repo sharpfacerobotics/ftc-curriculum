@@ -6,6 +6,8 @@ sidebar_position: 3
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import LessonTool from '@site/src/components/mechanical/LessonTool';
+import RequirementsTable from '@site/src/components/mechanical/RequirementsTable';
 
 # Lesson 0.3: Writing Requirements and Separating Them From Constraints
 
@@ -73,6 +75,40 @@ If any one of these cannot be met, the 9 second cycle estimate was wrong, and th
 
 :::tip Requirements make arguments productive
 Two students disagreeing about intake designs is unproductive until someone asks "which one acquires an element in under 2 seconds?" Then it is a question with an answer, and the answer comes from a prototype rather than from whoever argues longest.
+:::
+
+---
+
+## Four Things Every Requirement Needs
+
+A statement alone is not enough. A requirement that the team can actually work
+from carries four things, and a row missing any one of them will cause an
+argument later.
+
+| Field | Why it exists |
+| --- | --- |
+| **An id** | So a notebook entry, a design review, and a test result can all cite the same thing. "R2 failed" is precise; "the drive requirement" is not. |
+| **A number and a unit** | Without one, nothing can pass or fail. |
+| **A verification method** | How you will know. Test means run it repeatedly and count. Measure means one instrument reading. Inspect means check against a list. Demonstrate means show it once, end to end. |
+| **An owner** | A subsystem that answers for it. A requirement everyone owns is one everyone assumes someone else has. |
+
+Plus a source, so a rule can be told from a preference.
+
+<LessonTool
+  toolId="requirements"
+  bring="Your scoring table from Lesson 0.2 and this season's manual."
+  change="A row's verification method, and ask yourself who would run it."
+  read="The warnings. A row with no number or no owner is not yet a requirement."
+>
+  <RequirementsTable />
+</LessonTool>
+
+:::tip The id is what makes the rest work
+Once R2 exists, a mechanism can be described as "satisfies R2", a test result
+can be recorded against R2, and a design review can ask to see R2 rather than
+asking whether the drivetrain feels fast enough. That thread from a decision to
+the evidence for it is what separates a team that can explain its robot from a
+team that built one.
 :::
 
 ---

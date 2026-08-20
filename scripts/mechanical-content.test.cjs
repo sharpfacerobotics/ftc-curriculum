@@ -45,7 +45,7 @@ const modules = moduleChunks.map((chunk) => {
   return {number, title: titleMatch[1], lessons};
 });
 
-assert.equal(modules.length, 12, 'expected 12 engineering modules');
+assert.equal(modules.length, 13, 'expected 13 mechanical modules');
 
 let lessonFileCount = 0;
 
@@ -117,7 +117,7 @@ for (const module of modules) {
   }
 }
 
-assert.equal(lessonFileCount, 60, `expected 60 mechanical lessons, found ${lessonFileCount}`);
+assert.equal(lessonFileCount, 65, `expected 65 mechanical lessons, found ${lessonFileCount}`);
 
 // Track-level pages the navbar and sidebar depend on.
 const indexDoc = fs.readFileSync(path.join(mechanicalRoot, 'index.mdx'), 'utf8');

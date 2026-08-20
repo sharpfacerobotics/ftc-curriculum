@@ -107,7 +107,7 @@ const softwareQuizzes = quizFiles('docs', /^unit-\d{2}$/);
 const mechanicalQuizzes = quizFiles('mechanical', /^module-\d{2}$/);
 
 assert.ok(softwareQuizzes.length >= 14, `expected 14 software quizzes, found ${softwareQuizzes.length}`);
-assert.equal(mechanicalQuizzes.length, 12, 'expected 12 engineering quizzes');
+assert.equal(mechanicalQuizzes.length, 13, 'expected 13 mechanical quizzes');
 
 for (const file of [...softwareQuizzes, ...mechanicalQuizzes]) {
   const text = fs.readFileSync(file, 'utf8');
@@ -122,7 +122,7 @@ for (const file of [...softwareQuizzes, ...mechanicalQuizzes]) {
 
 const banks = [
   {name: 'software', questions: loadTs('src/telemark/softwareQuizzes.ts', 'SOFTWARE_QUESTIONS'), expected: 14},
-  {name: 'mechanical', questions: loadTs('src/telemark/mechanicalQuizzes.ts', 'MASTERY_QUESTIONS'), expected: 12},
+  {name: 'mechanical', questions: loadTs('src/telemark/mechanicalQuizzes.ts', 'MASTERY_QUESTIONS'), expected: 13},
 ];
 
 let totalQuestions = 0;

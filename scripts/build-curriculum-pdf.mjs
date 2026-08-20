@@ -28,7 +28,7 @@ const TRACKS = {
     dataFile: 'src/telemark/mechanical.ts',
     docs: [
       'engineering/getting-started.mdx',
-      ...Array.from({ length: 12 }, (_, i) =>
+      ...Array.from({ length: 13 }, (_, i) =>
         listUnitDocs(`mechanical/module-${String(i).padStart(2, '0')}`),
       ).flat(),
     ],

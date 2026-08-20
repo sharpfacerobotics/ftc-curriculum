@@ -360,3 +360,43 @@
   }
   .range:hover::-webkit-slider-thumb { transform: none; }
 }
+
+/* Wide tables (morphological chart, requirements list) scroll inside their own
+   box on narrow screens rather than pushing the whole page sideways. */
+.tableScroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* Record list: one requirement per block, statement full width, supporting
+   fields wrapping beneath it. Replaces a six-column table that could not show
+   a readable sentence at any width. */
+.records {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.9rem;
+}
+
+.record {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--tm-accent-a12);
+}
+
+.recordHead {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.recordFields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.recordField {
+  display: flex;
+  flex: 1 1 8rem;
+  flex-direction: column;
+  gap: 0.2rem;
+}

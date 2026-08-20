@@ -35,8 +35,11 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://sharpfacerobotics.github.io',
-  baseUrl: '/telemark/',
+  url: process.env.TELEMARK_URL ?? 'https://sharpfacerobotics.github.io',
+  // GitHub Pages serves the site under /telemark/, but a preview host, a
+  // tunnel, or a custom domain serves it from the root. Overridable so a
+  // build can target either without editing this file.
+  baseUrl: process.env.TELEMARK_BASE_URL ?? '/telemark/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.

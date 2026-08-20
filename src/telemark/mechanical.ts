@@ -272,6 +272,26 @@ const MODULE_SEEDS: ModuleSeed[] = [
       {slug: 'pit-and-match-day', label: 'Match Day', title: 'Lesson 11.4: Pit Organization and Match Day Maintenance'},
     ],
   },
+  {
+    number: '12',
+    title: 'Shop Standards and Non-Negotiables',
+    desc: 'The numbers that are not up for debate, and the reasoning that makes them stick.',
+    tier: 'Beginner',
+    overview:
+      'Most of this track teaches you how to decide. This module is the part that is already decided. These are the values a team argues about once, gets wrong once, and then writes on the wall. Reference it from day one and return to it whenever a number is in question.',
+    outcomes: [
+      'Apply the standard hole clearances without re-deriving them, and know why 0.15 mm per side is the floor.',
+      'Meet the minimum thread engagement, fastener count, and retention standard on every joint.',
+      'Support every rotating assembly to the same standard, whatever the mechanism.',
+      'Hold the design margins that separate a robot that works in the pit from one that works in match five.',
+    ],
+    lessons: [
+      {slug: 'hole-standards', label: 'Hole Standards', title: 'Lesson 12.1: Clearance, Tap Drills, and the 0.15 mm Rule'},
+      {slug: 'joint-standards', label: 'Joint Standards', title: 'Lesson 12.2: Thread Engagement, Fastener Count, and Retention'},
+      {slug: 'rotating-standards', label: 'Rotating Standards', title: 'Lesson 12.3: Standards for Anything That Spins'},
+      {slug: 'margin-standards', label: 'Margin Standards', title: 'Lesson 12.4: The Design Margins That Survive a Tournament'},
+    ],
+  },
 ];
 
 function modulePath(number: string, lessonSlug?: string): string {

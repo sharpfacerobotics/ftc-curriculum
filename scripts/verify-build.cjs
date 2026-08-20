@@ -29,8 +29,8 @@ const homepage = fs.readFileSync(path.join(buildRoot, 'index.html'), 'utf8');
 // the stats bar.
 assert.match(homepage, />16</, 'Homepage must render the 16 software units');
 assert.match(homepage, /16 units · 97 lessons/, 'Homepage must render the software lesson count');
-assert.match(homepage, /12 modules · 60 lessons/, 'Homepage must render the mechanical module and lesson counts');
-assert.match(homepage, />157</, 'Homepage stats bar must render the combined lesson count');
+assert.match(homepage, /13 modules · 65 lessons/, 'Homepage must render the mechanical module and lesson counts');
+assert.match(homepage, />162</, 'Homepage stats bar must render the combined lesson count');
 assert.match(homepage, />2</, 'Homepage stats bar must render the track count');
 assert.match(homepage, /telemark-build-commit/);
 

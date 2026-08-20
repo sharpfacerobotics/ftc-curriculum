@@ -6,6 +6,8 @@ sidebar_position: 4
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import LessonTool from '@site/src/components/mechanical/LessonTool';
+import ConceptCombiner from '@site/src/components/mechanical/ConceptCombiner';
 
 # Lesson 0.4: Generating and Narrowing Robot Concepts
 
@@ -44,6 +46,60 @@ Ideas described out loud are understood differently by everyone in the room. Ide
 **Look at how the problem is solved outside robotics.** Element handling is a solved problem in agriculture, packaging, and manufacturing. A conveyor, an auger, and a vacuum are all real answers used at industrial scale.
 
 **Steal openly, then understand.** Watching match video from past seasons is legitimate research. The rule is simple: if you copy a mechanism, you must be able to explain why each part of it is shaped the way it is before you build it.
+
+---
+
+## Combining Instead of Choosing
+
+Most teams generate whole mechanisms and then pick one. That produces three or
+four ideas, each of which is somebody's favourite, and the argument becomes
+about people rather than about the robot.
+
+There is a better move. Break the problem into the **functions** it has to
+perform, list ways to satisfy each function separately, then combine one from
+each column.
+
+The arithmetic is the point. Four functions with three options each is not
+seven ideas, it is **81 combinations**, and most of them are ones nobody would
+have proposed out loud. Combining also separates decisions that were never
+related: how you grab the element has nothing to do with how you lift it, and
+treating them as one choice throws away good halves of rejected ideas.
+
+<LessonTool
+  toolId="combiner"
+  bring="The functions your robot must perform, taken from your requirements."
+  change="One function's chosen option, and score the new combination."
+  read="Benefit per cost. The best combination is rarely the best on either axis alone."
+>
+  <ConceptCombiner />
+</LessonTool>
+
+## Cost and Benefit, Kept Apart
+
+Once you have combinations, the temptation is to score each one out of ten.
+Resist it. Collapsing everything into a single number hides the decision you
+are actually making.
+
+Keep two axes:
+
+**Cost** is everything the combination consumes: build hours, money, weight,
+complexity, and the risk that it does not work. Build hours are usually the
+binding one, and teams consistently underestimate them.
+
+**Benefit** is what it delivers against the requirements you wrote in Lesson
+0.3, cited by id.
+
+Then look at **benefit per cost**. A combination that scores highest on benefit
+and highest on cost is often the wrong answer, because the season has a fixed
+number of build hours and spending them all on one mechanism leaves the rest of
+the robot unbuilt.
+
+:::warning The cheapest useful version usually wins the season
+A mechanism that delivers 80% of the benefit for 40% of the cost frees the
+hours that make everything else reliable. The best robot at an event is rarely
+the one with the most ambitious mechanism; it is the one where every mechanism
+had time to be tested.
+:::
 
 ---
 
