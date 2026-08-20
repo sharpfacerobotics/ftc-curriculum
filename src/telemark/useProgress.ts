@@ -180,6 +180,40 @@ export function useProgress(user: User | null) {
     trackEvent('unit_unmark', {unit_slug: unitSlug ?? 'unknown'});
   }, [user, progress, saveProgress]);
 
+  /**
+   * Skip or unskip a single lesson.
+   *
+   * The bulk variants above operate on a whole unit; these are the per lesson
+   * controls the lesson footer uses. Both route through saveProgress so the
+   * reviewing state travels with the write instead of being dropped by a
+   * partial update.
+   */
+  const markSkipped = useCallback(async (lessonId: string) => {
+    if (!user || !progress || progress.skippedLessons.includes(lessonId)) return;
+    // Skipped lessons stay inside completedLessons, which is the invariant
+    // normalizeProgress and markManySkipped both maintain: a skipped lesson is
+    // handled, so it counts toward progress and "next lesson" walks past it
+    // instead of offering back the lesson the student just chose to skip.
+    await saveProgress({
+      ...progress,
+      completedLessons: progress.completedLessons.includes(lessonId)
+        ? progress.completedLessons
+        : [...progress.completedLessons, lessonId],
+      skippedLessons: [...progress.skippedLessons, lessonId],
+    });
+  }, [user, progress, saveProgress]);
+
+  const unskip = useCallback(async (lessonId: string) => {
+    if (!user || !progress || !progress.skippedLessons.includes(lessonId)) return;
+    // It was only counted as handled because it was skipped, so undoing the
+    // skip has to take it back out of both lists.
+    await saveProgress({
+      ...progress,
+      completedLessons: progress.completedLessons.filter((id) => id !== lessonId),
+      skippedLessons: progress.skippedLessons.filter((id) => id !== lessonId),
+    });
+  }, [user, progress, saveProgress]);
+
   const unmarkComplete = useCallback(async (lessonId: string) => {
     if (!user || !progress) return;
     const unitSlug = lessonId.split('/')[0];
@@ -213,6 +247,8 @@ export function useProgress(user: User | null) {
     markComplete,
     markManyComplete,
     markManySkipped,
+    markSkipped,
+    unskip,
     reviewMany,
     unmarkMany,
     unmarkComplete,

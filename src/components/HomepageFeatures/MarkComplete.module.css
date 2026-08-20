@@ -214,7 +214,7 @@
   gap: 0.75rem;
 }
 
-.unmarkBtn {
+.actionBtn {
   padding: 10px 18px;
   border: 1px solid rgba(96, 165, 250, 0.36);
   border-radius: var(--tm-r-lg);
@@ -228,18 +228,18 @@
   transition: border-color 0.2s, background-color 0.2s, color 0.2s;
 }
 
-.unmarkBtn:hover:not(:disabled) {
+.actionBtn:hover:not(:disabled) {
   border-color: var(--tm-accent);
   background: var(--tm-accent-a08);
   color: #edfaff;
 }
 
-.unmarkBtn:disabled {
+.actionBtn:disabled {
   cursor: wait;
   opacity: 0.6;
 }
 
-.unmarkBtn:focus-visible {
+.actionBtn:focus-visible {
   outline: 3px solid var(--tm-border-strong);
   outline-offset: 3px;
 }
@@ -248,7 +248,7 @@
   .signInBtn,
   .completeBtn,
   .nextBtn,
-  .unmarkBtn {
+  .actionBtn {
     transition: none;
   }
 

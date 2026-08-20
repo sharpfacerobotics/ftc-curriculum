@@ -115,6 +115,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -1014,23 +1015,6 @@ window.addEventListener('blur',function(){Object.values(sticks).forEach(resetSti
     rh.addEventListener('pointercancel',function(){cr=false});
 })();
 
-// Keyboard Controls
-window.addEventListener('keydown',function(e){
-    if(e.target===codeEditor)return;
-    if(e.code==='Space')setButtonState('a',true,'btn-a-visual');
-    if(e.code==='KeyW')setButtonState('dpad_up',true,'dpad-up');
-    if(e.code==='KeyS')setButtonState('dpad_down',true,'dpad-down');
-    if(e.code==='KeyA')setButtonState('dpad_left',true,'dpad-left');
-    if(e.code==='KeyD')setButtonState('dpad_right',true,'dpad-right');
-});
-window.addEventListener('keyup',function(e){
-    if(e.code==='Space')setButtonState('a',false,'btn-a-visual');
-    if(e.code==='KeyW')setButtonState('dpad_up',false,'dpad-up');
-    if(e.code==='KeyS')setButtonState('dpad_down',false,'dpad-down');
-    if(e.code==='KeyA')setButtonState('dpad_left',false,'dpad-left');
-    if(e.code==='KeyD')setButtonState('dpad_right',false,'dpad-right');
-});
-
 // Boot Sequence
 window.addEventListener('load', function() {
   if (customCode) {
@@ -1042,6 +1026,7 @@ window.addEventListener('load', function() {
   runAnalysis();
   Object.values(sticks).forEach(resetStick);
 });
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
 </script>
 </body>
 </html>

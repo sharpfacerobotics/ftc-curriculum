@@ -389,6 +389,7 @@
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -804,14 +805,6 @@ buttonMap.forEach(([id, prop]) => {
   el.addEventListener('pointercancel',     () => setButtonState(prop, false, id));
 });
 
-window.addEventListener('keydown', (e) => {
-  if (e.target === codeEditor) return;
-  if (e.code === 'Space') setButtonState('a', true, 'btn-a-visual');
-});
-window.addEventListener('keyup', (e) => {
-  if (e.code === 'Space') setButtonState('a', false, 'btn-a-visual');
-});
-
 // ─── Joystick (Unified for Both Sticks) ──────────────────────────────────────
 const controllerWrap = document.getElementById('controller-wrap');
 
@@ -916,6 +909,7 @@ window.addEventListener('load', () => {
   updateHints(codeEditor.value);
   Object.values(sticks).forEach(resetStick);
 });
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
 </script>
 </body>
 </html>

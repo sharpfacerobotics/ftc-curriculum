@@ -142,6 +142,7 @@ code{font-family:"Consolas","Courier New",monospace}
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -1047,6 +1048,7 @@ window.addEventListener('load', () => {
     if (typeof updateArmVisuals === "function") updateArmVisuals();
   }, 400);
 });
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepadState});
 </script>
 </body>
 </html>

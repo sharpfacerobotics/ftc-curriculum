@@ -130,6 +130,45 @@ function testHardwareAndTelemetry() {
   assert.deepEqual(telemetry, [['Power', 0.5]]);
 }
 
+function testMethodLocalVariableTracking() {
+  const gamepad = {a: false, left_bumper: false, left_stick_y: -0.8};
+  const runtime = TelemarkJava.createRuntime({gamepad});
+  const program = TelemarkJava.compile(`
+    public class InspectorTest extends OpMode {
+      double scaleFactor = 0.5;
+
+      public void loop() {
+        boolean buttonState = gamepad1.a;
+        double input = -gamepad1.left_stick_y;
+        double finalPower;
+
+        if (gamepad1.left_bumper) {
+          finalPower = input * scaleFactor;
+        } else {
+          finalPower = input;
+        }
+      }
+    }
+  `, runtime, {trackVariables: true});
+
+  assert.equal(program.ok, true, program.diagnostics?.[0]?.message);
+  program.methods.loop();
+  assert.deepEqual(
+    program.locals,
+    {buttonState: false, input: 0.8, finalPower: 0.8},
+    'method locals must reflect the branch that actually executed',
+  );
+
+  gamepad.a = true;
+  gamepad.left_bumper = true;
+  program.methods.loop();
+  assert.deepEqual(
+    program.locals,
+    {buttonState: true, input: 0.8, finalPower: 0.4},
+    'tracked locals must refresh on every loop call',
+  );
+}
+
 function testTelemetryFramesAutoClear() {
   const frames = [];
   const clears = [];
@@ -531,6 +570,7 @@ async function main() {
   testClassesAndInheritance();
   testEnumsAndSwitch();
   testHardwareAndTelemetry();
+  testMethodLocalVariableTracking();
   testTelemetryFramesAutoClear();
   testResetRuntimeBindingInEditedStart();
   await testLifecycleController();

@@ -8,10 +8,6 @@
     <script src="simulator_base.js"></script>
 
     <style>
-        #sim-gamepad-card {
-            display: none !important;
-        }
-
         .lift-panel {
             margin: 10px;
             background: rgba(8,8,14,0.92);
@@ -241,6 +237,7 @@
     </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -381,13 +378,6 @@ public class AutoLift extends LinearOpMode {
         window.addTelemetry("Target", sim.targetTicks || TARGET_TICKS);
         window.addTelemetry("Power", Number(sim.power || 0).toFixed(2));
         window.updateTelemetry();
-    }
-
-    function hideGamepadCard() {
-        const card = document.getElementById("sim-gamepad-card");
-        if (card) {
-            card.style.display = "none";
-        }
     }
 
     function updateLiftVisual() {
@@ -1000,8 +990,6 @@ public class AutoLift extends LinearOpMode {
         ]);
 
         setActiveInputs([]);
-        hideGamepadCard();
-        requestAnimationFrame(hideGamepadCard);
 
         createPanel();
 

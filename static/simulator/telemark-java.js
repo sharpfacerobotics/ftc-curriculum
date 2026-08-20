@@ -627,10 +627,20 @@
     assertBalanced(sourceTokens);
     const rawTokens = braceUnbracedLoopBodies(sourceTokens);
     const output = [];
+    const trackedLocals = new Set();
+    const statementWrites = new Set();
+    const parenthesisDepth = [];
+    let currentParenthesisDepth = 0;
     let loopCounter = 0;
     const loopGuardNames = [];
     const loopGuards = new Map();
     const trailingDoWhiles = new Set();
+
+    for (let i = 0; i < rawTokens.length; i += 1) {
+      parenthesisDepth[i] = currentParenthesisDepth;
+      if (rawTokens[i].value === "(") currentParenthesisDepth += 1;
+      if (rawTokens[i].value === ")") currentParenthesisDepth -= 1;
+    }
 
     for (let i = 0; i < rawTokens.length; i += 1) {
       const token = rawTokens[i];
@@ -702,6 +712,13 @@
           }
         }
         while (rawTokens[cursor]?.value === "[" && rawTokens[cursor + 1]?.value === "]") cursor += 2;
+        if (options.trackVariables && parenthesisDepth[i] === 0) {
+          const localName = rawTokens[cursor]?.value;
+          if (localName) {
+            trackedLocals.add(localName);
+            statementWrites.add(localName);
+          }
+        }
         output.push("let");
         i = cursor - 1;
         continue;
@@ -890,7 +907,28 @@
 
       if (token.value === "synchronized") continue;
 
+      if (
+        options.trackVariables
+        && trackedLocals.has(token.value)
+        && (
+          ["=", "+=", "-=", "*=", "/=", "%="].includes(rawTokens[i + 1]?.value)
+          || ["++", "--"].includes(rawTokens[i + 1]?.value)
+          || ["++", "--"].includes(rawTokens[i - 1]?.value)
+        )
+      ) {
+        statementWrites.add(token.value);
+      }
+
       output.push(token.value);
+
+      if (token.value === ";") {
+        if (options.trackVariables && parenthesisDepth[i] === 0) {
+          for (const name of statementWrites) {
+            output.push(`__telemarkCaptureVariable(${JSON.stringify(name)},${name});`);
+          }
+        }
+        statementWrites.clear();
+      }
     }
 
     const body = output.join(" ")
@@ -1075,6 +1113,7 @@ const isStopRequested=runtime.isStopRequested||(()=>false);
 const waitForStart=runtime.waitForStart||(()=>Promise.resolve());
 const sleep=runtime.sleep||((ms)=>new Promise((resolve)=>setTimeout(resolve,Math.max(0,Number(ms)||0))));
 const linearTick=runtime.linearTick||(()=>sleep(0));
+const __telemarkCaptureVariable=runtime.captureVariable||(()=>{});
 ${options.classPrelude || ""}
 with(scope){${js}}`
       );
@@ -1159,12 +1198,24 @@ with(scope){${js}}`
       const scope = Object.fromEntries(
         (classNode.fields || []).map((field) => [field.name, field.initialValue]),
       );
+      const locals = {};
+      let methodRuntime = runtime;
+      if (options.trackVariables) {
+        methodRuntime = Object.create(runtime || null);
+        methodRuntime.captureVariable = (name, value) => {
+          locals[String(name)] = value;
+          if (typeof runtime?.captureVariable === "function") {
+            runtime.captureVariable(name, value);
+          }
+          return value;
+        };
+      }
       const classPrelude = buildClassPrelude(ast, classNode, options);
       const methods = {};
       for (const method of classNode.methods) {
         methods[method.name] = compileMethod(method, {
           ...options,
-          runtime,
+          runtime: methodRuntime,
           scope,
           classPrelude,
           async: classNode.superClass === "LinearOpMode" && method.name === "runOpMode",
@@ -1182,6 +1233,7 @@ with(scope){${js}}`
         kind: classNode.superClass === "LinearOpMode" ? "linear" : "iterative",
         methods,
         scope,
+        locals,
         diagnostics: [],
       };
     } catch (error) {
