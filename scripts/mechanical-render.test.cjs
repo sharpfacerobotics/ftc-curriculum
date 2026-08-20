@@ -113,14 +113,20 @@ function renders(label, element) {
 
 const calculators = require(path.join(root, 'src/components/mechanical/index.ts'));
 const calculatorNames = Object.keys(calculators);
-assert.equal(calculatorNames.length, 12, 'expected 12 exported calculators');
+assert.ok(
+  calculatorNames.length >= 13,
+  `expected at least 13 exported tools, found ${calculatorNames.length}`,
+);
 
 for (const name of calculatorNames) {
   const markup = renders(name, React.createElement(calculators[name]));
-  // Every calculator must show a result, not just its inputs.
+  // Every tool must show output, not just its inputs. Calculators render a
+  // result block or a table; the simulator renders a live telemetry panel.
   assert.ok(
-    markup.includes('resultValue') || markup.includes('table'),
-    `${name} rendered without any result or table`,
+    markup.includes('resultValue')
+      || markup.includes('table')
+      || markup.includes('telemetry'),
+    `${name} rendered no result, table, or telemetry`,
   );
 }
 

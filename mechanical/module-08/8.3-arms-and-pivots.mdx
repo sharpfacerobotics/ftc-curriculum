@@ -8,6 +8,7 @@ sidebar_position: 3
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import LessonTool from '@site/src/components/mechanical/LessonTool';
 import ArmTorqueCalculator from '@site/src/components/mechanical/ArmTorqueCalculator';
+import ArmSimulator from '@site/src/components/mechanical/sims/ArmSimulator';
 
 # Lesson 8.3: Arm Gravity Torque and Choosing a Reduction
 
@@ -63,6 +64,26 @@ Balance the arm on a ruler edge and note where it sits. For an arm with a motor 
 >
   <ArmTorqueCalculator />
 </LessonTool>
+
+---
+
+## Run It
+
+The calculator above answers whether the design works. This runs it, which is a
+different question: the arm accelerates, slows as gravity rises toward
+horizontal, and either reaches the top or gives out on the way.
+
+Start with the defaults and watch the demand climb as the arm approaches
+horizontal. Then drop the reduction to 30:1 and add payload until it stalls,
+and notice what the current does when it stops moving.
+
+<ArmSimulator />
+
+:::tip What the counterbalance slider is really showing
+Raise it and watch the demand fall at every angle, not just at the top. That is
+the whole argument for Lesson 8.4: a spring holds the load for free, and the
+motor only has to supply the difference.
+:::
 
 ---
 

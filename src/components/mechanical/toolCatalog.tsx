@@ -20,6 +20,14 @@ export interface ToolEntry {
  */
 export const TOOL_CATALOG: ToolEntry[] = [
   {
+    id: 'arm-sim',
+    name: 'Arm simulator',
+    group: 'Simulation',
+    keywords: 'run animate physics stall gravity counterbalance live telemetry',
+    lesson: {path: '/mechanical/module-08/arms-and-pivots', label: 'Lesson 8.3: Arm Gravity Torque'},
+    render: () => <Tools.ArmSimulator />,
+  },
+  {
     id: 'motor-curve',
     name: 'Motor operating point',
     group: 'Power transmission',

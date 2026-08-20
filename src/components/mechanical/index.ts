@@ -10,3 +10,4 @@ export {default as SlideCalculator} from './SlideCalculator';
 export {default as TapDrillReference} from './TapDrillReference';
 export {default as WeightBudgetCalculator} from './WeightBudgetCalculator';
 export {default as WireGaugeCalculator} from './WireGaugeCalculator';
+export {default as ArmSimulator} from './sims/ArmSimulator';
