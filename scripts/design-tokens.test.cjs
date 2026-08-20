@@ -125,6 +125,32 @@ for (const file of stylesheets) {
   );
 }
 
+// ── Every token referenced must actually be defined ─────────────────────────
+
+// A var() naming a token that does not exist resolves to nothing and the
+// property is simply dropped, so an invented name fails silently and looks
+// fine until someone views the page. Counting uses, as the checks above do,
+// cannot catch that: a wrong name is still a token-shaped use.
+
+const definedTokens = new Set(
+  [...globalCss.matchAll(/^\s*(--tm-[a-z0-9-]+)\s*:/gm)].map((m) => m[1]),
+);
+
+const undefinedUses = [];
+for (const file of stylesheets) {
+  const css = fs.readFileSync(file, 'utf8');
+  for (const match of css.matchAll(/var\(\s*(--tm-[a-z0-9-]+)/g)) {
+    if (!definedTokens.has(match[1])) {
+      undefinedUses.push(`${path.relative(root, file)} uses ${match[1]}`);
+    }
+  }
+}
+assert.deepEqual(
+  undefinedUses,
+  [],
+  `stylesheets reference tokens that are never defined:\n  ${undefinedUses.join('\n  ')}`,
+);
+
 console.log(
   `Design token checks passed: ${REQUIRED_TOKENS.length} tokens defined, `
   + `${tokenUses} token uses against ${literalUses} literals, `

@@ -122,13 +122,16 @@ for (const name of calculatorNames) {
   const markup = renders(name, React.createElement(calculators[name]));
   // Every tool must show output, not just its inputs. Calculators render a
   // result block, a table, or a record list; the simulator renders a live
-  // telemetry panel.
+  // telemetry panel. A tool whose output depends on a file the student
+  // supplies has nothing to compute yet, so it must instead render an empty
+  // state that says what to drop in.
   assert.ok(
     markup.includes('resultValue')
       || markup.includes('table')
       || markup.includes('record')
-      || markup.includes('telemetry'),
-    `${name} rendered no result, table, record list, or telemetry`,
+      || markup.includes('telemetry')
+      || markup.includes('drop'),
+    `${name} rendered no result, table, record list, telemetry, or empty state`,
   );
 }
 
@@ -165,7 +168,7 @@ const {MASTERY_QUESTIONS} = require(path.join(root, 'src/telemark/mechanicalQuiz
 const ScoredQuiz = require(path.join(root, 'src/components/mechanical/ScoredQuiz.tsx')).default;
 
 const moduleKeys = Object.keys(MASTERY_QUESTIONS);
-assert.equal(moduleKeys.length, 13, 'expected scored questions for all 13 modules');
+assert.equal(moduleKeys.length, 14, 'expected scored questions for all 14 modules');
 
 for (const key of moduleKeys) {
   const questions = MASTERY_QUESTIONS[key];
@@ -366,7 +369,14 @@ for (const tool of TOOL_CATALOG) {
   assert.ok(!seenIds.has(tool.id), `duplicate tool id ${tool.id}`);
   seenIds.add(tool.id);
   assert.ok(tool.keywords.length > 10, `${tool.id} has no search keywords`);
-  assert.match(tool.lesson.path, /^\/mechanical\/module-/, `${tool.id} does not link to a lesson`);
+  // Every tool must send the student back to the teaching that explains it.
+  // Usually that is a module lesson; the CAD checker's home is the practice
+  // page, which is track material for the same reason.
+  assert.match(
+    tool.lesson.path,
+    /^\/mechanical\/(module-|cad-practice)/,
+    `${tool.id} does not link to track teaching`,
+  );
   const markup = renderToStaticMarkup(tool.render());
   assert.ok(markup.length > 200, `${tool.id} rendered nothing`);
   rendered += 1;

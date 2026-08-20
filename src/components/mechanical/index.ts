@@ -12,4 +12,5 @@ export {default as WeightBudgetCalculator} from './WeightBudgetCalculator';
 export {default as WireGaugeCalculator} from './WireGaugeCalculator';
 export {default as ArmSimulator} from './sims/ArmSimulator';
 export {default as ConceptCombiner} from './ConceptCombiner';
+export {default as CadChecker} from './CadChecker';
 export {default as RequirementsTable} from './RequirementsTable';

@@ -20,6 +20,14 @@ export interface ToolEntry {
  */
 export const TOOL_CATALOG: ToolEntry[] = [
   {
+    id: 'cad-check',
+    name: 'CAD file check',
+    group: 'Checking',
+    keywords: 'cad step stl export check hole clearance size mass watertight submit',
+    lesson: {path: '/mechanical/cad-practice', label: 'CAD Practice'},
+    render: () => <Tools.CadChecker />,
+  },
+  {
     id: 'requirements',
     name: 'Requirements table',
     group: 'Deciding',

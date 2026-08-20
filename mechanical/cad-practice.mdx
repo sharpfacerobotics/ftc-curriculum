@@ -6,6 +6,7 @@ sidebar_position: -0.5
 ---
 
 import CadExercise from '@site/src/components/mechanical/CadExercise';
+import CadChecker from '@site/src/components/mechanical/CadChecker';
 
 # CAD Practice Exercises
 
@@ -16,6 +17,16 @@ They are tool agnostic. The wording assumes Onshape because it is free for FTC t
 :::info Before you start
 Work through [Lesson 5.2](/mechanical/module-05/sketches-and-constraints) first. Every exercise below assumes you know what a fully defined sketch is, and the first one will be miserable if you do not.
 :::
+
+## Check your file before you ask anyone to look at it
+
+Export the part and drop it below. The check reads the file in your browser, measures what is actually in it, and tells you which of the exercise's stated numbers it matched.
+
+Two formats, two different answers. **STEP** carries exact geometry, so hole diameters are read as modelled and a 3.0 mm hole where a 3.2 mm clearance hole belongs is caught immediately. **STL** is triangles, so it can measure volume, mass, and whether the solid closes, but every curve in it is a polygon and reads slightly small. Send STEP for sizes, STL for mass and watertightness, and both when you want the full picture.
+
+<CadChecker />
+
+The check is arithmetic on your geometry, not a grade. It can prove a plate is 80 mm long and its holes are the right size. It cannot tell you the plate belongs on the robot. Both matter, and only one of them is checkable by a file.
 
 :::tip Use real hardware numbers
 Where an exercise names a fastener or a bearing, look up the real part on the vendor's page and use its actual dimensions. Modelling against invented numbers teaches the software but not the engineering, and the whole point is that your model has to match parts you can buy.

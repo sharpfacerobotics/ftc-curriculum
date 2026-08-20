@@ -292,6 +292,26 @@ const MODULE_SEEDS: ModuleSeed[] = [
       {slug: 'margin-standards', label: 'Margin Standards', title: 'Lesson 12.4: The Design Margins That Survive a Tournament'},
     ],
   },
+  {
+    number: '13',
+    title: 'Proven Mechanisms and Why They Work',
+    desc: 'The mechanisms FTC teams keep returning to, and the theory that explains why they keep winning.',
+    tier: 'Advanced',
+    overview:
+      'Every season looks new and almost none of the mechanisms are. The same handful of arrangements keep appearing because each one solves a specific physical problem well. This module works through those arrangements as theory rather than as recipes, so you can tell when one fits your game and, more usefully, when it does not.',
+    outcomes: [
+      'Explain why compliant intakes grip a range of objects that rigid grippers cannot.',
+      'Choose between cascading and continuous lifts from the extension and load you need, not from what you saw last season.',
+      'Use linkage geometry to hold an end effector level without a sensor or a second motor.',
+      'Read a drivetrain choice in terms of traction, weight transfer, and the odometry it makes possible.',
+    ],
+    lessons: [
+      {slug: 'compliance', label: 'Compliant Intakes', title: 'Lesson 13.1: Why Compliant Intakes Beat Precise Ones'},
+      {slug: 'lifts', label: 'Lift Architectures', title: 'Lesson 13.2: Cascading, Continuous, and the Rigging That Decides'},
+      {slug: 'linkages', label: 'Linkage Geometry', title: 'Lesson 13.3: Four-Bars, Virtual Four-Bars, and Keeping Things Level'},
+      {slug: 'drivetrains', label: 'Drivetrain Theory', title: 'Lesson 13.4: Traction, Weight Transfer, and Dead Wheels'},
+    ],
+  },
 ];
 
 function modulePath(number: string, lessonSlug?: string): string {
