@@ -9,10 +9,6 @@
 <script src="simulator_base.js"></script>
 
 <style>
-    #sim-gamepad-card{
-        display:none !important;
-    }
-
     :root{
         --bg:#0c0f16;
         --panel:#121826;
@@ -256,6 +252,7 @@
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 </head>
 <body>
 
@@ -406,17 +403,6 @@ function pushSliderTelemetry(status){
     window.addTelemetry("Target", sim.targetTicks || 500);
     window.addTelemetry("Power", Number(sim.power || 0).toFixed(2));
     window.updateTelemetry();
-}
-
-function hideGamepadCard(){
-    const card =
-        document.getElementById(
-            "sim-gamepad-card"
-        );
-
-    if(card){
-        card.style.display = "none";
-    }
 }
 
 function setStep(index){
@@ -1447,8 +1433,6 @@ window.onSimulatorReady = function(){
     ]);
 
     setActiveInputs([]);
-    hideGamepadCard();
-    requestAnimationFrame(hideGamepadCard);
 
     setHeader(
         "Telemark Unit 10.5 Simulator",

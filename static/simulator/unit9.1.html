@@ -129,6 +129,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./gamepad-controls.js"></script>
 </head>
 <body>
 
@@ -445,20 +446,6 @@ function setupStick(id,xKey,yKey){
 ].forEach(function(p){setupGPBtn(p[0],p[1])});
 setupTrigger('trigger-left','left_trigger');setupTrigger('trigger-right','right_trigger');
 setupStick('stick-left','left_stick_x','left_stick_y');setupStick('stick-right','right_stick_x','right_stick_y');
-var keyButtons={KeyA:'a',KeyB:'b',KeyX:'x',KeyY:'y',KeyQ:'left_bumper',KeyE:'right_bumper',ArrowUp:'dpad_up',ArrowDown:'dpad_down',ArrowLeft:'dpad_left',ArrowRight:'dpad_right',Enter:'start',Backspace:'back'};
-function editorHasFocus(e){var t=e.target;return t&&((t.tagName==='TEXTAREA')||(t.closest&&t.closest('.CodeMirror')))}
-function applyKeyboardAnalogs(){
-  state.gamepad.left_trigger=keyHeld.KeyZ?1:0;
-  state.gamepad.right_trigger=keyHeld.KeyC?1:0;
-  state.gamepad.left_stick_x=(keyHeld.KeyH?1:0)-(keyHeld.KeyF?1:0);
-  state.gamepad.left_stick_y=(keyHeld.KeyT?1:0)-(keyHeld.KeyG?1:0);
-  state.gamepad.right_stick_x=(keyHeld.KeyL?1:0)-(keyHeld.KeyJ?1:0);
-  state.gamepad.right_stick_y=(keyHeld.KeyI?1:0)-(keyHeld.KeyK?1:0);
-}
-var keyHeld={};
-window.addEventListener('keydown',function(e){if(editorHasFocus(e))return;keyHeld[e.code]=true;if(keyButtons[e.code]){e.preventDefault();setGPButton(keyButtons[e.code],true)}applyKeyboardAnalogs()});
-window.addEventListener('keyup',function(e){if(editorHasFocus(e))return;keyHeld[e.code]=false;if(keyButtons[e.code]){e.preventDefault();setGPButton(keyButtons[e.code],false)}applyKeyboardAnalogs()});
-
 // Three.js Scene
 var WW=4,WH=3,WD=.15,OW=1.8,OH=1,GT=.08,SR=.15,HY=-WH/2+(WH-OH)/2;
 var ss={gateGroup:null,spheres:[],sphereInitPos:[],needlePivot:null,angleLabel:null,camera:null,controls:null,renderer:null,currentGateAngle:0,targetGateAngle:0,currentServoPos:0,spheresReleased:false,animFrame:0};
@@ -616,6 +603,7 @@ window.addEventListener('resize',function(){var cw=ct.clientWidth,ch=ct.clientHe
 
 function init(){initEditor();renderTelemetry();renderChallenge();renderBadges();buildScene()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: state.gamepad});
 </script>
 </body>
 </html>

@@ -1199,6 +1199,11 @@
 
     // ── Gamepad Card ──
     buildGamepadCard();
+    if (window.TelemarkGamepadControls) {
+      window.telemarkGamepadControls = window.TelemarkGamepadControls.install({
+        state: window.gamepad,
+      });
+    }
 
     // ── Wire up events ──
     wireEditorEvents();
@@ -2145,7 +2150,7 @@
         elem.classList.add("sim-gp-input-recommended");
       } else {
         elem.classList.remove("sim-gp-input-recommended");
-        elem.classList.add("sim-gp-input-inactive");
+        elem.classList.remove("sim-gp-input-inactive");
       }
     });
   };
