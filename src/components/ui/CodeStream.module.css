@@ -99,3 +99,10 @@
   overflow: hidden;
   white-space: nowrap;
 }
+
+/* In the hero the panel shares the row with the robot, so it gives up height
+   rather than forcing the fold down. */
+.compact .code {
+  min-height: 15rem;
+  font-size: var(--tm-fs-2xs);
+}

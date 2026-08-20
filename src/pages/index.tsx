@@ -126,6 +126,14 @@ function HeroSection(): React.JSX.Element {
           Begin Mechanical
         </Link>
       </div>
+
+      {/* The hero claims two tracks and one robot, so it shows both: the code
+          being written on one side and the machine it runs on assembling on
+          the other. */}
+      <div className={styles.heroShowcase}>
+        <CodeStream compact />
+        <RobotAssembly />
+      </div>
     </section>
   );
 }
@@ -315,10 +323,6 @@ function SimulatorSection(): React.JSX.Element {
         Write lesson code, run the FTC lifecycle, and debug the result with
         telemetry, requirement checks, and simulated hardware.
       </p>
-      <div className={styles.showcase}>
-        <CodeStream />
-      </div>
-
       <SimulatorWorkflow
         className={styles.simulatorWorkflow}
         itemClassName={styles.simulatorStep}
@@ -356,10 +360,6 @@ function ToolsSection(): React.JSX.Element {
         decide whether a mechanism works, plus a file check that reads your
         exported CAD and measures it.
       </p>
-
-      <div className={styles.showcase}>
-        <RobotAssembly />
-      </div>
 
       <div className={styles.toolStrip}>
         {HOME_TOOLS.map((tool) => (

@@ -144,7 +144,9 @@
   min-height: 96vh;
   width: min(1120px, 100%);
   margin: 0 auto;
-  padding: 8.5rem 2rem 5rem;
+  /* Top padding was tuned for a hero that ended at the buttons. The figures
+     below them need that space back, or the pair sits entirely under the fold. */
+  padding: 5rem 2rem 4rem;
   overflow: hidden;
   align-items: center;
   flex-direction: column;
@@ -1190,4 +1192,24 @@
    section. */
 .showcase {
   margin: var(--tm-sp-5) 0 var(--tm-sp-6);
+}
+
+/* Hero pair: code on one side, the machine it runs on the other. Collapses to
+   one column early, since neither figure is readable in half of a phone. */
+.heroShowcase {
+  display: grid;
+  gap: var(--tm-sp-6);
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 100%;
+  max-width: 62rem;
+  margin: var(--tm-sp-7) auto 0;
+  text-align: left;
+}
+
+@media (max-width: 900px) {
+  .heroShowcase {
+    grid-template-columns: 1fr;
+    gap: var(--tm-sp-5);
+  }
 }

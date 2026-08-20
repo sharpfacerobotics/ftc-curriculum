@@ -40,7 +40,7 @@ const HOLD_MS = 2600;
  * The full text is always in the DOM for screen readers and for anyone with
  * reduced motion; only the visible slice animates.
  */
-export default function CodeStream(): React.JSX.Element {
+export default function CodeStream({compact = false}: {compact?: boolean} = {}): React.JSX.Element {
   const reduced = usePrefersReducedMotion();
   const [shown, setShown] = useState(FULL.length);
   const frame = useRef<number | null>(null);
@@ -84,7 +84,7 @@ export default function CodeStream(): React.JSX.Element {
   const typing = !reduced && shown < FULL.length;
 
   return (
-    <div className={styles.editor}>
+    <div className={`${styles.editor} ${compact ? styles.compact : ''}`}>
       <div className={styles.chrome} aria-hidden="true">
         <span className={styles.dot} />
         <span className={styles.dot} />
