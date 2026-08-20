@@ -1104,3 +1104,83 @@
     gap: var(--tm-sp-2);
   }
 }
+
+/* The two tracks are co-equal, so their entry points match in size and weight.
+   Previously software was the filled primary and mechanical was the small
+   outlined afterthought, which told the reader which half of the site mattered
+   before they read a word of it. */
+.btnTrackAlt {
+  display: inline-block;
+  padding: 14px 34px;
+  border: 1px solid var(--tm-accent);
+  border-radius: var(--tm-r-lg);
+  background: transparent;
+  color: var(--tm-accent) !important;
+  cursor: pointer;
+  font-family: var(--telemark-font-display);
+  font-size: var(--tm-fs-base);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.btnTrackAlt:hover {
+  background: var(--tm-accent-a12);
+  border-color: var(--tm-accent-bright);
+  color: var(--tm-accent-bright) !important;
+  text-decoration: none;
+  transform: translateY(-2px) rotate(0.35deg);
+}
+
+/* Tool strip. Deliberately not the unit-card grid: these are entry points to
+   one page rather than a sequence to work through, so they read as a denser
+   list of names than the curriculum cards above. */
+.toolStrip {
+  display: grid;
+  gap: var(--tm-sp-3);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  margin-top: var(--tm-sp-5);
+}
+
+.toolCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tm-sp-2);
+  padding: var(--tm-sp-4);
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-2);
+  text-decoration: none;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.toolCard:hover {
+  border-color: var(--tm-accent);
+  background: var(--tm-surface-3);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.toolName {
+  color: var(--tm-text-strong);
+  font-family: var(--telemark-font-display);
+  font-size: var(--tm-fs-md);
+}
+
+.toolDesc {
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
+}
+
+/* The simulator section's limit line carries a negative top margin tuned to the
+   workflow above it. Here it follows a grid directly, so it needs its own
+   spacing rather than being pulled up onto the cards. */
+.toolLimit {
+  margin: var(--tm-sp-5) 0 var(--tm-sp-5);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+}

@@ -43,8 +43,8 @@ function action(id: string, title: string, path: string): Command {
 
 const ACTIONS: Command[] = [
   action('a-sw', 'Software track', '/curriculum'),
-  action('a-eng', 'Engineering track', '/mechanical'),
-  action('a-paths', 'Engineering learning paths', '/mechanical/learning-paths'),
+  action('a-eng', 'Mechanical track', '/mechanical'),
+  action('a-paths', 'Mechanical learning paths', '/mechanical/learning-paths'),
   action('a-cad', 'CAD practice exercises', '/mechanical/cad-practice'),
   action('a-sim', 'Simulator', '/simulator'),
   action('a-dash', 'Dashboard', '/dashboard'),

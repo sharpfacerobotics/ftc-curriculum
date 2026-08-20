@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useHistory } from '@docusaurus/router';
 import Layout from '@theme/Layout';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import { useAuth } from '../telemark/useAuth';
 import { signInWithGoogle } from '../telemark/googleAuth';
 import styles from './login.module.css';
@@ -33,7 +34,7 @@ export default function LoginPage(): React.JSX.Element {
           <div className={styles.logoWrap}>
             <img
               className={styles.logoMark}
-              src="/telemark/img/telemark.png"
+              src={useBaseUrl("img/telemark.png")}
               alt=""
               aria-hidden="true"
             />

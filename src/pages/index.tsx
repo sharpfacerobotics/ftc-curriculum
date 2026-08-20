@@ -4,6 +4,7 @@ import { useHistory } from '@docusaurus/router';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
+import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
 import styles from './index.module.css';
 import { useAuth } from '../telemark/useAuth';
 import { trackEvent } from '../telemark/analytics';
@@ -21,6 +22,7 @@ import {
 } from '../telemark/curriculum';
 import {
   MECHANICAL_LESSON_COUNT,
+  MECHANICAL_UNITS,
   MECHANICAL_UNIT_COUNT,
 } from '../telemark/mechanical';
 import {TOTAL_LESSON_COUNT} from '../telemark/tracks';
@@ -79,12 +81,22 @@ function Divider(): React.JSX.Element {
 
 // ─── Page sections ────────────────────────────────────────────────────────────
 
+/** A few tools that show the range, not a catalogue dump. */
+const HOME_TOOLS = [
+  {name: 'CAD file check', path: '/simulator#cad-check', desc: 'Drop in a STEP or STL export and see which of the exercise\u2019s numbers your model actually hit.'},
+  {name: 'Arm gravity torque', path: '/simulator#arm-torque', desc: 'Work the torque an arm needs at its worst angle, then the reduction that delivers it.'},
+  {name: 'Linear slide sizing', path: '/simulator#slide', desc: 'Extension, spool diameter, and the force the cable really carries.'},
+  {name: 'Arm simulator', path: '/simulator#arm-sim', desc: 'Run a time-stepped arm against your own numbers and watch it fail or hold.'},
+  {name: 'Tap drill and clearance', path: '/simulator#tap-drill', desc: 'The hole sizes that stop a screw binding, straight from the standards.'},
+  {name: 'Weight budget', path: '/simulator#weight', desc: 'Spend the robot\u2019s mass on purpose instead of discovering it at inspection.'},
+];
+
 function HeroSection(): React.JSX.Element {
   return (
     <section className={styles.hero}>
       <div className={styles.heroBadge}>
         <span className={styles.badgeDot} aria-hidden="true" />
-        <span>Student-built FTC software and engineering curriculum</span>
+        <span>Student-built FTC software and mechanical curriculum</span>
       </div>
 
       <h1 className={styles.heroTitle}>
@@ -99,7 +111,7 @@ function HeroSection(): React.JSX.Element {
 
       <div className={styles.terminalLine} aria-hidden="true">
         <span className={styles.terminalPrompt}>telemetry &gt;</span>
-        <span>FTC Java ready </span>
+        <span>FTC Java ready · design tools ready </span>
         <span className={styles.cursor} />
       </div>
 
@@ -107,8 +119,8 @@ function HeroSection(): React.JSX.Element {
         <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
           Begin Software
         </Link>
-        <Link to="/mechanical/module-00/design-cycle" className={styles.btnSecondary}>
-          Begin Engineering
+        <Link to="/mechanical/module-00/design-cycle" className={styles.btnTrackAlt}>
+          Begin Mechanical
         </Link>
       </div>
     </section>
@@ -157,31 +169,51 @@ function TracksSection(): React.JSX.Element {
   );
 }
 
+/**
+ * One track's units as a grid.
+ *
+ * Both tracks render through this rather than the software track having a
+ * hand-written section, because the homepage previously gave software a full
+ * unit grid and the mechanical track nothing comparable, which made a site
+ * covering both read as a software site with an engineering appendix.
+ */
 function CurriculumSection({
   signedIn,
   authLoading,
+  units,
+  label,
+  id,
+  heading,
+  blurb,
 }: {
   signedIn: boolean;
   authLoading: boolean;
+  units: typeof CURRICULUM_UNITS;
+  label: string;
+  id: string;
+  heading: string;
+  blurb: string;
 }): React.JSX.Element {
   const history = useHistory();
   const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
   const [unlockError, setUnlockError] = useState<string | null>(null);
 
   async function unlockUnit(unit: (typeof CURRICULUM_UNITS)[number]) {
-    const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
+    // Both tracks gate on the same rule, so the number is read from either
+    // a unit-NN or a module-NN slug.
+    const unitNumber = Number.parseInt(unit.slug.replace(/^(unit|module)-/, ''), 10);
     setUnlockingUnit(unit.slug);
     setUnlockError(null);
     trackEvent('content_unlock_attempt', {
       unit_number: unitNumber,
-      surface: 'homepage_curriculum_card',
+      surface: `homepage_${id}_card`,
     });
 
     try {
       await signInWithGoogle();
       trackEvent('content_unlock_success', {
         unit_number: unitNumber,
-        surface: 'homepage_curriculum_card',
+        surface: `homepage_${id}_card`,
       });
       history.push(unit.overviewPath);
     } catch (signInError) {
@@ -193,16 +225,14 @@ function CurriculumSection({
   }
 
   return (
-    <section className={styles.section} id="curriculum">
-      <p className={styles.sectionLabel}>Software track</p>
-      <h2 className={styles.sectionTitle}>{CURRICULUM_UNIT_COUNT} units that grow with your team</h2>
-      <p className={styles.sectionDesc}>
-        Follow the sequence or jump to the topic your team needs.
-      </p>
+    <section className={styles.section} id={id}>
+      <p className={styles.sectionLabel}>{label}</p>
+      <h2 className={styles.sectionTitle}>{heading}</h2>
+      <p className={styles.sectionDesc}>{blurb}</p>
 
       <div className={styles.curriculumGrid}>
-        {CURRICULUM_UNITS.map((unit) => {
-          const unitNumber = Number.parseInt(unit.slug.replace('unit-', ''), 10);
+        {units.map((unit) => {
+          const unitNumber = Number.parseInt(unit.slug.replace(/^(unit|module)-/, ''), 10);
           const protectedUnit = isProtectedUnit(unitNumber);
           const checking = authLoading && protectedUnit;
           const locked = !authLoading && !signedIn && protectedUnit;
@@ -301,6 +331,47 @@ function SimulatorSection(): React.JSX.Element {
   );
 }
 
+/**
+ * The mechanical counterpart to the simulator section.
+ *
+ * The software track had a section showing what you can actually do in the
+ * browser and the mechanical track had none, so the page implied one track was
+ * interactive and the other was reading. Both halves run something.
+ */
+function ToolsSection(): React.JSX.Element {
+  return (
+    <section className={styles.section} id="tools">
+      <p className={styles.sectionLabel}>Design tools</p>
+      <h2 className={styles.sectionTitle}>Check the design before you cut</h2>
+      <p className={styles.sectionDesc}>
+        {TOOL_CATALOG.length} calculators and checkers for the numbers that
+        decide whether a mechanism works, plus a file check that reads your
+        exported CAD and measures it.
+      </p>
+
+      <div className={styles.toolStrip}>
+        {HOME_TOOLS.map((tool) => (
+          <Link key={tool.path} to={tool.path} className={styles.toolCard}>
+            <span className={styles.toolName}>{tool.name}</span>
+            <span className={styles.toolDesc}>{tool.desc}</span>
+          </Link>
+        ))}
+      </div>
+
+      <p className={styles.toolLimit}>
+        A calculator checks the arithmetic behind a design. Whether the
+        mechanism grips the game element is what a prototype is for.
+      </p>
+
+      <div className={styles.heroActions}>
+        <Link to="/simulator#cad-check" className={styles.btnTrackAlt}>
+          Open the CAD check
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function CtaSection(): React.JSX.Element {
   return (
     <div className={styles.ctaSection}>
@@ -319,7 +390,7 @@ function CtaSection(): React.JSX.Element {
           <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
             Begin Unit 0 →
           </Link>
-          <Link to="/mechanical/module-00/design-cycle" className={styles.btnSecondary}>
+          <Link to="/mechanical/module-00/design-cycle" className={styles.btnTrackAlt}>
             Begin Module 0 →
           </Link>
         </div>
@@ -357,9 +428,29 @@ export default function Home(): React.JSX.Element {
         <Divider />
         <TracksSection />
         <Divider />
-        <CurriculumSection signedIn={Boolean(user)} authLoading={loading} />
+        <CurriculumSection
+          signedIn={Boolean(user)}
+          authLoading={loading}
+          units={CURRICULUM_UNITS}
+          label="Software track"
+          id="curriculum"
+          heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
+          blurb="Follow the sequence or jump to the topic your team needs."
+        />
+        <Divider />
+        <CurriculumSection
+          signedIn={Boolean(user)}
+          authLoading={loading}
+          units={MECHANICAL_UNITS}
+          label="Mechanical track"
+          id="mechanical"
+          heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
+          blurb="The design process, CAD, materials, power transmission, and the standards that hold a robot together."
+        />
         <Divider />
         <SimulatorSection />
+        <Divider />
+        <ToolsSection />
         <Divider />
         <FeaturesSection />
         <CtaSection />
