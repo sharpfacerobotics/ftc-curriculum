@@ -87,10 +87,12 @@ for (const module of modules) {
     `module-${module.number} has no mastery quiz`,
   );
 
-  assert.equal(
-    module.lessons.length,
-    4,
-    `module-${module.number} should define 4 lessons`,
+  // Four is the standard module length. Module 05 is deliberately longer
+  // because it covers the whole Onshape feature set rather than a summary,
+  // so this is a floor and not an equality.
+  assert.ok(
+    module.lessons.length >= 4,
+    `module-${module.number} should define at least 4 lessons, found ${module.lessons.length}`,
   );
 
   for (const slug of module.lessons) {
@@ -117,7 +119,7 @@ for (const module of modules) {
   }
 }
 
-assert.equal(lessonFileCount, 70, `expected 70 mechanical lessons, found ${lessonFileCount}`);
+assert.equal(lessonFileCount, 76, `expected 76 mechanical lessons, found ${lessonFileCount}`);
 
 // Track-level pages the navbar and sidebar depend on.
 const indexDoc = fs.readFileSync(path.join(mechanicalRoot, 'index.mdx'), 'utf8');

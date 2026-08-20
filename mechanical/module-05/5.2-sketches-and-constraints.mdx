@@ -53,21 +53,17 @@ Ask "if this part gets 20 mm longer next week, what should stay true?" Constrain
 
 ## The Core Feature Set
 
-Most FTC parts are made from a small number of features.
+Most FTC parts are made from a small number of features. This is the short version; each one gets a proper treatment later in the module.
 
-**Extrude** turns a closed sketch into a solid of a given thickness. This makes plates, brackets, and blocks.
+**Extrude** turns a closed sketch into a solid of a given thickness, making plates, brackets, and blocks. **Extrude remove** does the same in reverse, which is how holes, slots, and pockets are cut. **Revolve** spins a sketch about an axis for shafts, spools, and pulleys. See [Lesson 5.4](/mechanical/module-05/solid-features), which also covers sweep and loft.
 
-**Extrude remove** cuts material away with the same operation in reverse. This is how holes, slots, and pockets are made.
+**Fillet** rounds an edge and **chamfer** cuts an angled one. **Hole** places a properly specified hole, including tap drill or clearance size, which connects directly to Lesson 4.1. See [Lesson 5.5](/mechanical/module-05/modifying-solids), which also covers shell, draft, and rib.
 
-**Revolve** spins a sketch about an axis, making shafts, spools, and pulleys.
+**Mirror and pattern** repeat features: a linear pattern makes a row of mounting holes, a circular pattern makes a bolt circle. Patterns beat copies because changing the original updates every instance. See [Lesson 5.6](/mechanical/module-05/patterns-and-booleans).
 
-**Fillet** rounds an edge. Use it on internal corners for strength and on external corners to remove sharp edges.
-
-**Chamfer** cuts an angled edge, useful as a lead-in on shafts and bores.
-
-**Mirror and pattern** repeat features. A linear pattern makes a row of mounting holes; a circular pattern makes bolt circles. Patterns are better than copies because changing the original updates every instance.
-
-**Hole** places a properly specified hole, including tap drill or clearance size, which connects directly to Lesson 4.1.
+:::tip Get the sketch right first
+Every feature above is built on a sketch. A feature applied to an under-defined sketch inherits its instability, so the habit in this lesson comes before all of them.
+:::
 
 ---
 
@@ -116,6 +112,6 @@ Model one bracket from your robot with a fully defined sketch. Then change one b
 
 <MarkComplete
   lessonId="module-05/sketches-and-constraints"
-  nextUnit="/mechanical/module-05/assemblies-and-mates"
-  nextUnitName="Lesson 5.3: Assemblies, Mates, and Checking Range of Motion"
+  nextUnit="/mechanical/module-05/part-studios"
+  nextUnitName="Lesson 5.3: Part Studios, the Feature List, and Reference Geometry"
 />
