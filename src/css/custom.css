@@ -15,18 +15,18 @@
      ════════════════════════════════════════════════════════════════════ */
 
   /* ── Surfaces, from deepest to most raised ────────────────────────── */
-  --tm-bg:              #05080d;   /* page background */
-  --tm-surface-1:       #080d13;   /* cards on the page */
-  --tm-surface-2:       #0b1118;   /* panels */
-  --tm-surface-3:       #0d151e;   /* controls, insets */
-  --tm-surface-4:       #111b25;   /* raised, hover */
+  --tm-bg:              #05070a;   /* page background */
+  --tm-surface-1:       #090c11;   /* cards on the page */
+  --tm-surface-2:       #0d1117;   /* panels */
+  --tm-surface-3:       #12171f;   /* controls, insets */
+  --tm-surface-4:       #182029;   /* raised, hover */
 
   /* ── Ink ──────────────────────────────────────────────────────────── */
-  --tm-text-strong:     #effbff;   /* headings */
-  --tm-text:            rgba(221, 241, 249, 0.82);
-  --tm-text-soft:       rgba(221, 241, 249, 0.68);
-  --tm-text-muted:      rgba(203, 230, 241, 0.5);
-  --tm-text-faint:      rgba(203, 230, 241, 0.36);
+  --tm-text-strong:     #f4f7f9;   /* headings */
+  --tm-text:            rgba(228, 235, 241, 0.84);
+  --tm-text-soft:       rgba(228, 235, 241, 0.68);
+  --tm-text-muted:      rgba(206, 216, 226, 0.54);
+  --tm-text-faint:      rgba(206, 216, 226, 0.34);
   --tm-text-on-accent:  #05080d;
 
   /* ── Accent: aqua is the primary, blue the secondary ──────────────── */
@@ -55,10 +55,10 @@
   --tm-danger-wash:     rgba(248, 113, 113, 0.10);
 
   /* ── Borders ──────────────────────────────────────────────────────── */
-  --tm-border:          rgba(34, 211, 238, 0.16);
-  --tm-border-strong:   rgba(34, 211, 238, 0.35);
+  --tm-border:          rgba(148, 170, 189, 0.14);
+  --tm-border-strong:   rgba(148, 170, 189, 0.30);
   --tm-border-quiet:    rgba(156, 175, 194, 0.18);
-  --tm-border-hair:     rgba(34, 211, 238, 0.10);
+  --tm-border-hair:     rgba(148, 170, 189, 0.08);
 
   /* ── Type ─────────────────────────────────────────────────────────── */
   --tm-font-display:    'Rajdhani', 'Arial Narrow', sans-serif;
