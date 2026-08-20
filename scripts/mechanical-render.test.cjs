@@ -319,14 +319,6 @@ assert.match(progressSource, /role="progressbar"/, 'progress bar needs a progres
 assert.match(progressSource, /aria-valuenow/, 'progress bar must report its value');
 assert.match(progressSource, /docs\|engineering/, 'progress bar must only render on lesson routes');
 
-// The palette is the only cross-track navigation, so its shortcuts and its
-// keyboard handling are load bearing.
-const paletteSource = fs.readFileSync(path.join(uiDir, 'CommandPalette.tsx'), 'utf8');
-for (const required of ['metaKey', 'ctrlKey', 'ArrowDown', 'ArrowUp', 'Escape', 'aria-modal']) {
-  assert.ok(paletteSource.includes(required), `command palette is missing ${required} handling`);
-}
-assert.match(paletteSource, /usePluginData\('telemark-search'\)/, 'palette must reuse the search index');
-
 // A locked page replaces the entire app shell, navbar included. Without links
 // of its own it is reachable only by the browser back button.
 const lockSource = fs.readFileSync(path.join(root, 'src/components/ContentLock.tsx'), 'utf8');

@@ -25,8 +25,8 @@ const buildCommit = process.env.TELEMARK_BUILD_COMMIT
   ?? localCommit();
 
 const config: Config = {
-  title: 'Telemark | Sharp Face Robotics',
-  tagline: 'FTC software and engineering, from setup to competition.',
+  title: 'Telemark',
+  tagline: 'FTC software and mechanical design, from setup to competition.',
   favicon: 'img/telemark.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
