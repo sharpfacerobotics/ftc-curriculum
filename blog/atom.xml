@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="atom.xsl"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sharpfacerobotics.github.io/telemark/blog</id>
-    <title>Telemark | Sharp Face Robotics Blog</title>
+    <title>Telemark Blog</title>
     <updated>2021-08-26T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sharpfacerobotics.github.io/telemark/blog"/>
-    <subtitle>Telemark | Sharp Face Robotics Blog</subtitle>
+    <subtitle>Telemark Blog</subtitle>
     <icon>https://sharpfacerobotics.github.io/telemark/img/telemark.png</icon>
     <entry>
         <title type="html"><![CDATA[Welcome]]></title>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="rss.xsl"?>
 <rss version="2.0">
     <channel>
-        <title>Telemark | Sharp Face Robotics Blog</title>
+        <title>Telemark Blog</title>
         <link>https://sharpfacerobotics.github.io/telemark/blog</link>
-        <description>Telemark | Sharp Face Robotics Blog</description>
+        <description>Telemark Blog</description>
         <lastBuildDate>Thu, 26 Aug 2021 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
