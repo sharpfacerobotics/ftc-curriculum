@@ -170,6 +170,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 <script>
@@ -609,7 +610,7 @@ public class IntakeOOP extends OpMode {
       initFn(hardwareMap, callIntakeInit, addTelemetry, updateTelemetry);
       updateTelemetry();
     } catch (err) {
-      showStudentError("init() runtime error: " + err.message);
+      failStudentExecution("init() runtime error: " + err.message);
     }
   }
 
@@ -621,7 +622,7 @@ public class IntakeOOP extends OpMode {
     const code = typeof getCode === "function" ? getCode() : starterCode;
     const loopBody = extractMethodBody(extractOpModeBody(code), "loop");
     if (!loopBody) {
-      showStudentError("loop() was not found.");
+      failStudentExecution("loop() was not found.");
       return;
     }
 
@@ -638,7 +639,7 @@ public class IntakeOOP extends OpMode {
         '"use strict";\n' + js
       );
     } catch (err) {
-      showStudentError("loop() compile error: " + err.message);
+      failStudentExecution("loop() compile error: " + err.message);
       return;
     }
 
@@ -656,8 +657,7 @@ public class IntakeOOP extends OpMode {
         updateTelemetry();
         validateCode();
       } catch (err) {
-        showStudentError("loop() runtime error: " + err.message);
-        if (typeof stopExecution === "function") stopExecution();
+        failStudentExecution("loop() runtime error: " + err.message);
       }
     };
 
@@ -792,6 +792,11 @@ public class IntakeOOP extends OpMode {
       addTelemetry("ERROR", message);
       updateTelemetry();
     }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 };
 </script>

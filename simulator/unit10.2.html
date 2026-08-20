@@ -8,6 +8,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 <script>
@@ -159,16 +160,16 @@
             canvas.height - 20,
             18,
             "rgba(8,8,14,0.86)",
-            "rgba(255,102,0,0.48)"
+            "rgba(34,211,238,0.48)"
         );
 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = "#d8a05b";
+        ctx.fillStyle = "#7dd3fc";
         ctx.font = '700 24px "JetBrains Mono", monospace';
         ctx.fillText("CABLE IN", canvas.width / 2, 38);
 
-        ctx.fillStyle = "#ff9933";
+        ctx.fillStyle = "#22d3ee";
         ctx.font = '700 56px "JetBrains Mono", monospace';
         ctx.fillText(cableIn.toFixed(2) + " in", canvas.width / 2, 96);
 

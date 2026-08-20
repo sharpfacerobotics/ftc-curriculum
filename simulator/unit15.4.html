@@ -195,6 +195,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 <script>
@@ -420,8 +421,8 @@ public class PoseCorrection extends OpMode {
   };
 
   window.onRun = function () {
+    if ((!initFn || !loopFn || !correctFn) && !compileStudentCode()) return;
     state.running = true;
-    if (!initFn || !loopFn || !correctFn) compileStudentCode();
     const runFrame = function () {
       if (!state.running) return;
       try {
@@ -442,9 +443,8 @@ public class PoseCorrection extends OpMode {
       } catch (err) {
         state.lastError = "NullPointerException or runtime error: " + err.message;
         state.lastCorrectionStatus = "ERROR";
-        showStudentError(state.lastError);
         state.running = false;
-        if (typeof stopExecution === "function") stopExecution();
+        failStudentExecution(state.lastError);
         updatePanel();
       }
     };
@@ -881,8 +881,11 @@ public class PoseCorrection extends OpMode {
       );
     } catch (err) {
       state.lastError = "compile error: " + err.message;
-      showStudentError(state.lastError);
-      return;
+      initFn = null;
+      loopFn = null;
+      correctFn = null;
+      failStudentExecution(state.lastError);
+      return false;
     }
 
     try {
@@ -892,10 +895,15 @@ public class PoseCorrection extends OpMode {
       state.lastError = "";
     } catch (err) {
       state.lastError = "init() runtime error: " + err.message;
-      showStudentError(state.lastError);
+      initFn = null;
+      loopFn = null;
+      correctFn = null;
+      failStudentExecution(state.lastError);
+      return false;
     }
     validateCode();
     updatePanel();
+    return true;
   }
 
   function transpileInitBody(body) {
@@ -1266,6 +1274,11 @@ public class PoseCorrection extends OpMode {
       safeCall(addTelemetry, "ERROR", text);
       safeCall(updateTelemetry);
     }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 
   function fmt(value) {

@@ -9,39 +9,39 @@
 
   <style>
     :root {
-      --bg: #1e1e1e;
-      --panel: #252526;
-      --panel-2: #121212;
-      --text: #d4d4d4;
-      --muted: #9aa0a6;
-      --accent: #007acc;
-      --accent-2: #0098ff;
+      --bg: #05080d;
+      --panel: #0b1118;
+      --panel-2: #071019;
+      --text: #eaf8ff;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22d3ee;
       --danger: #cc0000;
       --good: #00cc00;
       --warn: #ffcc00;
-      --border: #333;
+      --border: #243746;
     }
 
     * {
       scrollbar-width: thin;
-      scrollbar-color: #444 #1e1e1e;
+      scrollbar-color: #22d3ee #05080d;
     }
     *::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     *::-webkit-scrollbar-track {
-      background: #1e1e1e;
+      background: #05080d;
     }
     *::-webkit-scrollbar-thumb {
-      background: #444;
+      background: #22d3ee;
       border-radius: 3px;
     }
     *::-webkit-scrollbar-thumb:hover {
-      background: #666;
+      background: #22d3ee;
     }
     *::-webkit-scrollbar-corner {
-      background: #1e1e1e;
+      background: #05080d;
     }
 
     * { box-sizing: border-box; }
@@ -62,13 +62,13 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      background: #1b1b1b;
+      background: #080d13;
     }
 
     .editor-header {
       padding: 12px 14px;
-      background: #111;
-      border-bottom: 1px solid #2f2f2f;
+      background: #05080d;
+      border-bottom: 1px solid #243746;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -82,7 +82,7 @@
       position: relative;
       flex: 1;
       overflow: hidden;
-      background: #1e1e1e;
+      background: var(--bg);
     }
 
     #code-editor, #highlighting {
@@ -118,7 +118,7 @@
     
     #resizer {
       width: 6px;
-      background: #333;
+      background: #243746;
       cursor: col-resize;
       z-index: 10;
       transition: background 0.2s;
@@ -390,6 +390,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 
@@ -588,22 +589,37 @@ function setState(s, color, btnLabel) {
   }
 }
 
+function resetAfterJavaFailure() {
+  stopAllIntervals();
+  runtimeOffset = 0;
+  document.getElementById('timer-val').textContent = '0.00';
+  setState('STOPPED', '#cc0000', 'INIT');
+}
+
 function handleMainButton() {
   if (currentState === 'STOPPED') {
     document.getElementById('telemetry-log').innerHTML = '';
     document.getElementById('timer-val').textContent   = '0.00';
     runtimeOffset = 0;
 
-    executeMethod('init');
+    if (!executeMethod('init')) return;
     setState('INIT_LOOP', '#ffcc00', 'START');
-    intervalId = setInterval(() => executeMethod('init_loop'), 100);
+    intervalId = setInterval(() => {
+      if (!executeMethod('init_loop')) resetAfterJavaFailure();
+    }, 100);
 
   } else if (currentState === 'INIT_LOOP') {
     stopAllIntervals();
-    executeMethod('start');
+    if (!executeMethod('start')) {
+      runtimeOffset = 0;
+      document.getElementById('timer-val').textContent = '0.00';
+      return;
+    }
     if (runtimeOffset === 0) runtimeOffset = Date.now();
     setState('RUNNING', '#00ff00', 'RUNNING');
-    intervalId = setInterval(() => executeMethod('loop'), 100);
+    intervalId = setInterval(() => {
+      if (!executeMethod('loop')) resetAfterJavaFailure();
+    }, 100);
   }
 }
 
@@ -672,12 +688,18 @@ let telemarkRuntime = null;
 
 function executeMethod(methodName) {
   const code = codeEditor.value;
-  if (methodName === 'init') telemarkCompiledSource = '';
-  if (code !== telemarkCompiledSource) {
+  const shouldCompile = methodName === 'init'
+    || code !== telemarkCompiledSource
+    || !telemarkCompiledProgram?.ok;
+
+  if (shouldCompile) {
     const telemetryLines = [];
     const runtime = TelemarkJava.createRuntime({
       gamepad,
       getRuntime,
+      resetRuntime() {
+        runtimeOffset = Date.now();
+      },
       onTelemetry(key, value) {
         const shown = typeof value === 'number' ? value.toFixed(2) : String(value);
         telemetryLines.push(
@@ -696,24 +718,33 @@ function executeMethod(methodName) {
     });
     telemarkRuntime = runtime;
     telemarkCompiledProgram = TelemarkJava.compile(code, runtime);
-    telemarkCompiledSource = code;
     if (!telemarkCompiledProgram.ok) {
       const error = telemarkCompiledProgram.diagnostics[0];
       document.getElementById('telemetry-log').textContent =
-        `${error.message} (line ${error.line}, column ${error.column})`;
-      return;
+        `Compile error: ${error.message} (line ${error.line}, column ${error.column})`;
+      telemarkCompiledSource = '';
+      telemarkCompiledProgram = null;
+      return false;
     }
-  }
-
-  if (methodName === 'start' && /resetRuntime\(\)/.test(getMethodBody(code, methodName) || '')) {
-    runtimeOffset = Date.now();
+    telemarkCompiledSource = code;
   }
 
   const method = telemarkCompiledProgram?.methods?.[methodName];
-  if (method) {
-    if (methodName === 'loop' || methodName === 'init_loop') telemarkRuntime?.clearTelemetry();
+  if (!method) return true;
+
+  try {
+    if (methodName === 'loop' || methodName === 'init_loop') {
+      telemarkRuntime?.clearTelemetry();
+    }
     method();
     telemarkRuntime?.updateTelemetry();
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    document.getElementById('telemetry-log').textContent =
+      `Runtime error in ${methodName}(): ${message}`;
+    console.error(`Unit 2 simulator ${methodName}() failed`, error);
+    return false;
   }
 }
 

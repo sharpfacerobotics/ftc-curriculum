@@ -9,20 +9,20 @@
 
   <style>
     :root {
-      --bg: #1e1e1e;
-      --panel: #252526;
-      --panel-2: #121212;
-      --text: #d4d4d4;
-      --muted: #9aa0a6;
-      --accent: #007acc;
-      --accent-2: #0098ff;
+      --bg: #05080d;
+      --panel: #0b1118;
+      --panel-2: #071019;
+      --text: #eaf8ff;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22d3ee;
       --danger: #cc0000;
       --good: #00cc00;
       --warn: #ffcc00;
-      --border: #333;
+      --border: #243746;
       
       /* Type Colors for Inspector */
-      --type-string: #007acc;
+      --type-string: #38bdf8;
       --type-double: #00cc00;
       --type-int: #ff8c00;
       --type-boolean: #d7ba7d;
@@ -31,24 +31,24 @@
     /* ── Change 3: Custom Scrollbars ─────────────────────────────────────── */
     * {
       scrollbar-width: thin;
-      scrollbar-color: #444 #1e1e1e;
+      scrollbar-color: #22d3ee #05080d;
     }
     *::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     *::-webkit-scrollbar-track {
-      background: #1e1e1e;
+      background: #05080d;
     }
     *::-webkit-scrollbar-thumb {
-      background: #444;
+      background: #22d3ee;
       border-radius: 3px;
     }
     *::-webkit-scrollbar-thumb:hover {
-      background: #666;
+      background: #22d3ee;
     }
     *::-webkit-scrollbar-corner {
-      background: #1e1e1e;
+      background: #05080d;
     }
 
     * { box-sizing: border-box; }
@@ -62,17 +62,17 @@
     /* Editor Side */
     #editor-container {
       width: 55%; min-width: 320px; height: 100%;
-      display: flex; flex-direction: column; background: #1b1b1b;
+      display: flex; flex-direction: column; background: #080d13;
     }
     .editor-header {
-      padding: 12px 14px; background: #111; border-bottom: 1px solid #2f2f2f;
+      padding: 12px 14px; background: #05080d; border-bottom: 1px solid #243746;
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
     }
     .editor-title { font-weight: 700; color: white; }
     .editor-subtitle { color: #9aa0a6; font-size: 0.9rem; }
 
     /* Code Overlay */
-    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: #1e1e1e; }
+    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: var(--bg); }
     #code-editor, #highlighting {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: 0; padding: 16px;
       font-family: "Consolas", "Courier New", monospace; font-size: 14px; line-height: 1.5;
@@ -82,7 +82,7 @@
     #highlighting { z-index: 1; overflow: hidden; }
     #highlighting code { font-family: inherit; font-size: inherit; line-height: inherit; text-shadow: none; }
     
-    #resizer { width: 6px; background: #333; cursor: col-resize; z-index: 10; transition: background 0.2s; }
+    #resizer { width: 6px; background: #243746; cursor: col-resize; z-index: 10; transition: background 0.2s; }
     #resizer:hover, #resizer.active { background: var(--accent); }
 
     /* Driver Station Side */
@@ -110,7 +110,7 @@
     /* Variable Inspector */
     .inspector-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
     .inspector-title { font-weight: bold; margin-bottom: 8px; color: #fff; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; }
-    .var-row { display: flex; align-items: center; background: #1a1a1a; padding: 8px; border-radius: 6px; margin-bottom: 6px; font-family: monospace; font-size: 0.95rem; }
+    .var-row { display: flex; align-items: center; background: #0d1721; padding: 8px; border-radius: 6px; margin-bottom: 6px; font-family: monospace; font-size: 0.95rem; }
     .var-row:last-child { margin-bottom: 0; }
     .var-badge { padding: 3px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-right: 10px; color: #000; width: 65px; text-align: center; }
     .badge-String { background: var(--type-string); color: #fff; }
@@ -126,7 +126,7 @@
     .vis-toggle.on { background: var(--good); }
     .vis-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: 0.2s; }
     .vis-toggle.on::after { left: 22px; }
-    .vis-bar-bg { width: 100%; height: 12px; background: #333; border-radius: 6px; overflow: hidden; position: relative; }
+    .vis-bar-bg { width: 100%; height: 12px; background: #101d29; border-radius: 6px; overflow: hidden; position: relative; }
     .vis-bar-fill { height: 100%; background: var(--accent-2); width: 0%; transition: width 0.1s; position: absolute; left: 50%; transform: translateX(-50%); }
     .vis-bar-fill.positive { left: 50%; transform: none; }
     .vis-bar-fill.negative { right: 50%; left: auto; background: var(--warn); transform: none;}
@@ -514,6 +514,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 
@@ -901,6 +902,9 @@ function executeMethod(methodName) {
     const runtime = TelemarkJava.createRuntime({
       gamepad,
       getRuntime,
+      resetRuntime() {
+        runtimeOffset = Date.now();
+      },
       onPower(power) {
         updateMotorVisual(power);
       },
@@ -926,9 +930,10 @@ function executeMethod(methodName) {
     telemarkCompiledSource = code;
     if (!telemarkCompiledProgram.ok) {
       const error = telemarkCompiledProgram.diagnostics[0];
-      document.getElementById('telemetry-log').textContent =
-        `${error.message} (line ${error.line}, column ${error.column})`;
-      return;
+      return failJavaExecution(
+        'Java compile error',
+        new Error(`${error.message} (line ${error.line}, column ${error.column})`),
+      );
     }
   }
 
@@ -936,10 +941,14 @@ function executeMethod(methodName) {
     runtimeOffset = Date.now();
   }
   const method = telemarkCompiledProgram?.methods?.[methodName];
-  if (method) {
-    if (methodName === 'loop' || methodName === 'init_loop') telemarkRuntime?.clearTelemetry();
-    method();
-    telemarkRuntime?.updateTelemetry();
+  try {
+    if (method) {
+      if (methodName === 'loop' || methodName === 'init_loop') telemarkRuntime?.clearTelemetry();
+      method();
+      telemarkRuntime?.updateTelemetry();
+    }
+  } catch (error) {
+    return failJavaExecution(`${methodName}() runtime error`, error);
   }
   Object.entries(telemarkCompiledProgram?.scope || {}).forEach(([name, value]) => {
     if (declaredVars[name]) declaredVars[name].value = value;
@@ -949,6 +958,7 @@ function executeMethod(methodName) {
   });
   renderVariableInspector();
   renderHints();
+  return true;
 }
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────────
@@ -966,18 +976,29 @@ function setLifecycle(s, color, btnLabel) {
 
 function stopAllIntervals() { clearInterval(intervalId); clearInterval(timerId); intervalId = timerId = null; }
 
+function failJavaExecution(context, error) {
+  stopAllIntervals();
+  runtimeOffset = 0;
+  document.getElementById('timer-val').textContent = '0.00';
+  updateMotorVisual(0);
+  document.getElementById('telemetry-log').textContent =
+    `${context}: ${error?.message || String(error)}`;
+  setLifecycle('STOPPED', '#cc0000', 'INIT');
+  return false;
+}
+
 function handleMainButton() {
   if (currentState === 'STOPPED') {
     runStaticAnalysis();
     document.getElementById('telemetry-log').innerHTML = '';
     document.getElementById('timer-val').textContent = '0.00';
     runtimeOffset = 0; updateMotorVisual(0);
-    executeMethod('init');
+    if (!executeMethod('init')) return;
     setLifecycle('INIT_LOOP', '#ffcc00', 'START');
-    intervalId = setInterval(() => executeMethod('init_loop'), 100);
+    intervalId = setInterval(() => { executeMethod('init_loop'); }, 100);
   } else if (currentState === 'INIT_LOOP') {
     stopAllIntervals();
-    executeMethod('start');
+    if (!executeMethod('start')) return;
     if (runtimeOffset === 0) runtimeOffset = Date.now();
     setLifecycle('RUNNING', '#00ff00', 'RUNNING');
     intervalId = setInterval(() => executeMethod('loop'), 100);

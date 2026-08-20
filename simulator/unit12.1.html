@@ -75,7 +75,7 @@ html, body {
     height: 150px;
     position: relative;
     border-radius: 10px;
-    background: linear-gradient(180deg,#111827,#0d1117);
+    background:#0b1118;
     overflow: hidden;
 }
 
@@ -158,6 +158,7 @@ html, body {
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 
 <body>
@@ -737,6 +738,19 @@ window.onInit = () => {
                 ? getCode()
                 : starterCode;
 
+        if (!window._simGetMethodBody) {
+            throw new Error("Java method parser is unavailable");
+        }
+
+        const initBody = window._simGetMethodBody(code, "init");
+        const loopBody = window._simGetMethodBody(code, "loop");
+        if (initBody === null) {
+            throw new Error("Required init() method is missing or has unmatched braces");
+        }
+        if (loopBody === null) {
+            throw new Error("Required loop() method is missing or has unmatched braces");
+        }
+
         const js = transpile(code);
 
         eval(js);
@@ -753,14 +767,23 @@ window.onInit = () => {
         console.error(err);
 
         if (window._simShowTelemetryError) {
-            window._simShowTelemetryError(err.message);
+            window._simShowTelemetryError("Java compile/runtime error: " + err.message);
+        }
+        if (window.stopExecution) {
+            window.stopExecution();
         }
     }
 };
 
 window.onStart = () => {
 
-    if (!preparedLoop) return;
+    if (!preparedLoop) {
+        if (window._simShowTelemetryError) {
+            window._simShowTelemetryError("Java compile error: Required loop() method is missing or invalid");
+        }
+        if (window.stopExecution) window.stopExecution();
+        return;
+    }
     running = true;
 
     if (loopInterval) {
@@ -771,7 +794,15 @@ window.onStart = () => {
             if (!running) return;
 
             if (window.clearTelemetry) window.clearTelemetry();
-            preparedLoop();
+            try {
+                preparedLoop();
+            } catch (err) {
+                console.error("Unit 12.1 loop() failed", err);
+                if (window._simShowTelemetryError) {
+                    window._simShowTelemetryError("loop() runtime error: " + err.message);
+                }
+                if (window.stopExecution) window.stopExecution();
+            }
 
         }, 50);
 };

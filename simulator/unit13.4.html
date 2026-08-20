@@ -19,7 +19,7 @@
             --yellow: #f59e0b;
             --red: #ef4444;
             --blue: #3b82f6;
-            --orange: #ff6600;
+            --orange: #22d3ee;
             --cyan: #22d3ee;
         }
 
@@ -297,6 +297,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 <div id="oop-root">
@@ -1056,6 +1057,16 @@ function publishTelemetry(status) {
     updateTelemetry();
 }
 
+function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    if (typeof _simShowTelemetryError === "function") {
+        _simShowTelemetryError(message);
+    } else {
+        addTelemetry("ERROR", message);
+        updateTelemetry();
+    }
+}
+
 function parseHardwareConstants(code) {
     const body = extractClassBody(code || "", "HardwareNames");
     const parsed = {
@@ -1183,7 +1194,7 @@ function runStudentInit() {
         initFn(hardwareMap, makeHardwareNamesObject(), getHardwareDevice, setClawPosition, setWristPower, getRangeDistance, addTelemetry, updateTelemetry);
         updateTelemetry();
     } catch (err) {
-        showStudentError("init() runtime error: " + err.message);
+        failStudentExecution("init() runtime error: " + err.message);
     }
 }
 
@@ -1194,7 +1205,7 @@ function compileStudentLoop() {
     const opBody = extractOpModeBody(code);
     const loopBody = extractMethodBody(opBody, "loop");
     if (!loopBody) {
-        showStudentError("loop() was not found.");
+        failStudentExecution("loop() was not found.");
         return false;
     }
 
@@ -1215,7 +1226,7 @@ function compileStudentLoop() {
     } catch (err) {
         compiledLoopFn = null;
         compiledSource = "";
-        showStudentError("loop() compile error: " + err.message);
+        failStudentExecution("loop() compile error: " + err.message);
         return false;
     }
 }
@@ -1230,8 +1241,7 @@ function startStudentLoop() {
             updateTelemetry();
             refreshAnalysis();
         } catch (err) {
-            showStudentError("loop() runtime error: " + err.message);
-            if (typeof stopExecution === "function") stopExecution();
+            failStudentExecution("loop() runtime error: " + err.message);
         }
     };
     if (typeof _simStartLoop === "function") _simStartLoop(runFrame);

@@ -10,25 +10,25 @@
 
   <style>
     :root {
-      --bg: #1e1e1e;
-      --panel: #252526;
-      --panel-2: #121212;
-      --text: #d4d4d4;
-      --muted: #9aa0a6;
-      --accent: #007acc;
-      --accent-2: #0098ff;
+      --bg: #05080d;
+      --panel: #0b1118;
+      --panel-2: #071019;
+      --text: #eaf8ff;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22d3ee;
       --danger: #cc0000;
       --good: #00cc00;
       --warn: #ffcc00;
-      --border: #333;
+      --border: #243746;
     }
 
-    * { scrollbar-width: thin; scrollbar-color: #444 #1e1e1e; }
+    * { scrollbar-width: thin; scrollbar-color: #22d3ee #05080d; }
     *::-webkit-scrollbar { width: 6px; height: 6px; }
-    *::-webkit-scrollbar-track { background: #1e1e1e; }
-    *::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-    *::-webkit-scrollbar-thumb:hover { background: #666; }
-    *::-webkit-scrollbar-corner { background: #1e1e1e; }
+    *::-webkit-scrollbar-track { background: #05080d; }
+    *::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 3px; }
+    *::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
+    *::-webkit-scrollbar-corner { background: #05080d; }
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -40,16 +40,16 @@
 
     #editor-container {
       width: 50%; min-width: 320px; height: 100%;
-      display: flex; flex-direction: column; background: #1b1b1b;
+      display: flex; flex-direction: column; background: #080d13;
     }
     .editor-header {
-      padding: 12px 14px; background: #111; border-bottom: 1px solid #2f2f2f;
+      padding: 12px 14px; background: #05080d; border-bottom: 1px solid #243746;
       display: flex; justify-content: space-between; align-items: center; gap: 12px;
     }
     .editor-title { font-weight: 700; color: white; }
     .editor-subtitle { color: #9aa0a6; font-size: 0.9rem; }
 
-    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: #1e1e1e; }
+    .code-wrapper { position: relative; flex: 1; overflow: hidden; background: var(--bg); }
     #code-editor, #highlighting {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: 0; padding: 16px;
       font-family: "Consolas", "Courier New", monospace; font-size: 13px; line-height: 1.5;
@@ -59,7 +59,7 @@
     #highlighting { z-index: 1; overflow: hidden; }
     #highlighting code { font-family: inherit; font-size: inherit; line-height: inherit; text-shadow: none; }
     
-    #resizer { width: 6px; background: #333; cursor: col-resize; z-index: 10; transition: background 0.2s; }
+    #resizer { width: 6px; background: #243746; cursor: col-resize; z-index: 10; transition: background 0.2s; }
     #resizer:hover, #resizer.active { background: var(--accent); }
 
     #ds-container {
@@ -86,7 +86,7 @@
 
     /* Flowchart Canvas */
     #flowchart-container {
-      background: #1a1a1a;
+      background: #0d1721;
       border-radius: 6px;
       min-height: 200px;
       max-height: 350px;
@@ -98,7 +98,7 @@
 
     /* Condition Inspector */
     .condition-row {
-      background: #1a1a1a;
+      background: #0d1721;
       padding: 8px 10px;
       border-radius: 4px;
       margin-bottom: 6px;
@@ -137,13 +137,13 @@
     .truth-table th, .truth-table td {
       padding: 4px 8px;
       text-align: center;
-      border: 1px solid #333;
+      border: 1px solid #243746;
     }
     .truth-table th {
-      background: #1a1a1a;
+      background: #0d1721;
       color: #9cdcfe;
     }
-    .truth-table td { background: #222; }
+    .truth-table td { background: #101d29; }
     .truth-table tr.active td {
       background: rgba(0,122,204,0.3);
       color: #fff;
@@ -167,7 +167,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      background: #1a1a1a;
+      background: #0d1721;
       padding: 8px 10px;
       border-radius: 4px;
       margin-bottom: 6px;
@@ -348,6 +348,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 
@@ -1223,6 +1224,7 @@ function executeMethod(methodName) {
       window.__telemarkUnit5Runtime = TelemarkJava.createRuntime({
         gamepad: gamepad,
         getRuntime: getRuntime,
+        resetRuntime: function() { runtimeOffset = Date.now(); },
         onPower: function(power) { updateMotorVisual(power); },
         onTelemetry: function(key, value) {
           sharedTelemetry.push('<div class="telemetry-line"><span class="telemetry-key">' + key + '</span>: ' + String(value) + '</div>');
@@ -1239,16 +1241,22 @@ function executeMethod(methodName) {
       window.__telemarkUnit5Source = sharedSource;
       if (!window.__telemarkUnit5Program.ok) {
         var sharedDiagnostic = window.__telemarkUnit5Program.diagnostics[0];
-        document.getElementById('telemetry-log').textContent = sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')';
-        return;
+        return failJavaExecution(
+          'Java compile error',
+          new Error(sharedDiagnostic.message + ' (line ' + sharedDiagnostic.line + ', column ' + sharedDiagnostic.column + ')')
+        );
       }
     }
-    if (!window.__telemarkUnit5Program || !window.__telemarkUnit5Program.ok) return;
+    if (!window.__telemarkUnit5Program || !window.__telemarkUnit5Program.ok) return false;
     var sharedMethod = window.__telemarkUnit5Program.methods[methodName];
-    if (sharedMethod) {
-      if (methodName === 'loop' || methodName === 'init_loop') window.__telemarkUnit5Runtime.clearTelemetry();
-      sharedMethod();
-      window.__telemarkUnit5Runtime.updateTelemetry();
+    try {
+      if (sharedMethod) {
+        if (methodName === 'loop' || methodName === 'init_loop') window.__telemarkUnit5Runtime.clearTelemetry();
+        sharedMethod();
+        window.__telemarkUnit5Runtime.updateTelemetry();
+      }
+    } catch (error) {
+      return failJavaExecution(methodName + '() runtime error', error);
     }
     Object.keys(window.__telemarkUnit5Program.scope || {}).forEach(function(name) {
       if (declaredVars[name]) declaredVars[name].value = window.__telemarkUnit5Program.scope[name];
@@ -1256,12 +1264,12 @@ function executeMethod(methodName) {
     drawFlowchart();
     renderConditionInspector();
     renderTruthTable();
-    return;
+    return true;
   }
 
   var code = codeEditor.value;
   var body = getMethodBody(code, methodName);
-  if (!body) return;
+  if (!body) return true;
 
   // Walk through the method body top-to-bottom, executing statements in order.
   // If-chains are resolved to their active branch; everything else runs directly.
@@ -1294,6 +1302,7 @@ function executeMethod(methodName) {
   drawFlowchart();
   renderConditionInspector();
   renderTruthTable();
+  return true;
 }
 
 // Split a method body into an ordered list of plain-code segments and if-chain segments.
@@ -1591,18 +1600,29 @@ function setLifecycle(s, color, btnLabel) {
 
 function stopAllIntervals() { clearInterval(intervalId); clearInterval(timerId); intervalId = timerId = null; }
 
+function failJavaExecution(context, error) {
+  stopAllIntervals();
+  runtimeOffset = 0;
+  document.getElementById('timer-val').textContent = '0.00';
+  updateMotorVisual(0);
+  document.getElementById('telemetry-log').textContent =
+    context + ': ' + (error && error.message ? error.message : String(error));
+  setLifecycle('STOPPED', '#cc0000', 'INIT');
+  return false;
+}
+
 function handleMainButton() {
   if (currentState === 'STOPPED') {
     runStaticAnalysis();
     document.getElementById('telemetry-log').innerHTML = '';
     document.getElementById('timer-val').textContent = '0.00';
     runtimeOffset = 0; updateMotorVisual(0);
-    executeMethod('init');
+    if (!executeMethod('init')) return;
     setLifecycle('INIT_LOOP', '#ffcc00', 'START');
     intervalId = setInterval(function() { executeMethod('init_loop'); }, 100);
   } else if (currentState === 'INIT_LOOP') {
     stopAllIntervals();
-    executeMethod('start');
+    if (!executeMethod('start')) return;
     if (runtimeOffset === 0) runtimeOffset = Date.now();
     setLifecycle('RUNNING', '#00ff00', 'RUNNING');
     intervalId = setInterval(function() { executeMethod('loop'); }, 100);

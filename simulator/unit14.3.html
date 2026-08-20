@@ -233,6 +233,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+<link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
 <script>
@@ -956,7 +957,7 @@ public class GetTagDistance extends OpMode {
     const initBody = extractMethodBody(opBody, "init");
     const loopBody = extractMethodBody(opBody, "loop");
     if (!loopBody) {
-      showStudentError("loop() was not found.");
+      failStudentExecution("loop() was not found.");
       return;
     }
 
@@ -984,7 +985,7 @@ public class GetTagDistance extends OpMode {
         '"use strict"; let aprilTagProcessor; let visionPortal;\n' + transpileStudentBody(loopBody)
       );
     } catch (err) {
-      showStudentError("compile error: " + err.message);
+      failStudentExecution("compile error: " + err.message);
       return;
     }
 
@@ -993,7 +994,7 @@ public class GetTagDistance extends OpMode {
       initFn(hardwareMap, createAprilTagProcessor, createVisionPortalBuilder, callGetTagDistance, getAprilTagDetections, addTelemetry, updateTelemetry);
       updateTelemetry();
     } catch (err) {
-      showStudentError("init() runtime error: " + err.message);
+      failStudentExecution("init() runtime error: " + err.message);
       return;
     }
 
@@ -1003,8 +1004,7 @@ public class GetTagDistance extends OpMode {
         loopFn(hardwareMap, createAprilTagProcessor, createVisionPortalBuilder, callGetTagDistance, getAprilTagDetections, addTelemetry, updateTelemetry);
         validateCode();
       } catch (err) {
-        showStudentError("loop() runtime error: " + err.message);
-        if (typeof stopExecution === "function") stopExecution();
+        failStudentExecution("loop() runtime error: " + err.message);
       }
     };
 
@@ -1246,6 +1246,16 @@ public class GetTagDistance extends OpMode {
       warning.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message);
     }
     safeCall(addHint, '<i class="fa-solid fa-triangle-exclamation"></i> ' + escapeHTML(message), "error");
+    if (typeof _simShowTelemetryError === "function") _simShowTelemetryError(message);
+    else {
+      safeCall(addTelemetry, "ERROR", message);
+      safeCall(updateTelemetry);
+    }
+  }
+
+  function failStudentExecution(message) {
+    if (typeof stopExecution === "function") stopExecution();
+    showStudentError(message);
   }
 
   function getCodeSafe() {
