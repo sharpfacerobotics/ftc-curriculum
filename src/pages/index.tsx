@@ -255,12 +255,12 @@ function CurriculumSection({
             <>
             <div className={styles.unitNum}>{unit.label}</div>
             <div className={styles.unitTitle}>{unit.title}</div>
-            <div className={styles.unitDesc}>{unit.desc}</div>
             <span className={`${styles.unitTag} ${(locked || checking) ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
               {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
               {' '}
               {checking ? 'Checking access' : locked ? 'Account required' : unit.tier}
             </span>
+            <div className={styles.unitDesc}>{unit.desc}</div>
             </>
           );
 

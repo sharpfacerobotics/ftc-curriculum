@@ -526,111 +526,91 @@
   border: 0;
 }
 
+/* A curriculum is a sequence, so it reads as one. Thirty identical boxes said
+   "pick any of these" when the real message is "these are in order", and a
+   card grid of that size is a wall before it is a list. Rows separated by
+   hairlines put the unit numbers in a column you can run your eye down. */
 .curriculumGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.9rem;
+  border-top: 1px solid var(--tm-border);
+  margin-top: var(--tm-sp-5);
 }
 
 .unitCard {
-  position: relative;
-  display: block;
+  display: grid;
   width: 100%;
-  min-height: 152px;
-  padding: 1.45rem;
-  overflow: hidden;
-  border: 1px solid var(--tm-border-hair);
-  border-radius: var(--tm-r-hand-alt);
-  background: var(--home-surface);
+  padding: var(--tm-sp-4) var(--tm-sp-3);
+  border: 0;
+  border-bottom: 1px solid var(--tm-border-hair);
+  background: transparent;
   color: inherit;
+  column-gap: var(--tm-sp-5);
   cursor: pointer;
   font: inherit;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  align-items: baseline;
   text-align: left;
   text-decoration: none;
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
-}
-
-.unitCard:nth-child(3n + 2) {
-  border-radius: var(--tm-r-hand);
-}
-
-.unitCard:nth-child(3n) {
-  border-radius: var(--tm-r-hand-alt);
-}
-
-.unitCard::before {
-  content: '';
-  position: absolute;
-  right: -14px;
-  bottom: -14px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--home-aqua);
-  opacity: 0.08;
-  transition: opacity 180ms ease, transform 220ms ease;
+  transition: background 180ms ease, padding-left 180ms ease;
 }
 
 .unitCard:hover {
-  border-color: var(--tm-border-strong);
-  background: var(--home-surface-raised);
-  color: inherit;
+  background: var(--tm-surface-1);
+  /* Padding, not transform: the row grows into the gutter rather than sliding
+     out of the column the numbers line up in. */
+  padding-left: var(--tm-sp-4);
   text-decoration: none;
-  transform: translateY(-3px) rotate(-0.15deg);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-}
-
-.unitCard:nth-child(even):hover {
-  transform: translateY(-3px) rotate(0.15deg);
-}
-
-.unitCard:hover::before {
-  opacity: 0.16;
-  transform: scale(1.8);
-}
-
-.unitCard:disabled {
-  opacity: 0.7;
-  cursor: wait;
-  transform: none;
 }
 
 .unitCardLocked {
-  background: #0a1119;
-}
-
-.unitCardLocked::after {
-  content: '\f023';
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  color: rgba(242, 248, 255, 0.22);
-  font-family: 'Font Awesome 6 Free';
-  font-size: var(--tm-fs-md);
-  font-weight: 900;
+  cursor: pointer;
 }
 
 .unitNum {
-  margin-bottom: 8px;
-  color: var(--home-aqua);
-  font-family: var(--telemark-font-label);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .unitTitle {
-  margin-bottom: 6px;
-  color: var(--home-text);
+  color: var(--tm-text-strong);
   font-family: var(--telemark-font-display);
   font-size: var(--tm-fs-md);
-  font-weight: 600;
-  line-height: 1.25;
+  line-height: var(--tm-lh-snug);
 }
 
 .unitDesc {
-  color: rgba(242, 248, 255, 0.54);
+  grid-column: 2;
+  margin-top: 0.2rem;
+  color: var(--tm-text-muted);
   font-size: var(--tm-fs-xs);
-  line-height: 1.55;
+  line-height: var(--tm-lh-normal);
+}
+
+@media (max-width: 700px) {
+  .unitCard {
+    column-gap: var(--tm-sp-3);
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .unitNum {
+    grid-column: 1;
+  }
+
+  .unitTitle,
+  .unitDesc {
+    grid-column: 1 / -1;
+  }
+
+  /* The tag drops to its own row on a narrow screen, where a grid cell would
+     otherwise stretch a two word badge across the whole column. */
+  .unitTag {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-top: var(--tm-sp-2);
+  }
 }
 
 .unitTag {
