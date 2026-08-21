@@ -24,6 +24,7 @@ function createUnit2Harness() {
   const windowListeners = new Map();
   const reportedErrors = [];
   let nextInterval = 1;
+  let installedGamepadState = null;
 
   function makeClassList() {
     const values = new Set();
@@ -116,17 +117,27 @@ function createUnit2Harness() {
 
   vm.createContext(context);
   vm.runInContext(telemarkJavaSource, context, {filename: 'telemark-java.js'});
+  context.TelemarkSimulatorBase = {
+    compileStudentSource: (...args) => context.TelemarkJava.compile(...args),
+    createRuntime: (...args) => context.TelemarkJava.createRuntime(...args),
+    installLegacy(options) {
+      installedGamepadState = options.state;
+      return {state: installedGamepadState};
+    },
+  };
   vm.runInContext(
     lastInlineScript(path.join(simulatorRoot, 'unit2.html')),
     context,
     {filename: 'unit2.html'},
   );
 
+  assert.ok(installedGamepadState, 'unit2 must pass its live gamepad state to simulator_base');
   return {
     context,
     elements,
     intervals,
     reportedErrors,
+    gamepad: installedGamepadState,
     runIntervals() {
       for (const callback of [...intervals.values()]) callback();
     },

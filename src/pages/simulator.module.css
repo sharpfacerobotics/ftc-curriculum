@@ -30,7 +30,7 @@
   width: 12rem;
   height: 10rem;
   border-radius: 48% 52% 42% 58% / 56% 45% 55% 44%;
-  background: rgba(56, 189, 248, 0.05);
+  background: var(--tm-blue-a10);
   animation: simulator-drift 18s ease-in-out -5s infinite alternate-reverse;
 }
 
@@ -53,7 +53,7 @@
 
 .sectionTitle {
   margin: 0 0 1rem;
-  color: #f3fbff;
+  color: var(--tm-text-strong);
   font-family: var(--telemark-font-display);
   font-size: clamp(2.25rem, 6vw, 4rem);
   line-height: 1;
@@ -62,7 +62,7 @@
 .sectionDesc {
   max-width: 46rem;
   margin: 0 0 2rem;
-  color: rgba(234, 248, 255, 0.72);
+  color: var(--tm-text-soft);
   font-size: var(--tm-fs-md);
   line-height: 1.7;
 }
@@ -90,7 +90,7 @@
 }
 
 .simulatorStep:hover {
-  border-color: rgba(96, 165, 250, 0.46);
+  border-color: var(--tm-blue-a32);
   transform: translateY(-2px);
 }
 
@@ -102,7 +102,7 @@
   place-items: center;
   border-radius: 50%;
   background: var(--tm-accent);
-  color: #041018;
+  color: var(--tm-text-on-accent);
   font-family: var(--telemark-font-label);
   font-size: var(--tm-fs-xs);
   font-weight: 700;
@@ -117,7 +117,7 @@
 
 .simulatorStep p {
   margin: 0.35rem 0 0;
-  color: rgba(234, 248, 255, 0.58);
+  color: var(--tm-text-muted);
   font-size: var(--tm-fs-sm);
   line-height: 1.55;
 }
@@ -131,10 +131,10 @@
 
 .simulatorTasks span {
   padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(56, 189, 248, 0.22);
+  border: 1px solid var(--tm-accent-a20);
   border-radius: var(--tm-r-lg);
-  background: rgba(56, 189, 248, 0.08);
-  color: rgba(234, 248, 255, 0.76);
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-soft);
   font-size: var(--tm-fs-xs);
 }
 
@@ -177,8 +177,8 @@
 .simulatorToolbarButton:hover,
 .simulatorToolbarButton:focus-visible {
   border-color: var(--tm-blue-soft);
-  background: rgba(56, 189, 248, 0.12);
-  color: #b8efff;
+  background: var(--tm-accent-a12);
+  color: var(--tm-accent);
 }
 
 .simulatorToolbarButton:focus-visible {
@@ -193,8 +193,8 @@
   overflow: hidden;
   border: 1px solid var(--tm-border-strong);
   border-radius: var(--tm-r-lg);
-  background: #020407;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
+  background: var(--tm-surface-3);
+  box-shadow: var(--tm-shadow-md);
 }
 
 .simulatorWrapper iframe {
@@ -235,20 +235,20 @@
 .btnPrimary {
   border: 1px solid var(--tm-blue);
   background: var(--tm-blue);
-  color: var(--tm-bg) !important;
+  color: var(--tm-text-on-accent) !important;
 }
 
 .btnPrimary:hover {
   border-color: var(--tm-blue-soft);
   background: var(--tm-blue-soft);
-  color: #020b12 !important;
+  color: var(--tm-text-on-accent) !important;
   transform: translateY(-1px);
 }
 
 .btnSecondary {
-  border: 1px solid rgba(96, 165, 250, 0.38);
+  border: 1px solid var(--tm-blue-a32);
   background: var(--tm-surface-2);
-  color: #b9eaff !important;
+  color: var(--tm-blue-soft) !important;
 }
 
 .btnSecondary:hover {

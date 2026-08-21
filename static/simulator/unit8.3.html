@@ -90,10 +90,10 @@ code{font-family:"Consolas","Courier New",monospace}
 .overlay{position:absolute;border-radius:50%;touch-action:none;user-select:none}
 .stick-zone-left{left:35.5%;top:65.5%;width:17%;height:24%;transform:translate(-50%,-50%);background:transparent;z-index:5;cursor:grab}
 .stick-base-left{position:absolute;left:35.5%;top:65.5%;width:14%;height:21%;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06);z-index:2}
-.stick-knob-left{position:absolute;left:35.5%;top:65.5%;width:9%;height:13%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a3a3a,#121212 70%);border:1px solid rgba(255,255,255,.1);pointer-events:none;opacity:.5;z-index:6}
+.stick-knob-left{position:absolute;left:35.5%;top:65.5%;width:9%;height:13%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a3a3a,#121212 70%);border:1px solid rgba(255,255,255,.1);pointer-events:none;opacity:1;z-index:6}
 .stick-zone-right{left:64%;top:65.5%;width:17%;height:24%;transform:translate(-50%,-50%);background:transparent;z-index:5;cursor:grab}
 .stick-base-right{position:absolute;left:64%;top:65.5%;width:14%;height:21%;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.06);z-index:2}
-.stick-knob-right{position:absolute;left:64%;top:65.5%;width:9%;height:13%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a3a3a,#121212 70%);border:1px solid rgba(255,255,255,.1);pointer-events:none;opacity:.5;z-index:6}
+.stick-knob-right{position:absolute;left:64%;top:65.5%;width:9%;height:13%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 35% 35%,#3a3a3a,#121212 70%);border:1px solid rgba(255,255,255,.1);pointer-events:none;opacity:1;z-index:6}
 .button-overlay{border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.01);cursor:default;opacity:.4;z-index:4}
 .button-overlay.pressed{background:rgba(255,255,255,.18);box-shadow:0 0 0 2px rgba(255,255,255,.25);opacity:1}
 .a-btn{left:75.5%;top:49%;width:7%;height:10%;transform:translate(-10%,-10%)}
@@ -123,6 +123,7 @@ code{font-family:"Consolas","Courier New",monospace}
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src="./simulator_base.js" data-telemark-mode="legacy"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -264,6 +265,7 @@ public class BrakeFloatDemo extends OpMode {
         <div class="dpad-btn dpad-left" id="dpad-left"><svg viewBox="0 0 24 24"><path d="M4 12l8-8v16z"/></svg></div>
         <div class="dpad-btn dpad-right" id="dpad-right"><svg viewBox="0 0 24 24"><path d="M20 12l-8 8V4z"/></svg></div>
       </div>
+      <div class="axis-readout" id="axis-readout">LX 0.00 &nbsp; LY 0.00 &nbsp; RX 0.00 &nbsp; RY 0.00</div>
     </div>
   </div>
   <div class="gamepad-resize-handle" id="gamepad-resize-handle"></div>
@@ -307,69 +309,6 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
   var body = document.getElementById('challenge-body');
   body.classList.toggle('open');
 });
-
-document.getElementById('gp-collapse-btn').addEventListener('click', function(e) {
-  e.stopPropagation();
-  var card = document.getElementById('gamepad-float-card');
-  card.classList.toggle('collapsed');
-  this.textContent = card.classList.contains('collapsed') ? '+' : '−';
-});
-
-(function setupGamepadDrag() {
-  var card = document.getElementById('gamepad-float-card');
-  var titlebar = document.getElementById('gamepad-titlebar');
-  var dragging = false, offsetX = 0, offsetY = 0;
-  titlebar.addEventListener('pointerdown', function(e) {
-    if (e.target.closest('.gp-collapse-btn')) return;
-    dragging = true;
-    titlebar.classList.add('dragging');
-    var rect = card.getBoundingClientRect();
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
-    card.style.left = rect.left + 'px';
-    card.style.top = rect.top + 'px';
-    card.style.right = 'auto';
-    card.style.bottom = 'auto';
-    titlebar.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-  titlebar.addEventListener('pointermove', function(e) {
-    if (!dragging) return;
-    var newX = e.clientX - offsetX;
-    var newY = e.clientY - offsetY;
-    newX = Math.max(0, Math.min(window.innerWidth - card.offsetWidth, newX));
-    newY = Math.max(0, Math.min(window.innerHeight - 40, newY));
-    card.style.left = newX + 'px';
-    card.style.top = newY + 'px';
-  });
-  titlebar.addEventListener('pointerup', function(e) {
-    dragging = false;
-    titlebar.classList.remove('dragging');
-    titlebar.releasePointerCapture(e.pointerId);
-  });
-})();
-
-(function setupGamepadResize() {
-  var card = document.getElementById('gamepad-float-card');
-  var handle = document.getElementById('gamepad-resize-handle');
-  var resizing = false, startX, startW;
-  handle.addEventListener('pointerdown', function(e) {
-    resizing = true;
-    startX = e.clientX;
-    startW = card.offsetWidth;
-    handle.setPointerCapture(e.pointerId);
-    e.preventDefault();
-    e.stopPropagation();
-  });
-  handle.addEventListener('pointermove', function(e) {
-    if (!resizing) return;
-    card.style.width = Math.max(240, startW + (e.clientX - startX)) + 'px';
-  });
-  handle.addEventListener('pointerup', function(e) {
-    resizing = false;
-    handle.releasePointerCapture(e.pointerId);
-  });
-})();
 
 (function setupPanelResizer() {
   var resizer = document.getElementById('resizer');
@@ -466,8 +405,11 @@ function initScene() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  scene.add(new THREE.AmbientLight(0xcccccc, 0.6));
+  var ambient = new THREE.AmbientLight(0xcccccc, 0.6);
+  ambient.userData.telemarkThemeRole = 'ambient';
+  scene.add(ambient);
   var dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  dirLight.userData.telemarkThemeRole = 'directional';
   dirLight.position.set(5, 10, 7);
   dirLight.castShadow = true;
   dirLight.shadow.mapSize.width = 1024;
@@ -484,8 +426,9 @@ function initScene() {
   var bl = new THREE.PointLight(0xff8844, 0.3, 15); bl.position.set(2, 3, -3); scene.add(bl);
 
   var floor = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 10 }));
+  floor.userData.telemarkThemeRole = 'floor';
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
-  var grid = new THREE.GridHelper(8, 16, 0x2a2a44, 0x1e1e36); grid.position.y = 0.005; scene.add(grid);
+  var grid = new THREE.GridHelper(8, 16, 0x2a2a44, 0x1e1e36); grid.userData.telemarkThemeRole = 'grid'; grid.position.y = 0.005; scene.add(grid);
 
   robotGroup = new THREE.Group(); scene.add(robotGroup);
   
@@ -549,7 +492,11 @@ function initScene() {
   }
   updateCameraOrbit();
 
-  canvas.addEventListener('pointerdown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+  canvas.addEventListener('pointerdown', e => {
+    isDragging = true; prevX = e.clientX; prevY = e.clientY;
+    if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
   canvas.addEventListener('pointermove', e => {
     if (!isDragging) return;
     orbitAngle -= (e.clientX - prevX) * 0.008;
@@ -557,13 +504,18 @@ function initScene() {
     prevX = e.clientX; prevY = e.clientY;
     updateCameraOrbit();
   });
-  canvas.addEventListener('pointerup', () => isDragging = false);
-  canvas.addEventListener('pointerleave', () => isDragging = false);
+  function releaseOrbit() { isDragging = false; }
+  canvas.addEventListener('pointerup', releaseOrbit);
+  canvas.addEventListener('pointercancel', releaseOrbit);
+  canvas.addEventListener('lostpointercapture', releaseOrbit);
+  window.addEventListener('blur', releaseOrbit);
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
     orbitDist = Math.max(2.5, Math.min(11, orbitDist + e.deltaY * 0.008));
     updateCameraOrbit();
   }, { passive: false });
+
+  applySimulatorTheme(window.TelemarkSimulatorBase.getTheme());
 
   function animate() {
     requestAnimationFrame(animate);
@@ -637,161 +589,18 @@ function simulatePhysics() {
   updateLiftVisuals();
 }
 
-// =============== GAMEPAD SETUP ===============
-function setupGamepad() {
-  function updateAxisReadout() {
-    document.getElementById('axis-readout').textContent =
-      `LX ${(gamepad.left_stick_x).toFixed(2)} LY ${(gamepad.left_stick_y).toFixed(2)} | ` +
-      `RX ${(gamepad.right_stick_x).toFixed(2)} RY ${(gamepad.right_stick_y).toFixed(2)}`;
+function updateAxisReadout() {
+  document.getElementById('axis-readout').textContent =
+    `LX ${(gamepad.left_stick_x).toFixed(2)} LY ${(gamepad.left_stick_y).toFixed(2)} | ` +
+    `RX ${(gamepad.right_stick_x).toFixed(2)} RY ${(gamepad.right_stick_y).toFixed(2)}`;
+}
+
+function applySimulatorTheme(theme) {
+  var container = document.getElementById('scene-container');
+  if (container) container.style.backgroundColor = theme === 'light' ? '#eaf1f5' : '#0a0a0a';
+  if (scene && window.TelemarkSimulatorBase) {
+    window.TelemarkSimulatorBase.themeThreeScene(scene, theme);
   }
-
-  var sticks83 = {};
-  function setupStick(stickId, centerLeft, centerTop, xProp, yProp) {
-    const zone = document.getElementById('stick-zone-' + stickId);
-    const knob = document.getElementById('stick-knob-' + stickId);
-    let dragging = false;
-    let pointerId = null;
-    sticks83[stickId] = { zone, knob, dragging: false, pointerId: null, centerLeft, centerTop, xProp, yProp };
-    zone.style.cursor = 'grab';
-
-    function updateFromEvent(e) {
-      const rect = zone.getBoundingClientRect();
-      let dx = e.clientX - (rect.left + rect.width / 2);
-      let dy = e.clientY - (rect.top + rect.height / 2);
-      const max = rect.width * 0.42;
-      const dist = Math.sqrt((dx/max)**2 + (dy/max)**2);
-      if (dist > 1) { dx /= dist; dy /= dist; }
-      const nx = Math.max(-1, Math.min(1, dx / max));
-      const ny = Math.max(-1, Math.min(1, dy / max));
-      
-      gamepad[xProp] = nx;
-      gamepad[yProp] = ny;
-      
-      knob.style.left = (centerLeft + nx * 5.5) + '%';
-      knob.style.top = (centerTop + ny * 8) + '%';
-      updateAxisReadout();
-    }
-
-    zone.addEventListener('pointerdown', e => { 
-      dragging = true; 
-      pointerId = e.pointerId;
-      updateFromEvent(e); 
-      zone.setPointerCapture(e.pointerId); 
-    });
-    zone.addEventListener('pointermove', e => { if (dragging && pointerId === e.pointerId) updateFromEvent(e); });
-    zone.addEventListener('pointerup', e => {
-      dragging = false;
-      pointerId = null;
-      gamepad[xProp] = gamepad[yProp] = 0;
-      knob.style.left = centerLeft + '%';
-      knob.style.top = centerTop + '%';
-      zone.releasePointerCapture(e.pointerId);
-      updateAxisReadout();
-    });
-    zone.addEventListener('pointercancel', e => {
-      dragging = false;
-      pointerId = null;
-      gamepad[xProp] = gamepad[yProp] = 0;
-      knob.style.left = centerLeft + '%';
-      knob.style.top = centerTop + '%';
-      zone.releasePointerCapture(e.pointerId);
-      updateAxisReadout();
-    });
-  }
-
-  setupStick('left', 35.5, 65.5, 'left_stick_x', 'left_stick_y');
-  setupStick('right', 64, 65.5, 'right_stick_x', 'right_stick_y');
-
-  // Window-level pointer handlers for boundary fix
-  window.addEventListener('pointerup', function(e) {
-    Object.keys(sticks83).forEach(function(stickId) {
-      const s = sticks83[stickId];
-      if (s.dragging && s.pointerId === e.pointerId) {
-        s.dragging = false;
-        s.pointerId = null;
-        gamepad[s.xProp] = gamepad[s.yProp] = 0;
-        s.knob.style.left = s.centerLeft + '%';
-        s.knob.style.top = s.centerTop + '%';
-        s.zone.releasePointerCapture(e.pointerId);
-      }
-    });
-  });
-  window.addEventListener('pointercancel', function(e) {
-    Object.keys(sticks83).forEach(function(stickId) {
-      const s = sticks83[stickId];
-      if (s.dragging && s.pointerId === e.pointerId) {
-        s.dragging = false;
-        s.pointerId = null;
-        gamepad[s.xProp] = gamepad[s.yProp] = 0;
-        s.knob.style.left = s.centerLeft + '%';
-        s.knob.style.top = s.centerTop + '%';
-        s.zone.releasePointerCapture(e.pointerId);
-      }
-    });
-  });
-
-  const buttons = [
-    ['btn-y', 'y'], ['btn-x', 'x'], ['btn-a', 'a'], ['btn-b', 'b'],
-    ['btn-lb', 'left_bumper'], ['btn-rb', 'right_bumper'],
-    ['btn-back', 'back'], ['btn-start', 'start']
-  ];
-  buttons.forEach(([id, prop]) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('pointerdown', () => { gamepad[prop] = true; el.classList.add('pressed'); });
-    el.addEventListener('pointerup', () => { gamepad[prop] = false; el.classList.remove('pressed'); });
-    el.addEventListener('pointerleave', () => { gamepad[prop] = false; el.classList.remove('pressed'); });
-  });
-
-  // D-pad
-  const dpadContainer = document.getElementById('dpad-container');
-  dpadContainer.style.pointerEvents = 'auto';
-  dpadContainer.style.opacity = '0.95';
-
-  const dpadBtns = [
-    ['dpad-up', 'dpad_up'], ['dpad-down', 'dpad_down'],
-    ['dpad-left', 'dpad_left'], ['dpad-right', 'dpad_right']
-  ];
-  dpadBtns.forEach(([id, prop]) => {
-    const el = document.getElementById(id);
-    el.style.pointerEvents = 'auto';
-    el.addEventListener('pointerdown', e => {
-      gamepad[prop] = true;
-      el.style.background = 'rgba(0,255,100,0.3)';
-      e.stopPropagation();
-    });
-    el.addEventListener('pointerup', () => {
-      gamepad[prop] = false;
-      el.style.background = 'rgba(40,40,40,.8)';
-    });
-    el.addEventListener('pointerleave', () => {
-      gamepad[prop] = false;
-      el.style.background = 'rgba(40,40,40,.8)';
-    });
-  });
-
-  // Triggers
-  function setupTrigger(sliderId, fillId, prop) {
-    const slider = document.getElementById(sliderId);
-    const fill = document.getElementById(fillId);
-    let dragging = false;
-    function update(e) {
-      const rect = slider.getBoundingClientRect();
-      const val = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-      gamepad[prop] = 1 - val;
-      fill.style.height = ((1 - val) * 100) + '%';
-    }
-    slider.addEventListener('pointerdown', e => { dragging = true; update(e); slider.setPointerCapture(e.pointerId); });
-    slider.addEventListener('pointermove', e => { if (dragging) update(e); });
-    slider.addEventListener('pointerup', () => {
-      dragging = false;
-      gamepad[prop] = 0;
-      fill.style.height = '0%';
-      slider.releasePointerCapture(event.pointerId);
-    });
-  }
-  setupTrigger('left-trigger-slider', 'left-trigger-fill', 'left_trigger');
-  setupTrigger('right-trigger-slider', 'right-trigger-fill', 'right_trigger');
 }
 
 // =============== VALIDATION, RUN/STOP, STARTUP (same as before) ===============
@@ -836,9 +645,12 @@ function onCodeChange() {
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 function validateFullJavaSource(code) {
-  const result = window.TelemarkJava
-    ? window.TelemarkJava.compile(code)
-    : {ok: false, diagnostics: [{message: 'Telemark Java compiler is unavailable', line: 1, column: 1}]};
+  let result;
+  try {
+    result = window.TelemarkSimulatorBase.compileStudentSource(code);
+  } catch (error) {
+    result = {ok: false, diagnostics: [{message: error.message, line: 1, column: 1}]};
+  }
   if (result.ok) return true;
   const diagnostic = result.diagnostics?.[0] || {};
   const message = `${diagnostic.message || 'Invalid Java source'} (line ${diagnostic.line || 1}, column ${diagnostic.column || 1})`;
@@ -939,7 +751,6 @@ window.addEventListener('load', function() {
   validate();
   requestAnimationFrame(() => {
     initScene();
-    setupGamepad();
     updateLiftVisuals();
   });
 });
@@ -956,7 +767,11 @@ function syncScroll(el) {
   h.scrollTop = el.scrollTop;
   h.scrollLeft = el.scrollLeft;
 }
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+window.TelemarkSimulatorBase.installLegacy({
+  state: gamepad,
+  onInput: updateAxisReadout,
+  onThemeChange: applySimulatorTheme
+});
 </script>
 </body>
 </html>

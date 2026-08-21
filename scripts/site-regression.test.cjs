@@ -30,9 +30,15 @@ const mechanicalData = read('src/telemark/mechanical.ts');
 const tracks = read('src/telemark/tracks.ts');
 const trackOverview = read('src/components/TrackOverview.tsx');
 const unitOverview = read('src/components/UnitOverview.tsx');
+const unitOverviewCss = read('src/components/UnitOverview.module.css');
 const contentLock = read('src/components/ContentLock.tsx');
 const useProgress = read('src/telemark/useProgress.ts');
 const dashboard = read('src/pages/dashboard.tsx');
+const dashboardCss = read('src/pages/dashboard.module.css');
+const loginCss = read('src/pages/login.module.css');
+const markCompleteCss = read('src/components/HomepageFeatures/MarkComplete.module.css');
+const simulatorFrame = read('src/components/SimulatorFrame.tsx');
+const authenticatedNavigator = read('src/components/AuthenticatedSimulatorNavigator.tsx');
 
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
@@ -62,12 +68,32 @@ assert.match(deployedSmoke, /deployedMeta\.commit !== expectedCommit/);
 assert.match(deployedSmoke, /cacheKey = `\$\{expectedCommit \|\| Date\.now\(\)\}-\$\{attempt\}`/);
 assert.match(config, /title: 'Telemark'/);
 assert.match(config, /label: 'GitHub'/);
+assert.match(config, /favicon: 'img\/telemark\.png'/, 'the existing web icon must remain the favicon');
+assert.match(config, /src: 'img\/telemark_logo\.png'/, 'the transparent logo must be used in the navbar');
+assert.match(config, /theme: prismThemes\.github/);
+assert.match(config, /darkTheme: prismThemes\.dracula/);
 assert.match(
   config,
   /© 2026 Telemark\. Built by FTC Team Sharp Face Robotics #30450\. Built with Docusaurus\. Not affiliated with FIRST®/,
 );
 assert.match(customCss, /\.telemark-navbar-center[\s\S]*left: 50%/);
 assert.match(customCss, /\.footer[\s\S]*padding: 0\.85rem 1\.5rem/);
+
+// Light mode must use the same shared surfaces and readable action colours on
+// the exact pages that previously retained hard-coded dark styling.
+assert.match(unitOverviewCss, /\.hero[\s\S]{0,220}background: var\(--tm-surface-1\)/);
+assert.match(unitOverviewCss, /\.lessonCard[\s\S]{0,320}background: var\(--tm-surface-3\)/);
+assert.match(markCompleteCss, /\.unmarkBtn[\s\S]{0,180}border-radius: var\(--tm-r-pill\)/);
+assert.match(dashboardCss, /\.resumeBtn[\s\S]{0,260}color: var\(--tm-text-on-accent\) !important/);
+assert.match(loginCss, /\[data-theme='light'\] \.card\s*\{\s*background: #fff/);
+assert.match(loginCss, /\.googleBtn[\s\S]{0,300}background: #fff;[\s\S]{0,80}color: #111820/);
+assert.match(loginCss, /\[data-theme='light'\] \.privacy\s*\{\s*color: #111820/);
+
+for (const frameSource of [simulatorFrame, authenticatedNavigator]) {
+  assert.match(frameSource, /useColorMode/);
+  assert.match(frameSource, /telemark:simulator-theme-state/);
+  assert.match(frameSource, /contentWindow\?\.postMessage|contentWindow\.postMessage/);
+}
 
 // The gate is exercised against the real policy rather than a copy of the rule,
 // so moving the boundary cannot leave this test asserting the old one.

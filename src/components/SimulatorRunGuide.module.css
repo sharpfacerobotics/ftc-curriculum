@@ -12,7 +12,7 @@
   background: var(--tm-blue-a10);
   border-radius: var(--tm-r-hand);
   background: var(--tm-surface-2);
-  color: rgba(234, 248, 255, 0.68);
+  color: var(--tm-text-soft);
   font-size: var(--tm-fs-sm);
   line-height: 1.5;
   transition: border-color 180ms ease, transform 180ms ease;

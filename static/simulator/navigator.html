@@ -4,6 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Telemark Simulator Chooser</title>
+  <script>
+    (function () {
+      var theme = "";
+      try { theme = new URLSearchParams(window.location.search).get("theme") || ""; } catch (_) {}
+      try {
+        if (!theme && window.parent !== window) {
+          theme = window.parent.document.documentElement.getAttribute("data-theme") || "";
+        }
+      } catch (_) {}
+      if (theme !== "light" && theme !== "dark") {
+        theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+          ? "light"
+          : "dark";
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+      document.documentElement.setAttribute("data-telemark-theme", theme);
+      document.documentElement.style.colorScheme = theme;
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -20,6 +39,26 @@
       --text: #eaf8ff;
       --muted: rgba(234, 248, 255, 0.62);
       --dim: rgba(234, 248, 255, 0.4);
+      --locked-panel: #11171e;
+      --meta-panel: #0d1721;
+      --topbar: rgba(5, 8, 13, 0.94);
+    }
+
+    :root[data-theme="light"],
+    :root[data-telemark-theme="light"] {
+      --bg: #f4f8fb;
+      --panel: #ffffff;
+      --panel-2: #eef5f8;
+      --border: rgba(8, 127, 156, 0.24);
+      --border-strong: rgba(23, 111, 156, 0.5);
+      --cyan: #087f9c;
+      --blue: #176f9c;
+      --text: #102a36;
+      --muted: rgba(16, 42, 54, 0.68);
+      --dim: rgba(16, 42, 54, 0.5);
+      --locked-panel: #fff8eb;
+      --meta-panel: #e8f1f5;
+      --topbar: rgba(255, 255, 255, 0.94);
     }
 
     * {
@@ -73,7 +112,7 @@
       gap: 12px;
       padding: 12px 16px;
       border-bottom: 1px solid var(--border);
-      background: rgba(5, 8, 13, 0.94);
+      background: var(--topbar);
       backdrop-filter: blur(10px);
     }
 
@@ -210,7 +249,7 @@
     }
 
     .card.locked {
-      background: #11171e;
+      background: var(--locked-panel);
       border-color: rgba(255, 181, 71, 0.2);
     }
 
@@ -270,7 +309,7 @@
       gap: 5px;
       padding: 4px 6px;
       border: 1px solid rgba(232, 244, 255, 0.1);
-      background: #0d1721;
+      background: var(--meta-panel);
       border-radius: 999px;
     }
 
@@ -290,7 +329,7 @@
       align-items: center;
       gap: 8px;
       border: 1px solid var(--border-strong);
-      background: #0b1118;
+      background: var(--panel);
       color: var(--cyan);
       padding: 10px 13px;
       border-radius: 10px;
@@ -330,7 +369,7 @@
       border: 1px solid var(--border);
       border-bottom: 0;
       border-radius: 14px 14px 0 0;
-      background: #0b1118;
+      background: var(--panel);
       min-width: 0;
     }
 
@@ -363,7 +402,7 @@
       min-height: 0;
       border: 1px solid var(--border);
       border-radius: 0 0 14px 14px;
-      background: #05080d;
+      background: var(--bg);
       overflow: hidden;
     }
 
@@ -373,7 +412,7 @@
       min-height: 520px;
       display: block;
       border: 0;
-      background: #05080d;
+      background: var(--bg);
     }
 
     @media (max-width: 1050px) {
@@ -483,6 +522,7 @@
     const HOMEPAGE_DEMO_UNIT_MAX = 5;
     const AUTH_REQUEST = "telemark:simulator-auth-request";
     const AUTH_STATE = "telemark:simulator-auth-state";
+    const THEME_STATE = "telemark:simulator-theme-state";
     const query = new URLSearchParams(window.location.search);
     const homepageDemosEnabled = query.get("homepageDemos") === "1";
     let authenticated = query.get("authenticated") === "1";
@@ -616,6 +656,26 @@
     const simSubtitle = document.getElementById("sim-subtitle");
     const authStatus = document.getElementById("auth-status");
     let lastChooserView = "unit";
+    let simulatorTheme = document.documentElement.getAttribute("data-theme") === "light"
+      ? "light"
+      : "dark";
+
+    function forwardThemeToSimulator() {
+      if (!simFrame.contentWindow || !simFrame.getAttribute("src")) return;
+      simFrame.contentWindow.postMessage({
+        type: THEME_STATE,
+        theme: simulatorTheme
+      }, window.location.origin);
+    }
+
+    function applyNavigatorTheme(theme) {
+      if (theme !== "light" && theme !== "dark") return;
+      simulatorTheme = theme;
+      document.documentElement.setAttribute("data-theme", theme);
+      document.documentElement.setAttribute("data-telemark-theme", theme);
+      document.documentElement.style.colorScheme = theme;
+      forwardThemeToSimulator();
+    }
 
     function isProtectedUnit(unitNumber) {
       const homepageDemo = homepageDemosEnabled
@@ -752,20 +812,23 @@
       document.querySelector(".main").scrollTo({ top: 0, behavior: "smooth" });
     });
 
+    simFrame.addEventListener("load", forwardThemeToSimulator);
+
     window.addEventListener("message", (event) => {
-      if (
-        event.origin !== window.location.origin
-        || event.source !== window.parent
-        || !event.data
-        || event.data.type !== AUTH_STATE
-      ) {
+      if (event.origin !== window.location.origin || event.source !== window.parent || !event.data) return;
+
+      if (event.data.type === THEME_STATE) {
+        applyNavigatorTheme(event.data.theme);
         return;
       }
+
+      if (event.data.type !== AUTH_STATE) return;
 
       authenticated = event.data.authenticated === true;
       renderUnits();
     });
 
+    applyNavigatorTheme(simulatorTheme);
     renderUnits();
   </script>
 </body>

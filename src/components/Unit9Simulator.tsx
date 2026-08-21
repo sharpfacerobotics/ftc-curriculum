@@ -60,7 +60,7 @@ export default function Unit9Simulator({lesson}: Unit9SimulatorProps): React.JSX
           min-height: 620px;
           border: none;
           border-radius: 14px;
-          background: #05080d;
+          background: var(--tm-bg);
         }
         @media (min-width: 997px) {
           .unit9-telemark-simulator {

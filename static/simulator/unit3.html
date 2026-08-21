@@ -475,32 +475,9 @@
       border: 2px solid rgba(255,255,255,0.14);
       pointer-events: auto;
     }
-    .bumper-btn {
-      width: 12%;
-      height: 6.5%;
-      border-radius: 999px 999px 10px 10px;
-      pointer-events: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #ddd;
-    }
     .back-btn  { left: 37.5%; top: 28%; transform: translate(-10%, -10%); }
-    .left-bumper-btn { left: 18%; top: 9%; transform: translate(-10%, -10%); }
     .mode-btn  { left: 39%;   top: 41%; transform: translate(-10%, -10%); }
     .start-btn { left: 58%;   top: 28%; transform: translate(-10%, -10%); }
-
-    .dpad {
-      left: 15%; top: 33%;
-      width: 16%; height: 20%;
-      transform: translate(-10%, -10%);
-      border-radius: 24%;
-      pointer-events: none;
-      border: 2px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.02);
-    }
 
     .telemetry-panel { background: #000; border: 2px solid #444; border-radius: 10px; min-height: 120px; padding: 15px; font-family: monospace; font-size: 0.95rem; overflow-y: auto; color: #00ff00;}
     .telemetry-line { margin: 2px 0; }
@@ -514,6 +491,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -626,11 +604,10 @@ public class TeleOpTest extends OpMode {
       <div class="overlay button-overlay b-btn"  id="btn-b"        title="B"></div>
 
       <div class="overlay button-overlay small-button back-btn"  id="btn-back"  title="Back"></div>
-      <div class="overlay button-overlay bumper-btn left-bumper-btn" id="btn-left-bumper" title="Left Bumper">LB</div>
       <div class="overlay button-overlay small-button mode-btn"  id="btn-mode"  title="Mode"></div>
       <div class="overlay button-overlay small-button start-btn" id="btn-start" title="Start"></div>
 
-      <div class="overlay dpad"></div>
+      <!-- Shared base injects symmetric bumper and aligned four-way D-pad hit targets. -->
     </div>
   </div>
   <div class="gamepad-resize-handle" id="gamepad-resize-handle"></div>
@@ -899,7 +876,7 @@ function executeMethod(methodName) {
   if (methodName === 'init') telemarkCompiledSource = '';
   if (code !== telemarkCompiledSource) {
     const telemetryLines = [];
-    const runtime = TelemarkJava.createRuntime({
+    const runtime = TelemarkSimulatorBase.createRuntime({
       gamepad,
       getRuntime,
       resetRuntime() {
@@ -924,7 +901,7 @@ function executeMethod(methodName) {
       },
     });
     telemarkRuntime = runtime;
-    telemarkCompiledProgram = TelemarkJava.compile(code, runtime, {
+    telemarkCompiledProgram = TelemarkSimulatorBase.compileStudentSource(code, runtime, {
       trackVariables: true,
     });
     telemarkCompiledSource = code;
@@ -1012,167 +989,13 @@ function handleStopButton() {
   setLifecycle('STOPPED', '#cc0000', 'INIT');
 }
 
-// ─── Gamepad Buttons ─────────────────────────────────────────────────────────
-function setButtonState(prop, pressed, elementId) {
-  gamepad[prop] = pressed;
-  const el = document.getElementById(elementId);
-  if (el) el.classList.toggle('pressed', pressed);
-}
-const buttonMap = [['btn-a-visual', 'a'], ['btn-b', 'b'], ['btn-x', 'x'], ['btn-y', 'y'], ['btn-back', 'back'], ['btn-start', 'start'], ['btn-mode', 'mode'], ['btn-left-bumper', 'left_bumper']];
-buttonMap.forEach(([id, prop]) => {
-  const el = document.getElementById(id); if (!el) return;
-  el.addEventListener('pointerdown', (e) => { e.preventDefault(); setButtonState(prop, true, id); });
-  el.addEventListener('pointerup', () => setButtonState(prop, false, id));
-  el.addEventListener('pointerleave', () => setButtonState(prop, false, id));
-  el.addEventListener('pointercancel', () => setButtonState(prop, false, id));
-});
-
-// ─── Joystick ────────────────────────────────────────────────────────────────
-const controllerWrap = document.getElementById('controller-wrap');
-const sticks = {
-  left: { zone: document.getElementById('stick-zone-left'), knob: document.getElementById('stick-knob-left'), defaultL: '36%', defaultT: '65%', dragging: false, pointerId: null, setValues(sx, sy) { gamepad.leftStickX = sx; gamepad.leftStickY = sy; } },
-  right: { zone: document.getElementById('stick-zone-right'), knob: document.getElementById('stick-knob-right'), defaultL: '64%', defaultT: '65%', dragging: false, pointerId: null, setValues(sx, sy) { gamepad.rightStickX = sx; gamepad.rightStickY = sy; } }
-};
-
-function resetStick(stick) {
-  stick.dragging = false; stick.pointerId = null; stick.setValues(0, 0);
-  stick.knob.style.left = stick.defaultL; stick.knob.style.top = stick.defaultT;
-  stick.knob.style.transform = 'translate(-50%, -50%)';
-}
-
-function updateStickFromPointer(stick, clientX, clientY) {
-  const wrapRect = controllerWrap.getBoundingClientRect();
-  const zoneRect = stick.zone.getBoundingClientRect();
-  const centerX = zoneRect.left + zoneRect.width / 2; const centerY = zoneRect.top + zoneRect.height / 2;
-  const dx = clientX - centerX; const dy = clientY - centerY;
-  const maxR = Math.min(zoneRect.width, zoneRect.height) * 0.36;
-  const dist = Math.hypot(dx, dy); const scale = dist > maxR ? maxR / dist : 1;
-  const clampedDx = dx * scale; const clampedDy = dy * scale;
-  
-  stick.setValues(clamp(clampedDx / maxR, -1, 1), clamp(-clampedDy / maxR, -1, 1));
-  
-  const knobCx = (zoneRect.left - wrapRect.left + zoneRect.width / 2 + clampedDx) / wrapRect.width * 100;
-  const knobCy = (zoneRect.top - wrapRect.top + zoneRect.height / 2 + clampedDy) / wrapRect.height * 100;
-  stick.knob.style.left = knobCx + '%'; stick.knob.style.top = knobCy + '%'; stick.knob.style.transform = 'translate(-50%, -50%)';
-}
-
-Object.values(sticks).forEach(stick => {
-  stick.zone.addEventListener('pointerdown', (e) => { e.preventDefault(); stick.dragging = true; stick.pointerId = e.pointerId; stick.zone.setPointerCapture(e.pointerId); updateStickFromPointer(stick, e.clientX, e.clientY); });
-});
-window.addEventListener('pointermove', (e) => { Object.values(sticks).forEach(stick => { if (stick.dragging && stick.pointerId === e.pointerId) updateStickFromPointer(stick, e.clientX, e.clientY); }); });
-function handlePointerEnd(e) { Object.values(sticks).forEach(stick => { if (stick.dragging && stick.pointerId === e.pointerId) resetStick(stick); }); }
-window.addEventListener('pointerup', handlePointerEnd); window.addEventListener('pointercancel', handlePointerEnd); window.addEventListener('blur', () => Object.values(sticks).forEach(resetStick));
-
-// ── Change 2: Floating Gamepad Card — Drag, Resize, Collapse ────────────────
-// Bug 2 Fix: Use explicit display style instead of CSS class for collapse
-(function() {
-  const card = document.getElementById('gamepad-float-card');
-  const titlebar = document.getElementById('gamepad-titlebar');
-  const collapseBtn = document.getElementById('gamepad-collapse-btn');
-  const cardBody = document.getElementById('gamepad-card-body');
-  const resizeHandle = document.getElementById('gamepad-resize-handle');
-
-  let isCollapsed = false;
-  let savedCardWidth = null;
-  let savedCardHeight = null;
-
-  // ── Collapse / Expand ──
-  collapseBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isCollapsed = !isCollapsed;
-    if (isCollapsed) {
-      // Save current dimensions before collapsing
-      savedCardWidth = card.style.width || null;
-      savedCardHeight = card.style.height || null;
-      // Explicitly hide the body using inline style (overrides any resize styles)
-      cardBody.style.display = 'none';
-      resizeHandle.style.display = 'none';
-      // Clear card height so it shrinks to just titlebar
-      card.style.height = 'auto';
-      collapseBtn.textContent = '+';
-    } else {
-      // Restore display
-      cardBody.style.display = '';
-      resizeHandle.style.display = '';
-      // Restore saved dimensions if they existed
-      if (savedCardWidth) card.style.width = savedCardWidth;
-      if (savedCardHeight) card.style.height = savedCardHeight;
-      collapseBtn.textContent = '−';
-    }
-  });
-
-  // ── Drag ──
-  let isDragging = false;
-  let dragOffsetX = 0;
-  let dragOffsetY = 0;
-
-  titlebar.addEventListener('pointerdown', (e) => {
-    if (e.target === collapseBtn) return;
-    isDragging = true;
-    const rect = card.getBoundingClientRect();
-    dragOffsetX = e.clientX - rect.left;
-    dragOffsetY = e.clientY - rect.top;
-    titlebar.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-
-  titlebar.addEventListener('pointermove', (e) => {
-    if (!isDragging) return;
-    let newX = e.clientX - dragOffsetX;
-    let newY = e.clientY - dragOffsetY;
-    // Clamp to viewport
-    newX = Math.max(0, Math.min(window.innerWidth - card.offsetWidth, newX));
-    newY = Math.max(0, Math.min(window.innerHeight - 48, newY));
-    // Switch from bottom/right positioning to top/left
-    card.style.left = newX + 'px';
-    card.style.top = newY + 'px';
-    card.style.right = 'auto';
-    card.style.bottom = 'auto';
-  });
-
-  titlebar.addEventListener('pointerup', () => { isDragging = false; });
-  titlebar.addEventListener('pointercancel', () => { isDragging = false; });
-
-  // ── Resize ──
-  let isCardResizing = false;
-  let resizeStartX = 0;
-  let resizeStartY = 0;
-  let resizeStartW = 0;
-  let resizeStartH = 0;
-
-  resizeHandle.addEventListener('pointerdown', (e) => {
-    isCardResizing = true;
-    resizeStartX = e.clientX;
-    resizeStartY = e.clientY;
-    resizeStartW = card.offsetWidth;
-    resizeStartH = card.offsetHeight;
-    resizeHandle.setPointerCapture(e.pointerId);
-    e.preventDefault();
-    e.stopPropagation();
-  });
-
-  resizeHandle.addEventListener('pointermove', (e) => {
-    if (!isCardResizing) return;
-    const dx = e.clientX - resizeStartX;
-    const dy = e.clientY - resizeStartY;
-    const newW = Math.max(260, resizeStartW + dx);
-    const newH = Math.max(120, resizeStartH + dy);
-    card.style.width = newW + 'px';
-    card.style.height = newH + 'px';
-  });
-
-  resizeHandle.addEventListener('pointerup', () => { isCardResizing = false; });
-  resizeHandle.addEventListener('pointercancel', () => { isCardResizing = false; });
-})();
-
 // ─── Boot ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   loadInitialConfig();
   updateCode(codeEditor.value);
   runStaticAnalysis();
-  Object.values(sticks).forEach(resetStick);
 });
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({state: gamepad});
 </script>
 </body>
 </html>

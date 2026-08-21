@@ -60,7 +60,7 @@ export default function Unit14Simulator({lesson}: Unit14SimulatorProps): React.J
           min-height: 700px;
           border: none;
           border-radius: 14px;
-          background: #05080d;
+          background: var(--tm-bg);
         }
         @media (min-width: 997px) {
           .unit14-telemark-simulator {

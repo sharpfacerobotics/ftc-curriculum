@@ -140,11 +140,15 @@ const config: Config = {
       disableSwitch: false, // Both themes ship; the toggle is in the navbar
       respectPrefersColorScheme: true,
     },
+    prism: {
+      theme: prismThemes.github,
+      darkTheme: prismThemes.dracula,
+    },
     navbar: {
       title: 'Telemark',
       logo: {
         alt: 'Telemark Logo',
-        src: 'img/telemark.png',
+        src: 'img/telemark_logo.png',
       },
       items: [
         {

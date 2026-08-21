@@ -103,7 +103,7 @@
 }
 
 .secondaryAction:hover {
-  border-color: rgba(96, 165, 250, 0.6);
+  border-color: var(--tm-blue-a32);
   color: var(--tm-text-strong);
   text-decoration: none;
 }
@@ -200,8 +200,8 @@
 }
 
 .tagAdvanced {
-  border: 1px solid rgba(56, 189, 248, 0.34);
-  background: rgba(56, 189, 248, 0.09);
+  border: 1px solid var(--tm-blue-a32);
+  background: var(--tm-blue-a10);
   color: var(--tm-blue);
 }
 
@@ -222,7 +222,7 @@
   padding: 1rem 1.15rem;
   border: 1px dashed var(--tm-accent-a20);
   border-radius: var(--tm-r-hand);
-  background: rgba(13, 21, 30, 0.6);
+  background: var(--tm-surface-1);
 }
 
 .switcherTitle {

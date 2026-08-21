@@ -23,6 +23,7 @@ function createUnit3Harness() {
   const intervals = new Map();
   const windowListeners = new Map();
   let nextInterval = 1;
+  let installedGamepadState = null;
 
   function makeClassList() {
     const values = new Set();
@@ -119,13 +120,22 @@ function createUnit3Harness() {
 
   vm.createContext(context);
   vm.runInContext(telemarkJavaSource, context, {filename: 'telemark-java.js'});
+  context.TelemarkSimulatorBase = {
+    compileStudentSource: (...args) => context.TelemarkJava.compile(...args),
+    createRuntime: (...args) => context.TelemarkJava.createRuntime(...args),
+    installLegacy(options) {
+      installedGamepadState = options.state;
+      return {state: installedGamepadState};
+    },
+  };
   vm.runInContext(
     lastInlineScript(path.join(simulatorRoot, 'unit3.html')),
     context,
     {filename: 'unit3.html'},
   );
 
-  return {context, elements};
+  assert.ok(installedGamepadState, 'unit3 must pass its live gamepad state to simulator_base');
+  return {context, elements, gamepad: installedGamepadState};
 }
 
 function startIterativeOpMode(page, source) {
@@ -167,11 +177,11 @@ function testBooleanLocalTracksButtonAcrossLoopTicks() {
   page.context.executeMethod('loop');
   assertInspectorValue(page, 'buttonState', 'false');
 
-  page.context.setButtonState('a', true, 'btn-a-visual');
+  page.gamepad.a = true;
   page.context.executeMethod('loop');
   assertInspectorValue(page, 'buttonState', 'true');
 
-  page.context.setButtonState('a', false, 'btn-a-visual');
+  page.gamepad.a = false;
   page.context.executeMethod('loop');
   assertInspectorValue(page, 'buttonState', 'false');
 }
@@ -206,12 +216,12 @@ function testDynamicPowerLocalsTrackStickAndBumperAcrossLoopTicks() {
   assertInspectorValue(page, 'input', '0.80');
   assertInspectorValue(page, 'finalPower', '0.80');
 
-  page.context.setButtonState('left_bumper', true, 'btn-left-bumper');
+  page.gamepad.left_bumper = true;
   page.context.executeMethod('loop');
   assertInspectorValue(page, 'input', '0.80');
   assertInspectorValue(page, 'finalPower', '0.40');
 
-  page.context.setButtonState('left_bumper', false, 'btn-left-bumper');
+  page.gamepad.left_bumper = false;
   page.context.executeMethod('loop');
   assertInspectorValue(page, 'input', '0.80');
   assertInspectorValue(page, 'finalPower', '0.80');

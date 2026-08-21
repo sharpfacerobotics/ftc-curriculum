@@ -396,6 +396,91 @@ function testLegacyDpadBecomesPointerInteractive() {
   installed.destroy();
 }
 
+function testPointerStickSnapbackAndArrowVisuals() {
+  const document = new FakeDocument();
+  const eventTarget = new FakeEventTarget();
+  const state = GamepadControls.createNeutralState();
+  const stick = new FakeElement('div');
+  const knob = stick.appendChild(new FakeElement('div'));
+  knob.className = 'sim-stick-knob';
+  const dpadUp = new FakeElement('div');
+  dpadUp.className = 'dpad-btn dpad-up';
+
+  const installed = GamepadControls.install({
+    state,
+    document,
+    eventTarget,
+    elementMap: {
+      left_stick_x: stick,
+      left_stick_y: stick,
+      dpad_up: dpadUp,
+    },
+    discoverControls: false,
+    addMissingOverlays: false,
+    injectStyles: false,
+    legend: false,
+  });
+
+  stick.dispatch('pointerdown', {
+    pointerId: 7,
+    clientX: 88,
+    clientY: 12,
+    preventDefault() {},
+  });
+  assert.ok(state.left_stick_x > 0.7);
+  assert.ok(state.left_stick_y < -0.7, 'pointer-up must use FTC-negative Y');
+  assert.notEqual(knob.style.left, '50%');
+
+  stick.dispatch('lostpointercapture', {pointerId: 7});
+  assert.equal(state.left_stick_x, 0);
+  assert.equal(state.left_stick_y, 0);
+  assert.equal(knob.style.left, '50%');
+  assert.equal(knob.style.top, '50%');
+
+  eventTarget.dispatch('keydown', keyboardEvent('ArrowUp'));
+  assert.equal(state.dpad_up, true);
+  assert.equal(dpadUp.classList.contains('pressed'), true, 'arrow keys need visible pressed state');
+  eventTarget.dispatch('blur');
+  assert.equal(state.dpad_up, false);
+  assert.equal(dpadUp.classList.contains('pressed'), false);
+
+  installed.destroy();
+}
+
+function testInputCallbackFailureDoesNotAbortInstall() {
+  const document = new FakeDocument();
+  const eventTarget = new FakeEventTarget();
+  const state = GamepadControls.createNeutralState();
+  let reportedErrors = 0;
+
+  const installed = GamepadControls.install({
+    state,
+    document,
+    eventTarget,
+    globalObject: {
+      console: {
+        error() {
+          reportedErrors += 1;
+        },
+      },
+    },
+    discoverControls: false,
+    addMissingOverlays: false,
+    injectStyles: false,
+    legend: false,
+    pointer: false,
+    onInput() {
+      throw new Error('missing optional lesson readout');
+    },
+  });
+
+  assert.equal(reportedErrors, 1, 'the failed initial readout must be reported');
+  eventTarget.dispatch('keydown', keyboardEvent('ArrowLeft'));
+  assert.equal(state.dpad_left, true, 'a failed readout must not prevent keyboard installation');
+  assert.equal(installed.heldCodes.has('ArrowLeft'), true);
+  installed.destroy();
+}
+
 testUmdExports();
 testPureKeyboardReducer();
 testCamelCaseNormalization();
@@ -403,5 +488,7 @@ testEditableDetection();
 testFallbackOverlaySynthesis();
 testInstalledKeyboardLifecycleAndLegend();
 testLegacyDpadBecomesPointerInteractive();
+testPointerStickSnapbackAndArrowVisuals();
+testInputCallbackFailureDoesNotAbortInstall();
 
 console.log('Gamepad controls tests passed');

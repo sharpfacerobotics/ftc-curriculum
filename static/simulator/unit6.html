@@ -159,6 +159,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -479,7 +480,7 @@ function createCompiledRuntime(){
   function ensureLinearExecutionCurrent(){
     if(isLinearRuntime&&(stopRequested||runtimeToken!==linearRunToken))throw LINEAR_STOP_SIGNAL;
   }
-  var runtime=TelemarkJava.createRuntime({
+  var runtime=TelemarkSimulatorBase.createRuntime({
     gamepad:gamepad,
     getRuntime:getRuntime,
     isStopRequested:function(){return stopRequested},
@@ -530,9 +531,9 @@ function createCompiledRuntime(){
 }
 
 function compileStudentProgram(expectedKind){
-  if(!window.TelemarkJava)return failExecution('Compiler unavailable',new Error('TelemarkJava did not load'));
+  if(!window.TelemarkSimulatorBase)return failExecution('Compiler unavailable',new Error('Telemark simulator base did not load'));
   compiledRuntime=createCompiledRuntime();
-  compiledProgram=TelemarkJava.compile(codeEditor.value,compiledRuntime);
+  compiledProgram=TelemarkSimulatorBase.compileStudentSource(codeEditor.value,compiledRuntime);
   compiledSource=codeEditor.value;
   if(!compiledProgram.ok){
     var diagnostic=compiledProgram.diagnostics&&compiledProgram.diagnostics[0]||{};
@@ -826,6 +827,8 @@ function runAnalysis(){
   renderHints();
 }
 
+// Fallback only: simulator_base owns gamepad input and card interactions.
+if (!window.TelemarkSimulatorBase) {
 // ── Gamepad ──
 function setButtonState(prop,pressed,id){gamepad[prop]=pressed;var el=document.getElementById(id);if(el)el.classList.toggle('pressed',pressed)}
 [['btn-a-visual','a'],['btn-b','b'],['btn-x','x'],['btn-y','y'],['btn-lb','left_bumper'],['btn-rb','right_bumper'],['btn-back','back'],['btn-start','start'],['dpad-up','dpad_up'],['dpad-down','dpad_down'],['dpad-left','dpad_left'],['dpad-right','dpad_right']].forEach(function(p){var el=document.getElementById(p[0]);if(!el)return;el.addEventListener('pointerdown',function(e){e.preventDefault();setButtonState(p[1],true,p[0])});el.addEventListener('pointerup',function(){setButtonState(p[1],false,p[0])});el.addEventListener('pointerleave',function(){setButtonState(p[1],false,p[0])});el.addEventListener('pointercancel',function(){setButtonState(p[1],false,p[0])})});
@@ -843,6 +846,7 @@ function handlePointerEnd(e){Object.values(sticks).forEach(function(s){if(s.drag
 window.addEventListener('pointerup',handlePointerEnd);window.addEventListener('pointercancel',handlePointerEnd);window.addEventListener('blur',function(){Object.values(sticks).forEach(resetStick)});
 // Float card
 (function(){var card=document.getElementById('gamepad-float-card'),tb=document.getElementById('gamepad-titlebar'),cb=document.getElementById('gp-collapse-btn'),bd=document.getElementById('gamepad-card-body'),rh=document.getElementById('gamepad-resize-handle'),collapsed=false,sw=null,sh=null;cb.addEventListener('click',function(e){e.stopPropagation();collapsed=!collapsed;if(collapsed){sw=card.style.width||null;sh=card.style.height||null;bd.style.display='none';rh.style.display='none';card.style.height='auto';cb.textContent='+'}else{bd.style.display='';rh.style.display='';if(sw)card.style.width=sw;if(sh)card.style.height=sh;cb.textContent='\u2212'}});var dr=false,dox=0,doy=0;tb.addEventListener('pointerdown',function(e){if(e.target===cb)return;dr=true;var r=card.getBoundingClientRect();dox=e.clientX-r.left;doy=e.clientY-r.top;tb.setPointerCapture(e.pointerId);e.preventDefault()});tb.addEventListener('pointermove',function(e){if(!dr)return;card.style.left=Math.max(0,Math.min(window.innerWidth-card.offsetWidth,e.clientX-dox))+'px';card.style.top=Math.max(0,Math.min(window.innerHeight-40,e.clientY-doy))+'px';card.style.right='auto';card.style.bottom='auto'});tb.addEventListener('pointerup',function(){dr=false});tb.addEventListener('pointercancel',function(){dr=false});var cr=false,crx=0,cry=0,crw=0,crh=0;rh.addEventListener('pointerdown',function(e){cr=true;crx=e.clientX;cry=e.clientY;crw=card.offsetWidth;crh=card.offsetHeight;rh.setPointerCapture(e.pointerId);e.preventDefault();e.stopPropagation()});rh.addEventListener('pointermove',function(e){if(!cr)return;card.style.width=Math.max(240,crw+(e.clientX-crx))+'px';card.style.height=Math.max(80,crh+(e.clientY-cry))+'px'});rh.addEventListener('pointerup',function(){cr=false});rh.addEventListener('pointercancel',function(){cr=false})})();
+}
 // ── Boot ──
 window.addEventListener('load',function(){
   if(customCode){
@@ -851,9 +855,8 @@ window.addEventListener('load',function(){
   }
   codeEditor.value=initialMode==='linear'?LINEAR_CODE:OPMODE_CODE;
   switchMode(initialMode);
-  Object.values(sticks).forEach(resetStick);
 });
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({state: gamepad});
 </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 .hero {
   border: 1px solid var(--tm-accent-a20);
   border-radius: var(--tm-r-hand-alt);
-  background: #071019;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
+  background: var(--tm-surface-1);
+  box-shadow: var(--tm-shadow-md);
   padding: 2rem;
   margin-bottom: 2rem;
   position: relative;
@@ -57,17 +57,17 @@
 .subtitle {
   margin: 0.9rem 0 0;
   max-width: 56rem;
-  color: rgba(232, 244, 255, 0.78);
+  color: var(--tm-text);
   line-height: 1.7;
 }
 
 .tag {
   align-self: flex-start;
   padding: 0.45rem 0.85rem;
-  border: 1px solid rgba(96, 165, 250, 0.4);
+  border: 1px solid var(--tm-blue-a32);
   border-radius: var(--tm-r-lg);
   background: var(--tm-blue-a10);
-  color: #9ec5ff;
+  color: var(--tm-blue-soft);
   font-family: var(--tm-font-mono);
   font-size: var(--tm-fs-xs);
   text-transform: uppercase;
@@ -141,7 +141,7 @@
   border: 1px solid var(--tm-border-hair);
   border-radius: var(--tm-r-sm);
   background: var(--tm-blue);
-  color: var(--tm-bg) !important;
+  color: var(--tm-text-on-accent) !important;
   font-family: var(--tm-font-display);
   font-weight: 700;
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
@@ -149,10 +149,10 @@
 
 .secondaryAction {
   padding: 0.8rem 1.15rem;
-  border: 1px solid rgba(96, 165, 250, 0.36);
+  border: 1px solid var(--tm-blue-a32);
   border-radius: var(--tm-r-sm);
   background: var(--tm-surface-2);
-  color: rgba(232, 244, 255, 0.78) !important;
+  color: var(--tm-text-soft) !important;
   font-family: var(--tm-font-mono);
   font-size: var(--tm-fs-sm);
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
@@ -212,14 +212,14 @@
   padding: 0.9rem 1rem;
   border: 1px solid var(--tm-accent-a12);
   border-radius: var(--tm-r-md);
-  background: #0d1721;
+  background: var(--tm-surface-3);
   text-decoration: none !important;
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .lessonCard:hover {
-  border-color: rgba(96, 165, 250, 0.42);
-  background: #101d29;
+  border-color: var(--tm-blue-a32);
+  background: var(--tm-surface-4);
   transform: translateX(2px);
 }
 
@@ -253,7 +253,7 @@
 .lessonTitle {
   display: block;
   margin-top: 0.18rem;
-  color: rgba(232, 244, 255, 0.56);
+  color: var(--tm-text-muted);
   font-size: var(--tm-fs-base);
   line-height: 1.45;
 }
@@ -263,7 +263,7 @@
   font-size: var(--tm-fs-2xs);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(232, 244, 255, 0.42);
+  color: var(--tm-text-faint);
 }
 
 .lessonCardDone .lessonStatus {
@@ -273,7 +273,7 @@
 .outcomeItem {
   padding-left: 1rem;
   position: relative;
-  color: rgba(232, 244, 255, 0.72);
+  color: var(--tm-text-soft);
   line-height: 1.6;
 }
 
@@ -294,8 +294,7 @@
   border: 1px solid var(--tm-border-hair);
   background: var(--tm-blue-a10);
   border-radius: 10px;
-  background: rgba(56, 189, 248, 0.08);
-  color: rgba(232, 244, 255, 0.74);
+  color: var(--tm-text-soft);
   line-height: 1.6;
 }
 

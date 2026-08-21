@@ -133,6 +133,7 @@ code{font-family:"Consolas","Courier New",monospace}
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -292,6 +293,7 @@ public class LiftLimitSwitch extends OpMode {
         <div class="dpad-btn dpad-left" id="dpad-left"><svg viewBox="0 0 24 24"><path d="M4 12l8-8v16z"/></svg></div>
         <div class="dpad-btn dpad-right" id="dpad-right"><svg viewBox="0 0 24 24"><path d="M20 12l-8 8V4z"/></svg></div>
       </div>
+      <div class="axis-readout" id="axis-readout">LX 0.00 LY 0.00 | RX 0.00 RY 0.00</div>
     </div>
   </div>
   <div class="gamepad-resize-handle" id="gamepad-resize-handle"></div>
@@ -332,6 +334,16 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
   document.getElementById('challenge-body').classList.toggle('open');
 });
 
+function updateAxisReadout() {
+  const readout = document.getElementById('axis-readout');
+  if (!readout) return;
+  readout.textContent =
+    'LX ' + gamepadState.left_stick_x.toFixed(2) + ' LY ' + gamepadState.left_stick_y.toFixed(2) + ' | ' +
+    'RX ' + gamepadState.right_stick_x.toFixed(2) + ' RY ' + gamepadState.right_stick_y.toFixed(2);
+}
+
+// Fallback only: simulator_base owns gamepad input and card interactions.
+if (!window.TelemarkSimulatorBase) {
 // Gamepad Floating Card Logic (Collapse, Drag, Resize)
 (function setupGamepadUI() {
   const card = document.getElementById('gamepad-float-card');
@@ -403,12 +415,6 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
 
 // =============== GAMEPAD (exact 8.3) ===============
 (function setupGamepad() {
-  function updateAxisReadout() {
-    document.getElementById('axis-readout').textContent =
-      'LX ' + gamepadState.left_stick_x.toFixed(2) + ' LY ' + gamepadState.left_stick_y.toFixed(2) + ' | ' +
-      'RX ' + gamepadState.right_stick_x.toFixed(2) + ' RY ' + gamepadState.right_stick_y.toFixed(2);
-  }
-  
   var sticks85 = {};
   function setupStick(stickId, centerLeft, centerTop, xProp, yProp) {
     const zone = document.getElementById('stick-zone-' + stickId);
@@ -549,7 +555,7 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
     }
     slider.addEventListener('pointerdown', e => { dragging = true; update(e); slider.setPointerCapture(e.pointerId); });
     slider.addEventListener('pointermove', e => { if (dragging) update(e); });
-    slider.addEventListener('pointerup', () => {
+    slider.addEventListener('pointerup', (e) => {
       dragging = false;
       gamepadState[prop] = 0;
       fill.style.height = '0%';
@@ -559,6 +565,7 @@ document.getElementById('challenge-toggle').addEventListener('click', function()
   setupTrigger('left-trigger-slider', 'left-trigger-fill', 'left_trigger');
   setupTrigger('right-trigger-slider', 'right-trigger-fill', 'right_trigger');
 })();
+}
 
 // =============== TRANSPILER ===============
 function getMethodBody(code, name) {
@@ -660,6 +667,7 @@ function initScene() {
   var ground = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
+  ground.userData.telemarkThemeRole = 'floor';
   scene.add(ground);
 
   // Albedo lines (professional floor pattern)
@@ -670,6 +678,7 @@ function initScene() {
     points.push(new THREE.Vector3(i, 0.04, 9));
     var geometry = new THREE.BufferGeometry().setFromPoints(points);
     var line = new THREE.Line(geometry, lineMat);
+    line.userData.telemarkThemeRole = 'grid';
     scene.add(line);
   }
   for (let i = -8; i <= 8; i++) {
@@ -678,6 +687,7 @@ function initScene() {
     points.push(new THREE.Vector3(9, 0.04, i));
     var geometry = new THREE.BufferGeometry().setFromPoints(points);
     var line = new THREE.Line(geometry, lineMat);
+    line.userData.telemarkThemeRole = 'grid';
     scene.add(line);
   }
 
@@ -773,6 +783,7 @@ function initScene() {
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
   });
+  if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.themeThreeScene(scene);
 }
 
 function updateLiftVisuals() {
@@ -885,8 +896,8 @@ function onCodeChange() {
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 function validateFullJavaSource(code) {
-  const result = window.TelemarkJava
-    ? window.TelemarkJava.compile(code)
+  const result = window.TelemarkSimulatorBase
+    ? window.TelemarkSimulatorBase.compileStudentSource(code)
     : {ok: false, diagnostics: [{message: 'Telemark Java compiler is unavailable', line: 1, column: 1}]};
   if (result.ok) return true;
   const diagnostic = result.diagnostics?.[0] || {};
@@ -1004,10 +1015,15 @@ window.addEventListener('load', () => {
   updateCode(codeEditor.value);
   validate();
   initScene();
-  setupGamepad();
   updateLiftVisuals();
 });
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepadState});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({
+  state: gamepadState,
+  onInput: updateAxisReadout,
+  onThemeChange: function(theme) {
+    if (scene) window.TelemarkSimulatorBase.themeThreeScene(scene, theme);
+  }
+});
 </script>
 </body>
 </html>

@@ -56,7 +56,7 @@
 }
 
 .shot {
-  color: rgba(253, 235, 196, 0.9);
+  color: var(--tm-text);
   font-size: var(--tm-fs-base);
   line-height: 1.6;
 }

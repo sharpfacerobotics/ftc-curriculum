@@ -36,7 +36,7 @@ export default function LoginPage(): React.JSX.Element {
           <div className={styles.logoWrap}>
             <img
               className={styles.logoMark}
-              src={useBaseUrl("img/telemark.png")}
+              src={useBaseUrl('img/telemark_logo.png')}
               alt=""
               aria-hidden="true"
             />

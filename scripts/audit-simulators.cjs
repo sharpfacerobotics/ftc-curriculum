@@ -9,6 +9,20 @@ const htmlFiles = fs.readdirSync(simulatorRoot)
   .filter((name) => name.endsWith('.html'))
   .sort();
 const lessonFiles = htmlFiles.filter((name) => /^unit\d/.test(name));
+const legacyLessonFiles = new Set([
+  'unit2.html',
+  'unit3.html',
+  'unit4.html',
+  'unit5.html',
+  'unit6.html',
+  'unit7.html',
+  'unit8.1.html',
+  'unit8.2.html',
+  'unit8.3.html',
+  'unit8.4.html',
+  'unit8.5.html',
+  'unit9.1.html',
+]);
 
 assert.equal(htmlFiles.length, 47, 'Expected 47 simulator HTML pages');
 assert.equal(lessonFiles.length, 46, 'Expected 46 lesson simulator pages');
@@ -32,11 +46,8 @@ for (const name of htmlFiles) {
 
   if (/^unit\d/.test(name)) {
     assert.match(source, /telemark-editor\.js/, `${name} must load the shared editor behavior`);
-    assert.match(
-      source,
-      /simulator_base\.js|TelemarkJava\.|window\.TelemarkJava/,
-      `${name} must execute through the shared Java runtime or compiler`,
-    );
+    const usesSharedBase = /<script\b[^>]*\bsrc\s*=\s*["'][^"']*simulator_base\.js["']/i.test(source);
+    assert.equal(usesSharedBase, true, `${name} must load simulator_base.js`);
     assert.match(
       source,
       /telemetry|setRequirement|requirements|addHint|visual/i,
@@ -44,7 +55,8 @@ for (const name of htmlFiles) {
     );
 
     const convertsAndExecutesJava =
-      /TelemarkJava\s*\.\s*(?:compile|transpileBody)\s*\(/.test(source)
+      /TelemarkSimulatorBase\s*\.\s*compileStudentSource\s*\(/.test(source)
+      || /TelemarkJava\s*\.\s*(?:compile|transpileBody)\s*\(/.test(source)
       || /\btranspileAndRun\s*\(/.test(source)
       || /\b_simTranspile\s*\(/.test(source)
       || (/\b(?:eval|new Function)\s*\(/.test(source) && /\b(?:transpil|compileStudent)/i.test(source));
@@ -53,16 +65,37 @@ for (const name of htmlFiles) {
       true,
       `${name} must convert student Java and execute the result in the browser`,
     );
-
-    const usesSharedBase = /<script\b[^>]*\bsrc\s*=\s*["'][^"']*simulator_base\.js["']/i.test(source);
-    const validatesFullSource = usesSharedBase
-      || /TelemarkJava\s*\.\s*compile\s*\(/.test(source)
-      || /window\s*\.\s*TelemarkJava\s*\.\s*compile\s*\(/.test(source);
-    assert.equal(
-      validatesFullSource,
-      true,
-      `${name} must validate the complete Java source before executing selected methods`,
+    assert.doesNotMatch(
+      source,
+      /(?:window\s*\.\s*)?TelemarkJava\s*\.\s*(?:compile|createRuntime)\s*\(/,
+      `${name} must not bypass the shared base Java runtime wrappers`,
     );
+
+    const usesLegacyBase = /<script\b(?=[^>]*\bsrc\s*=\s*["'][^"']*simulator_base\.js["'])(?=[^>]*\bdata-telemark-mode\s*=\s*["']legacy["'])[^>]*>/i.test(source);
+    if (legacyLessonFiles.has(name)) {
+      assert.equal(
+        usesLegacyBase,
+        true,
+        `${name} must mark simulator_base.js as legacy mode`,
+      );
+    }
+    if (usesLegacyBase) {
+      assert.match(
+        source,
+        /TelemarkSimulatorBase\s*\.\s*installLegacy\s*\(\s*\{\s*state\s*:/,
+        `${name} legacy controller must install through simulator_base.js`,
+      );
+      assert.match(
+        source,
+        /TelemarkSimulatorBase\s*\.\s*compileStudentSource\s*\(/,
+        `${name} legacy Java validation must use the shared base compiler wrapper`,
+      );
+      assert.doesNotMatch(
+        source,
+        /TelemarkGamepadControls\s*\.\s*install\s*\(/,
+        `${name} must not bypass the shared base controller installer`,
+      );
+    }
   }
 
   const starter = source.match(
@@ -80,6 +113,42 @@ for (const name of htmlFiles) {
 }
 
 assert.equal(starterCount, 34, 'Expected 34 embedded starter-code fixtures');
+
+const sharedOwnershipPages = [
+  'unit4.html',
+  'unit5.html',
+  'unit6.html',
+  'unit7.html',
+  'unit8.1.html',
+  'unit8.4.html',
+  'unit8.5.html',
+  'unit9.1.html',
+];
+
+for (const name of sharedOwnershipPages) {
+  const source = fs.readFileSync(path.join(simulatorRoot, name), 'utf8');
+  assert.match(
+    source,
+    /Fallback only: simulator_base owns gamepad input(?: and card interactions)?\.[\s\S]{0,120}if\s*\(\s*!window\.TelemarkSimulatorBase\s*\)\s*\{/,
+    `${name} local gamepad listeners must remain disabled whenever simulator_base is available`,
+  );
+}
+
+for (const name of ['unit2.html', 'unit3.html']) {
+  const source = fs.readFileSync(path.join(simulatorRoot, name), 'utf8');
+  assert.doesNotMatch(
+    source,
+    /\b(?:buttonMap|setupTriggerSlider|updateStickFromPointer|resetStick)\b/,
+    `${name} must not reinstall page-local controller handlers alongside simulator_base`,
+  );
+}
+
+const unit91OwnershipSource = fs.readFileSync(path.join(simulatorRoot, 'unit9.1.html'), 'utf8');
+assert.doesNotMatch(
+  unit91OwnershipSource,
+  /onclick\s*=\s*["'][^"']*toggleGamepad|\bfunction\s+toggleGamepad\b/,
+  'unit9.1.html collapse must be owned only by simulator_base',
+);
 
 for (const name of [
   'unit2.html',
@@ -150,6 +219,22 @@ const baseSource = fs.readFileSync(
   'utf8',
 );
 
+assert.match(
+  baseSource,
+  /function compileStudentSource\s*\([^)]*\)[\s\S]{0,500}TelemarkJava\.compile(?:\.apply)?\s*\(/,
+  'simulator_base.js must own the shared Java compiler wrapper',
+);
+assert.match(
+  baseSource,
+  /function createRuntime\s*\([^)]*\)[\s\S]{0,500}TelemarkJava\.createRuntime(?:\.apply)?\s*\(/,
+  'simulator_base.js must own the shared Java runtime wrapper',
+);
+assert.match(
+  baseSource,
+  /function installLegacy\s*\(/,
+  'simulator_base.js must expose the legacy-page integration entry point',
+);
+
 const baseInitLifecycle = baseSource.slice(
   baseSource.indexOf('function handleInit()'),
   baseSource.indexOf('function handleStart()'),
@@ -180,7 +265,7 @@ assert.match(
 );
 assert.match(
   baseSource,
-  /function validateFullStudentSource\s*\(\s*\)[\s\S]*TelemarkJava\.compile\s*\(\s*source\s*\)[\s\S]*reportLifecycleError\s*\(\s*["']Java compile error["']/,
+  /function validateFullStudentSource\s*\(\s*\)[\s\S]*compileStudentSource\s*\(\s*source\s*\)[\s\S]*reportLifecycleError\s*\(\s*["']Java compile error["']/,
   'simulator_base.js must compile and report diagnostics for the complete editor source',
 );
 assert.match(
@@ -278,6 +363,64 @@ assert.match(
   unit82Source,
   /if\s*\(\s*!executeInit\s*\(\s*\)\s*\)\s*\{\s*handleStop\s*\(\s*\)\s*;\s*return/,
   'unit8.2.html must not begin its loop after Init compilation fails',
+);
+
+const unit83Source = requiredMethodSources['unit8.3.html'];
+assert.match(
+  unit83Source,
+  /id=["']axis-readout["']/,
+  'unit8.3.html must render the axis readout used during shared gamepad installation',
+);
+
+const unit85Source = requiredMethodSources['unit8.5.html'];
+assert.match(
+  unit85Source,
+  /id=["']axis-readout["']/,
+  'unit8.5.html must render the axis readout used by the shared gamepad callback',
+);
+assert.match(
+  unit85Source,
+  /function updateAxisReadout\s*\(\s*\)[\s\S]{0,260}getElementById\s*\(\s*["']axis-readout["']\s*\)/,
+  'unit8.5.html must retain a safe shared-input axis readout callback',
+);
+assert.match(
+  unit85Source,
+  /installLegacy\s*\(\s*\{[\s\S]{0,160}onInput\s*:\s*updateAxisReadout/,
+  'unit8.5.html must update its readout through simulator_base input ownership',
+);
+assert.doesNotMatch(
+  unit85Source,
+  /addEventListener\s*\(\s*["']pointerup["']\s*,\s*\(\s*\)\s*=>\s*\{[\s\S]{0,180}releasePointerCapture\s*\(\s*e\.pointerId\s*\)/,
+  'unit8.5.html must not reference an undefined pointer event while releasing capture',
+);
+assert.doesNotMatch(
+  unit85Source,
+  /^\s*setupGamepad\s*\(\s*\)\s*;\s*$/m,
+  'unit8.5.html startup must not reinstall its page-local gamepad handlers',
+);
+
+for (const name of ['unit10.3.html', 'unit10.4.html']) {
+  const source = fs.readFileSync(path.join(simulatorRoot, name), 'utf8');
+  assert.match(
+    source,
+    /telemarkThemeRole\s*=\s*["']floor["']/,
+    `${name} custom environment floor must opt into shared Three.js theming`,
+  );
+  assert.match(
+    source,
+    /telemarkThemeRole\s*=\s*["']wall["']/,
+    `${name} custom structural walls must opt into shared Three.js theming`,
+  );
+  assert.match(
+    source,
+    /TelemarkSimulatorBase\.themeThreeScene\s*\(\s*scene\s*\)/,
+    `${name} asynchronously-created environment must receive the current theme immediately`,
+  );
+}
+assert.match(
+  unit83Source,
+  /function updateAxisReadout\s*\(\s*\)[\s\S]{0,220}getElementById\s*\(\s*["']axis-readout["']\s*\)/,
+  'unit8.3.html shared gamepad callback must update its rendered axis readout',
 );
 
 for (const name of ['unit8.3.html', 'unit8.4.html', 'unit8.5.html']) {

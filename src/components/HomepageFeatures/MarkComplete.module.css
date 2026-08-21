@@ -69,7 +69,7 @@
   text-transform: uppercase;
   padding: 12px 24px;
   background: var(--tm-accent);
-  color: var(--tm-bg);
+  color: var(--tm-text-on-accent);
   border: none;
   border-radius: var(--tm-r-hand);
   cursor: pointer;
@@ -90,7 +90,7 @@
   padding: 10px 22px;
   background: transparent;
   color: var(--tm-text-muted);
-  border: 1px solid rgba(232, 244, 255, 0.2);
+  border: 1px solid var(--tm-border-strong);
   border-radius: var(--tm-r-lg);
   cursor: pointer;
   white-space: nowrap;
@@ -120,7 +120,7 @@
 /* ── Success state ────────────────────────────────────────── */
 .successBox {
   margin: 3rem 0 1rem;
-  border: 1px solid rgba(96, 165, 250, 0.28);
+  border: 1px solid var(--tm-blue-a32);
   border-radius: var(--tm-r-hand);
   background: var(--tm-surface-2);
   padding: 1.75rem 2rem;
@@ -180,7 +180,7 @@
 
 .successMsg {
   font-size: var(--tm-fs-sm);
-  color: rgba(232, 244, 255, 0.55);
+  color: var(--tm-text-muted);
   margin: 0 0 1.25rem;
   line-height: 1.6;
 }
@@ -194,7 +194,7 @@
   padding: 12px 28px;
   background: var(--tm-accent);
   border-radius: var(--tm-r-hand);
-  color: var(--tm-bg) !important;
+  color: var(--tm-text-on-accent) !important;
   text-decoration: none;
   font-weight: 700;
   transition: background-color 0.2s, transform 0.2s;
@@ -204,7 +204,7 @@
   background: var(--tm-blue-soft);
   transform: translateY(-1px);
   text-decoration: none;
-  color: var(--tm-bg);
+  color: var(--tm-text-on-accent);
 }
 
 .successActions {
@@ -216,10 +216,10 @@
 
 .actionBtn {
   padding: 10px 18px;
-  border: 1px solid rgba(96, 165, 250, 0.36);
+  border: 1px solid var(--tm-blue-a32);
   border-radius: var(--tm-r-lg);
   background: transparent;
-  color: #a9cfff;
+  color: var(--tm-blue-soft);
   cursor: pointer;
   font-family: var(--tm-font-label);
   font-size: 10px;
@@ -231,7 +231,37 @@
 .actionBtn:hover:not(:disabled) {
   border-color: var(--tm-accent);
   background: var(--tm-accent-a08);
-  color: #edfaff;
+  color: var(--tm-text-strong);
+}
+
+.unmarkBtn {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--tm-blue-a32);
+  border-radius: var(--tm-r-pill);
+  background: transparent;
+  color: var(--tm-blue-soft);
+  cursor: pointer;
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.unmarkBtn:hover:not(:disabled) {
+  border-color: var(--tm-accent);
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-strong);
+}
+
+.unmarkBtn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.unmarkBtn:focus-visible {
+  outline: 3px solid var(--tm-border-strong);
+  outline-offset: 3px;
 }
 
 .actionBtn:disabled {
@@ -248,7 +278,8 @@
   .signInBtn,
   .completeBtn,
   .nextBtn,
-  .actionBtn {
+  .actionBtn,
+  .unmarkBtn {
     transition: none;
   }
 

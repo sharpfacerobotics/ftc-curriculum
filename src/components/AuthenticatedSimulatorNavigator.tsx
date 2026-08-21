@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import {useColorMode} from '@docusaurus/theme-common';
 import {signInWithGoogle} from '@site/src/telemark/googleAuth';
 import {trackEvent} from '@site/src/telemark/analytics';
 import {useAuth} from '@site/src/telemark/useAuth';
@@ -8,6 +9,8 @@ import {
   SIMULATOR_AUTH_STATE,
   type SimulatorAuthStateMessage,
 } from '@site/src/telemark/accessPolicy';
+
+const SIMULATOR_THEME_STATE = 'telemark:simulator-theme-state';
 
 interface AuthenticatedSimulatorNavigatorProps {
   simulatorId: string;
@@ -25,6 +28,7 @@ export default function AuthenticatedSimulatorNavigator({
   allowHomepageDemos = false,
 }: AuthenticatedSimulatorNavigatorProps): React.JSX.Element {
   const {user, loading} = useAuth();
+  const {colorMode} = useColorMode();
   const shellRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const launchTrackedRef = useRef(false);
@@ -50,10 +54,22 @@ export default function AuthenticatedSimulatorNavigator({
     iframeRef.current?.contentWindow?.postMessage(message, window.location.origin);
   }
 
+  function sendThemeState() {
+    iframeRef.current?.contentWindow?.postMessage(
+      {type: SIMULATOR_THEME_STATE, theme: colorMode},
+      window.location.origin,
+    );
+  }
+
   useEffect(() => {
     if (loading) return;
     sendAuthState();
   }, [authenticated, loading]);
+
+  useEffect(() => {
+    if (loading) return;
+    sendThemeState();
+  }, [colorMode, loading]);
 
   useEffect(() => {
     async function handleMessage(event: MessageEvent<unknown>) {
@@ -111,6 +127,7 @@ export default function AuthenticatedSimulatorNavigator({
 
   function handleLoad() {
     sendAuthState();
+    sendThemeState();
     if (launchTrackedRef.current) return;
     launchTrackedRef.current = true;
     trackEvent('simulator_launch', {simulator: simulatorId});
@@ -137,7 +154,7 @@ export default function AuthenticatedSimulatorNavigator({
               display: 'grid',
               height: '100%',
               placeItems: 'center',
-              color: 'rgba(232, 244, 255, 0.55)',
+              color: 'var(--tm-text-muted)',
               fontFamily: '"Share Tech Mono", monospace',
               fontSize: '12px',
               letterSpacing: '1px',
@@ -165,7 +182,7 @@ export default function AuthenticatedSimulatorNavigator({
           role="alert"
           style={{
             margin: '0.75rem 0 0',
-            color: '#ff9d7a',
+            color: 'var(--tm-danger)',
             fontSize: '13px',
           }}
         >

@@ -3,7 +3,6 @@
   overflow-x: hidden;
   background: var(--tm-bg);
   color: var(--tm-text-strong);
-  color-scheme: dark;
   font-family: 'Exo 2', system-ui, sans-serif;
   scrollbar-color: var(--tm-accent) var(--tm-bg);
   scrollbar-width: thin;
@@ -99,8 +98,9 @@
   justify-content: center;
   gap: 0.7rem;
   padding: 0.95rem 1rem;
-  background: var(--tm-text-strong);
-  color: #10151c;
+  border: 1px solid var(--tm-border-strong);
+  background: #fff;
+  color: #111820;
 }
 
 .secondaryButton {
@@ -130,7 +130,7 @@
 }
 
 .errorText {
-  color: #ff8da0;
+  color: var(--tm-danger);
   font-size: var(--tm-fs-sm);
   margin: 1rem 0 0;
 }
@@ -179,17 +179,17 @@
 
 .rangePicker .rangeActive {
   background: var(--tm-blue-soft);
-  color: #02060b;
+  color: var(--tm-text-on-accent);
 }
 
 .warning,
 .errorBanner {
   margin-top: 1rem;
   padding: 0.85rem 1rem;
-  border: 1px solid rgba(255, 190, 64, 0.38);
+  border: 1px solid var(--tm-warn);
   border-radius: var(--tm-r-hand-alt);
-  background: rgba(255, 190, 64, 0.08);
-  color: #ffd58a;
+  background: var(--tm-warn-wash);
+  color: var(--tm-warn);
   font-size: var(--tm-fs-sm);
 }
 
@@ -198,15 +198,15 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  border-color: rgba(255, 89, 120, 0.42);
-  background: rgba(255, 89, 120, 0.08);
-  color: #ffa0b1;
+  border-color: var(--tm-danger);
+  background: var(--tm-danger-wash);
+  color: var(--tm-danger);
 }
 
 .errorBanner button {
   padding: 0.6rem 0.9rem;
-  background: #ff718a;
-  color: #090b0f;
+  background: var(--tm-danger);
+  color: var(--tm-text-on-accent);
 }
 
 .section,
@@ -392,7 +392,7 @@
   top: calc(100% + 5px);
   left: 0;
   white-space: nowrap;
-  color: rgba(222, 239, 252, 0.7);
+  color: var(--tm-text-soft);
   font: 0.58rem/1 var(--tm-font-label);
 }
 
@@ -438,7 +438,7 @@
 }
 
 .tableWrap td small {
-  color: rgba(222, 239, 252, 0.68);
+  color: var(--tm-text-soft);
   margin-top: 0.2rem;
   max-width: 360px;
   overflow: hidden;
@@ -469,7 +469,7 @@
 
 .unitRow > div:first-child span {
   margin-top: 0.3rem;
-  color: rgba(222, 239, 252, 0.46);
+  color: var(--tm-text-muted);
   font-size: var(--tm-fs-2xs);
 }
 
