@@ -152,12 +152,12 @@ const config: Config = {
       },
       items: [
         {
-          to: '/docs',
+          to: '/docs/unit-00/classes-and-objects',
           label: 'Software',
           position: 'left',
         },
         {
-          to: '/mechanical',
+          to: '/mechanical/module-00/design-cycle',
           label: 'Mechanical',
           position: 'left',
         },

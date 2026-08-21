@@ -8,7 +8,7 @@ import DocBreadcrumbs from '@theme/DocBreadcrumbs';
 import ContentLock from '@site/src/components/ContentLock';
 import AskPrompt from '@site/src/components/ui/AskPrompt';
 import {useAuth} from '@site/src/telemark/useAuth';
-import {getUnitNumber, getUnitSlug, isProtectedUnit} from '@site/src/telemark/accessPolicy';
+import {getUnitNumber, getUnitSlug, isProtectedLessonPath} from '@site/src/telemark/accessPolicy';
 
 export default function DocItem(props: Props): React.JSX.Element {
   const {user, loading} = useAuth();
@@ -17,8 +17,7 @@ export default function DocItem(props: Props): React.JSX.Element {
   const docPath = props.content.metadata.permalink ?? props.content.metadata.id;
   const unitNumber = getUnitNumber(docPath);
   const unitSlug = getUnitSlug(docPath);
-  const protectedDocument =
-    unitNumber !== null && isProtectedUnit(unitNumber);
+  const protectedDocument = isProtectedLessonPath(docPath);
 
   const showGate = protectedDocument && (loading || !user);
 

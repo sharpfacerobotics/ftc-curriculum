@@ -1,16 +1,14 @@
 import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
-import {useHistory} from '@docusaurus/router';
 import {useAuth} from '@site/src/telemark/useAuth';
 import {useProgress} from '@site/src/telemark/useProgress';
-import {signInWithGoogle} from '@site/src/telemark/googleAuth';
-import {trackEvent} from '@site/src/telemark/analytics';
 import {isProtectedUnit} from '@site/src/telemark/accessPolicy';
 import {getTrack, type TrackId} from '@site/src/telemark/tracks';
 import type {Tier} from '@site/src/telemark/curriculum';
 import Reveal from '@site/src/components/ui/Reveal';
 import styles from './TrackOverview.module.css';
-import {useBasePath} from '@site/src/telemark/useBasePath';
+
+const MOBILE_UNIT_PREVIEW_COUNT = 5;
 
 const TIER_CLASS: Record<Tier, string> = {
   Beginner: styles.tagBeginner,
@@ -39,35 +37,9 @@ export default function TrackOverview({
   const companion = companionTrackId ? getTrack(companionTrackId) : null;
   const {user, loading} = useAuth();
   const {isComplete} = useProgress(user);
-  const history = useHistory();
-  const basePath = useBasePath();
-  const [unlocking, setUnlocking] = useState<string | null>(null);
-  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [showAllMobile, setShowAllMobile] = useState(false);
 
   const noun = trackId === 'mechanical' ? 'Module' : 'Unit';
-
-  async function unlock(unit: (typeof track.units)[number]) {
-    const unitNumber = Number.parseInt(unit.slug.replace(/\D+/g, ''), 10);
-    setUnlocking(unit.slug);
-    setUnlockError(null);
-    trackEvent('content_unlock_attempt', {
-      unit_number: unitNumber,
-      surface: `${trackId}_track_card`,
-    });
-    try {
-      await signInWithGoogle();
-      trackEvent('content_unlock_success', {
-        unit_number: unitNumber,
-        surface: `${trackId}_track_card`,
-      });
-      history.push(basePath(unit.overviewPath));
-    } catch (error) {
-      console.error('Telemark unlock failed:', error);
-      setUnlockError('Sign-in did not finish. Select a locked card to try again.');
-    } finally {
-      setUnlocking(null);
-    }
-  }
 
   const completedLessons = track.lessons.filter((lesson) =>
     isComplete(lesson.id),
@@ -114,7 +86,7 @@ export default function TrackOverview({
 
       <h2 className={styles.sectionTitle}>{noun}s</h2>
 
-      <div className={styles.grid}>
+      <div className={styles.grid} id={`${track.id}-unit-list`}>
         {track.units.map((unit, index) => {
           const unitLessons = track.lessons.filter(
             (lesson) => lesson.unitSlug === unit.slug,
@@ -131,7 +103,6 @@ export default function TrackOverview({
 
           const unitNumber = Number.parseInt(unit.slug.replace(/\D+/g, ''), 10);
           const gated = isProtectedUnit(unitNumber);
-          const checking = loading && gated;
           const locked = !loading && !user && gated;
 
           const body = (
@@ -142,10 +113,10 @@ export default function TrackOverview({
               <span className={styles.cardMeta}>
                 <span
                   className={`${styles.tag} ${
-                    locked || checking ? styles.tagLocked : TIER_CLASS[unit.tier]
+                    locked ? styles.tagLocked : TIER_CLASS[unit.tier]
                   }`}
                 >
-                  {checking ? 'Checking access' : locked ? 'Account required' : unit.tier}
+                  {locked ? 'Lessons require account' : unit.tier}
                 </span>
                 <span className={`${styles.tag} ${styles.tagProgress}`}>
                   {unit.lessonCount} lessons
@@ -164,33 +135,38 @@ export default function TrackOverview({
           );
 
           return (
-            <Reveal key={unit.id} delayMs={Math.min(index, 8) * 45}>
-              {locked || checking ? (
-                <button
-                  type="button"
-                  className={`${styles.card} ${styles.cardLocked}`}
-                  disabled={checking || unlocking === unit.slug}
-                  aria-label={
-                    checking
-                      ? `Checking access to ${unit.label}: ${unit.title}`
-                      : `Sign in to unlock ${unit.label}: ${unit.title}`
-                  }
-                  onClick={() => {
-                    if (!checking) unlock(unit);
-                  }}
-                >
-                  {body}
-                </button>
-              ) : (
-                <Link to={unit.overviewPath} className={styles.card}>
-                  {body}
-                </Link>
-              )}
+            <Reveal
+              key={unit.id}
+              delayMs={Math.min(index, 8) * 45}
+              className={
+                index >= MOBILE_UNIT_PREVIEW_COUNT && !showAllMobile
+                  ? styles.mobileCurriculumExtra
+                  : ''
+              }
+            >
+              <Link
+                to={unit.overviewPath}
+                className={`${styles.card} ${locked ? styles.cardLocked : ''}`}
+              >
+                {body}
+              </Link>
             </Reveal>
           );
         })}
       </div>
-      {unlockError && <p className={styles.unlockError}>{unlockError}</p>}
+      {track.units.length > MOBILE_UNIT_PREVIEW_COUNT && (
+        <button
+          type="button"
+          className={styles.mobileCurriculumToggle}
+          aria-expanded={showAllMobile}
+          aria-controls={`${track.id}-unit-list`}
+          onClick={() => setShowAllMobile((current) => !current)}
+        >
+          {showAllMobile
+            ? `Show fewer ${noun.toLowerCase()}s`
+            : `Show all ${track.unitCount} ${noun.toLowerCase()}s`}
+        </button>
+      )}
 
       {companion && (
         <div className={styles.switcher}>

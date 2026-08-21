@@ -1,6 +1,5 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
-import { useHistory } from '@docusaurus/router';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
@@ -8,8 +7,6 @@ import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
 import RobotAssembly from '@site/src/components/ui/RobotAssembly';
 import styles from './index.module.css';
 import { useAuth } from '../telemark/useAuth';
-import { trackEvent } from '../telemark/analytics';
-import { signInWithGoogle } from '../telemark/googleAuth';
 import { isProtectedUnit } from '../telemark/accessPolicy';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
@@ -25,7 +22,8 @@ import {
   MECHANICAL_UNIT_COUNT,
 } from '../telemark/mechanical';
 import {TOTAL_LESSON_COUNT} from '../telemark/tracks';
-import {useBasePath} from '@site/src/telemark/useBasePath';
+
+const MOBILE_CURRICULUM_PREVIEW_COUNT = 4;
 
 const TRACKS_SUMMARY = [
   {
@@ -193,36 +191,7 @@ function CurriculumSection({
   heading: string;
   blurb: string;
 }): React.JSX.Element {
-  const history = useHistory();
-  const basePath = useBasePath();
-  const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
-  const [unlockError, setUnlockError] = useState<string | null>(null);
-
-  async function unlockUnit(unit: (typeof CURRICULUM_UNITS)[number]) {
-    // Both tracks gate on the same rule, so the number is read from either
-    // a unit-NN or a module-NN slug.
-    const unitNumber = Number.parseInt(unit.slug.replace(/^(unit|module)-/, ''), 10);
-    setUnlockingUnit(unit.slug);
-    setUnlockError(null);
-    trackEvent('content_unlock_attempt', {
-      unit_number: unitNumber,
-      surface: `homepage_${id}_card`,
-    });
-
-    try {
-      await signInWithGoogle();
-      trackEvent('content_unlock_success', {
-        unit_number: unitNumber,
-        surface: `homepage_${id}_card`,
-      });
-      history.push(basePath(unit.overviewPath));
-    } catch (signInError) {
-      console.error('Telemark unit unlock failed:', signInError);
-      setUnlockError('Sign-in did not finish. Select a locked unit to try again.');
-    } finally {
-      setUnlockingUnit(null);
-    }
-  }
+  const [showAllMobile, setShowAllMobile] = useState(false);
 
   return (
     <section className={styles.section} id={id}>
@@ -230,56 +199,50 @@ function CurriculumSection({
       <h2 className={styles.sectionTitle}>{heading}</h2>
       <p className={styles.sectionDesc}>{blurb}</p>
 
-      <div className={styles.curriculumGrid}>
-        {units.map((unit) => {
+      <div className={styles.curriculumGrid} id={`${id}-curriculum-list`}>
+        {units.map((unit, index) => {
           const unitNumber = Number.parseInt(unit.slug.replace(/^(unit|module)-/, ''), 10);
           const protectedUnit = isProtectedUnit(unitNumber);
-          const checking = authLoading && protectedUnit;
           const locked = !authLoading && !signedIn && protectedUnit;
           const cardContent = (
             <>
             <div className={styles.unitNum}>{unit.label}</div>
             <div className={styles.unitTitle}>{unit.title}</div>
-            <span className={`${styles.unitTag} ${(locked || checking) ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
+            <span className={`${styles.unitTag} ${locked ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
               {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
               {' '}
-              {checking ? 'Checking access' : locked ? 'Account required' : unit.tier}
+              {locked ? 'Lessons require account' : unit.tier}
             </span>
             <div className={styles.unitDesc}>{unit.desc}</div>
             </>
           );
 
-          if (locked || checking) {
-            return (
-              <button
-                type="button"
-                key={unit.id}
-                className={`${styles.unitCard} ${styles.unitCardLocked}`}
-                onClick={() => {
-                  if (!checking) unlockUnit(unit);
-                }}
-                disabled={checking || unlockingUnit === unit.slug}
-                aria-label={checking
-                  ? `Checking access to ${unit.label}: ${unit.title}`
-                  : `Sign in to unlock ${unit.label}: ${unit.title}`}
-              >
-                {cardContent}
-              </button>
-            );
-          }
-
           return (
             <Link
               to={unit.overviewPath}
               key={unit.id}
-              className={styles.unitCard}
+              className={`${styles.unitCard} ${locked ? styles.unitCardLocked : ''} ${
+                index >= MOBILE_CURRICULUM_PREVIEW_COUNT && !showAllMobile
+                  ? styles.mobileCurriculumExtra
+                  : ''
+              }`}
             >
               {cardContent}
             </Link>
           );
         })}
       </div>
-      {unlockError && <p className={styles.unlockError}>{unlockError}</p>}
+      {units.length > MOBILE_CURRICULUM_PREVIEW_COUNT && (
+        <button
+          type="button"
+          className={styles.mobileCurriculumToggle}
+          aria-expanded={showAllMobile}
+          aria-controls={`${id}-curriculum-list`}
+          onClick={() => setShowAllMobile((current) => !current)}
+        >
+          {showAllMobile ? 'Show fewer' : `Show all ${units.length}`}
+        </button>
+      )}
     </section>
   );
 }

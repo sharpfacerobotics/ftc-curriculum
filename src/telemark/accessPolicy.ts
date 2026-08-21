@@ -56,6 +56,21 @@ export function isProtectedUnitPath(value: string | null | undefined): boolean {
   return unitNumber !== null && isProtectedUnit(unitNumber);
 }
 
+/**
+ * Unit and module overview pages are public curriculum maps. They let a
+ * student see what a later unit covers before an account is requested.
+ */
+export function isUnitOverviewPath(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const pathname = value.split(/[?#]/, 1)[0].replace(/\/+$/, '');
+  return /(?:^|\/)(?:unit|module)-\d{1,2}$/i.test(pathname);
+}
+
+/** Only lesson documents inside a gated unit should show the sign-in wall. */
+export function isProtectedLessonPath(value: string | null | undefined): boolean {
+  return isProtectedUnitPath(value) && !isUnitOverviewPath(value);
+}
+
 export function isSimulatorAuthRequest(
   value: unknown,
 ): value is SimulatorAuthRequestMessage {
