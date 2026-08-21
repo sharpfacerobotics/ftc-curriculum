@@ -6,7 +6,7 @@ import DocItemMetadata from '@theme/DocItem/Metadata';
 import DocItemLayout from '@theme/DocItem/Layout';
 import DocBreadcrumbs from '@theme/DocBreadcrumbs';
 import ContentLock from '@site/src/components/ContentLock';
-import AskPanel from '@site/src/components/ui/AskPanel';
+import AskPrompt from '@site/src/components/ui/AskPrompt';
 import {useAuth} from '@site/src/telemark/useAuth';
 import {getUnitNumber, getUnitSlug, isProtectedUnit} from '@site/src/telemark/accessPolicy';
 
@@ -34,10 +34,9 @@ export default function DocItem(props: Props): React.JSX.Element {
         ) : (
           <DocItemLayout>
             <MDXComponent />
-            {/* Below the lesson, not floating over it: a student asks once they
-                have hit something they do not follow, and a panel that covers
-                the text they are stuck on is in the way. */}
-            <AskPanel />
+            {/* Opens the chat in the corner rather than being a second one:
+                two panels on a page meant two separate conversations. */}
+            <AskPrompt />
           </DocItemLayout>
         )}
       </HtmlClassNameProvider>

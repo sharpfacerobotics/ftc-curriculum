@@ -3,6 +3,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import {animate} from 'animejs';
 import {allowed, DUR, EASE} from '@site/src/telemark/motion';
 import AskPanel from './AskPanel';
+import {OPEN_ASK} from './AskPrompt';
 import styles from './AskLauncher.module.css';
 
 /**
@@ -48,6 +49,13 @@ export default function AskLauncher(): React.JSX.Element {
   }, [open]);
 
   const close = useCallback(() => setOpen(false), []);
+
+  // The lesson footer asks for the chat rather than rendering its own.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener(OPEN_ASK, onOpen);
+    return () => window.removeEventListener(OPEN_ASK, onOpen);
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;

@@ -37,13 +37,24 @@ export default function AskPanel(): React.JSX.Element {
   const [history, setHistory] = useState<StoredChat[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const abort = useRef<AbortController | null>(null);
+  const hereTitle = useRef('');
   const thread = useRef<HTMLDivElement>(null);
 
   // A new lesson is a new conversation. Carrying the previous thread under a
   // different heading invites reading it as being about this page.
+  // Closing the dock unmounts this panel, so a conversation has to be picked
+  // back up from storage rather than held in state. Resuming the newest thread
+  // for this lesson means closing the panel to read a paragraph and reopening
+  // it does not silently start again from nothing.
   useEffect(() => {
-    setMessages([]);
-    setChatId(newChatId());
+    const resumable = listChats().find((chat) => chat.path === pathname);
+    if (resumable) {
+      setMessages(resumable.messages);
+      setChatId(resumable.id);
+    } else {
+      setMessages([]);
+      setChatId(newChatId());
+    }
     setShowHistory(false);
   }, [pathname]);
 
@@ -53,12 +64,16 @@ export default function AskPanel(): React.JSX.Element {
     if (messages.length === 0) return;
     saveChat({
       id: chatId,
-      title: here?.title || document.title,
+      title: hereTitle.current || document.title,
       path: pathname,
       updatedAt: Date.now(),
       messages,
     });
-  }, [messages, chatId, pathname, here]);
+    // Deliberately not keyed on the page context: that object is rebuilt on
+    // every scroll event, and depending on it wrote the whole conversation to
+    // localStorage on every frame of a scroll. The title is read through a ref
+    // so it stays current without driving the effect.
+  }, [messages, chatId, pathname]);
 
   useEffect(() => {
     if (showHistory) setHistory(listChats());
@@ -67,7 +82,17 @@ export default function AskPanel(): React.JSX.Element {
   // Tracked while scrolling so the panel can show what it is looking at, not
   // only use it silently when a question is sent.
   useEffect(() => {
-    const update = () => setHere(currentPage());
+    const update = () => {
+      const next = currentPage();
+      hereTitle.current = next?.title ?? '';
+      setHere((previous) =>
+        previous && next
+          && previous.title === next.title
+          && previous.section === next.section
+          ? previous
+          : next,
+      );
+    };
     update();
     window.addEventListener('scroll', update, {passive: true});
     return () => window.removeEventListener('scroll', update);
@@ -125,9 +150,9 @@ export default function AskPanel(): React.JSX.Element {
   if (!user) {
     return (
       <section className={styles.panel}>
-        <p className={styles.title}>Stuck on this lesson?</p>
+        <p className={styles.title}>Ask about this lesson</p>
         <p className={styles.blurb}>
-          Sign in and ask. It can see which lesson you have open and which part
+          Sign in first. It can see which lesson you have open and which part
           you are reading, so you can ask about what is in front of you.
         </p>
         <button type="button" className={styles.signIn} onClick={() => signInWithGoogle()}>

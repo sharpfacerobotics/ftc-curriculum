@@ -71,32 +71,51 @@ export async function askSharpAi(
   const decoder = new TextDecoder();
   let buffer = '';
   let event = '';
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    events.onDone?.();
+  };
 
   // SSE frames are separated by a blank line and can split across reads, so
   // the tail of the buffer is kept until its terminator arrives.
-  while (true) {
-    const {done, value} = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, {stream: true});
+  // The read is guarded because it rejects in two ordinary situations: the
+  // student asked a new question, which aborts this one, and the connection
+  // dropped mid-answer. Both escaped as a rejection before, so the caller's
+  // cleanup never ran and the panel stayed disabled until a reload.
+  try {
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
 
-    let split = buffer.indexOf('\n\n');
-    while (split !== -1) {
-      const frame = buffer.slice(0, split);
-      buffer = buffer.slice(split + 2);
-      for (const line of frame.split('\n')) {
-        if (line.startsWith('event:')) event = line.slice(6).trim();
-        else if (line.startsWith('data:')) {
-          const payload = safeParse(line.slice(5).trim());
-          if (event === 'meta') events.onMeta?.((payload?.citations as Citation[]) ?? []);
-          else if (event === 'token' && typeof payload?.t === 'string') events.onToken?.(payload.t);
-          else if (event === 'done') events.onDone?.();
-          else if (event === 'error') events.onError?.(String(payload?.message ?? 'Something went wrong.'));
+      let split = buffer.indexOf('\n\n');
+      while (split !== -1) {
+        const frame = buffer.slice(0, split);
+        buffer = buffer.slice(split + 2);
+        for (const line of frame.split('\n')) {
+          if (line.startsWith('event:')) event = line.slice(6).trim();
+          else if (line.startsWith('data:')) {
+            const payload = safeParse(line.slice(5).trim());
+            if (event === 'meta') events.onMeta?.((payload?.citations as Citation[]) ?? []);
+            else if (event === 'token' && typeof payload?.t === 'string') events.onToken?.(payload.t);
+            else if (event === 'done') finish();
+            else if (event === 'error') events.onError?.(String(payload?.message ?? 'Something went wrong.'));
+          }
         }
+        split = buffer.indexOf('\n\n');
       }
-      split = buffer.indexOf('\n\n');
+    }
+  } catch (error) {
+    // An abort is the student moving on, not a failure to report to them.
+    const aborted = options.signal?.aborted
+      || (error instanceof DOMException && error.name === 'AbortError');
+    if (!aborted) {
+      events.onError?.('The answer stopped partway. Ask again to retry.');
     }
   }
-  events.onDone?.();
+  finish();
 }
 
 function safeParse(text: string): Record<string, unknown> | null {
