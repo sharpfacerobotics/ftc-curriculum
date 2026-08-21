@@ -5,6 +5,7 @@ import routes from '@generated/routes';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import ContentLock from '@site/src/components/ContentLock';
 import ReadingProgress from '@site/src/components/ui/ReadingProgress';
+import AskLauncher from '@site/src/components/ui/AskLauncher';
 import {getUnitNumber, getUnitSlug, isProtectedUnit} from '@site/src/telemark/accessPolicy';
 import {useAuth} from '@site/src/telemark/useAuth';
 
@@ -68,6 +69,7 @@ export default function Root({children}: RootProps): React.JSX.Element {
     return (
       <>
         <ReadingProgress />
+        <AskLauncher />
         {children}
       </>
     );
