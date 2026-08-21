@@ -5,8 +5,6 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
-import {useMotionReveal} from '@site/src/components/ui/useMotionReveal';
-import CodeStream from '@site/src/components/ui/CodeStream';
 import RobotAssembly from '@site/src/components/ui/RobotAssembly';
 import styles from './index.module.css';
 import { useAuth } from '../telemark/useAuth';
@@ -14,8 +12,6 @@ import { trackEvent } from '../telemark/analytics';
 import { signInWithGoogle } from '../telemark/googleAuth';
 import { isProtectedUnit } from '../telemark/accessPolicy';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
-import Reveal from '../components/ui/Reveal';
-import {useCountUp, useReveal} from '../components/ui/useReveal';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
 import {
   CURRICULUM_LESSON_COUNT,
@@ -109,15 +105,11 @@ function HeroSection(): React.JSX.Element {
       </h1>
 
       <p className={styles.heroSub}>
-        Two tracks, one robot. Lessons and browser simulators for how FTC robots
-        are programmed, and lessons and design calculators for how they are built.
+        Two tracks, one robot. Learn to program an FTC robot and run your code
+        in the browser, or learn to design one and check your numbers before you
+        build.
       </p>
 
-      <div className={styles.terminalLine} aria-hidden="true">
-        <span className={styles.terminalPrompt}>telemetry &gt;</span>
-        <span>FTC Java ready · design tools ready </span>
-        <span className={styles.cursor} />
-      </div>
 
       <div className={styles.heroActions}>
         <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
@@ -128,11 +120,10 @@ function HeroSection(): React.JSX.Element {
         </Link>
       </div>
 
-      {/* The hero claims two tracks and one robot, so it shows both: the code
-          being written on one side and the machine it runs on assembling on
-          the other. */}
+      {/* One figure, not two. The robot earns its place because it shows the
+          build order the track teaches; a panel typing out code showed only
+          that text can appear one letter at a time. */}
       <div className={styles.heroShowcase}>
-        <CodeStream compact />
         <RobotAssembly />
       </div>
     </section>
@@ -140,12 +131,10 @@ function HeroSection(): React.JSX.Element {
 }
 
 function StatsBar(): React.JSX.Element {
-  const {ref, revealed} = useReveal<HTMLParagraphElement>({threshold: 0.4});
-  const lessons = useCountUp(TOTAL_LESSON_COUNT, {start: revealed});
 
   return (
-    <p className={styles.summaryLine} ref={ref}>
-      <span className={styles.summaryFigure}>{lessons}</span> lessons across
+    <p className={styles.summaryLine}>
+      <span className={styles.summaryFigure}>{TOTAL_LESSON_COUNT}</span> lessons across
       {' '}<span className={styles.summaryFigure}>2</span> tracks, written in
       Java against the FTC SDK, with simulators on one side and design
       calculators on the other.
@@ -159,22 +148,20 @@ function TracksSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>Two tracks</p>
       <h2 className={styles.sectionTitle}>Both halves of the robot</h2>
       <p className={styles.sectionDesc}>
-        A team needs people who can write the code and people who can build the
-        machine it runs on. Telemark teaches both, and each track stands on its
-        own.
+        Your team needs people who can write the code and people who can build
+        the robot it runs on. Both tracks are here, and you can start with
+        either one.
       </p>
 
       <div className={styles.trackGrid}>
-        {TRACKS_SUMMARY.map((track, index) => (
-          <Reveal key={track.id} delayMs={index * 90}>
-            <Link to={track.to} className={styles.trackCard}>
+        {TRACKS_SUMMARY.map((track) => (
+          <Link key={track.id} to={track.to} className={styles.trackCard}>
             <span className={styles.trackEyebrow}>{track.eyebrow}</span>
             <h3 className={styles.trackTitle}>{track.title}</h3>
             <p className={styles.trackDesc}>{track.desc}</p>
             <span className={styles.trackStat}>{track.stat}</span>
-              <span className={styles.trackCta}>{track.cta} →</span>
-            </Link>
-          </Reveal>
+            <span className={styles.trackCta}>{track.cta} →</span>
+          </Link>
         ))}
       </div>
     </section>
@@ -208,8 +195,6 @@ function CurriculumSection({
 }): React.JSX.Element {
   const history = useHistory();
   const basePath = useBasePath();
-  const grid = useRef<HTMLElement>(null);
-  useMotionReveal(grid, `.${styles.unitCard}`);
   const [unlockingUnit, setUnlockingUnit] = useState<string | null>(null);
   const [unlockError, setUnlockError] = useState<string | null>(null);
 
@@ -240,7 +225,7 @@ function CurriculumSection({
   }
 
   return (
-    <section className={styles.section} id={id} ref={grid}>
+    <section className={styles.section} id={id}>
       <p className={styles.sectionLabel}>{label}</p>
       <h2 className={styles.sectionTitle}>{heading}</h2>
       <p className={styles.sectionDesc}>{blurb}</p>
@@ -307,10 +292,9 @@ function FeaturesSection(): React.JSX.Element {
 
       <dl className={styles.featureList}>
         {FEATURES.map((f) => (
-          <Reveal key={f.title} as="div" className={styles.featureRow}>
-            <dt className={styles.featureTerm}>{f.title}</dt>
+          <div key={f.title} className={styles.featureRow}><dt className={styles.featureTerm}>{f.title}</dt>
             <dd className={styles.featureDesc}>{f.desc}</dd>
-          </Reveal>
+          </div>
         ))}
       </dl>
     </section>
@@ -323,8 +307,9 @@ function SimulatorSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>Browser simulator</p>
       <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
       <p className={styles.sectionDesc}>
-        Write lesson code, run the FTC lifecycle, and debug the result with
-        telemetry, requirement checks, and simulated hardware.
+        Write the code for a lesson, run it, and see what the robot does. You
+        get telemetry, checks against what the lesson asked for, and simulated
+        hardware to test against.
       </p>
       <SimulatorWorkflow
         className={styles.simulatorWorkflow}
@@ -354,17 +339,14 @@ function SimulatorSection(): React.JSX.Element {
  * interactive and the other was reading. Both halves run something.
  */
 function ToolsSection(): React.JSX.Element {
-  const strip = useRef<HTMLElement>(null);
-  useMotionReveal(strip, `.${styles.toolCard}`);
-
   return (
-    <section className={styles.section} id="tools" ref={strip}>
+    <section className={styles.section} id="tools">
       <p className={styles.sectionLabel}>Design tools</p>
       <h2 className={styles.sectionTitle}>Check the design before you cut</h2>
       <p className={styles.sectionDesc}>
-        {TOOL_CATALOG.length} calculators and checkers for the numbers that
-        decide whether a mechanism works, plus a file check that reads your
-        exported CAD and measures it.
+        {TOOL_CATALOG.length} calculators for the numbers that decide whether a
+        mechanism will work, and a check that reads your exported CAD file and
+        measures it.
       </p>
 
       <div className={styles.toolStrip}>
@@ -453,7 +435,7 @@ export default function Home(): React.JSX.Element {
           label="Software track"
           id="curriculum"
           heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
-          blurb="Follow the sequence or jump to the topic your team needs."
+          blurb="Start at the beginning or go straight to what your team needs."
         />
         <Divider />
         <CurriculumSection
@@ -463,7 +445,7 @@ export default function Home(): React.JSX.Element {
           label="Mechanical track"
           id="mechanical"
           heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
-          blurb="The design process, CAD, materials, power transmission, and the standards that hold a robot together."
+          blurb="How to design a robot: the process, CAD, materials, gears and belts, and the standards that keep it together."
         />
         <Divider />
         <SimulatorSection />

@@ -151,6 +151,80 @@
   --telemark-color-cyan: var(--tm-accent);
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   LIGHT THEME
+
+   Not the dark palette inverted. Ink goes near black on a warm off white,
+   and the accent darkens to a teal that can actually be read on a light
+   surface: the aqua that works on near black fails contrast completely at
+   this end. Elevation also flips, since a raised panel in daylight is
+   lighter than the page and an inset is darker.
+   ════════════════════════════════════════════════════════════════════════ */
+[data-theme='light'] {
+  --tm-bg:              #f5f7f9;
+  --tm-surface-1:       #fafbfc;
+  --tm-surface-2:       #fdfdfe;
+  --tm-surface-3:       #eef1f4;
+  --tm-surface-4:       #e4e9ee;
+
+  --tm-text-strong:     #0c1319;
+  --tm-text:            rgba(19, 29, 38, 0.88);
+  --tm-text-soft:       rgba(19, 29, 38, 0.74);
+  --tm-text-muted:      rgba(19, 29, 38, 0.58);
+  --tm-text-faint:      rgba(19, 29, 38, 0.40);
+  --tm-text-on-accent:  #fbfdfe;
+
+  /* Cyan at #22d3ee is roughly 1.6:1 on this background. Teal 700 clears
+     the text threshold while reading as the same colour family. */
+  --tm-accent:          #0e7490;
+  --tm-accent-bright:   #0891b2;
+  --tm-accent-dim:      #155e75;
+  --tm-blue:            #1d4ed8;
+  --tm-blue-soft:       #2563eb;
+  --tm-indigo:          #4338ca;
+
+  --tm-accent-a08:      rgba(14, 116, 144, 0.07);
+  --tm-accent-a12:      rgba(14, 116, 144, 0.11);
+  --tm-accent-a20:      rgba(14, 116, 144, 0.18);
+  --tm-accent-a35:      rgba(14, 116, 144, 0.32);
+  --tm-accent-a55:      rgba(14, 116, 144, 0.5);
+  --tm-blue-a10:        rgba(37, 99, 235, 0.09);
+  --tm-blue-a32:        rgba(37, 99, 235, 0.3);
+
+  --tm-success:         #15803d;
+  --tm-success-wash:    rgba(21, 128, 61, 0.09);
+  --tm-warn:            #a16207;
+  --tm-warn-wash:       rgba(161, 98, 7, 0.09);
+  --tm-danger:          #b91c1c;
+  --tm-danger-wash:     rgba(185, 28, 28, 0.08);
+
+  --tm-border:          rgba(20, 38, 54, 0.16);
+  --tm-border-strong:   rgba(20, 38, 54, 0.3);
+  --tm-border-quiet:    rgba(20, 38, 54, 0.12);
+  --tm-border-hair:     rgba(20, 38, 54, 0.09);
+
+  /* Shadows carry elevation here. On near black they were invisible, so the
+     dark theme leans on borders instead. */
+  --tm-shadow-sm:       0 1px 2px rgba(15, 32, 47, 0.07);
+  --tm-shadow-md:       0 6px 20px rgba(15, 32, 47, 0.1);
+  --tm-shadow-glow:     0 0 0 1px rgba(14, 116, 144, 0.18);
+
+  --ifm-color-primary: var(--tm-accent);
+  --ifm-background-color: var(--tm-bg);
+  --ifm-font-color-base: var(--tm-text);
+
+  --telemark-color-heading: var(--tm-text-strong);
+  --telemark-color-body: var(--tm-text);
+  --telemark-color-muted: var(--tm-text-muted);
+  --telemark-color-black: var(--tm-bg);
+  --telemark-color-surface: var(--tm-surface-1);
+  --telemark-color-surface-raised: var(--tm-surface-2);
+  --telemark-color-blue: var(--tm-blue);
+  --telemark-color-blue-light: var(--tm-blue-soft);
+  --telemark-color-aqua: var(--tm-accent);
+  --telemark-color-cyan: var(--tm-accent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --tm-dur-fast: 0.01ms;
@@ -162,9 +236,9 @@
 /* Dark mode overrides — this is the primary mode */
 [data-theme='dark'] {
   --ifm-color-primary: #22d3ee;
-  --ifm-background-color: #05080d;
-  --ifm-background-surface-color: #0b1118;
-  --ifm-navbar-background-color: #070c12;
+  --ifm-background-color: var(--tm-bg);
+  --ifm-background-surface-color: var(--tm-surface-2);
+  --ifm-navbar-background-color: var(--tm-surface-1);
   --ifm-footer-background-color: #030609;
   --ifm-toc-border-color: rgba(34, 211, 238, 0.2);
   --ifm-color-emphasis-300: rgba(56, 189, 248, 0.3);
@@ -175,9 +249,8 @@
   height: 72px;
   padding: 0 2rem;
   border-bottom: 1px solid var(--tm-border);
-  background: rgba(5, 8, 13, 0.96);
+  background: var(--tm-surface-1);
   box-shadow: none;
-  backdrop-filter: blur(12px);
 }
 
 .telemark-navbar-inner {
@@ -205,7 +278,7 @@
 }
 
 .telemark-navbar-center .navbar__link {
-  color: rgba(221, 241, 249, 0.58);
+  color: var(--tm-text-muted);
   font-family: var(--telemark-font-label);
   font-size: var(--tm-fs-xs);
   font-weight: 400;

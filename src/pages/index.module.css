@@ -1174,22 +1174,10 @@
   margin: var(--tm-sp-5) 0 var(--tm-sp-6);
 }
 
-/* Hero pair: code on one side, the machine it runs on the other. Collapses to
-   one column early, since neither figure is readable in half of a phone. */
+/* One figure, centred. This was a two column pair until the typing code panel
+   came out, and a two column grid holding one child parks it in the left half. */
 .heroShowcase {
-  display: grid;
-  gap: var(--tm-sp-6);
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
   width: 100%;
-  max-width: 62rem;
-  margin: var(--tm-sp-7) auto 0;
-  text-align: left;
-}
-
-@media (max-width: 900px) {
-  .heroShowcase {
-    grid-template-columns: 1fr;
-    gap: var(--tm-sp-5);
-  }
+  max-width: 34rem;
+  margin: var(--tm-sp-6) auto 0;
 }

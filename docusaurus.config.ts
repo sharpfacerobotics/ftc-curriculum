@@ -134,8 +134,8 @@ const config: Config = {
   themeConfig: {
     colorMode: {
       defaultMode: 'dark',
-      disableSwitch: true, // Lock to dark mode — matches your brand
-      respectPrefersColorScheme: false,
+      disableSwitch: false, // Both themes ship; the toggle is in the navbar
+      respectPrefersColorScheme: true,
     },
     navbar: {
       title: 'Telemark',
@@ -176,7 +176,6 @@ const config: Config = {
           className: 'navbar-auth-link',
         },
       ],
-      style: 'dark',
     },
     footer: {
       style: 'dark',
