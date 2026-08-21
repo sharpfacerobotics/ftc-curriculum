@@ -738,6 +738,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -1544,11 +1545,11 @@ function splitArguments(argsString) {
 }
 
 function executeMethod(methodName) {
-  if (window.TelemarkJava) {
+  if (window.TelemarkSimulatorBase) {
     var sharedSource = codeEditor.value;
     if (methodName === 'init' || window.__telemarkUnit4Source !== sharedSource) {
       var sharedTelemetry = [];
-      window.__telemarkUnit4Runtime = TelemarkJava.createRuntime({
+      window.__telemarkUnit4Runtime = TelemarkSimulatorBase.createRuntime({
         gamepad: gamepad,
         getRuntime: getRuntime,
         resetRuntime: function() { runtimeOffset = Date.now(); },
@@ -1564,7 +1565,7 @@ function executeMethod(methodName) {
           if (sharedTelemetry.length) document.getElementById('telemetry-log').innerHTML = sharedTelemetry.join('');
         }
       });
-      window.__telemarkUnit4Program = TelemarkJava.compile(sharedSource, window.__telemarkUnit4Runtime);
+      window.__telemarkUnit4Program = TelemarkSimulatorBase.compileStudentSource(sharedSource, window.__telemarkUnit4Runtime);
       window.__telemarkUnit4Source = sharedSource;
       if (!window.__telemarkUnit4Program.ok) {
         var sharedDiagnostic = window.__telemarkUnit4Program.diagnostics[0];
@@ -1910,6 +1911,8 @@ function handleStopButton() {
   setLifecycle('STOPPED', '#cc0000', 'INIT');
 }
 
+// Fallback only: simulator_base owns gamepad input and card interactions.
+if (!window.TelemarkSimulatorBase) {
 // ─── Gamepad Button Handling ─────────────────────────────────────────────────
 function setButtonState(prop, pressed, elementId) {
   gamepad[prop] = pressed;
@@ -2157,20 +2160,20 @@ window.addEventListener('blur', function() { Object.values(sticks).forEach(reset
   resizeHandle.addEventListener('pointerup', function() { isCardResizing = false; });
   resizeHandle.addEventListener('pointercancel', function() { isCardResizing = false; });
 })();
+}
 
 // ─── Boot ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
   loadInitialConfig();
   updateCode(codeEditor.value);
   runStaticAnalysis();
-  Object.values(sticks).forEach(resetStick);
   updateInputMonitor();
   drawCurveGraph();
 });
 
 // Periodic input monitor update
 setInterval(updateInputMonitor, 50);
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({state: gamepad});
 </script>
 </body>
 </html>

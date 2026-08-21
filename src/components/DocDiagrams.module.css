@@ -69,7 +69,7 @@
 .node span {
   display: block;
   margin-top: 0.4rem;
-  color: rgba(232, 244, 255, 0.62);
+  color: var(--tm-text-soft);
   font-size: var(--tm-fs-sm);
   line-height: 1.35;
 }
@@ -111,7 +111,7 @@
 
 .modeCard p {
   margin: 0;
-  color: rgba(232, 244, 255, 0.72);
+  color: var(--tm-text);
   font-size: var(--tm-fs-sm);
   line-height: 1.45;
 }
@@ -130,7 +130,7 @@
 
 .caption {
   margin: 0.85rem 0 0;
-  color: rgba(232, 244, 255, 0.58);
+  color: var(--tm-text-muted);
   font-size: var(--tm-fs-sm);
   line-height: 1.45;
 }

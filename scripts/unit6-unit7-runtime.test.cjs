@@ -116,6 +116,11 @@ function createPageHarness(relativeFile) {
   context.window = context;
   vm.createContext(context);
   vm.runInContext(telemarkJavaSource, context, {filename: 'telemark-java.js'});
+  context.TelemarkSimulatorBase = {
+    compileStudentSource: (...args) => context.TelemarkJava.compile(...args),
+    createRuntime: (...args) => context.TelemarkJava.createRuntime(...args),
+    installLegacy() {},
+  };
   const file = path.join(repoRoot, relativeFile);
   vm.runInContext(lastInlineScript(file), context, {filename: file});
 

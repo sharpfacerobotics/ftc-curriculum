@@ -130,6 +130,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -168,7 +169,7 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
 <div id="gamepad-card">
   <div id="gamepad-titlebar">
   <span id="gamepad-titlebar-label"><i class="fa-solid fa-gamepad" style="color:#4488ff"></i> Gamepad 1</span>
-    <button id="gp-collapse-btn" onclick="toggleGamepad()">▲</button>
+    <button id="gp-collapse-btn" title="Collapse / Expand">−</button>
   </div>
   <div id="gamepad-body">
     <div class="controller-wrap" id="controller-wrap">
@@ -361,8 +362,8 @@ function renderBadges(){
 
 // Run / Stop / Reset
 function validateFullJavaSource(code){
-  var result=window.TelemarkJava
-    ? window.TelemarkJava.compile(code)
+  var result=window.TelemarkSimulatorBase
+    ? window.TelemarkSimulatorBase.compileStudentSource(code)
     : {ok:false,diagnostics:[{message:'Telemark Java compiler is unavailable',line:1,column:1}]};
   if(result.ok)return true;
   var diagnostic=result.diagnostics&&result.diagnostics[0]||{};
@@ -448,9 +449,9 @@ function handleStop(){if(state.loopInterval){clearInterval(state.loopInterval);s
 function handleReset(){handleStop();state.telemetry=[];state.telemetryError=null;state.telemetryBuffer=[];state.runtimeSeconds=0;state.initialized=false;document.getElementById('btn-init').disabled=false;var tv=document.getElementById('timer-val'); if(tv) tv.textContent='0.00';updateRunUI();resetHardware();renderTelemetry();renderChallenge();if(window.resetScene)window.resetScene()}
 
 // Gamepad
-var gpCollapsed=false;
-function toggleGamepad(){gpCollapsed=!gpCollapsed;document.getElementById('gamepad-body').style.display=gpCollapsed?'none':'block';document.getElementById('gp-collapse-btn').textContent=gpCollapsed?'▼':'▲'}
 (function(){var rs=document.getElementById('split-resizer'),lp=document.getElementById('left-panel'),rp=document.getElementById('right-panel'),drag=false,pid=null;if(!rs||!lp||!rp)return;function px(v,f){var n=parseFloat(v);return isFinite(n)?n:f}function resizeScene(){window.dispatchEvent(new Event('resize'))}function setWidth(x){var main=document.getElementById('main'),rect=(main||document.body).getBoundingClientRect(),total=rect.width,rsw=rs.offsetWidth||6,ls=getComputedStyle(lp),rsx=getComputedStyle(rp),minL=px(ls.minWidth,260),minR=px(rsx.minWidth,260),minW=Math.min(minL,Math.max(160,total-rsw-minR)),maxW=Math.max(minW,total-rsw-minR),w=Math.max(minW,Math.min(maxW,x-rect.left));lp.style.flex='0 0 '+w+'px';lp.style.width=w+'px';rp.style.flex='1 1 0';rp.style.width='auto';resizeScene()}rs.addEventListener('pointerdown',function(e){drag=true;pid=e.pointerId;rs.classList.add('active');if(rs.setPointerCapture)rs.setPointerCapture(e.pointerId);document.body.style.cursor='col-resize';document.body.style.userSelect='none';setWidth(e.clientX);e.preventDefault()});function move(e){if(!drag)return;if(pid!==null&&e.pointerId!==undefined&&e.pointerId!==pid)return;setWidth(e.clientX);e.preventDefault()}document.addEventListener('pointermove',move);window.addEventListener('pointermove',move);function end(){drag=false;pid=null;rs.classList.remove('active');document.body.style.cursor='';document.body.style.userSelect='';resizeScene()}document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end)})();
+// Fallback only: simulator_base owns gamepad input and card interactions.
+if (!window.TelemarkSimulatorBase) {
 (function(){var tb=document.getElementById('gamepad-titlebar'),cd=document.getElementById('gamepad-card'),dr=false,ox=0,oy=0;tb.addEventListener('mousedown',function(e){if(e.target.id==='gp-collapse-btn')return;dr=true;var r=cd.getBoundingClientRect();ox=e.clientX-r.left;oy=e.clientY-r.top});window.addEventListener('mousemove',function(e){if(!dr)return;cd.style.right=Math.max(0,window.innerWidth-(e.clientX-ox)-cd.offsetWidth)+'px';cd.style.bottom=Math.max(0,window.innerHeight-(e.clientY-oy)-cd.offsetHeight)+'px'});window.addEventListener('mouseup',function(){dr=false})})();
 var gpButtonEls={};
 function setGPButton(k,pressed){
@@ -496,9 +497,10 @@ function setupStick(id,xKey,yKey){
 ].forEach(function(p){setupGPBtn(p[0],p[1])});
 setupTrigger('trigger-left','left_trigger');setupTrigger('trigger-right','right_trigger');
 setupStick('stick-left','left_stick_x','left_stick_y');setupStick('stick-right','right_stick_x','right_stick_y');
+}
 // Three.js Scene
 var WW=4,WH=3,WD=.15,OW=1.8,OH=1,GT=.08,SR=.15,HY=-WH/2+(WH-OH)/2;
-var ss={gateGroup:null,spheres:[],sphereInitPos:[],needlePivot:null,angleLabel:null,camera:null,controls:null,renderer:null,currentGateAngle:0,targetGateAngle:0,currentServoPos:0,spheresReleased:false,animFrame:0};
+var ss={scene:null,gateGroup:null,spheres:[],sphereInitPos:[],needlePivot:null,angleLabel:null,camera:null,controls:null,renderer:null,currentGateAngle:0,targetGateAngle:0,currentServoPos:0,spheresReleased:false,animFrame:0};
 function resetSpheres2(){
   ss.spheres.forEach(function(s,i){
     var p=ss.sphereInitPos[i];
@@ -522,7 +524,7 @@ function updateProt(deg){
 }
 window.resetScene=function(){ss.currentServoPos=0;ss.targetGateAngle=0;ss.currentGateAngle=0;if(ss.gateGroup)ss.gateGroup.rotation.x=0;resetSpheres2();updateProt(0);updatePowerBar();if(ss.camera){ss.camera.position.set(0,.5,5.5);ss.camera.lookAt(0,0,0)}if(ss.controls){ss.controls.target.set(0,0,0);ss.controls.update()}};
 
-function buildScene(){var T=window.THREE;if(!T)return;var ct=document.getElementById('scene-container'),sc=new T.Scene();sc.background=new T.Color(0x0a0a10);var w=ct.clientWidth,h=ct.clientHeight;var cam=new T.PerspectiveCamera(50,w/h,.1,100);cam.position.set(0,.5,5.5);cam.lookAt(0,0,0);ss.camera=cam;var rn=new T.WebGLRenderer({antialias:true});rn.setSize(w,h);rn.setPixelRatio(Math.min(window.devicePixelRatio,2));rn.shadowMap.enabled=true;rn.shadowMap.type=T.PCFSoftShadowMap;ct.appendChild(rn.domElement);ss.renderer=rn;var co=new THREE.OrbitControls(cam,rn.domElement);co.enableDamping=true;co.dampingFactor=.05;co.target.set(0,0,0);ss.controls=co;
+function buildScene(){var T=window.THREE;if(!T)return;var ct=document.getElementById('scene-container'),sc=new T.Scene();ss.scene=sc;sc.background=new T.Color(0x0a0a10);var w=ct.clientWidth,h=ct.clientHeight;var cam=new T.PerspectiveCamera(50,w/h,.1,100);cam.position.set(0,.5,5.5);cam.lookAt(0,0,0);ss.camera=cam;var rn=new T.WebGLRenderer({antialias:true});rn.setSize(w,h);rn.setPixelRatio(Math.min(window.devicePixelRatio,2));rn.shadowMap.enabled=true;rn.shadowMap.type=T.PCFSoftShadowMap;ct.appendChild(rn.domElement);ss.renderer=rn;var co=new THREE.OrbitControls(cam,rn.domElement);co.enableDamping=true;co.dampingFactor=.05;co.target.set(0,0,0);ss.controls=co;
 sc.add(new T.AmbientLight(0x404060,.6));var dl=new T.DirectionalLight(0xffffff,.8);dl.position.set(3,5,5);dl.castShadow=true;dl.shadow.mapSize.width=1024;dl.shadow.mapSize.height=1024;sc.add(dl);var pl=new T.PointLight(0x4488ff,.4,12);pl.position.set(-2,3,3);sc.add(pl);var fl=new T.PointLight(0xffffff,.3,10);fl.position.set(2,1,4);sc.add(fl);
 var wg=new T.Group(),wm=new T.MeshPhongMaterial({color:0x3a3a4a,specular:0x222222,shininess:20}),ob=HY,ot=ob+OH,ol=-OW/2,or2=OW/2;
 var tH=WH/2-ot;if(tH>.01){var m1=new T.Mesh(new T.BoxGeometry(WW,tH,WD),wm);m1.position.set(0,ot+tH/2,0);m1.castShadow=true;m1.receiveShadow=true;wg.add(m1)}
@@ -559,7 +561,7 @@ var sY = ob + OH*.65;
 var sP = [{x:-0.38,y:sY,z:-0.72},{x:0.0,y:sY+.04,z:-0.82},{x:0.38,y:sY-.02,z:-0.68}];
 var sMat=new T.MeshPhongMaterial({color:0x22cc66,emissive:0x0a4422,specular:0x66ff99,shininess:60});ss.spheres=[];ss.sphereInitPos=[];
 sP.forEach(function(p){var me=new T.Mesh(new T.SphereGeometry(SR,16,12),sMat);me.position.set(p.x,p.y,p.z);me.castShadow=true;var ri=new T.Mesh(new T.TorusGeometry(SR*.9,.015,8,20),new T.MeshBasicMaterial({color:0x44ff88}));ri.rotation.x=Math.PI/2;me.add(ri);sc.add(me);ss.spheres.push({mesh:me,vx:0,vy:0,vz:0,state:'waiting'});ss.sphereInitPos.push({x:p.x,y:p.y,z:p.z})});
-var flr=new T.Mesh(new T.PlaneGeometry(6,6),new T.MeshPhongMaterial({color:0x111118}));flr.rotation.x=-Math.PI/2;flr.position.y=-WH/2;flr.receiveShadow=true;sc.add(flr);
+var flr=new T.Mesh(new T.PlaneGeometry(6,6),new T.MeshPhongMaterial({color:0x111118}));flr.rotation.x=-Math.PI/2;flr.position.y=-WH/2;flr.receiveShadow=true;flr.userData.telemarkThemeRole='floor';sc.add(flr);if(window.TelemarkSimulatorBase)window.TelemarkSimulatorBase.themeThreeScene(sc);
   // Low tray in front of the opening so released samples have a clear forward/downward path.
   var platformCenterX = 0;
   var platformCenterZ = 1.25;
@@ -653,7 +655,12 @@ window.addEventListener('resize',function(){var cw=ct.clientWidth,ch=ct.clientHe
 
 function init(){initEditor();renderTelemetry();renderChallenge();renderBadges();buildScene()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: state.gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({
+  state: state.gamepad,
+  onThemeChange: function(theme) {
+    if (ss.scene) window.TelemarkSimulatorBase.themeThreeScene(ss.scene, theme);
+  }
+});
 </script>
 </body>
 </html>

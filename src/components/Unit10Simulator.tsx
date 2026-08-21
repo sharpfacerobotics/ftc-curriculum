@@ -55,7 +55,7 @@ export default function Unit10Simulator({lesson}: Unit10SimulatorProps): React.J
           aspect-ratio: 1 / 1;
           margin: 1.5rem 0;
           border-radius: 14px;
-          background: #05080d;
+          background: var(--tm-bg);
         }
         .unit10-telemark-simulator {
           position: absolute;
@@ -65,7 +65,7 @@ export default function Unit10Simulator({lesson}: Unit10SimulatorProps): React.J
           min-height: 0;
           border: none;
           border-radius: 14px;
-          background: #05080d;
+          background: var(--tm-bg);
         }
         @media (max-width: 640px) {
           .unit10-simulator-wrapper {

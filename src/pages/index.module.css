@@ -107,7 +107,7 @@
 
 .navCta:hover {
   background: var(--home-blue);
-  color: var(--tm-bg);
+  color: var(--tm-text-on-accent);
   text-decoration: none;
   transform: translateY(-1px);
 }
@@ -296,7 +296,7 @@
   padding: 14px 34px;
   border: 1px solid var(--home-blue-strong);
   background: var(--home-blue-strong);
-  color: var(--tm-bg) !important;
+  color: var(--tm-text-on-accent) !important;
   font-family: var(--telemark-font-display);
   font-size: var(--tm-fs-base);
   font-weight: 700;
@@ -309,7 +309,7 @@
 .btnPrimary:hover {
   border-color: var(--home-blue);
   background: var(--home-blue);
-  color: var(--tm-bg) !important;
+  color: var(--tm-text-on-accent) !important;
   text-decoration: none;
   transform: translateY(-2px) rotate(-0.4deg);
   box-shadow: 0 14px 34px var(--tm-border-strong);
@@ -504,8 +504,8 @@
   overflow: hidden;
   border-radius: var(--tm-r-hand-alt);
   aspect-ratio: 16 / 9;
-  background: #020509;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+  background: var(--tm-surface-3);
+  box-shadow: var(--tm-shadow-md);
 }
 
 .simulatorWrapper:fullscreen,
@@ -637,8 +637,8 @@
 }
 
 .tagAdv {
-  border: 1px solid rgba(56, 189, 248, 0.34);
-  background: rgba(56, 189, 248, 0.09);
+  border: 1px solid var(--tm-blue-a32);
+  background: var(--tm-blue-a10);
   color: var(--home-blue-strong);
 }
 
@@ -650,7 +650,7 @@
 
 .unlockError {
   margin: 1rem 0 0;
-  color: #8fd5ff;
+  color: var(--tm-blue-soft);
   font-size: var(--tm-fs-sm);
 }
 
@@ -679,7 +679,7 @@
 
 .featureDesc {
   margin: 0;
-  color: rgba(242, 248, 255, 0.58);
+  color: var(--tm-text-muted);
   font-size: var(--tm-fs-sm);
   line-height: 1.75;
 }
@@ -736,8 +736,8 @@
   align-items: center;
   justify-content: center;
   padding: 1.1rem 2rem;
-  border-top: 1px solid rgba(56, 189, 248, 0.13);
-  color: rgba(242, 248, 255, 0.62);
+  border-top: 1px solid var(--tm-accent-a12);
+  color: var(--tm-text-muted);
   font-family: var(--telemark-font-label);
   font-size: 10px;
   letter-spacing: 0.06em;
@@ -950,7 +950,7 @@
   padding: 1.5rem 1.6rem 1.6rem;
   border: 1px solid var(--tm-accent-a20);
   border-radius: var(--tm-r-hand);
-  background: linear-gradient(160deg, rgba(17, 27, 37, 0.9) 0%, rgba(5, 8, 13, 0.9) 100%);
+  background: linear-gradient(160deg, var(--tm-surface-2) 0%, var(--tm-surface-1) 100%);
   color: inherit;
   text-align: left;
   transition: border-color 0.2s ease, transform 0.2s ease;

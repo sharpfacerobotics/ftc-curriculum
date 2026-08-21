@@ -90,7 +90,7 @@
   border: 1px solid var(--tm-accent-a12);
   border-radius: var(--tm-r-sm);
   background: var(--tm-surface-3);
-  color: rgba(221, 241, 249, 0.78);
+  color: var(--tm-text);
   cursor: pointer;
   font-size: var(--tm-fs-sm);
   line-height: 1.5;
@@ -130,7 +130,7 @@
   margin-top: 0.8rem;
   padding-top: 0.7rem;
   border-top: 1px dashed var(--tm-accent-a20);
-  color: rgba(203, 230, 241, 0.6);
+  color: var(--tm-text-muted);
   font-family: var(--tm-font-label);
   font-size: var(--tm-fs-2xs);
   letter-spacing: 0.06em;

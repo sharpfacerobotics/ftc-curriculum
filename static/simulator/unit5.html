@@ -348,6 +348,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -1217,11 +1218,11 @@ function getMethodBody(code, methodName) {
 }
 
 function executeMethod(methodName) {
-  if (window.TelemarkJava) {
+  if (window.TelemarkSimulatorBase) {
     var sharedSource = codeEditor.value;
     if (methodName === 'init' || window.__telemarkUnit5Source !== sharedSource) {
       var sharedTelemetry = [];
-      window.__telemarkUnit5Runtime = TelemarkJava.createRuntime({
+      window.__telemarkUnit5Runtime = TelemarkSimulatorBase.createRuntime({
         gamepad: gamepad,
         getRuntime: getRuntime,
         resetRuntime: function() { runtimeOffset = Date.now(); },
@@ -1237,7 +1238,7 @@ function executeMethod(methodName) {
           if (sharedTelemetry.length) document.getElementById('telemetry-log').innerHTML = sharedTelemetry.join('');
         }
       });
-      window.__telemarkUnit5Program = TelemarkJava.compile(sharedSource, window.__telemarkUnit5Runtime);
+      window.__telemarkUnit5Program = TelemarkSimulatorBase.compileStudentSource(sharedSource, window.__telemarkUnit5Runtime);
       window.__telemarkUnit5Source = sharedSource;
       if (!window.__telemarkUnit5Program.ok) {
         var sharedDiagnostic = window.__telemarkUnit5Program.diagnostics[0];
@@ -1639,6 +1640,8 @@ function handleStopButton() {
   setLifecycle('STOPPED', '#cc0000', 'INIT');
 }
 
+// Fallback only: simulator_base owns gamepad input and card interactions.
+if (!window.TelemarkSimulatorBase) {
 // ─── Gamepad Controls ────────────────────────────────────────────────────────
 function setButtonState(prop, pressed, elementId) {
   gamepad[prop] = pressed;
@@ -1774,6 +1777,7 @@ function handlePointerEnd(e) {
 window.addEventListener('pointerup', handlePointerEnd);
 window.addEventListener('pointercancel', handlePointerEnd);
 window.addEventListener('blur', function() { Object.values(sticks).forEach(resetStick); });
+}
 
 function setupSensorSlider(sliderId, valueId, prop, formatter) {
   var slider = document.getElementById(sliderId);
@@ -1801,6 +1805,7 @@ setupSensorSlider('red-sensor-slider', 'red-sensor-value', 'red', function(value
   return String(value);
 });
 
+if (!window.TelemarkSimulatorBase) {
 // ─── Floating Gamepad Card ───────────────────────────────────────────────────
 (function() {
   var card = document.getElementById('gamepad-float-card');
@@ -1869,13 +1874,13 @@ setupSensorSlider('red-sensor-slider', 'red-sensor-value', 'red', function(value
   resizeHandle.addEventListener('pointerup', function() { isCardResizing = false; });
   resizeHandle.addEventListener('pointercancel', function() { isCardResizing = false; });
 })();
+}
 
 // ─── Boot ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
   loadInitialConfig();
   updateCode(codeEditor.value);
   runStaticAnalysis();
-  Object.values(sticks).forEach(resetStick);
   updateSensorDisplays();
 });
 
@@ -1887,7 +1892,7 @@ setInterval(function() {
     renderTruthTable();
   }
 }, 100);
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({state: gamepad});
 </script>
 </body>
 </html>

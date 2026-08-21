@@ -1,5 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {useColorMode} from '@docusaurus/theme-common';
 import {trackEvent} from '@site/src/telemark/analytics';
+
+const SIMULATOR_THEME_STATE = 'telemark:simulator-theme-state';
 
 type SimulatorFrameProps = {
   src: string;
@@ -22,7 +25,9 @@ export default function SimulatorFrame({
   iframeStyle,
   loading = 'lazy',
 }: SimulatorFrameProps): React.JSX.Element {
+  const {colorMode} = useColorMode();
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const launchTrackedRef = useRef(false);
 
@@ -34,6 +39,17 @@ export default function SimulatorFrame({
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
   }, []);
 
+  const sendThemeState = () => {
+    iframeRef.current?.contentWindow?.postMessage(
+      {type: SIMULATOR_THEME_STATE, theme: colorMode},
+      window.location.origin,
+    );
+  };
+
+  useEffect(() => {
+    sendThemeState();
+  }, [colorMode]);
+
   const toggleFullscreen = async () => {
     if (!shellRef.current) return;
     if (document.fullscreenElement === shellRef.current) {
@@ -44,7 +60,8 @@ export default function SimulatorFrame({
     trackEvent('simulator_fullscreen', {simulator: title});
   };
 
-  const trackLaunch = () => {
+  const handleLoad = () => {
+    sendThemeState();
     if (launchTrackedRef.current) return;
     launchTrackedRef.current = true;
     trackEvent('simulator_launch', {simulator: title});
@@ -59,6 +76,7 @@ export default function SimulatorFrame({
       </div>
       <div className={wrapperClassName}>
         <iframe
+          ref={iframeRef}
           src={src}
           className={iframeClassName}
           width={width}
@@ -67,7 +85,7 @@ export default function SimulatorFrame({
           title={title}
           loading={loading}
           allowFullScreen
-          onLoad={trackLaunch}
+          onLoad={handleLoad}
         />
       </div>
     </div>

@@ -8,7 +8,6 @@
   padding: 2rem 1.25rem;
   background: var(--tm-bg);
   color: var(--tm-text-strong);
-  color-scheme: dark;
   font-family: 'Exo 2', system-ui, sans-serif;
   scrollbar-color: var(--tm-accent) var(--tm-bg);
   scrollbar-width: thin;
@@ -71,6 +70,10 @@
   animation: cardEnter 480ms ease-out both;
 }
 
+[data-theme='light'] .card {
+  background: #fff;
+}
+
 .logoWrap {
   display: flex;
   justify-content: center;
@@ -81,10 +84,8 @@
   width: 66px;
   height: 66px;
   display: block;
-  border: 1px solid var(--tm-border-strong);
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 10px 30px var(--tm-border);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px var(--tm-border));
   animation: logoFloat 4s ease-in-out infinite;
 }
 
@@ -122,9 +123,9 @@
   gap: 10px;
   margin-bottom: 1.25rem;
   padding: 14px 24px;
-  border: 1px solid var(--tm-text-strong);
+  border: 1px solid var(--tm-border-strong);
   border-radius: var(--tm-r-lg);
-  background: var(--tm-text-strong);
+  background: #fff;
   color: #111820;
   cursor: pointer;
   font-family: 'Exo 2', system-ui, sans-serif;
@@ -135,21 +136,25 @@
 
 .googleBtn:hover {
   border-color: var(--tm-accent);
-  box-shadow: 0 10px 30px var(--tm-border);
+  box-shadow: var(--tm-shadow-md);
   transform: translateY(-2px);
 }
 
 .googleBtn:focus-visible {
-  outline: 3px solid rgba(34, 211, 238, 0.48);
+  outline: 3px solid var(--tm-accent-a55);
   outline-offset: 3px;
 }
 
 .privacy {
   margin: 0;
-  color: rgba(222, 239, 252, 0.68);
+  color: var(--tm-text-soft);
   font-family: var(--tm-font-label);
   font-size: 10px;
   letter-spacing: 0.05em;
+}
+
+[data-theme='light'] .privacy {
+  color: #111820;
 }
 
 @keyframes cardEnter {

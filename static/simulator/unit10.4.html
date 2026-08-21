@@ -488,7 +488,9 @@ public class MecanumEncoderDrive extends OpMode {
             points.push(new THREE.Vector3(i, 0.012, -3), new THREE.Vector3(i, 0.012, 3));
             points.push(new THREE.Vector3(-3, 0.012, i), new THREE.Vector3(3, 0.012, i));
         }
-        scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), mat));
+        const grid = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), mat);
+        grid.userData.telemarkThemeRole = "grid";
+        scene.add(grid);
     }
 
     function createWheel(THREE, name, x, z) {
@@ -540,6 +542,7 @@ public class MecanumEncoderDrive extends OpMode {
                 new THREE.PlaneGeometry(6, 6),
                 new THREE.MeshPhongMaterial({ color: 0x1a1a2e })
             );
+            floor.userData.telemarkThemeRole = "floor";
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
             scene.add(floor);
@@ -549,15 +552,19 @@ public class MecanumEncoderDrive extends OpMode {
             const wallH = 0.35;
             const wallT = 0.10;
             const north = new THREE.Mesh(new THREE.BoxGeometry(6.2, wallH, wallT), wallMat);
+            north.userData.telemarkThemeRole = "wall";
             north.position.set(0, wallH / 2, 3.05);
             scene.add(north);
             const south = north.clone();
+            south.userData.telemarkThemeRole = "wall";
             south.position.z = -3.05;
             scene.add(south);
             const east = new THREE.Mesh(new THREE.BoxGeometry(wallT, wallH, 6.2), wallMat);
+            east.userData.telemarkThemeRole = "wall";
             east.position.set(3.05, wallH / 2, 0);
             scene.add(east);
             const west = east.clone();
+            west.userData.telemarkThemeRole = "wall";
             west.position.x = -3.05;
             scene.add(west);
 
@@ -607,6 +614,7 @@ public class MecanumEncoderDrive extends OpMode {
                 new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.7 })
             );
             scene.add(pathLine);
+            window.TelemarkSimulatorBase.themeThreeScene(scene);
         });
     }
 

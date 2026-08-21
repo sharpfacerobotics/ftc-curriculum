@@ -116,6 +116,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -508,7 +509,7 @@ function createHardwareRuntime() {
   ensureSdkConstructorStubs();
   telemetryPending=false;
   telemetryUpdateVersion=0;
-  var runtime=TelemarkJava.createRuntime({
+  var runtime=TelemarkSimulatorBase.createRuntime({
     gamepad:gamepad,
     getRuntime:getRuntime,
     isStopRequested:function(){return stopRequested},
@@ -547,9 +548,9 @@ function createHardwareRuntime() {
 }
 
 function compileHardwareProgram() {
-  if(!window.TelemarkJava)return failExecution('Compiler unavailable',new Error('TelemarkJava did not load'));
+  if(!window.TelemarkSimulatorBase)return failExecution('Compiler unavailable',new Error('Telemark simulator base did not load'));
   compiledRuntime=createHardwareRuntime();
-  compiledProgram=TelemarkJava.compile(codeEditor.value,compiledRuntime);
+  compiledProgram=TelemarkSimulatorBase.compileStudentSource(codeEditor.value,compiledRuntime);
   compiledSource=codeEditor.value;
   if(!compiledProgram.ok){
     var diagnostic=compiledProgram.diagnostics&&compiledProgram.diagnostics[0]||{};
@@ -756,7 +757,9 @@ function initRobot3D() {
   var dl = new THREE.DirectionalLight(0xffffff, 0.8);
   dl.position.set(3, 5, 4);
   scene.add(dl);
-  scene.add(new THREE.GridHelper(6, 12, 0x333333, 0x222222));
+  var grid = new THREE.GridHelper(6, 12, 0x333333, 0x222222);
+  grid.userData.telemarkThemeRole = 'grid';
+  scene.add(grid);
 
   robotGroup = new THREE.Group();
   scene.add(robotGroup);
@@ -810,6 +813,7 @@ function initRobot3D() {
     updateCameraFromOrbit();
   }, { passive: false });
 
+  if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.themeThreeScene(scene);
   renderer.render(scene, camera);
 }
 
@@ -890,6 +894,8 @@ function animateRobot() {
   if (renderer) renderer.render(scene, camera);
 }
 
+// Fallback only: simulator_base owns gamepad input and card interactions.
+if (!window.TelemarkSimulatorBase) {
 // ── Gamepad Logic ──
 function setButtonState(prop,pressed,id){
     gamepad[prop]=pressed;
@@ -1014,6 +1020,7 @@ window.addEventListener('blur',function(){Object.values(sticks).forEach(resetSti
     rh.addEventListener('pointerup',function(){cr=false});
     rh.addEventListener('pointercancel',function(){cr=false});
 })();
+}
 
 // Boot Sequence
 window.addEventListener('load', function() {
@@ -1024,9 +1031,13 @@ window.addEventListener('load', function() {
   initRobot3D();
   animateRobot();
   runAnalysis();
-  Object.values(sticks).forEach(resetStick);
 });
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({
+  state: gamepad,
+  onThemeChange: function(theme) {
+    if (scene) window.TelemarkSimulatorBase.themeThreeScene(scene, theme);
+  }
+});
 </script>
 </body>
 </html>

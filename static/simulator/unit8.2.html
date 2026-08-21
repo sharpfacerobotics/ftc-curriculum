@@ -119,6 +119,7 @@ code{font-family:"Consolas","Courier New",monospace}
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src="./simulator_base.js" data-telemark-mode="legacy"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -308,7 +309,7 @@ var wheels = {};
 var arrowCache = {};
 var lastFrameTime = 0;
 /* Camera orbit state */
-var orbit={theta:Math.PI,phi:0.85,radius:4.5,target:{x:0,y:3,z:2},dragging:true,panning:false,prevX:0,prevY:0};
+var orbit={theta:Math.PI,phi:0.85,radius:4.5,target:{x:0,y:3,z:2},dragging:false,panning:false,prevX:0,prevY:0};
 var FIELD_HALF = 3, ROBOT_MARGIN = 0.48;
 var cameraFollowRobot = false;
 var FIELD_CENTER_TARGET = {x:0, y:3, z:2};
@@ -420,8 +421,10 @@ function renderTelemetry(lines){
 }
 function renderError(msg){document.getElementById('telemetry-log').innerHTML='<div class="telemetry-error">'+esc(msg)+'</div>';}
 function validateFullJavaSource(code){
-  if(!window.TelemarkJava){renderError('Java compile error: Telemark Java compiler is unavailable (line 1, column 1)');handleStop();return false}
-  var result=window.TelemarkJava.compile(code);
+  if(!window.TelemarkSimulatorBase){renderError('Java compile error: Telemark Java compiler is unavailable (line 1, column 1)');handleStop();return false}
+  var result;
+  try{result=window.TelemarkSimulatorBase.compileStudentSource(code)}
+  catch(error){renderError('Java compile error: '+error.message+' (line 1, column 1)');handleStop();return false}
   if(result.ok)return true;
   var diagnostic=result.diagnostics&&result.diagnostics[0]||{};
   renderError('Java compile error: '+(diagnostic.message||'Invalid Java source')+' (line '+(diagnostic.line||1)+', column '+(diagnostic.column||1)+')');
@@ -603,7 +606,8 @@ function addGrid(){
     pts.push(new THREE.Vector3(i,0.012,-3),new THREE.Vector3(i,0.012,3));
     pts.push(new THREE.Vector3(-3,0.012,i),new THREE.Vector3(3,0.012,i));
   }
-  scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),mat));
+  var grid=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),mat);
+  grid.userData.telemarkThemeRole='grid';scene.add(grid);
 }
 function createWheel(name,x,z,color){
   var group=new THREE.Group();group.position.set(x,0.19,z);
@@ -624,18 +628,19 @@ function initScene(){
   camera=new THREE.PerspectiveCamera(45,w/h,0.1,100);updateCameraOrbit();
   renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
   renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.shadowMap.enabled=true;
-  scene.add(new THREE.AmbientLight(0x505060,.75));
+  var ambient=new THREE.AmbientLight(0x505060,.75);ambient.userData.telemarkThemeRole='ambient';scene.add(ambient);
   var dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(3,6,4);dl.castShadow=true;
+  dl.userData.telemarkThemeRole='directional';
   dl.shadow.camera.left=-5;dl.shadow.camera.right=5;dl.shadow.camera.top=5;dl.shadow.camera.bottom=-5;scene.add(dl);
   scene.add(new THREE.PointLight(0x00e5ff,.25,9)).position.set(0,3,2);
   var floor=new THREE.Mesh(new THREE.PlaneGeometry(6,6),new THREE.MeshPhongMaterial({color:0x1a1a2e}));
-  floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);addGrid();
+  floor.userData.telemarkThemeRole='floor';floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);addGrid();
   var wallMat=new THREE.MeshPhongMaterial({color:0x303038});
   var wallH=.35,wallT=.10;
-  var north=new THREE.Mesh(new THREE.BoxGeometry(6.2,wallH,wallT),wallMat);north.position.set(0,wallH/2,3.05);scene.add(north);
-  var south=north.clone();south.position.z=-3.05;scene.add(south);
-  var east=new THREE.Mesh(new THREE.BoxGeometry(wallT,wallH,6.2),wallMat);east.position.set(3.05,wallH/2,0);scene.add(east);
-  var west=east.clone();west.position.x=-3.05;scene.add(west);
+  var north=new THREE.Mesh(new THREE.BoxGeometry(6.2,wallH,wallT),wallMat);north.userData.telemarkThemeRole='wall';north.position.set(0,wallH/2,3.05);scene.add(north);
+  var south=north.clone();south.userData.telemarkThemeRole='wall';south.position.z=-3.05;scene.add(south);
+  var east=new THREE.Mesh(new THREE.BoxGeometry(wallT,wallH,6.2),wallMat);east.userData.telemarkThemeRole='wall';east.position.set(3.05,wallH/2,0);scene.add(east);
+  var west=east.clone();west.userData.telemarkThemeRole='wall';west.position.x=-3.05;scene.add(west);
   robotGroup=new THREE.Group();scene.add(robotGroup);
   var body=new THREE.Mesh(new THREE.BoxGeometry(.86,.28,.98),new THREE.MeshPhongMaterial({color:0x2a2a2a,shininess:60,specular:0x222222}));
   body.position.y=.25;body.castShadow=true;robotGroup.add(body);
@@ -680,14 +685,18 @@ function initScene(){
     }
     updateCameraOrbit();
   });
-  canvas.addEventListener('pointerup',function(){orbit.dragging=false;orbit.panning=false});
-  canvas.addEventListener('pointercancel',function(){orbit.dragging=false;orbit.panning=false});
+  function releaseOrbit(){orbit.dragging=false;orbit.panning=false}
+  canvas.addEventListener('pointerup',releaseOrbit);
+  canvas.addEventListener('pointercancel',releaseOrbit);
+  canvas.addEventListener('lostpointercapture',releaseOrbit);
+  window.addEventListener('blur',releaseOrbit);
   canvas.addEventListener('wheel',function(e){
     e.preventDefault();
     orbit.radius=Math.max(1.5,Math.min(15,orbit.radius+e.deltaY*0.008));
     updateCameraOrbit();
   },{passive:false});
   canvas.addEventListener('contextmenu',function(e){e.preventDefault()});
+  applySimulatorTheme(window.TelemarkSimulatorBase.getTheme());
 }
 function updateRobotPhysics(dt){
   if(!robotGroup)return;
@@ -762,85 +771,14 @@ window.addEventListener('resize',function(){
   var w=container.clientWidth,h=container.clientHeight;
   camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
 });
-/* ═══════════════════════════════════════════════════════════════════════════
-   GAMEPAD
-   ═══════════════════════════════════════════════════════════════════════════ */
-var sticks82={};
-function setupStick(zoneId,knobId,type){
-  var zone=document.getElementById(zoneId),knob=document.getElementById(knobId);
-  var baseLeft=type==='left'?35.5:64,baseTop=65.5,range=12.2;
-  var dragging=false,pointerId=null;
-  sticks82[type]={zone:zone,knob:knob,dragging:false,pointerId:null};
-  zone.style.cursor='grab';
-  function setKnob(nx,ny){knob.style.left=(baseLeft+nx*range)+'%';knob.style.top=(baseTop+ny*range)+'%'}
-  function update(e){
-    var r=zone.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,max=r.width*.34;
-    var dx=e.clientX-cx,dy=e.clientY-cy;
-    if(type==='right')dy=0;
-    var len=Math.sqrt(dx*dx+dy*dy);if(len>max){dx=dx/len*max;dy=dy/len*max}
-    var nx=clamp(dx/max,-1,1),ny=clamp(dy/max,-1,1);
-    if(type==='left'){gamepad.left_stick_x=nx;gamepad.left_stick_y=ny}else{gamepad.right_stick_x=nx}
-    setKnob(nx,ny);updateAxisReadout();
-  }
-  zone.addEventListener('pointerdown',function(e){dragging=true;pointerId=e.pointerId;zone.setPointerCapture(e.pointerId);update(e);});
-  zone.addEventListener('pointermove',function(e){if(dragging&&pointerId===e.pointerId)update(e)});
-  function release(e){
-    dragging=false;pointerId=null;
-    if(type==='left'){gamepad.left_stick_x=0;gamepad.left_stick_y=0}else{gamepad.right_stick_x=0}
-    setKnob(0,0);updateAxisReadout();
-    if(e)zone.releasePointerCapture(e.pointerId);
-  }
-  zone.addEventListener('pointerup',release);
-  zone.addEventListener('pointercancel',function(e){release(e)});
-}
 function updateAxisReadout(){
   document.getElementById('axis-readout').textContent='LX '+gamepad.left_stick_x.toFixed(2)+'   LY '+gamepad.left_stick_y.toFixed(2)+'   RX '+gamepad.right_stick_x.toFixed(2);
 }
-setupStick('stick-zone-left','stick-knob-left','left');
-setupStick('stick-zone-right','stick-knob-right','right');
-// Window-level pointer handlers for boundary fix
-window.addEventListener('pointerup',function(e){
-  Object.keys(sticks82).forEach(function(type){
-    var s=sticks82[type];
-    if(s.dragging&&s.pointerId===e.pointerId){
-      s.dragging=false;s.pointerId=null;
-      if(type==='left'){gamepad.left_stick_x=0;gamepad.left_stick_y=0}else{gamepad.right_stick_x=0}
-      var baseLeft=type==='left'?35.5:64;
-      s.knob.style.left=baseLeft+'%';s.knob.style.top='65.5%';
-      s.zone.releasePointerCapture(e.pointerId);
-    }
-  });
-});
-window.addEventListener('pointercancel',function(e){
-  Object.keys(sticks82).forEach(function(type){
-    var s=sticks82[type];
-    if(s.dragging&&s.pointerId===e.pointerId){
-      s.dragging=false;s.pointerId=null;
-      if(type==='left'){gamepad.left_stick_x=0;gamepad.left_stick_y=0}else{gamepad.right_stick_x=0}
-      var baseLeft=type==='left'?35.5:64;
-      s.knob.style.left=baseLeft+'%';s.knob.style.top='65.5%';
-      s.zone.releasePointerCapture(e.pointerId);
-    }
-  });
-});
-(function(){
-  var card=document.getElementById('gamepad-float-card'),tb=document.getElementById('gamepad-titlebar');
-  var cb=document.getElementById('gp-collapse-btn'),bd=document.getElementById('gamepad-card-body'),rh=document.getElementById('gamepad-resize-handle');
-  var collapsed=false;
-  cb.addEventListener('click',function(e){
-    e.stopPropagation();collapsed=!collapsed;
-    if(collapsed){bd.style.display='none';rh.style.display='none';cb.textContent='+'}
-    else{bd.style.display='';rh.style.display='';cb.textContent='−'}
-  });
-  var dr=false,dox=0,doy=0;
-  tb.addEventListener('pointerdown',function(e){if(e.target===cb)return;dr=true;var r=card.getBoundingClientRect();dox=e.clientX-r.left;doy=e.clientY-r.top;});
-  tb.addEventListener('pointermove',function(e){if(!dr)return;card.style.left=clamp(e.clientX-dox,0,window.innerWidth-card.offsetWidth)+'px';card.style.top=clamp(e.clientY-doy,0,window.innerHeight-80)+'px';card.style.right='auto';card.style.bottom='auto'});
-  tb.addEventListener('pointerup',function(){dr=false});
-  var cr=false,crx=0,cry=0,crw=0,crh=0;
-  rh.addEventListener('pointerdown',function(e){cr=true;crx=e.clientX;cry=e.clientY;crw=card.offsetWidth;crh=card.offsetHeight;});
-  rh.addEventListener('pointermove',function(e){if(!cr)return;card.style.width=Math.max(260,crw+(e.clientX-crx))+'px';card.style.height=Math.max(140,crh+(e.clientY-cry))+'px'});
-  rh.addEventListener('pointerup',function(){cr=false});
-})();
+function applySimulatorTheme(theme){
+  var container=document.getElementById('scene-container');
+  if(container)container.style.backgroundColor=theme==='light'?'#eaf1f5':'#0a0a0a';
+  if(scene&&window.TelemarkSimulatorBase)window.TelemarkSimulatorBase.themeThreeScene(scene,theme);
+}
 window.addEventListener('load',function(){
   updateCode(codeEditor.value);
   validate();
@@ -857,7 +795,11 @@ window.addEventListener('load',function(){
   }
   setCameraFollowRobot(false);
 });
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+window.TelemarkSimulatorBase.installLegacy({
+  state: gamepad,
+  onInput: updateAxisReadout,
+  onThemeChange: applySimulatorTheme
+});
 </script>
 </body>
 </html>

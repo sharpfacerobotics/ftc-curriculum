@@ -5,6 +5,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
 
 :root {
+  color-scheme: dark;
+
   /* ════════════════════════════════════════════════════════════════════
      TELEMARK DESIGN TOKENS
 
@@ -161,6 +163,8 @@
    lighter than the page and an inset is darker.
    ════════════════════════════════════════════════════════════════════════ */
 [data-theme='light'] {
+  color-scheme: light;
+
   --tm-bg:              #f5f7f9;
   --tm-surface-1:       #fafbfc;
   --tm-surface-2:       #fdfdfe;
@@ -235,6 +239,8 @@
 
 /* Dark mode overrides — this is the primary mode */
 [data-theme='dark'] {
+  color-scheme: dark;
+
   --ifm-color-primary: #22d3ee;
   --ifm-background-color: var(--tm-bg);
   --ifm-background-surface-color: var(--tm-surface-2);
@@ -372,7 +378,6 @@ article {
 
 /* ---- CODE BLOCKS ---- */
 .prism-code {
-  background: #03070c !important;
   border: 1px solid var(--tm-accent-a20);
   border-radius: var(--tm-r-sm);
 }
@@ -391,7 +396,7 @@ code {
   border: 1px solid var(--telemark-color-aqua);
   border-radius: var(--tm-r-hand);
   box-shadow: none;
-  color: var(--tm-bg);
+  color: var(--tm-text-on-accent);
   transition: background-color 0.2s ease, border-color 0.2s ease,
     transform 0.2s ease;
 }
@@ -399,7 +404,7 @@ code {
 .button--primary:hover {
   background: var(--telemark-color-blue-light);
   border-color: var(--telemark-color-blue-light);
-  color: #03080d;
+  color: var(--tm-text-on-accent);
   transform: translateY(-1px);
 }
 
@@ -493,8 +498,8 @@ code {
 .simulator-fullscreen-button {
   border: 1px solid var(--tm-border-strong);
   border-radius: var(--tm-r-lg);
-  background: var(--telemark-color-black);
-  color: #e8f8ff;
+  background: var(--tm-surface-2);
+  color: var(--tm-text-strong);
   cursor: pointer;
   font-weight: 700;
   padding: 0.5rem 0.75rem;
