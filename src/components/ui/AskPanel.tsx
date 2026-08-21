@@ -2,77 +2,98 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useLocation} from '@docusaurus/router';
 import {useAuth} from '@site/src/telemark/useAuth';
 import {signInWithGoogle} from '@site/src/telemark/googleAuth';
-import {askSharpAi, type Citation} from '@site/src/telemark/askSharpAi';
+import {askSharpAi, type PageContext} from '@site/src/telemark/askSharpAi';
 import {trackEvent} from '@site/src/telemark/analytics';
 import styles from './AskPanel.module.css';
 
+interface Message {
+  role: 'you' | 'ai';
+  text: string;
+}
+
 /**
- * Ask a question about the lesson you are reading.
+ * A tutor you talk to about the lesson in front of you.
  *
- * The panel sends the page title and the nearest heading along with the
- * question. That is the difference between a search box and a tutor: a student
- * looking at the clearance table asks "why is this 3.2 and not 3.0", and
- * without knowing what "this" is, the question is unanswerable.
+ * It is a conversation rather than a search box because the second question is
+ * usually the real one: a student asks what a clearance hole is, then asks why
+ * theirs binds anyway. The last turns travel with each question so a follow-up
+ * that says "it" has something to point at.
  *
- * Answers are grounded in the curriculum and the official FTC documentation,
- * and every answer carries its sources, because a confident wrong answer about
- * a hole size is worse than no answer: the student cannot tell.
+ * It also watches which heading is on screen and says so, because a student
+ * needs to know it can see what they are looking at before they will trust it
+ * with "why is this 3.2 and not 3.0".
  */
 export default function AskPanel(): React.JSX.Element {
   const {user, loading} = useAuth();
   const {pathname} = useLocation();
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [citations, setCitations] = useState<Citation[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  const [here, setHere] = useState<PageContext | null>(null);
   const abort = useRef<AbortController | null>(null);
+  const thread = useRef<HTMLDivElement>(null);
 
-  // A new lesson is a new conversation. Leaving the previous answer up under a
-  // different heading invites reading it as an answer about this page.
+  // A new lesson is a new conversation. Carrying the previous thread under a
+  // different heading invites reading it as being about this page.
   useEffect(() => {
-    setAnswer('');
-    setCitations([]);
-    setError(null);
+    setMessages([]);
   }, [pathname]);
+
+  // Tracked while scrolling so the panel can show what it is looking at, not
+  // only use it silently when a question is sent.
+  useEffect(() => {
+    const update = () => setHere(currentPage());
+    update();
+    window.addEventListener('scroll', update, {passive: true});
+    return () => window.removeEventListener('scroll', update);
+  }, [pathname]);
+
+  useEffect(() => {
+    thread.current?.scrollTo({top: thread.current.scrollHeight});
+  }, [messages]);
 
   useEffect(() => () => abort.current?.abort(), []);
 
-  const ask = useCallback(async () => {
-    const text = question.trim();
+  const send = useCallback(async () => {
+    const text = draft.trim();
     if (!text || busy || !user) return;
 
     abort.current?.abort();
     const controller = new AbortController();
     abort.current = controller;
 
+    // Only complete exchanges are context; the turn in flight is the question.
+    const history = pairsFrom(messages);
+    setMessages((prev) => [...prev, {role: 'you', text}, {role: 'ai', text: ''}]);
+    setDraft('');
     setBusy(true);
-    setAnswer('');
-    setCitations([]);
-    setError(null);
 
     let idToken: string;
     try {
       idToken = await user.getIdToken();
     } catch {
-      setError('Could not confirm your sign-in. Try again.');
+      replaceLast(setMessages, 'Could not confirm your sign-in. Try again.');
       setBusy(false);
       return;
     }
 
-    trackEvent('ai_question_asked', {surface: 'lesson_panel'});
+    trackEvent('ai_question_asked', {surface: 'lesson_chat'});
 
     await askSharpAi(
       text,
-      {idToken, page: currentPage(), signal: controller.signal},
+      {idToken, page: currentPage(), history, signal: controller.signal},
       {
-        onMeta: setCitations,
-        onToken: (t) => setAnswer((prev) => prev + t),
-        onError: (message) => setError(message),
+        onToken: (t) =>
+          setMessages((prev) => {
+            const next = [...prev];
+            next[next.length - 1] = {role: 'ai', text: next[next.length - 1].text + t};
+            return next;
+          }),
+        onError: (message) => replaceLast(setMessages, message),
       },
     );
     setBusy(false);
-  }, [question, busy, user]);
+  }, [draft, busy, user, messages]);
 
   if (loading) return <div className={styles.panel} aria-hidden="true" />;
 
@@ -81,9 +102,8 @@ export default function AskPanel(): React.JSX.Element {
       <section className={styles.panel}>
         <p className={styles.title}>Stuck on this lesson?</p>
         <p className={styles.blurb}>
-          Sign in to ask about anything on this page. Answers come from these
-          lessons and the official FTC documentation, with links to where they
-          came from.
+          Sign in and ask. It can see which lesson you have open and which part
+          you are reading, so you can ask about what is in front of you.
         </p>
         <button type="button" className={styles.signIn} onClick={() => signInWithGoogle()}>
           Sign in to ask
@@ -94,70 +114,98 @@ export default function AskPanel(): React.JSX.Element {
 
   return (
     <section className={styles.panel}>
-      <p className={styles.title}>Ask about this lesson</p>
+      {here && (
+        <p className={styles.here}>
+          <span className={styles.hereDot} aria-hidden="true" />
+          Reading {here.title}
+          {here.section ? <> · {here.section}</> : null}
+        </p>
+      )}
+
+      <div className={styles.thread} ref={thread} aria-live="polite">
+        {messages.length === 0 && (
+          <p className={styles.empty}>
+            Ask anything about this lesson. Try &ldquo;explain this part again&rdquo; or
+            &ldquo;why does that number matter&rdquo;.
+          </p>
+        )}
+        {messages.map((message, i) => (
+          <div
+            key={i}
+            className={message.role === 'you' ? styles.fromYou : styles.fromAi}
+          >
+            {message.text === '' ? (
+              <span className={styles.typing}>Thinking</span>
+            ) : (
+              message.text.split('\n').filter(Boolean).map((line, n) => <p key={n}>{line}</p>)
+            )}
+          </div>
+        ))}
+      </div>
+
       <div className={styles.row}>
         <input
           className={styles.input}
-          value={question}
-          placeholder="Why is the clearance hole 3.2 and not 3.0?"
-          aria-label="Ask a question about this lesson"
-          onChange={(e) => setQuestion(e.target.value)}
+          value={draft}
+          placeholder="Ask about this lesson"
+          aria-label="Ask about this lesson"
+          onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') void ask();
+            if (e.key === 'Enter') void send();
           }}
         />
         <button
           type="button"
           className={styles.askBtn}
-          onClick={() => void ask()}
-          disabled={busy || question.trim().length === 0}
+          onClick={() => void send()}
+          disabled={busy || draft.trim().length === 0}
         >
-          {busy ? 'Thinking' : 'Ask'}
+          {busy ? '...' : 'Send'}
         </button>
       </div>
 
-      {error && <p className={styles.error}>{error}</p>}
-
-      {answer && (
-        <div className={styles.answer}>
-          {answer.split('\n').filter(Boolean).map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
-        </div>
-      )}
-
-      {citations.length > 0 && (
-        <>
-          <p className={styles.sourcesLabel}>Sources</p>
-          <ol className={styles.sources}>
-            {citations.map((c) => (
-              <li key={c.n}>
-                <a href={c.url} target="_blank" rel="noopener noreferrer">
-                  {c.title || c.url}
-                </a>
-                {c.sourceName && <span className={styles.sourceName}> {c.sourceName}</span>}
-              </li>
-            ))}
-          </ol>
-        </>
-      )}
-
       <p className={styles.limit}>
-        Answers are generated and can be wrong. Check them against the lesson
-        before you cut metal.
+        It can be wrong. Check anything you are about to cut or buy against the
+        lesson.
       </p>
     </section>
   );
 }
 
-/** Title plus the heading nearest the top of the viewport. */
-function currentPage() {
-  if (typeof document === 'undefined') return undefined;
+function replaceLast(
+  set: React.Dispatch<React.SetStateAction<Message[]>>,
+  text: string,
+): void {
+  set((prev) => {
+    const next = [...prev];
+    next[next.length - 1] = {role: 'ai', text};
+    return next;
+  });
+}
+
+/** Completed question and answer pairs, oldest first. */
+function pairsFrom(messages: Message[]): {question: string; answer: string}[] {
+  const pairs: {question: string; answer: string}[] = [];
+  for (let i = 0; i < messages.length - 1; i += 1) {
+    if (messages[i].role === 'you' && messages[i + 1].role === 'ai' && messages[i + 1].text) {
+      pairs.push({question: messages[i].text, answer: messages[i + 1].text});
+    }
+  }
+  return pairs.slice(-2);
+}
+
+/** The lesson title plus the heading nearest the top of the viewport. */
+function currentPage(): PageContext | null {
+  if (typeof document === 'undefined') return null;
   const title = document.querySelector('h1')?.textContent?.trim() || document.title;
   let section = '';
-  for (const heading of Array.from(document.querySelectorAll('.theme-doc-markdown h2, .theme-doc-markdown h3'))) {
-    if (heading.getBoundingClientRect().top > 120) break;
-    section = heading.textContent?.replace('#', '').trim() || section;
+  for (const heading of Array.from(
+    document.querySelectorAll('.theme-doc-markdown h2, .theme-doc-markdown h3'),
+  )) {
+    if (heading.getBoundingClientRect().top > 140) break;
+    // Docusaurus appends a zero width character to every heading for its
+    // anchor link, which would travel into the prompt as noise.
+    section = heading.textContent?.replace(/[#\u200b]/g, '').trim() || section;
   }
   return {title, section, url: window.location.href};
 }

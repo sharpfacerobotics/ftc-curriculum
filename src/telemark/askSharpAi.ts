@@ -13,6 +13,11 @@ export interface PageContext {
   url: string;
 }
 
+export interface Turn {
+  question: string;
+  answer: string;
+}
+
 export interface AskEvents {
   onMeta?: (citations: Citation[]) => void;
   onToken?: (text: string) => void;
@@ -32,7 +37,7 @@ export interface AskEvents {
  */
 export async function askSharpAi(
   question: string,
-  options: {idToken: string; page?: PageContext; signal?: AbortSignal},
+  options: {idToken: string; page?: PageContext; history?: Turn[]; signal?: AbortSignal},
   events: AskEvents,
 ): Promise<void> {
   let response: Response;
@@ -44,6 +49,10 @@ export async function askSharpAi(
         question,
         idToken: options.idToken,
         page: options.page ?? null,
+        // The worker keeps the last two turns, which is what a follow-up needs
+        // to resolve "it" and "that". It stores none of this; the thread lives
+        // in the tab.
+        history: options.history ?? [],
       }),
       signal: options.signal,
     });
