@@ -471,7 +471,7 @@
           <p>Choose a unit, then launch a simulator challenge.</p>
         </div>
       </div>
-      <div class="status" id="auth-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Units 1–5 free trial</div>
+      <div class="status"><i class="fa-solid fa-unlock" aria-hidden="true"></i> All simulator units open</div>
     </header>
 
     <main class="main">
@@ -518,14 +518,7 @@
   </div>
 
   <script>
-    const HOMEPAGE_DEMO_UNIT_MIN = 2;
-    const HOMEPAGE_DEMO_UNIT_MAX = 5;
-    const AUTH_REQUEST = "telemark:simulator-auth-request";
-    const AUTH_STATE = "telemark:simulator-auth-state";
     const THEME_STATE = "telemark:simulator-theme-state";
-    const query = new URLSearchParams(window.location.search);
-    const homepageDemosEnabled = query.get("homepageDemos") === "1";
-    let authenticated = query.get("authenticated") === "1";
 
     const units = [
       { unit: 1, title: "Environment Setup", desc: "Choose a workflow; Android Studio is an optional advanced-team head start.", type: "setup", href: "../docs/unit-01/prerequisites", challenges: [] },
@@ -654,7 +647,6 @@
     const simFrame = document.getElementById("sim-frame");
     const simTitle = document.getElementById("sim-title");
     const simSubtitle = document.getElementById("sim-subtitle");
-    const authStatus = document.getElementById("auth-status");
     let lastChooserView = "unit";
     let simulatorTheme = document.documentElement.getAttribute("data-theme") === "light"
       ? "light"
@@ -675,34 +667,6 @@
       document.documentElement.setAttribute("data-telemark-theme", theme);
       document.documentElement.style.colorScheme = theme;
       forwardThemeToSimulator();
-    }
-
-    function isProtectedUnit(unitNumber) {
-      const homepageDemo = homepageDemosEnabled
-        && unitNumber >= HOMEPAGE_DEMO_UNIT_MIN
-        && unitNumber <= HOMEPAGE_DEMO_UNIT_MAX;
-      return !homepageDemo;
-    }
-
-    function updateAuthStatus() {
-      authStatus.innerHTML = authenticated
-        ? '<i class="fa-solid fa-unlock" aria-hidden="true"></i> All simulator units unlocked'
-        : homepageDemosEnabled
-          ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Units 2–5 homepage demos available'
-          : '<i class="fa-solid fa-lock" aria-hidden="true"></i> Google sign-in required';
-    }
-
-    function requestUnlock(unit, destination) {
-      if (window.parent !== window) {
-        window.parent.postMessage({
-          type: AUTH_REQUEST,
-          unit,
-          destination
-        }, window.location.origin);
-        return;
-      }
-
-      window.location.href = "../login";
     }
 
     function pad(value) {
@@ -728,28 +692,22 @@
     function makeUnitCard(unit) {
       const card = document.createElement("button");
       card.type = "button";
-      const locked = !authenticated && isProtectedUnit(unit.unit);
-      card.className = locked ? "card locked" : "card";
+      card.className = "card";
       const label = unit.type === "multi" ? `${unit.challenges.length} simulators` : unit.type === "shared" ? "unit simulator" : "setup";
-      const action = locked ? "Sign in to unlock" : unit.type === "multi" ? "View challenges" : unit.type === "shared" ? "Launch unit sim" : "Open setup";
-      const icon = locked ? "fa-lock" : unit.type === "multi" ? "fa-table-cells" : unit.type === "shared" ? "fa-play" : "fa-book-open";
+      const action = unit.type === "multi" ? "View challenges" : unit.type === "shared" ? "Launch unit sim" : "Open setup";
+      const icon = unit.type === "multi" ? "fa-table-cells" : unit.type === "shared" ? "fa-play" : "fa-book-open";
 
       card.innerHTML = `
         <span class="unit-num">Unit ${pad(unit.unit)}</span>
         <h3>${unit.title}</h3>
         <p>${unit.desc}</p>
         <span class="meta">
-          <span class="${locked ? "card-lock" : ""}"><i class="fa-solid ${icon}" aria-hidden="true"></i>${locked ? "account required" : label}</span>
+          <span><i class="fa-solid ${icon}" aria-hidden="true"></i>${label}</span>
         </span>
-        <span class="action-row">${action}<i class="fa-solid ${locked ? "fa-lock" : "fa-arrow-right"}" aria-hidden="true"></i></span>
+        <span class="action-row">${action}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
       `;
 
       card.addEventListener("click", () => {
-        if (locked) {
-          requestUnlock(unit.unit, unit.href || `unit-${unit.unit}-challenges`);
-          return;
-        }
-
         if (unit.type === "multi") {
           showChallenges(unit);
         } else {
@@ -781,7 +739,6 @@
     function renderUnits() {
       unitGrid.innerHTML = "";
       units.forEach((unit) => unitGrid.appendChild(makeUnitCard(unit)));
-      updateAuthStatus();
     }
 
     function showChallenges(unit) {
@@ -817,15 +774,7 @@
     window.addEventListener("message", (event) => {
       if (event.origin !== window.location.origin || event.source !== window.parent || !event.data) return;
 
-      if (event.data.type === THEME_STATE) {
-        applyNavigatorTheme(event.data.theme);
-        return;
-      }
-
-      if (event.data.type !== AUTH_STATE) return;
-
-      authenticated = event.data.authenticated === true;
-      renderUnits();
+      if (event.data.type === THEME_STATE) applyNavigatorTheme(event.data.theme);
     });
 
     applyNavigatorTheme(simulatorTheme);
