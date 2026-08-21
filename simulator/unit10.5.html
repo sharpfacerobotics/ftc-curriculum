@@ -1353,7 +1353,7 @@ async function runCode(code,token){
         sim.started = true;
     }
 
-    const runtime = window.TelemarkJava.createRuntime({
+    const runtime = window.TelemarkSimulatorBase.createRuntime({
         gamepad1: window.gamepad || {},
         gamepad2: window.gamepad2 || {},
         getRuntime: window.getRuntime,
@@ -1387,7 +1387,7 @@ async function runCode(code,token){
         ensureCurrentExecution(token);
     };
 
-    compiledProgram = window.TelemarkJava.compile(code,runtime);
+    compiledProgram = window.TelemarkSimulatorBase.compileStudentSource(code,runtime);
     if(!compiledProgram.ok){
         const diagnostic = compiledProgram.diagnostics[0];
         throw new Error(

@@ -271,6 +271,68 @@
     'Back <kbd>⌫</kbd> · Start <kbd>↵</kbd>';
 
   const STYLE_TEXT = `
+    .controller-wrap,
+    .sim-controller-wrap,
+    #controller-wrap,
+    #sim-controller-wrap {
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    .controller-img,
+    .sim-controller-img,
+    #controller-wrap img,
+    #sim-controller-wrap img {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+    .stick-knob-left,
+    .stick-knob-right,
+    .sim-stick-knob,
+    .sim-joystick-knob,
+    .telemark-gp-added-stick-knob {
+      opacity: 1 !important;
+    }
+    .bumper-btn,
+    .telemark-gp-added-bumper {
+      position: absolute !important;
+      top: 12% !important;
+      width: 14% !important;
+      height: 6% !important;
+      border-radius: 8px !important;
+      transform: translate(-50%, -50%) !important;
+    }
+    .left-bumper-btn,
+    .telemark-gp-added-bumper.left {
+      left: 20% !important;
+      right: auto !important;
+    }
+    .right-bumper-btn,
+    .telemark-gp-added-bumper.right {
+      left: 80% !important;
+      right: auto !important;
+    }
+    .dpad-container {
+      position: absolute !important;
+      left: 21.5% !important;
+      top: 41% !important;
+      width: 16% !important;
+      height: 24% !important;
+      transform: translate(-50%, -50%) !important;
+      pointer-events: auto !important;
+      opacity: 1 !important;
+    }
+    .dpad-btn.pressed,
+    .bumper-btn.pressed,
+    .telemark-gp-added-dpad.pressed,
+    .telemark-gp-added-bumper.pressed {
+      opacity: 1 !important;
+      background: rgba(34, 211, 238, .38) !important;
+      border-color: rgba(34, 211, 238, .9) !important;
+      box-shadow: 0 0 0 2px rgba(34, 211, 238, .24) !important;
+    }
     .telemark-gp-keyboard-legend {
       display: block;
       flex: 0 0 auto;
@@ -340,9 +402,9 @@
       background: linear-gradient(to top, #2563eb, #22d3ee);
       pointer-events: none;
     }
-    .telemark-gp-added-bumper { top: 9%; width: 14%; height: 7%; border-radius: 7px; }
-    .telemark-gp-added-bumper.left { left: 13%; }
-    .telemark-gp-added-bumper.right { right: 13%; }
+    .telemark-gp-added-bumper { top: 12%; width: 14%; height: 6%; border-radius: 8px; }
+    .telemark-gp-added-bumper.left { left: 20%; }
+    .telemark-gp-added-bumper.right { left: 80%; right: auto; }
     .telemark-gp-added-face { width: 7%; height: 10%; border-radius: 50%; }
     .telemark-gp-added-face.a { left: 75.5%; top: 49%; }
     .telemark-gp-added-face.b { left: 83%; top: 38%; }
@@ -947,8 +1009,8 @@
   }
 
   function wireHoldElement(element, input, getState, sync) {
-    if (!element || typeof element.addEventListener !== "function") return;
-    if (wiredPointerElements.has(element)) return;
+    if (!element || typeof element.addEventListener !== "function") return null;
+    if (wiredPointerElements.has(element)) return null;
     wiredPointerElements.add(element);
     enablePointerElement(element);
 
@@ -973,11 +1035,12 @@
     element.addEventListener("pointercancel", release);
     element.addEventListener("lostpointercapture", release);
     element.addEventListener("mouseleave", release);
+    return release;
   }
 
   function wireTriggerElement(element, input, getState, sync) {
-    if (!element || typeof element.addEventListener !== "function") return;
-    if (wiredPointerElements.has(element)) return;
+    if (!element || typeof element.addEventListener !== "function") return null;
+    if (wiredPointerElements.has(element)) return null;
     wiredPointerElements.add(element);
     enablePointerElement(element);
     let dragging = false;
@@ -1007,17 +1070,14 @@
     element.addEventListener("pointerup", release);
     element.addEventListener("pointercancel", release);
     element.addEventListener("lostpointercapture", release);
+    return release;
   }
 
   function wireAddedStick(element, side, getState, sync) {
-    if (!element || typeof element.addEventListener !== "function") return;
-    if (wiredPointerElements.has(element)) return;
-    let addedKind = null;
-    if (typeof element.getAttribute === "function") {
-      addedKind = element.getAttribute("data-telemark-gp-added");
-    }
-    if (addedKind !== "stick") return;
+    if (!element || typeof element.addEventListener !== "function") return null;
+    if (wiredPointerElements.has(element)) return null;
     wiredPointerElements.add(element);
+    enablePointerElement(element);
     let dragging = false;
     let pointerId = null;
     const xInput = side + "_stick_x";
@@ -1064,28 +1124,57 @@
     element.addEventListener("pointerup", release);
     element.addEventListener("pointercancel", release);
     element.addEventListener("lostpointercapture", release);
+    return release;
   }
 
   function wirePointerControls(controls, getState, sync) {
+    const resetters = [];
+    function collect(reset) {
+      if (typeof reset === "function") resetters.push(reset);
+    }
     BUTTON_INPUTS.forEach(function (input) {
       (controls.get(input) || []).forEach(function (element) {
-        wireHoldElement(element, input, getState, sync);
+        collect(wireHoldElement(element, input, getState, sync));
       });
     });
     (controls.get("left_trigger") || []).forEach(function (element) {
-      wireTriggerElement(element, "left_trigger", getState, sync);
+      collect(wireTriggerElement(element, "left_trigger", getState, sync));
     });
     (controls.get("right_trigger") || []).forEach(function (element) {
-      wireTriggerElement(element, "right_trigger", getState, sync);
+      collect(wireTriggerElement(element, "right_trigger", getState, sync));
     });
     const leftZones = controls.get("left_stick_x") || [];
     const rightZones = controls.get("right_stick_x") || [];
     leftZones.forEach(function (element) {
-      wireAddedStick(element, "left", getState, sync);
+      collect(wireAddedStick(element, "left", getState, sync));
     });
     rightZones.forEach(function (element) {
-      wireAddedStick(element, "right", getState, sync);
+      collect(wireAddedStick(element, "right", getState, sync));
     });
+    return resetters;
+  }
+
+  function preventControllerDragging(controller) {
+    if (!controller) return;
+    const images = [];
+    if (String(controller.tagName || "").toLowerCase() === "img") images.push(controller);
+    if (typeof controller.querySelectorAll === "function") {
+      Array.prototype.push.apply(images, Array.from(controller.querySelectorAll("img")));
+    }
+    images.forEach(function (image) {
+      image.draggable = false;
+      setAttributeSafe(image, "draggable", "false");
+      if (typeof image.addEventListener === "function") {
+        image.addEventListener("dragstart", function (event) {
+          if (event && event.preventDefault) event.preventDefault();
+        });
+      }
+    });
+    if (typeof controller.addEventListener === "function") {
+      controller.addEventListener("dragstart", function (event) {
+        if (event && event.preventDefault) event.preventDefault();
+      });
+    }
   }
 
   function defaultGlobal() {
@@ -1141,6 +1230,7 @@
     if (settings.addMissingOverlays !== false && controller) {
       ensureControlOverlays(documentObject, controller, controls);
     }
+    preventControllerDragging(controller);
 
     let legendContainer = resolveElement(settings.legendContainer, documentObject);
     if (!legendContainer) legendContainer = firstMatch(documentObject, LEGEND_CONTAINER_SELECTORS);
@@ -1150,10 +1240,24 @@
       : createLegend(documentObject, legendContainer);
 
     function sync() {
-      return syncVisibleControls(getState(), controls, documentObject);
+      const normalized = syncVisibleControls(getState(), controls, documentObject);
+      if (typeof settings.onInput === "function") {
+        try {
+          settings.onInput(normalized);
+        } catch (error) {
+          // A lesson-specific readout must never leave the shared controller in
+          // a half-installed state with pointer handlers but no keyboard input.
+          if (globalObject && globalObject.console && typeof globalObject.console.error === "function") {
+            globalObject.console.error("Telemark gamepad input callback failed", error);
+          }
+        }
+      }
+      return normalized;
     }
 
-    if (settings.pointer !== false) wirePointerControls(controls, getState, sync);
+    const pointerResetters = settings.pointer !== false
+      ? wirePointerControls(controls, getState, sync)
+      : [];
     sync();
 
     const heldCodes = new Set();
@@ -1164,9 +1268,6 @@
       const next = computeKeyboardState(heldCodes);
       keyboardSnapshot = applyKeyboardDelta(getState(), next, keyboardSnapshot);
       sync();
-      if (typeof settings.onInput === "function") {
-        settings.onInput(getState(), next);
-      }
       return next;
     }
 
@@ -1191,7 +1292,13 @@
 
     function reset() {
       heldCodes.clear();
-      return updateKeyboard();
+      keyboardSnapshot = createNeutralState();
+      pointerResetters.forEach(function (release) { release(); });
+      const state = getState();
+      CANONICAL_INPUTS.forEach(function (input) {
+        setInputValue(state, input, neutralValue(input));
+      });
+      return sync();
     }
 
     function onVisibilityChange() {

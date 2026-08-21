@@ -31,6 +31,325 @@
 (function () {
   "use strict";
 
+  const THEME_MESSAGE_TYPE = "telemark:simulator-theme-state";
+  const scriptMode = document.currentScript && document.currentScript.dataset
+    ? document.currentScript.dataset.telemarkMode
+    : "";
+  const documentMode = document.documentElement && document.documentElement.dataset
+    ? document.documentElement.dataset.telemarkMode
+    : "";
+  const simulatorMode = String(scriptMode || documentMode || "full").toLowerCase();
+  const isLegacyMode = simulatorMode === "legacy";
+  const themeListeners = new Set();
+  let activeTheme = "";
+  let legacyInstallation = null;
+  const wiredGamepadCards = new WeakSet();
+
+  function normalizeTheme(theme) {
+    return theme === "light" ? "light" : "dark";
+  }
+
+  function detectInitialTheme() {
+    const root = document.documentElement;
+    const declared = root && (
+      root.getAttribute && root.getAttribute("data-theme")
+      || root.dataset && root.dataset.telemarkTheme
+    );
+    if (declared === "light" || declared === "dark") return declared;
+    try {
+      const queryTheme = new URLSearchParams(window.location.search).get("theme");
+      if (queryTheme === "light" || queryTheme === "dark") return queryTheme;
+    } catch (_) {}
+    try {
+      if (window.parent && window.parent !== window && window.parent.document) {
+        const parentRoot = window.parent.document.documentElement;
+        const parentTheme = parentRoot && parentRoot.getAttribute("data-theme");
+        if (parentTheme === "light" || parentTheme === "dark") return parentTheme;
+      }
+    } catch (_) {}
+    if (window.matchMedia) {
+      try {
+        if (window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
+      } catch (_) {}
+    }
+    return "dark";
+  }
+
+  function applyTheme(theme) {
+    activeTheme = normalizeTheme(theme);
+    const root = document.documentElement;
+    if (root) {
+      if (root.setAttribute) root.setAttribute("data-theme", activeTheme);
+      if (root.dataset) root.dataset.telemarkTheme = activeTheme;
+      if (root.style) root.style.colorScheme = activeTheme;
+    }
+    if (document.body && document.body.dataset) {
+      document.body.dataset.telemarkTheme = activeTheme;
+    }
+    const sceneContainer = document.getElementById && document.getElementById("sim-scene-container");
+    if (sceneContainer && sceneContainer.style) {
+      sceneContainer.style.backgroundColor = activeTheme === "light" ? "#eaf1f5" : "#050508";
+    }
+
+    applyThreeTheme(activeTheme);
+    themeListeners.forEach(function (listener) {
+      try {
+        listener(activeTheme);
+      } catch (error) {
+        console.error("Telemark simulator theme callback failed", error);
+      }
+    });
+
+    if (typeof window.CustomEvent === "function" && window.dispatchEvent) {
+      window.dispatchEvent(new window.CustomEvent("telemark:simulator-theme-change", {
+        detail: {theme: activeTheme},
+      }));
+    }
+    return activeTheme;
+  }
+
+  function compileStudentSource(source, runtime, compileOptions) {
+    if (!window.TelemarkJava || typeof window.TelemarkJava.compile !== "function") {
+      throw new Error("Telemark Java compiler is unavailable");
+    }
+    return window.TelemarkJava.compile.apply(window.TelemarkJava, arguments);
+  }
+
+  function createRuntime(options) {
+    if (!window.TelemarkJava || typeof window.TelemarkJava.createRuntime !== "function") {
+      throw new Error("Telemark Java runtime is unavailable");
+    }
+    return window.TelemarkJava.createRuntime.apply(window.TelemarkJava, arguments);
+  }
+
+  function preventNativeControllerDrag(root) {
+    if (!root || !root.querySelectorAll) return;
+    const images = root.querySelectorAll(
+      ".controller-img, .sim-controller-img, #controller-wrap img, #sim-controller-wrap img"
+    );
+    Array.prototype.forEach.call(images, function (image) {
+      image.draggable = false;
+      if (image.setAttribute) image.setAttribute("draggable", "false");
+      if (image.dataset && image.dataset.telemarkDragGuard === "true") return;
+      if (image.dataset) image.dataset.telemarkDragGuard = "true";
+      if (image.addEventListener) {
+        image.addEventListener("dragstart", function (event) {
+          event.preventDefault();
+        });
+      }
+    });
+  }
+
+  function wireFloatingGamepadCard(card, titlebar, collapseBtn, body, resizeHandle) {
+    if (!card || !titlebar || wiredGamepadCards.has(card)) return;
+    wiredGamepadCards.add(card);
+
+    let collapsed = false;
+    let savedWidth = "";
+    let savedHeight = "";
+    let dragging = false;
+    let resizing = false;
+    let pointerId = null;
+    let startX = 0;
+    let startY = 0;
+    let startWidth = 0;
+    let startHeight = 0;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let previousUserSelect = "";
+
+    function lockSelection() {
+      if (!document.body || !document.body.style) return;
+      previousUserSelect = document.body.style.userSelect || "";
+      document.body.style.userSelect = "none";
+    }
+
+    function unlockSelection() {
+      if (document.body && document.body.style) {
+        document.body.style.userSelect = previousUserSelect;
+      }
+    }
+
+    function finishPointer() {
+      dragging = false;
+      resizing = false;
+      pointerId = null;
+      if (titlebar.classList) titlebar.classList.remove("dragging");
+      unlockSelection();
+    }
+
+    function isCollapseTarget(target) {
+      if (!collapseBtn || !target) return false;
+      if (target === collapseBtn) return true;
+      if (typeof collapseBtn.contains === "function" && collapseBtn.contains(target)) return true;
+      return typeof target.closest === "function" && target.closest("button") === collapseBtn;
+    }
+
+    if (collapseBtn && collapseBtn.addEventListener) {
+      collapseBtn.addEventListener("click", function (event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        finishPointer();
+        collapsed = !collapsed;
+        if (card.classList) card.classList.toggle("collapsed", collapsed);
+        if (collapsed) {
+          savedWidth = card.style.width || "";
+          savedHeight = card.style.height || "";
+          if (body) body.style.display = "none";
+          if (resizeHandle) resizeHandle.style.display = "none";
+          card.style.height = "auto";
+          collapseBtn.textContent = "+";
+          collapseBtn.setAttribute("aria-expanded", "false");
+        } else {
+          if (body) body.style.display = "";
+          if (resizeHandle) resizeHandle.style.display = "";
+          card.style.width = savedWidth;
+          card.style.height = savedHeight;
+          collapseBtn.textContent = "−";
+          collapseBtn.setAttribute("aria-expanded", "true");
+        }
+      });
+      collapseBtn.setAttribute("aria-expanded", "true");
+    }
+
+    titlebar.addEventListener("pointerdown", function (event) {
+      if (isCollapseTarget(event.target)) return;
+      finishPointer();
+      dragging = true;
+      pointerId = event.pointerId;
+      const rect = card.getBoundingClientRect();
+      dragOffsetX = event.clientX - rect.left;
+      dragOffsetY = event.clientY - rect.top;
+      if (titlebar.classList) titlebar.classList.add("dragging");
+      lockSelection();
+      if (titlebar.setPointerCapture && pointerId != null) {
+        try { titlebar.setPointerCapture(pointerId); } catch (_) {}
+      }
+      event.preventDefault();
+    });
+    titlebar.addEventListener("pointermove", function (event) {
+      if (!dragging || (pointerId != null && event.pointerId !== pointerId)) return;
+      const maxLeft = Math.max(0, window.innerWidth - card.offsetWidth);
+      const maxTop = Math.max(0, window.innerHeight - Math.min(40, card.offsetHeight));
+      card.style.left = Math.max(0, Math.min(maxLeft, event.clientX - dragOffsetX)) + "px";
+      card.style.top = Math.max(0, Math.min(maxTop, event.clientY - dragOffsetY)) + "px";
+      card.style.right = "auto";
+      card.style.bottom = "auto";
+      event.preventDefault();
+    });
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (type) {
+      titlebar.addEventListener(type, finishPointer);
+    });
+
+    if (resizeHandle && resizeHandle.addEventListener) {
+      resizeHandle.addEventListener("pointerdown", function (event) {
+        finishPointer();
+        resizing = true;
+        pointerId = event.pointerId;
+        startX = event.clientX;
+        startY = event.clientY;
+        startWidth = card.offsetWidth;
+        startHeight = card.offsetHeight;
+        lockSelection();
+        if (resizeHandle.setPointerCapture && pointerId != null) {
+          try { resizeHandle.setPointerCapture(pointerId); } catch (_) {}
+        }
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      resizeHandle.addEventListener("pointermove", function (event) {
+        if (!resizing || (pointerId != null && event.pointerId !== pointerId)) return;
+        card.style.width = Math.max(260, startWidth + event.clientX - startX) + "px";
+        card.style.height = Math.max(80, startHeight + event.clientY - startY) + "px";
+        event.preventDefault();
+      });
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (type) {
+        resizeHandle.addEventListener(type, finishPointer);
+      });
+    }
+
+    if (window.addEventListener) window.addEventListener("blur", finishPointer);
+    if (card.addEventListener) {
+      card.addEventListener("dragstart", function (event) { event.preventDefault(); });
+      card.addEventListener("selectstart", function (event) {
+        if (dragging || resizing) event.preventDefault();
+      });
+    }
+  }
+
+  function wireLegacyGamepadCard(settings) {
+    const card = settings.card || document.querySelector("#gamepad-float-card, #gamepad-card");
+    if (!card) return;
+    const titlebar = settings.titlebar || card.querySelector("#gamepad-titlebar, .gamepad-titlebar");
+    const collapseBtn = settings.collapseButton || card.querySelector("#gp-collapse-btn, #gamepad-collapse-btn, .gp-collapse-btn");
+    const body = settings.cardBody || card.querySelector("#gamepad-card-body, #gamepad-body, .gamepad-card-body");
+    const resizeHandle = settings.resizeHandle || card.querySelector("#gamepad-resize-handle, .gamepad-resize-handle");
+    wireFloatingGamepadCard(card, titlebar, collapseBtn, body, resizeHandle);
+  }
+
+  function installLegacy(options) {
+    const settings = options || {};
+    if (typeof settings.onThemeChange === "function") {
+      themeListeners.add(settings.onThemeChange);
+    }
+
+    applyTheme(activeTheme || detectInitialTheme());
+    preventNativeControllerDrag(document);
+    wireLegacyGamepadCard(settings);
+
+    if (!legacyInstallation) {
+      const state = settings.state || settings.gamepadState || settings.gamepad || window.gamepad || window.gamepadState;
+      let controls = null;
+      if (state && window.TelemarkGamepadControls) {
+        controls = window.TelemarkGamepadControls.install({
+          state: state,
+          controller: settings.controller,
+          legendContainer: settings.legendContainer,
+          onInput: settings.onInput,
+        });
+        preventNativeControllerDrag(document);
+      }
+      legacyInstallation = {
+        state: state || null,
+        controls: controls,
+        applyTheme: applyTheme,
+        getTheme: function () { return activeTheme; },
+        compileStudentSource: compileStudentSource,
+        createRuntime: createRuntime,
+        destroy: function () {
+          if (controls && controls.destroy) controls.destroy();
+          if (typeof settings.onThemeChange === "function") {
+            themeListeners.delete(settings.onThemeChange);
+          }
+          legacyInstallation = null;
+        },
+      };
+    }
+
+    return legacyInstallation;
+  }
+
+  window.TelemarkSimulatorBase = Object.freeze({
+    installLegacy: installLegacy,
+    compileStudentSource: compileStudentSource,
+    createRuntime: createRuntime,
+    applyTheme: applyTheme,
+    getTheme: function () { return activeTheme; },
+    themeThreeScene: function (scene, theme) {
+      return applyThreeTheme(normalizeTheme(theme || activeTheme || detectInitialTheme()), scene);
+    },
+    mode: simulatorMode,
+  });
+
+  window.addEventListener("message", function (event) {
+    const data = event && event.data;
+    if (!data || data.type !== THEME_MESSAGE_TYPE) return;
+    if (data.theme !== "light" && data.theme !== "dark") return;
+    applyTheme(data.theme);
+  });
+
   // ========================================================================
   // SECTION 1: CSS THEME INJECTION
   // ========================================================================
@@ -46,6 +365,11 @@
     :root {
       --bg: #05080d;
       --panel: #0b1118;
+      --panel-raised: #111114;
+      --panel-header: #0a0a0d;
+      --panel-soft: #0e0e14;
+      --scene-bg: #050508;
+      --code-bg: #050508;
       --border: #243746;
       --active: #22d3ee;
       --good: #22cc66;
@@ -55,6 +379,22 @@
       --font-ui: 'IBM Plex Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       --font-code: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
       --editor-line-height: 20.8px;
+    }
+    :root[data-theme="light"],
+    :root[data-telemark-theme="light"] {
+      --bg: #f4f8fb;
+      --panel: #ffffff;
+      --panel-raised: #f7fafc;
+      --panel-header: #eef5f8;
+      --panel-soft: #e8f1f5;
+      --scene-bg: #eaf1f5;
+      --code-bg: #f8fbfd;
+      --border: #bfd0da;
+      --active: #087f9c;
+      --good: #168449;
+      --danger: #b4232c;
+      --text-primary: #102a36;
+      --text-secondary: #506b78;
     }
 
     /* ── Scrollbar Styling ── */
@@ -101,19 +441,19 @@
       height: 100%;
       display: flex;
       flex-direction: column;
-      background: #111114;
+      background: var(--panel-raised);
       border-right: 1px solid var(--border);
     }
 
     /* ── Panel Header ── */
     .sim-panel-header {
       padding: 10px 14px;
-      background: #0a0a0d;
+      background: var(--panel-header);
       border-bottom: 1px solid var(--border);
     }
     .sim-panel-header-title {
       font-weight: 700;
-      color: #fff;
+      color: var(--text-primary);
       font-size: 1rem;
       font-family: var(--font-ui);
     }
@@ -137,7 +477,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #0e0e14;
+      background: var(--panel-soft);
       font-weight: 700;
       font-size: 0.9rem;
       color: var(--active);
@@ -896,7 +1236,7 @@
       background: radial-gradient(circle at 35% 35%, rgba(80,80,80,.75), rgba(12,12,12,.55) 70%);
       border: 1px solid rgba(255,255,255,.14);
       pointer-events: none;
-      opacity: 0.55;
+      opacity: 1;
     }
     .sim-trigger-image {
       position: absolute;
@@ -964,6 +1304,93 @@
       background: rgba(0,122,204,0.12);
       border-left-color: #38bdf8;
       color: #6db3f2;
+    }
+
+    :root[data-theme="light"] body,
+    :root[data-telemark-theme="light"] body {
+      background: var(--bg);
+      color: var(--text-primary);
+    }
+    :root[data-theme="light"] .sim-challenge-body,
+    :root[data-telemark-theme="light"] .sim-challenge-body,
+    :root[data-theme="light"] .sim-challenge-desc,
+    :root[data-telemark-theme="light"] .sim-challenge-desc {
+      color: var(--text-primary);
+    }
+    :root[data-theme="light"] .sim-challenge-desc,
+    :root[data-telemark-theme="light"] .sim-challenge-desc,
+    :root[data-theme="light"] .sim-fault-control select,
+    :root[data-telemark-theme="light"] .sim-fault-control select {
+      background: var(--code-bg);
+      color: var(--text-primary);
+    }
+    :root[data-theme="light"] .sim-code-wrapper,
+    :root[data-telemark-theme="light"] .sim-code-wrapper,
+    :root[data-theme="light"] #sim-highlighting,
+    :root[data-telemark-theme="light"] #sim-highlighting {
+      background: var(--code-bg);
+    }
+    :root[data-theme="light"] #sim-code-editor,
+    :root[data-telemark-theme="light"] #sim-code-editor {
+      caret-color: #102a36;
+    }
+    :root[data-theme="light"] .sim-bottom-bar,
+    :root[data-telemark-theme="light"] .sim-bottom-bar,
+    :root[data-theme="light"] #sim-right-panel,
+    :root[data-telemark-theme="light"] #sim-right-panel,
+    :root[data-theme="light"] .sim-gamepad-card,
+    :root[data-telemark-theme="light"] .sim-gamepad-card {
+      background: var(--panel);
+    }
+    :root[data-theme="light"] .sim-gamepad-titlebar,
+    :root[data-telemark-theme="light"] .sim-gamepad-titlebar {
+      background: var(--panel-soft);
+    }
+    :root[data-theme="light"] .sim-gamepad-title-label,
+    :root[data-telemark-theme="light"] .sim-gamepad-title-label {
+      color: var(--text-primary);
+    }
+    :root[data-theme="light"] .sim-gp-collapse-btn,
+    :root[data-telemark-theme="light"] .sim-gp-collapse-btn {
+      background: #ffffff;
+      border-color: var(--border);
+      color: var(--text-primary);
+    }
+    :root[data-theme="light"] .sim-controller-wrap,
+    :root[data-telemark-theme="light"] .sim-controller-wrap,
+    :root[data-theme="light"] #sim-scene-container,
+    :root[data-telemark-theme="light"] #sim-scene-container {
+      background: var(--scene-bg);
+    }
+    :root[data-theme="light"] .sim-controls-row .sim-btn-reset,
+    :root[data-telemark-theme="light"] .sim-controls-row .sim-btn-reset {
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+    :root[data-theme="light"] .sim-controls-row .sim-btn-reset:hover,
+    :root[data-telemark-theme="light"] .sim-controls-row .sim-btn-reset:hover {
+      background: var(--panel-raised);
+      border-color: var(--active);
+      color: var(--text-primary);
+      filter: none;
+    }
+    :root[data-theme="light"] .sim-scene-reset-btn,
+    :root[data-telemark-theme="light"] .sim-scene-reset-btn {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: var(--border);
+      color: var(--text-primary);
+    }
+    :root[data-theme="light"] .sim-scene-reset-btn:hover,
+    :root[data-telemark-theme="light"] .sim-scene-reset-btn:hover {
+      background: #ffffff;
+      border-color: var(--active);
+      color: var(--active);
+    }
+    :root[data-theme="light"] .sim-telemetry-panel,
+    :root[data-telemark-theme="light"] .sim-telemetry-panel {
+      background: #102229;
+      color: #8df3ad;
     }
 
     @media (max-width: 900px) {
@@ -1202,8 +1629,10 @@
     if (window.TelemarkGamepadControls) {
       window.telemarkGamepadControls = window.TelemarkGamepadControls.install({
         state: window.gamepad,
+        pointer: false,
       });
     }
+    preventNativeControllerDrag(document);
 
     // ── Wire up events ──
     wireEditorEvents();
@@ -1807,6 +2236,8 @@
 
     zone.addEventListener("pointerup", release);
     zone.addEventListener("pointercancel", release);
+    zone.addEventListener("lostpointercapture", release);
+    window.addEventListener("blur", release);
 
     function updateJoystickFromPointer(e) {
       const rect = zone.getBoundingClientRect();
@@ -1823,8 +2254,8 @@
       }
 
       const nx = Math.max(-1, Math.min(1, dx / maxR));
-      // Y is inverted: up on screen = negative Y, but gamepad up = positive
-      const ny = Math.max(-1, Math.min(1, -dy / maxR));
+      // FTC gamepad axes report up as a negative Y value.
+      const ny = Math.max(-1, Math.min(1, dy / maxR));
 
       window.gamepad[xProp] = nx;
       window.gamepad[yProp] = ny;
@@ -2023,102 +2454,7 @@
 
   /** Wire gamepad card drag, resize, collapse */
   function wireGamepadCardEvents(card, titlebar, collapseBtn, body, resizeHandle) {
-    let collapsed = false;
-    let savedWidth = null;
-    let savedHeight = null;
-
-    // ── Collapse/Expand ──
-    collapseBtn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      collapsed = !collapsed;
-      if (collapsed) {
-        // Save current dimensions
-        savedWidth = card.style.width || null;
-        savedHeight = card.style.height || null;
-        body.style.display = "none";
-        resizeHandle.style.display = "none";
-        card.style.height = "auto";
-        collapseBtn.innerHTML = "+";
-      } else {
-        body.style.display = "";
-        resizeHandle.style.display = "";
-        if (savedWidth) card.style.width = savedWidth;
-        if (savedHeight) card.style.height = savedHeight;
-        collapseBtn.innerHTML = "−";
-      }
-    });
-
-    // ── Drag ──
-    let dragging = false;
-    let dragOffsetX = 0;
-    let dragOffsetY = 0;
-
-    titlebar.addEventListener("pointerdown", function (e) {
-      if (e.target === collapseBtn || e.target.parentElement === collapseBtn)
-        return;
-      dragging = true;
-      const rect = card.getBoundingClientRect();
-      dragOffsetX = e.clientX - rect.left;
-      dragOffsetY = e.clientY - rect.top;
-      titlebar.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-
-    titlebar.addEventListener("pointermove", function (e) {
-      if (!dragging) return;
-      const newLeft = Math.max(
-        0,
-        Math.min(window.innerWidth - card.offsetWidth, e.clientX - dragOffsetX)
-      );
-      const newTop = Math.max(
-        0,
-        Math.min(window.innerHeight - 40, e.clientY - dragOffsetY)
-      );
-      card.style.left = newLeft + "px";
-      card.style.top = newTop + "px";
-      card.style.right = "auto";
-      card.style.bottom = "auto";
-    });
-
-    titlebar.addEventListener("pointerup", function () {
-      dragging = false;
-    });
-    titlebar.addEventListener("pointercancel", function () {
-      dragging = false;
-    });
-
-    // ── Resize ──
-    let resizing = false;
-    let resizeStartX = 0;
-    let resizeStartY = 0;
-    let resizeStartW = 0;
-    let resizeStartH = 0;
-
-    resizeHandle.addEventListener("pointerdown", function (e) {
-      resizing = true;
-      resizeStartX = e.clientX;
-      resizeStartY = e.clientY;
-      resizeStartW = card.offsetWidth;
-      resizeStartH = card.offsetHeight;
-      resizeHandle.setPointerCapture(e.pointerId);
-      e.preventDefault();
-      e.stopPropagation();
-    });
-
-    resizeHandle.addEventListener("pointermove", function (e) {
-      if (!resizing) return;
-      card.style.width =
-        Math.max(260, resizeStartW + (e.clientX - resizeStartX)) + "px";
-      card.style.height =
-        Math.max(80, resizeStartH + (e.clientY - resizeStartY)) + "px";
-    });
-
-    resizeHandle.addEventListener("pointerup", function () {
-      resizing = false;
-    });
-    resizeHandle.addEventListener("pointercancel", function () {
-      resizing = false;
-    });
+    wireFloatingGamepadCard(card, titlebar, collapseBtn, body, resizeHandle);
   }
 
   /**
@@ -2353,7 +2689,7 @@
       if (typeof source !== "string") {
         throw new Error("The simulator did not provide Java source text");
       }
-      const validation = window.TelemarkJava.compile(source);
+      const validation = compileStudentSource(source);
       if (validation.ok) return true;
 
       const diagnostic = validation.diagnostics && validation.diagnostics[0];
@@ -2849,7 +3185,7 @@
   window.transpileAndRun = function (javaCode, initHandler, loopHandler) {
     try {
       if (window.TelemarkJava) {
-        const compiled = window.TelemarkJava.compile(javaCode, {
+        const compiled = compileStudentSource(javaCode, {
           gamepad1: window.gamepad,
           gamepad2: window.gamepad2,
           hardwareMap: window.hardwareMap,
@@ -3737,6 +4073,7 @@
   let threeScene = null;
   let threeCamera = null;
   let threeRenderer = null;
+  let threeGrid = null;
   let animationFrameId = null;
   let fieldMeshes = []; // floor + walls for setFieldVisible
 
@@ -3758,6 +4095,76 @@
     prevX: 0,
     prevY: 0,
   };
+
+  function setMaterialColor(material, hex) {
+    if (!material) return;
+    const materials = Array.isArray(material) ? material : [material];
+    materials.forEach(function (entry) {
+      if (entry && entry.color && typeof entry.color.setHex === "function") {
+        entry.color.setHex(hex);
+        entry.needsUpdate = true;
+      }
+    });
+  }
+
+  function recolorGrid(grid, theme) {
+    if (!grid || !grid.geometry || !window.THREE) return;
+    const position = grid.geometry.getAttribute && grid.geometry.getAttribute("position");
+    const color = grid.geometry.getAttribute && grid.geometry.getAttribute("color");
+    if (!position || !color || typeof color.setXYZ !== "function") {
+      setMaterialColor(grid.material, theme === "light" ? 0x88a8b8 : 0x243746);
+      return;
+    }
+    const centerColor = new THREE.Color(theme === "light" ? 0x5e879b : 0x39556a);
+    const lineColor = new THREE.Color(theme === "light" ? 0xa9c0cc : 0x243746);
+    for (let index = 0; index < position.count; index += 2) {
+      const centerLine =
+        (Math.abs(position.getX(index)) < 0.0001 && Math.abs(position.getX(index + 1)) < 0.0001) ||
+        (Math.abs(position.getZ(index)) < 0.0001 && Math.abs(position.getZ(index + 1)) < 0.0001);
+      const next = centerLine ? centerColor : lineColor;
+      color.setXYZ(index, next.r, next.g, next.b);
+      if (index + 1 < position.count) color.setXYZ(index + 1, next.r, next.g, next.b);
+    }
+    color.needsUpdate = true;
+  }
+
+  function applyThreeTheme(theme, explicitScene) {
+    const nextTheme = normalizeTheme(theme);
+    const targetScene = explicitScene || threeScene || window.scene;
+    if (!targetScene || !window.THREE) return nextTheme;
+    if (targetScene.background && typeof targetScene.background.setHex === "function") {
+      targetScene.background.setHex(nextTheme === "light" ? 0xeaf1f5 : 0x050508);
+    } else {
+      targetScene.background = new THREE.Color(nextTheme === "light" ? 0xeaf1f5 : 0x050508);
+    }
+
+    if (typeof targetScene.traverse === "function") {
+      targetScene.traverse(function (object) {
+        const role = object && object.userData && object.userData.telemarkThemeRole;
+        const rotationX = object && object.rotation ? Number(object.rotation.x) || 0 : 0;
+        const isHorizontalPlane = Boolean(
+          object && object.isMesh && object.geometry && object.geometry.type === "PlaneGeometry" &&
+          Math.abs(Math.abs(Math.sin(rotationX)) - 1) < 0.02
+        );
+        if (role === "floor" || isHorizontalPlane) {
+          setMaterialColor(object.material, nextTheme === "light" ? 0xdce8ee : 0x1a1a2e);
+        } else if (role === "wall") {
+          setMaterialColor(object.material, nextTheme === "light" ? 0xb8ccd6 : 0x151520);
+        } else if (role === "grid" || object === threeGrid || object.isGridHelper || object.type === "GridHelper") {
+          recolorGrid(object, nextTheme);
+        } else if (role === "ambient" || object.isAmbientLight) {
+          if (object.color && object.color.setHex) object.color.setHex(nextTheme === "light" ? 0xffffff : 0x404050);
+          object.intensity = nextTheme === "light" ? 1.05 : 0.6;
+        } else if (role === "directional" || object.isDirectionalLight) {
+          object.intensity = nextTheme === "light" ? 0.75 : 0.9;
+        }
+      });
+    }
+    if (threeRenderer && targetScene === threeScene && threeRenderer.render) {
+      threeRenderer.render(threeScene, threeCamera);
+    }
+    return nextTheme;
+  }
 
   function loadThreeJS(callback) {
     const script = document.createElement("script");
@@ -3831,9 +4238,11 @@
 
     // ── Lights ──
     const ambient = new THREE.AmbientLight(0x404050, 0.6);
+    ambient.userData.telemarkThemeRole = "ambient";
     threeScene.add(ambient);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    dirLight.userData.telemarkThemeRole = "directional";
     dirLight.position.set(3, 6, 4);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 1024;
@@ -3844,10 +4253,17 @@
     const floorGeo = new THREE.PlaneGeometry(8, 8);
     const floorMat = new THREE.MeshPhongMaterial({ color: 0x1a1a2e });
     const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.userData.telemarkThemeRole = "floor";
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     threeScene.add(floor);
     fieldMeshes.push(floor);
+
+    threeGrid = new THREE.GridHelper(8, 16, 0x39556a, 0x243746);
+    threeGrid.position.y = 0.005;
+    threeGrid.userData.telemarkThemeRole = "grid";
+    threeScene.add(threeGrid);
+    fieldMeshes.push(threeGrid);
 
     // ── Perimeter Walls ──
     const wallMat = new THREE.MeshPhongMaterial({ color: 0x151520 });
@@ -3856,11 +4272,13 @@
 
     [-1, 1].forEach(function (s) {
       const w1 = new THREE.Mesh(wallGeoH, wallMat);
+      w1.userData.telemarkThemeRole = "wall";
       w1.position.set(0, 0.3, s * 4);
       threeScene.add(w1);
       fieldMeshes.push(w1);
 
       const w2 = new THREE.Mesh(wallGeoV, wallMat);
+      w2.userData.telemarkThemeRole = "wall";
       w2.position.set(s * 4, 0.3, 0);
       threeScene.add(w2);
       fieldMeshes.push(w2);
@@ -3883,6 +4301,8 @@
     window.scene = threeScene;
     window.camera = threeCamera;
     window.renderer = threeRenderer;
+
+    applyThreeTheme(activeTheme || detectInitialTheme(), threeScene);
 
     // Start animation loop
     startAnimationLoop();
@@ -3935,14 +4355,14 @@
       updateCameraOrbit();
     });
 
-    canvas.addEventListener("pointerup", function () {
+    function releaseOrbit() {
       orbit.dragging = false;
       orbit.panning = false;
-    });
-    canvas.addEventListener("pointercancel", function () {
-      orbit.dragging = false;
-      orbit.panning = false;
-    });
+    }
+    canvas.addEventListener("pointerup", releaseOrbit);
+    canvas.addEventListener("pointercancel", releaseOrbit);
+    canvas.addEventListener("lostpointercapture", releaseOrbit);
+    window.addEventListener("blur", releaseOrbit);
 
     canvas.addEventListener(
       "wheel",
@@ -4139,6 +4559,8 @@
   // ========================================================================
 
   function initialize() {
+    applyTheme(activeTheme || detectInitialTheme());
+
     // 1. Inject CSS
     injectCSS();
 
@@ -4190,6 +4612,9 @@
         if (typeof window.onSimulatorReady === "function") {
           try {
             window.onSimulatorReady();
+            // Challenge callbacks commonly add their own floor/grid or replace
+            // the scene background, so theme the completed scene as well.
+            applyThreeTheme(activeTheme || detectInitialTheme());
           } catch (e) {
             console.error("[onSimulatorReady error]", e);
             showTelemetryError("Setup error: " + e.message);
@@ -4209,11 +4634,17 @@
     });
   }
 
+  function initializeLegacy() {
+    applyTheme(activeTheme || detectInitialTheme());
+    preventNativeControllerDrag(document);
+  }
+
   // Wait for DOMContentLoaded
+  const initializeForMode = isLegacyMode ? initializeLegacy : initialize;
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initialize);
+    document.addEventListener("DOMContentLoaded", initializeForMode);
   } else {
     // DOM already loaded (e.g., script loaded with defer or at end of body)
-    initialize();
+    initializeForMode();
   }
 })();

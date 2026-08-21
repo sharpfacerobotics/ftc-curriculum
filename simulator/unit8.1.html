@@ -111,6 +111,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -297,10 +298,10 @@ function failJavaExecution(context,error){
 }
 
 function validateFullJavaSource(code){
-  if(!window.TelemarkJava){
+  if(!window.TelemarkSimulatorBase){
     return failJavaExecution('Java compile error',new Error('Telemark Java compiler is unavailable (line 1, column 1)'));
   }
-  var result=window.TelemarkJava.compile(code);
+  var result=window.TelemarkSimulatorBase.compileStudentSource(code);
   if(result.ok)return true;
   var diagnostic=result.diagnostics&&result.diagnostics[0]||{};
   var line=diagnostic.line||1,column=diagnostic.column||1;
@@ -551,6 +552,7 @@ function initScene(){
   var floorMat=new THREE.MeshPhongMaterial({color:0x1a1a2e});
   var floor=new THREE.Mesh(floorGeo,floorMat);
   floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;
+  floor.userData.telemarkThemeRole='floor';
   scene.add(floor);
   var wallMat=new THREE.MeshPhongMaterial({color:0x151520});
   var wallGeo=new THREE.BoxGeometry(8,0.6,0.1);
@@ -629,6 +631,7 @@ function initScene(){
     updateCameraOrbit();
   },{passive:false});
   canvas.addEventListener('contextmenu',function(e){e.preventDefault()});
+  if(window.TelemarkSimulatorBase)window.TelemarkSimulatorBase.themeThreeScene(scene);
 }
 function animateScene(){
   requestAnimationFrame(animateScene);
@@ -646,6 +649,8 @@ window.addEventListener('resize',function(){
   renderer.setSize(w,h);
 });
 
+// Fallback only: simulator_base owns gamepad input and card interactions.
+if (!window.TelemarkSimulatorBase) {
 // ── Trigger Sliders (both left and right) ──
 function setupTrigger(sliderId,fillId,prop){
   var slider=document.getElementById(sliderId);
@@ -744,6 +749,7 @@ setupJoysticks();
   rh.addEventListener('pointermove',function(e){if(!cr)return;card.style.width=Math.max(240,crw+(e.clientX-crx))+'px';card.style.height=Math.max(80,crh+(e.clientY-cry))+'px'});
   rh.addEventListener('pointerup',function(){cr=false});rh.addEventListener('pointercancel',function(){cr=false});
 })();
+}
 
 window.addEventListener('load',function(){
   updateCode(codeEditor.value);
@@ -752,7 +758,12 @@ window.addEventListener('load',function(){
   animateScene();
   updatePowerBar();
 });
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({
+  state: gamepad,
+  onThemeChange: function(theme) {
+    if (scene) window.TelemarkSimulatorBase.themeThreeScene(scene, theme);
+  }
+});
 </script>
 </body>
 </html>

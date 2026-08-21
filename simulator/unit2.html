@@ -390,6 +390,7 @@
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
   <script src="./gamepad-controls.js"></script>
+  <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
 </head>
 <body>
@@ -694,7 +695,7 @@ function executeMethod(methodName) {
 
   if (shouldCompile) {
     const telemetryLines = [];
-    const runtime = TelemarkJava.createRuntime({
+    const runtime = TelemarkSimulatorBase.createRuntime({
       gamepad,
       getRuntime,
       resetRuntime() {
@@ -717,7 +718,7 @@ function executeMethod(methodName) {
       },
     });
     telemarkRuntime = runtime;
-    telemarkCompiledProgram = TelemarkJava.compile(code, runtime);
+    telemarkCompiledProgram = TelemarkSimulatorBase.compileStudentSource(code, runtime);
     if (!telemarkCompiledProgram.ok) {
       const error = telemarkCompiledProgram.diagnostics[0];
       document.getElementById('telemetry-log').textContent =
@@ -779,137 +780,13 @@ codeEditor.addEventListener('input', () => {
   updateHints(codeEditor.value);
 });
 
-// ─── Gamepad Buttons ─────────────────────────────────────────────────────────
-function setButtonState(prop, pressed, elementId) {
-  gamepad[prop] = pressed;
-  const el = document.getElementById(elementId);
-  if (el) el.classList.toggle('pressed', pressed);
-}
-
-const buttonMap = [
-  ['btn-a-visual', 'a'],
-  ['btn-b',        'b'],
-  ['btn-x',        'x'],
-  ['btn-y',        'y'],
-  ['btn-back',     'back'],
-  ['btn-start',    'start'],
-  ['btn-mode',     'mode'],
-];
-
-buttonMap.forEach(([id, prop]) => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener('pointerdown',  (e) => { e.preventDefault(); setButtonState(prop, true,  id); });
-  el.addEventListener('pointerup',         () => setButtonState(prop, false, id));
-  el.addEventListener('pointerleave',      () => setButtonState(prop, false, id));
-  el.addEventListener('pointercancel',     () => setButtonState(prop, false, id));
-});
-
-// ─── Joystick (Unified for Both Sticks) ──────────────────────────────────────
-const controllerWrap = document.getElementById('controller-wrap');
-
-// Config for each stick
-const sticks = {
-  left: {
-    zone:     document.getElementById('stick-zone-left'),
-    knob:     document.getElementById('stick-knob-left'),
-    defaultL: '35.6%',
-    defaultT: '66%',
-    dragging: false,
-    pointerId: null,
-    setValues(sx, sy) { gamepad.leftStickX = sx; gamepad.leftStickY = sy; }
-  },
-  right: {
-    zone:     document.getElementById('stick-zone-right'),
-    knob:     document.getElementById('stick-knob-right'),
-    defaultL: '64.6%',
-    defaultT: '66%',
-    dragging: false,
-    pointerId: null,
-    setValues(sx, sy) { gamepad.rightStickX = sx; gamepad.rightStickY = sy; }
-  }
-};
-
-function resetStick(stick) {
-  stick.dragging  = false;
-  stick.pointerId = null;
-  stick.setValues(0, 0);
-  stick.knob.style.left      = stick.defaultL;
-  stick.knob.style.top       = stick.defaultT;
-  stick.knob.style.transform = 'translate(-50%, -50%)';
-}
-
-function updateStickFromPointer(stick, clientX, clientY) {
-  const wrapRect = controllerWrap.getBoundingClientRect();
-  const zoneRect = stick.zone.getBoundingClientRect();
-
-  const centerX = zoneRect.left + zoneRect.width  / 2;
-  const centerY = zoneRect.top  + zoneRect.height / 2;
-
-  const dx = clientX - centerX;
-  const dy = clientY - centerY;
-
-  const maxR  = Math.min(zoneRect.width, zoneRect.height) * 0.36;
-  const dist  = Math.hypot(dx, dy);
-  const scale = dist > maxR ? maxR / dist : 1;
-
-  const clampedDx = dx * scale;
-  const clampedDy = dy * scale;
-
-  stick.setValues(
-    clamp(clampedDx / maxR, -1, 1),
-    clamp(clampedDy / maxR, -1, 1)
-  );
-
-  const knobCx = (zoneRect.left - wrapRect.left + zoneRect.width  / 2 + clampedDx) / wrapRect.width  * 100;
-  const knobCy = (zoneRect.top  - wrapRect.top  + zoneRect.height / 2 + clampedDy) / wrapRect.height * 100;
-
-  stick.knob.style.left      = knobCx + '%';
-  stick.knob.style.top       = knobCy + '%';
-  stick.knob.style.transform = 'translate(-50%, -50%)';
-}
-
-// Attach per-stick events
-Object.values(sticks).forEach(stick => {
-  stick.zone.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    stick.dragging  = true;
-    stick.pointerId = e.pointerId;
-    stick.zone.setPointerCapture(e.pointerId);
-    updateStickFromPointer(stick, e.clientX, e.clientY);
-  });
-});
-
-window.addEventListener('pointermove', (e) => {
-  Object.values(sticks).forEach(stick => {
-    if (stick.dragging && stick.pointerId === e.pointerId) {
-      updateStickFromPointer(stick, e.clientX, e.clientY);
-    }
-  });
-});
-
-function handlePointerEnd(e) {
-  Object.values(sticks).forEach(stick => {
-    if (stick.dragging && stick.pointerId === e.pointerId) {
-      resetStick(stick);
-    }
-  });
-}
-
-window.addEventListener('pointerup',     handlePointerEnd);
-window.addEventListener('pointercancel', handlePointerEnd);
-window.addEventListener('blur', () => {
-  Object.values(sticks).forEach(resetStick);
-});
-
 // ─── Boot ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   loadInitialCode();
   updateCode(codeEditor.value);
   updateHints(codeEditor.value);
-  Object.values(sticks).forEach(resetStick);
 });
-if (window.TelemarkGamepadControls) window.TelemarkGamepadControls.install({state: gamepad});
+if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({state: gamepad});
 </script>
 </body>
 </html>
