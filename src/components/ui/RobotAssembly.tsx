@@ -32,7 +32,9 @@ export default function RobotAssembly(): React.JSX.Element {
       return undefined;
     }
 
-    const timeline = sequence();
+    // Loops. The sequence ends by fading the parts out, which without a loop
+    // meant the robot assembled once and then left an empty space forever.
+    const timeline = sequence(true);
     timeline
       .add(part(1) as Element, {opacity: [0, 1], scaleY: [0.7, 1]}, 0)
       // Wheels drop onto the plate rather than fading with it.

@@ -98,9 +98,14 @@ export function pulse(el: Element | null): void {
   });
 }
 
-/** A timeline for sequenced, explanatory motion such as an assembly order. */
-export function sequence(): ReturnType<typeof createTimeline> {
-  return createTimeline({defaults: {duration: DUR.slow, ease: EASE}});
+/**
+ * A timeline for sequenced, explanatory motion such as an assembly order.
+ *
+ * @param loop Repeat forever. A sequence that ends by clearing itself needs
+ *   this, or it plays once and leaves an empty frame behind for good.
+ */
+export function sequence(loop = false): ReturnType<typeof createTimeline> {
+  return createTimeline({defaults: {duration: DUR.slow, ease: EASE}, loop});
 }
 
 function resolve(

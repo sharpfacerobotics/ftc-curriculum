@@ -132,6 +132,9 @@ const config: Config = {
   ],
 
   themeConfig: {
+    // The card shown when a link is shared. Without it a Telemark link posted
+    // in a team chat is a bare URL with no title card at all.
+    image: 'img/og.png',
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: false, // Both themes ship; the toggle is in the navbar
