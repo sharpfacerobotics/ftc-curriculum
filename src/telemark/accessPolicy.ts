@@ -12,14 +12,18 @@ export interface SimulatorAuthStateMessage {
   authenticated: boolean;
 }
 
+/** The first unit number that needs an account. Everything below is open. */
+export const FIRST_GATED_UNIT = 5;
+
 export function isProtectedUnit(unitNumber: number): boolean {
-  return Number.isInteger(unitNumber) && unitNumber >= 1;
+  return Number.isInteger(unitNumber) && unitNumber >= FIRST_GATED_UNIT;
 }
 
 /**
  * Matches a software unit (unit-NN) or an engineering module (module-NN).
- * Both tracks gate on the same rule: number 0 is public, 1 and above require
- * an account.
+ * Both tracks gate on the same rule: units below FIRST_GATED_UNIT are open,
+ * and the rest need an account. Opening the first five means a visitor can
+ * work through real material before being asked for anything.
  */
 const TRACK_SEGMENT = /(?:^|\/)(unit|module)-(\d{1,2})(?:\/|$)/i;
 

@@ -932,3 +932,58 @@ button:active:not(:disabled),
     text-decoration: underline;
   }
 }
+
+/* ── Mobile touch targets ──────────────────────────────────────────────────
+   Measured on a 390px viewport: the menu button was 30px, the drawer close
+   button 21px, and a lesson page carried 49 controls under 40px. The
+   accessible floor is 44px, and below it a thumb misses often enough that
+   navigation feels broken rather than fiddly. */
+@media (max-width: 996px) {
+  .navbar__toggle,
+  .navbar-sidebar__close,
+  .navbar-sidebar__back,
+  .clean-btn[class*='toggle'] {
+    display: flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .navbar-sidebar__back {
+    /* Full width: this is the way back to the main menu, and it was set as a
+       small chip in a corner. */
+    width: 100%;
+    padding: var(--tm-sp-3) var(--tm-sp-4);
+    justify-content: flex-start;
+  }
+
+  .navbar-sidebar .menu__link,
+  .navbar-sidebar .navbar__link {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    padding-block: var(--tm-sp-3);
+  }
+
+  /* The caret that expands a module is its own target and was sharing space
+     with the link label. */
+  .navbar-sidebar .menu__caret {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .theme-doc-sidebar-menu .menu__link {
+    min-height: 44px;
+  }
+
+  /* Breadcrumbs are how you go back up a module on a phone, so they are
+     navigation rather than decoration. Inline links inside lesson prose are
+     left alone: they are exempt, and padding them out would tear the text. */
+  .breadcrumbs__link {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    padding-inline: var(--tm-sp-3);
+  }
+}

@@ -1,8 +1,19 @@
 const assert = require('node:assert/strict');
+const ts = require('typescript');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
+
+function loadTs(relative, exportName) {
+  const {outputText} = ts.transpileModule(
+    fs.readFileSync(path.join(root, relative), 'utf8'),
+    {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022}},
+  );
+  const module = {};
+  new Function('exports', 'require', 'module', outputText)(module, require, {exports: module});
+  return module[exportName];
+}
 const read = (name) => fs.readFileSync(path.join(root, name), 'utf8');
 
 const accessPolicy = read('src/telemark/accessPolicy.ts');
@@ -32,7 +43,7 @@ for (let unit = 2; unit <= 15; unit += 1) {
   );
 }
 
-assert.match(accessPolicy, /unitNumber >= 1/);
+assert.match(accessPolicy, /unitNumber >= FIRST_GATED_UNIT/);
 assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MIN = 2/);
 assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MAX = 5/);
 assert.match(docItem, /isProtectedUnit\(unitNumber\)/);
@@ -58,10 +69,18 @@ assert.match(
 assert.match(customCss, /\.telemark-navbar-center[\s\S]*left: 50%/);
 assert.match(customCss, /\.footer[\s\S]*padding: 0\.85rem 1\.5rem/);
 
-assert.equal(Number.isInteger(0) && 0 >= 1, false);
-for (let unit = 1; unit <= 15; unit += 1) {
-  const protectedUnit = Number.isInteger(unit) && unit >= 1;
-  assert.equal(protectedUnit, true);
+// The gate is exercised against the real policy rather than a copy of the rule,
+// so moving the boundary cannot leave this test asserting the old one.
+{
+  const policy = loadTs('src/telemark/accessPolicy.ts', 'isProtectedUnit');
+  const firstGated = loadTs('src/telemark/accessPolicy.ts', 'FIRST_GATED_UNIT');
+  assert.equal(typeof firstGated, 'number');
+  for (let unit = 0; unit < firstGated; unit += 1) {
+    assert.equal(policy(unit), false, `unit ${unit} should be open`);
+  }
+  for (let unit = firstGated; unit <= 15; unit += 1) {
+    assert.equal(policy(unit), true, `unit ${unit} should need an account`);
+  }
 }
 
 // ── Mechanical track ──────────────────────────────────────────────────────
