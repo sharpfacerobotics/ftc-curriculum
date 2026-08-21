@@ -139,7 +139,9 @@ export default function AskPanel(): React.JSX.Element {
                 <span className={styles.typingDot} />
               </span>
             ) : (
-              message.text.split('\n').filter(Boolean).map((line, n) => <p key={n}>{line}</p>)
+              readable(message.text).split('\n').filter(Boolean).map((line, n) => (
+                <p key={n}>{line}</p>
+              ))
             )}
           </div>
         ))}
@@ -172,6 +174,34 @@ export default function AskPanel(): React.JSX.Element {
       </p>
     </section>
   );
+}
+
+/**
+ * Strips the bracket citation markers out of a reply.
+ *
+ * The chat shows no source list, so "[4], [8]" points at nothing and reads as
+ * broken formatting. The prompt asks for them to be left out and the model
+ * mostly complies, but "mostly" is not a rendering strategy.
+ *
+ * Two things are deliberately protected. Fenced code is left untouched, and a
+ * bracket attached to an identifier is left alone, so `motors[0]` survives
+ * while a citation after a full stop does not. Stripping the accumulated text
+ * on render rather than each streamed delta means a marker split across two
+ * tokens is still caught.
+ */
+function readable(text: string): string {
+  return text
+    .split(/(```[\s\S]*?```)/g)
+    .map((part) =>
+      part.startsWith('```')
+        ? part
+        : part
+            .replace(/(^|[^\w`\]])\s*\[\d+\](?:\s*,\s*\[\d+\])*/g, '$1')
+            .replace(/[ \t]+([.,;:])/g, '$1')
+            // A marker removed mid sentence leaves the space either side of it.
+            .replace(/ {2,}/g, ' '),
+    )
+    .join('');
 }
 
 function replaceLast(
