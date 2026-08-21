@@ -1,6 +1,9 @@
 export type AnalyticsEventName =
   | 'login'
   | 'sign_up'
+  | 'curriculum_start'
+  | 'progress_export'
+  | 'progress_import'
   | 'lesson_complete'
   | 'lesson_unmark'
   | 'unit_complete'

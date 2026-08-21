@@ -6,8 +6,6 @@ import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
 import RobotAssembly from '@site/src/components/ui/RobotAssembly';
 import styles from './index.module.css';
-import { useAuth } from '../telemark/useAuth';
-import { isProtectedUnit } from '../telemark/accessPolicy';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
 import {
@@ -56,8 +54,8 @@ const FEATURES = [
     desc: 'Twelve of them, covering gear ratios, arm torque, drivetrain limits, slide rigging, wire gauge, and beam deflection. Each one draws the result, not just the number.',
   },
   {
-    title: 'Progress that follows you',
-    desc: 'Sign in and completed lessons are recorded across both tracks and every device. No streaks, no badges.',
+    title: 'Progress you control',
+    desc: 'Completed lessons save in your browser. Export a backup, move it to another device, or sign in through Sharp AI to sync it.',
   },
   {
     title: 'Open source',
@@ -175,16 +173,12 @@ function TracksSection(): React.JSX.Element {
  * covering both read as a software site with an engineering appendix.
  */
 function CurriculumSection({
-  signedIn,
-  authLoading,
   units,
   label,
   id,
   heading,
   blurb,
 }: {
-  signedIn: boolean;
-  authLoading: boolean;
   units: typeof CURRICULUM_UNITS;
   label: string;
   id: string;
@@ -201,17 +195,12 @@ function CurriculumSection({
 
       <div className={styles.curriculumGrid} id={`${id}-curriculum-list`}>
         {units.map((unit, index) => {
-          const unitNumber = Number.parseInt(unit.slug.replace(/^(unit|module)-/, ''), 10);
-          const protectedUnit = isProtectedUnit(unitNumber);
-          const locked = !authLoading && !signedIn && protectedUnit;
           const cardContent = (
             <>
             <div className={styles.unitNum}>{unit.label}</div>
             <div className={styles.unitTitle}>{unit.title}</div>
-            <span className={`${styles.unitTag} ${locked ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
-              {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
-              {' '}
-              {locked ? 'Lessons require account' : unit.tier}
+            <span className={`${styles.unitTag} ${styles[TIER_CLASS[unit.tier]]}`}>
+              {unit.tier}
             </span>
             <div className={styles.unitDesc}>{unit.desc}</div>
             </>
@@ -221,7 +210,7 @@ function CurriculumSection({
             <Link
               to={unit.overviewPath}
               key={unit.id}
-              className={`${styles.unitCard} ${locked ? styles.unitCardLocked : ''} ${
+              className={`${styles.unitCard} ${
                 index >= MOBILE_CURRICULUM_PREVIEW_COUNT && !showAllMobile
                   ? styles.mobileCurriculumExtra
                   : ''
@@ -288,7 +277,6 @@ function SimulatorSection(): React.JSX.Element {
         wrapperClassName={styles.simulatorWrapper}
         toolbarClassName={styles.simulatorToolbar}
         toolbarButtonClassName={styles.simulatorToolbarButton}
-        allowHomepageDemos
       />
     </section>
   );
@@ -366,7 +354,6 @@ function CtaSection(): React.JSX.Element {
 
 export default function Home(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const { user, loading } = useAuth();
   const buildCommit = String(siteConfig.customFields?.buildCommit ?? 'unknown');
 
   return (
@@ -379,7 +366,7 @@ export default function Home(): React.JSX.Element {
         <meta name="telemark-build-commit" content={buildCommit} />
       </Head>
 
-      {/* Font Awesome is used by the lock icons on gated unit cards */}
+      {/* Font Awesome is used by the simulator controls. */}
       <link
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         rel="stylesheet"
@@ -392,8 +379,6 @@ export default function Home(): React.JSX.Element {
         <TracksSection />
         <Divider />
         <CurriculumSection
-          signedIn={Boolean(user)}
-          authLoading={loading}
           units={CURRICULUM_UNITS}
           label="Software track"
           id="curriculum"
@@ -402,8 +387,6 @@ export default function Home(): React.JSX.Element {
         />
         <Divider />
         <CurriculumSection
-          signedIn={Boolean(user)}
-          authLoading={loading}
           units={MECHANICAL_UNITS}
           label="Mechanical track"
           id="mechanical"

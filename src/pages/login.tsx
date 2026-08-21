@@ -45,8 +45,8 @@ export default function LoginPage(): React.JSX.Element {
           <p className={styles.eyebrow}>Powered by</p>
           <h1 className={styles.brand}>Telemark</h1>
           <p className={styles.sub}>
-            Sign in to track your progress across the live curriculum and pick
-            up exactly where you left off.
+            The curriculum works without an account. Sign in only when you want
+            Sharp AI and cloud progress across devices.
           </p>
 
           <button className={styles.googleBtn} onClick={handleSignIn}>
@@ -60,7 +60,7 @@ export default function LoginPage(): React.JSX.Element {
           </button>
 
           <p className={styles.privacy}>
-            Your progress is private and only visible to you.
+            Progress already saved in this browser will be merged into your account.
           </p>
         </div>
       </main>

@@ -2,26 +2,20 @@ import React, {type ReactNode} from 'react';
 import DefaultNavbarItemMobile from '@theme/NavbarItem/DefaultNavbarItem/Mobile';
 import DefaultNavbarItemDesktop from '@theme/NavbarItem/DefaultNavbarItem/Desktop';
 import type {Props} from '@theme/NavbarItem/DefaultNavbarItem';
-import {useAuth} from '@site/src/telemark/useAuth';
 
 export default function DefaultNavbarItem({
   mobile = false,
   position,
   ...props
 }: Props): ReactNode {
-  const {user, loading} = useAuth();
   const isAuthItem = props.className?.split(/\s+/).includes('navbar-auth-link');
   const Comp = mobile ? DefaultNavbarItemMobile : DefaultNavbarItemDesktop;
-
-  if (isAuthItem && loading) {
-    return null;
-  }
 
   const resolvedProps = isAuthItem
     ? {
         ...props,
-        to: user ? '/dashboard' : '/login',
-        label: user ? 'Dashboard' : 'Sign In',
+        to: '/dashboard',
+        label: 'Dashboard',
       }
     : props;
 

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Link from '@docusaurus/Link';
 import { useAuth } from '@site/src/telemark/useAuth';
 import { useProgress } from '@site/src/telemark/useProgress';
-import { signInWithGoogle } from '@site/src/telemark/googleAuth';
 import { getAnyLessonsForUnit, getAnyUnitBySlug } from '@site/src/telemark/tracks';
 import styles from '@site/src/components/HomepageFeatures/MarkComplete.module.css';
 
@@ -43,14 +42,6 @@ export default function MarkUnitComplete({
     }
   }
 
-  async function handleSignIn() {
-    try {
-      await signInWithGoogle();
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
   async function handleUnmarkUnit() {
     setSaving(true);
     try {
@@ -69,7 +60,9 @@ export default function MarkUnitComplete({
         <div className={styles.successHeader}>
           <span className={styles.successIcon} aria-hidden="true">✓</span>
           <span className={styles.successTitle}>{unit.label} Complete</span>
-          {user && <span className={styles.savedBadge}>saved to Telemark</span>}
+          <span className={styles.savedBadge}>
+            {user ? 'synced to your account' : 'saved on this device'}
+          </span>
         </div>
         <p className={styles.successMsg}>
           This unit is marked complete. Move on when you are ready.
@@ -78,40 +71,14 @@ export default function MarkUnitComplete({
           <Link to={unit.nextPath} className={styles.nextBtn}>
             Proceed to {unit.nextLabel} →
           </Link>
-          {user && (
-            <button
-              type="button"
-              className={styles.unmarkBtn}
-              onClick={handleUnmarkUnit}
-              disabled={saving}
-            >
-              {saving ? 'Updating...' : 'Unmark unit'}
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className={styles.completeBox}>
-        <div className={styles.completeInner}>
-          <div className={styles.completeText}>
-            <p className={styles.completeTitle}>Need to skip ahead?</p>
-            <p className={styles.completeDesc}>
-              Sign in to mark every lesson in this unit complete, or continue
-              to the next unit without saving.
-            </p>
-          </div>
-          <div className={styles.completeActions}>
-            <button className={styles.signInBtn} onClick={handleSignIn}>
-              Sign in to Save
-            </button>
-            <Link to={unit.nextPath} className={styles.nextBtn}>
-              Skip Ahead
-            </Link>
-          </div>
+          <button
+            type="button"
+            className={styles.unmarkBtn}
+            onClick={handleUnmarkUnit}
+            disabled={saving}
+          >
+            {saving ? 'Updating...' : 'Unmark unit'}
+          </button>
         </div>
       </div>
     );
@@ -123,7 +90,7 @@ export default function MarkUnitComplete({
         <div className={styles.completeText}>
           <p className={styles.completeTitle}>Need to move faster?</p>
           <p className={styles.completeDesc}>
-            Mark every lesson in {unit.label} complete and jump straight to {unit.nextLabel}.
+            Mark every lesson in {unit.label} complete, save it {user ? 'to your account' : 'on this device'}, and jump straight to {unit.nextLabel}.
           </p>
         </div>
         <button

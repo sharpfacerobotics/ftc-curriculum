@@ -1,14 +1,7 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import {useColorMode} from '@docusaurus/theme-common';
-import {signInWithGoogle} from '@site/src/telemark/googleAuth';
 import {trackEvent} from '@site/src/telemark/analytics';
-import {useAuth} from '@site/src/telemark/useAuth';
-import {
-  isSimulatorAuthRequest,
-  SIMULATOR_AUTH_STATE,
-  type SimulatorAuthStateMessage,
-} from '@site/src/telemark/accessPolicy';
 
 const SIMULATOR_THEME_STATE = 'telemark:simulator-theme-state';
 
@@ -17,42 +10,23 @@ interface AuthenticatedSimulatorNavigatorProps {
   wrapperClassName: string;
   toolbarClassName: string;
   toolbarButtonClassName: string;
-  allowHomepageDemos?: boolean;
 }
 
+/**
+ * The historical component name remains so lesson imports do not churn. The
+ * navigator itself is now public; only Sharp AI requires authentication.
+ */
 export default function AuthenticatedSimulatorNavigator({
   simulatorId,
   wrapperClassName,
   toolbarClassName,
   toolbarButtonClassName,
-  allowHomepageDemos = false,
 }: AuthenticatedSimulatorNavigatorProps): React.JSX.Element {
-  const {user, loading} = useAuth();
   const {colorMode} = useColorMode();
   const shellRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const launchTrackedRef = useRef(false);
-  const [signInError, setSignInError] = useState<string | null>(null);
   const navigatorUrl = useBaseUrl('/simulator/navigator.html');
-  const authenticated = Boolean(user);
-  const iframeSrc = useMemo(
-    () => {
-      const params = new URLSearchParams({
-        authenticated: authenticated ? '1' : '0',
-      });
-      if (allowHomepageDemos) params.set('homepageDemos', '1');
-      return `${navigatorUrl}?${params.toString()}`;
-    },
-    [allowHomepageDemos, authenticated, navigatorUrl],
-  );
-
-  function sendAuthState() {
-    const message: SimulatorAuthStateMessage = {
-      type: SIMULATOR_AUTH_STATE,
-      authenticated,
-    };
-    iframeRef.current?.contentWindow?.postMessage(message, window.location.origin);
-  }
 
   function sendThemeState() {
     iframeRef.current?.contentWindow?.postMessage(
@@ -62,58 +36,8 @@ export default function AuthenticatedSimulatorNavigator({
   }
 
   useEffect(() => {
-    if (loading) return;
-    sendAuthState();
-  }, [authenticated, loading]);
-
-  useEffect(() => {
-    if (loading) return;
     sendThemeState();
-  }, [colorMode, loading]);
-
-  useEffect(() => {
-    async function handleMessage(event: MessageEvent<unknown>) {
-      if (
-        event.origin !== window.location.origin
-        || event.source !== iframeRef.current?.contentWindow
-        || !isSimulatorAuthRequest(event.data)
-      ) {
-        return;
-      }
-
-      const {unit, destination = 'unknown'} = event.data;
-      trackEvent('simulator_gate_request', {
-        unit_number: unit,
-        simulator: simulatorId,
-        destination,
-      });
-
-      if (user) {
-        sendAuthState();
-        return;
-      }
-
-      setSignInError(null);
-      trackEvent('content_unlock_attempt', {
-        unit_number: unit,
-        surface: 'simulator_navigator',
-      });
-
-      try {
-        await signInWithGoogle();
-        trackEvent('content_unlock_success', {
-          unit_number: unit,
-          surface: 'simulator_navigator',
-        });
-      } catch (signInError) {
-        console.error('Telemark simulator unlock failed:', signInError);
-        setSignInError('Sign-in did not finish. Select the locked simulator to try again.');
-      }
-    }
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [simulatorId, user]);
+  }, [colorMode]);
 
   async function openFullscreen() {
     if (document.fullscreenElement === shellRef.current) {
@@ -126,7 +50,6 @@ export default function AuthenticatedSimulatorNavigator({
   }
 
   function handleLoad() {
-    sendAuthState();
     sendThemeState();
     if (launchTrackedRef.current) return;
     launchTrackedRef.current = true;
@@ -136,59 +59,23 @@ export default function AuthenticatedSimulatorNavigator({
   return (
     <>
       <div className={toolbarClassName}>
-        <button
-          type="button"
-          className={toolbarButtonClassName}
-          onClick={openFullscreen}
-        >
+        <button type="button" className={toolbarButtonClassName} onClick={openFullscreen}>
           <i className="fa-solid fa-expand" aria-hidden="true" />
           Fullscreen Simulator
         </button>
       </div>
 
       <div className={wrapperClassName} ref={shellRef}>
-        {loading ? (
-          <div
-            role="status"
-            style={{
-              display: 'grid',
-              height: '100%',
-              placeItems: 'center',
-              color: 'var(--tm-text-muted)',
-              fontFamily: '"Share Tech Mono", monospace',
-              fontSize: '12px',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-            }}
-          >
-            Checking simulator access…
-          </div>
-        ) : (
-          <iframe
-            ref={iframeRef}
-            key={iframeSrc}
-            src={iframeSrc}
-            allowFullScreen
-            allow="fullscreen"
-            title="Telemark Simulator"
-            scrolling="yes"
-            onLoad={handleLoad}
-          />
-        )}
+        <iframe
+          ref={iframeRef}
+          src={navigatorUrl}
+          allowFullScreen
+          allow="fullscreen"
+          title="Telemark Simulator"
+          scrolling="yes"
+          onLoad={handleLoad}
+        />
       </div>
-
-      {signInError && (
-        <p
-          role="alert"
-          style={{
-            margin: '0.75rem 0 0',
-            color: 'var(--tm-danger)',
-            fontSize: '13px',
-          }}
-        >
-          {signInError}
-        </p>
-      )}
     </>
   );
 }

@@ -94,6 +94,14 @@
   color: var(--tm-blue-soft);
 }
 
+.storageNote {
+  max-width: 34rem;
+  margin: 0.8rem 0 0;
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-sm);
+  line-height: 1.55;
+}
+
 .headerActions {
   display: flex;
   flex-direction: column;
@@ -141,6 +149,20 @@
   border-color: var(--tm-accent);
   background: var(--tm-accent-a08);
   color: var(--tm-text-strong);
+}
+
+.importInput {
+  display: none;
+}
+
+.transferMessage {
+  margin: -1.35rem 0 2rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--tm-accent-a20);
+  border-radius: var(--tm-r-lg);
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-soft);
+  font-size: var(--tm-fs-xs);
 }
 
 .resumeBtn:focus-visible,

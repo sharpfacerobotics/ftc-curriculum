@@ -92,7 +92,7 @@ async function runGaReport(propertyId: string, range: MetricsRange) {
   const startDate = `${rangeDays(range) - 1}daysAgo`;
   const dateRanges = [{startDate, endDate: 'today'}];
 
-  const [summaryResult, trendResult, completionTrendResult, actionsResult, pagesResult] =
+  const [summaryResult, trendResult, completionTrendResult, actionsResult, pagesResult, curriculumResult] =
     await Promise.all([
       analyticsClient.runReport({
         property,
@@ -140,6 +140,7 @@ async function runGaReport(propertyId: string, range: MetricsRange) {
               values: [
                 'login',
                 'sign_up',
+                'curriculum_start',
                 'lesson_complete',
                 'unit_complete',
                 'simulator_launch',
@@ -157,6 +158,17 @@ async function runGaReport(propertyId: string, range: MetricsRange) {
         orderBys: [{metric: {metricName: 'screenPageViews'}, desc: true}],
         limit: 10,
       }),
+      analyticsClient.runReport({
+        property,
+        dateRanges,
+        metrics: [{name: 'totalUsers'}],
+        dimensionFilter: {
+          filter: {
+            fieldName: 'eventName',
+            stringFilter: {matchType: 'EXACT', value: 'curriculum_start'},
+          },
+        },
+      }),
     ]);
 
   const summaryValues = summaryResult[0].rows?.[0]?.metricValues ?? [];
@@ -169,6 +181,7 @@ async function runGaReport(propertyId: string, range: MetricsRange) {
     engagedSessions: numberValue(summaryValues[5]?.value),
     engagementRate: numberValue(summaryValues[6]?.value),
     averageSessionDuration: numberValue(summaryValues[7]?.value),
+    curriculumUsers: numberValue(curriculumResult[0].rows?.[0]?.metricValues?.[0]?.value),
   };
 
   const dailyTraffic: Record<string, Pick<DailyMetric, 'visitors' | 'sessions'>> = {};
@@ -274,10 +287,12 @@ export const getAdminMetrics = onCall(
         engagedSessions: 0,
         engagementRate: 0,
         averageSessionDuration: 0,
+        curriculumUsers: 0,
       },
       actions: {
         logins: gaData?.actions.login ?? 0,
         signUps: gaData?.actions.sign_up ?? 0,
+        curriculumStarts: gaData?.actions.curriculum_start ?? 0,
         lessonCompletions: gaData?.actions.lesson_complete ?? 0,
         unitCompletions: gaData?.actions.unit_complete ?? 0,
         simulatorLaunches: gaData?.actions.simulator_launch ?? 0,

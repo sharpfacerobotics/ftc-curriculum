@@ -166,7 +166,7 @@ export default function ScoredQuiz({
               <button type="button" className={`${styles.button} ${styles.secondary}`} onClick={reset}>
                 Try again
               </button>
-              {passed && user && !isComplete(lessonId) && !saved && (
+              {passed && !isComplete(lessonId) && !saved && (
                 <button
                   type="button"
                   className={styles.button}
@@ -177,7 +177,9 @@ export default function ScoredQuiz({
                 </button>
               )}
               {(saved || (passed && isComplete(lessonId))) && (
-                <span className={styles.saved}>saved to Telemark</span>
+                <span className={styles.saved}>
+                  {user ? 'synced to your account' : 'saved on this device'}
+                </span>
               )}
             </>
           )}

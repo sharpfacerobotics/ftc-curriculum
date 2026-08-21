@@ -14,8 +14,6 @@ function readFrontMatter(source, key) {
 }
 
 function unitNumberFor(file) {
-  // Software units are unit-NN, engineering modules are module-NN. Both gate
-  // on the same rule: 0 is public, 1 and above require an account.
   const match = file.match(/(?:unit|module)-(\d{2})/);
   return match ? Number.parseInt(match[1], 10) : null;
 }
@@ -79,7 +77,6 @@ module.exports = function telemarkSearchPlugin(context) {
             .map((file) => {
               const source = fs.readFileSync(file, 'utf8');
               const unit = unitNumberFor(file);
-              const isProtected = unit !== null && unit >= 1;
               const title = readFrontMatter(source, 'title')
                 || source.match(/^#\s+(.+)$/m)?.[1]?.trim()
                 || path.basename(file, '.mdx');
@@ -91,8 +88,7 @@ module.exports = function telemarkSearchPlugin(context) {
                 path: routeFor(file, source, collection),
                 track: collection.track,
                 unit,
-                protected: isProtected,
-                excerpt: isProtected ? '' : cleanExcerpt(source),
+                excerpt: cleanExcerpt(source),
               };
             }),
         )

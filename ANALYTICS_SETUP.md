@@ -1,7 +1,8 @@
 # Telemark analytics setup
 
-The website uses GA4 for anonymous traffic and interaction events, Firebase
-Authentication for Google login, Firestore for curriculum progress, and one
+The website uses GA4 for anonymous traffic and interaction events, local
+storage plus portable JSON files for no-account progress, Firebase
+Authentication and Firestore for optional cloud sync and Sharp AI, and one
 Firebase callable function for secure aggregate reporting.
 
 ## 1. Firebase and billing
@@ -18,7 +19,7 @@ Firebase callable function for secure aggregate reporting.
    npm run deploy:firestore
    ```
 
-These rules allow each signed-in learner to access only
+These rules allow each optionally signed-in learner to access only
 `users/{theirUid}/telemark/progress`. Admin reporting uses the Firebase Admin SDK
 inside the callable function and does not depend on browser rule access.
 
@@ -62,14 +63,17 @@ and the callable function. Without it, the function job safely skips deployment.
 
 ## 4. Verification
 
-1. Open GA4 DebugView and confirm `login`, `sign_up`, `lesson_complete`,
-   `unit_complete`, `simulator_launch`, and `simulator_fullscreen`.
+1. Open GA4 DebugView and confirm `curriculum_start`, `lesson_complete`,
+   `unit_complete`, `simulator_launch`, `progress_export`, and `progress_import`.
 2. Visit `/telemark/admin` signed out and confirm the login page appears.
 3. Sign in with a different Google account and confirm access is denied.
 4. Sign in as `sharpfacerobotics@gmail.com` and test the 7, 28, and 90-day
    reports.
 5. Confirm the function response contains no names, email addresses, or UIDs.
 
-GA4 traffic and event history starts when tracking is deployed. Existing Firebase
-accounts and existing progress documents are included in aggregate totals
-immediately.
+GA4 traffic and event history starts when tracking is deployed. `Total users`
+is an estimate based on GA4 browser identities, while `curriculum_start`
+identifies visitors who opened a lesson. Existing Firebase accounts and cloud
+progress documents are included in their separate aggregate totals immediately;
+progress kept only in a learner's browser is intentionally not visible to the
+admin backend.

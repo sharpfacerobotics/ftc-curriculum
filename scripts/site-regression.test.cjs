@@ -33,14 +33,17 @@ const trackOverview = read('src/components/TrackOverview.tsx');
 const trackOverviewCss = read('src/components/TrackOverview.module.css');
 const unitOverview = read('src/components/UnitOverview.tsx');
 const unitOverviewCss = read('src/components/UnitOverview.module.css');
-const contentLock = read('src/components/ContentLock.tsx');
 const useProgress = read('src/telemark/useProgress.ts');
+const progressStore = read('src/telemark/progressStore.ts');
+const progressCloud = read('src/telemark/progressCloud.ts');
 const dashboard = read('src/pages/dashboard.tsx');
 const dashboardCss = read('src/pages/dashboard.module.css');
 const loginCss = read('src/pages/login.module.css');
 const markCompleteCss = read('src/components/HomepageFeatures/MarkComplete.module.css');
 const simulatorFrame = read('src/components/SimulatorFrame.tsx');
 const authenticatedNavigator = read('src/components/AuthenticatedSimulatorNavigator.tsx');
+const askPanel = read('src/components/ui/AskPanel.tsx');
+const adminPage = read('src/pages/admin.tsx');
 
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
@@ -51,21 +54,19 @@ for (let unit = 2; unit <= 15; unit += 1) {
   );
 }
 
-assert.match(accessPolicy, /unitNumber >= FIRST_GATED_UNIT/);
-assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MIN = 2/);
-assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MAX = 5/);
-assert.match(accessPolicy, /export function isUnitOverviewPath/);
+assert.match(accessPolicy, /return false;/);
 assert.match(accessPolicy, /export function isProtectedLessonPath/);
-assert.match(docItem, /isProtectedLessonPath\(docPath\)/);
-assert.match(rootTheme, /const protectedLesson = isProtectedLessonPath\(relativePath\)/);
-assert.match(rootTheme, /!protectedLesson \|\| user/);
-assert.match(rootTheme, /<ContentLock/);
-assert.match(navbarItem, /isAuthItem && loading[\s\S]*return null/);
+assert.doesNotMatch(docItem, /ContentLock|isProtectedLessonPath/);
+assert.doesNotMatch(rootTheme, /ContentLock|isProtectedLessonPath|useAuth/);
+assert.match(docItem, /trackEvent\('curriculum_start'/);
+assert.match(navbarItem, /to: '\/dashboard'/);
+assert.doesNotMatch(navbarItem, /to: user \? '\/dashboard' : '\/login'/);
 assert.doesNotMatch(homepage, /useState<string>\(isNumeric \? '0'/);
 assert.match(homepage, /CURRICULUM_UNIT_COUNT/);
 assert.match(homepage, /CURRICULUM_LESSON_COUNT/);
-assert.match(searchPlugin, /const isProtected = unit !== null && unit >= 1/);
-assert.match(searchPlugin, /excerpt: isProtected \? '' : cleanExcerpt/);
+assert.doesNotMatch(homepage, /Lessons require account|isProtectedUnit/);
+assert.doesNotMatch(searchPlugin, /isProtected|protected:/);
+assert.match(searchPlugin, /excerpt: cleanExcerpt\(source\)/);
 assert.match(searchPlugin, /actions\.setGlobalData\(content\)/);
 assert.match(deployedSmoke, /deployedMeta\.commit !== expectedCommit/);
 assert.match(deployedSmoke, /cacheKey = `\$\{expectedCommit \|\| Date\.now\(\)\}-\$\{attempt\}`/);
@@ -100,30 +101,43 @@ for (const frameSource of [simulatorFrame, authenticatedNavigator]) {
   assert.match(frameSource, /contentWindow\?\.postMessage|contentWindow\.postMessage/);
 }
 
-// The gate is exercised against the real policy rather than a copy of the rule,
-// so moving the boundary cannot leave this test asserting the old one.
+// Curriculum and simulator access stay public. Authentication is reserved for
+// Sharp AI and the private admin report.
 {
   const policy = loadTs('src/telemark/accessPolicy.ts', 'isProtectedUnit');
   const protectedLesson = loadTs('src/telemark/accessPolicy.ts', 'isProtectedLessonPath');
-  const overview = loadTs('src/telemark/accessPolicy.ts', 'isUnitOverviewPath');
-  const firstGated = loadTs('src/telemark/accessPolicy.ts', 'FIRST_GATED_UNIT');
-  assert.equal(typeof firstGated, 'number');
-  for (let unit = 0; unit < firstGated; unit += 1) {
+  const unitSlug = loadTs('src/telemark/accessPolicy.ts', 'getUnitSlug');
+  for (let unit = 0; unit <= 15; unit += 1) {
     assert.equal(policy(unit), false, `unit ${unit} should be open`);
   }
-  for (let unit = firstGated; unit <= 15; unit += 1) {
-    assert.equal(policy(unit), true, `unit ${unit} should need an account`);
-  }
-  assert.equal(overview('/docs/unit-05'), true);
-  assert.equal(overview('/mechanical/module-12/'), true);
-  assert.equal(overview('/docs/unit-05/if-statements'), false);
-  assert.equal(protectedLesson('/docs/unit-05'), false, 'gated unit overview should stay public');
-  assert.equal(protectedLesson('/mechanical/module-12'), false, 'gated module overview should stay public');
-  assert.equal(protectedLesson('/docs/unit-05/if-statements'), true);
-  assert.equal(protectedLesson('/mechanical/module-12/hole-standards'), true);
+  assert.equal(protectedLesson('/docs/unit-05/if-statements'), false);
+  assert.equal(protectedLesson('/mechanical/module-12/hole-standards'), false);
   assert.equal(protectedLesson('/docs/official-docs'), false);
-  assert.equal(protectedLesson('/mechanical/learning-paths'), false);
+  assert.equal(unitSlug('/docs/unit-5/if-statements'), 'unit-05');
+  assert.equal(unitSlug('/mechanical/module-12/hole-standards'), 'module-12');
 }
+
+assert.match(navigator, /All simulator units open/);
+assert.doesNotMatch(navigator, /Google sign-in required|Sign in to unlock|AUTH_REQUEST/);
+assert.doesNotMatch(authenticatedNavigator, /signInWithGoogle|useAuth|simulator_gate_request/);
+assert.match(askPanel, /if \(!user\)/, 'Sharp AI must keep its account boundary');
+assert.match(askPanel, /Sign in to ask/);
+assert.match(askPanel, /user\.getIdToken\(\)/);
+assert.match(adminPage, /if \(!user\)/, 'admin analytics must remain private');
+assert.match(adminPage, /ADMIN_EMAIL/);
+
+// Guests receive the same progress controls as signed-in users. Local work is
+// merged into Firestore when a Google sign-in later occurs.
+assert.match(progressStore, /PROGRESS_STORAGE_KEY = 'telemark:progress:v1'/);
+assert.match(progressStore, /export function parseProgressExport/);
+assert.match(progressStore, /export function mergeProgress/);
+assert.match(progressCloud, /syncLocalProgressWithUser/);
+assert.match(progressCloud, /mergeProgress\(cloud, local\)/);
+assert.match(useProgress, /writeLocalProgress\(nextValue\)/);
+assert.match(useProgress, /mergeImportedProgress/);
+assert.match(dashboard, /serializeProgress\(progress\)/);
+assert.match(dashboard, /parseProgressExport/);
+assert.doesNotMatch(dashboard, /history\.push\(basePath\('\/login'\)\)/);
 
 // ── Mechanical track ──────────────────────────────────────────────────────
 // The mechanical track reuses the software track's components, so these
@@ -142,12 +156,9 @@ assert.match(tracks, /unitSlug\.startsWith\('module-'\)/);
 assert.match(unitOverview, /getAnyUnitBySlug/, 'UnitOverview must resolve units in either track');
 assert.match(unitOverview, /getAnyLessonsForUnit/);
 assert.match(useProgress, /getAnyLessonsForUnit/, 'progress must complete units in either track');
-assert.match(contentLock, /getAnyUnitBySlug/, 'the lock screen must name mechanical modules');
-
-// Gating: module-NN follows the same public-unit-0 rule as unit-NN.
+// Path handling remains track-aware even though both tracks are open.
 assert.match(accessPolicy, /\(unit\|module\)-/);
 assert.match(accessPolicy, /export function getUnitSlug/);
-assert.match(rootTheme, /getUnitSlug/);
 assert.match(docItem, /getUnitSlug/);
 
 // Search indexes both tracks.
@@ -166,7 +177,7 @@ assert.match(trackOverview, /MOBILE_UNIT_PREVIEW_COUNT/);
 assert.match(homepageCss, /\.mobileCurriculumExtra\s*\{\s*display: none/);
 assert.match(trackOverviewCss, /\.mobileCurriculumExtra\s*\{\s*display: none !important/);
 
-console.log('Site access, navbar, homepage demos, protected search, and mechanical track regression checks passed');
+console.log('Open access, local progress, navbar, search, simulators, and track regression checks passed');
 
 // ── Programmatic navigation must respect the base URL ───────────────────────
 

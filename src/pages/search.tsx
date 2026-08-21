@@ -3,7 +3,6 @@ import Link from '@docusaurus/Link';
 import {useLocation} from '@docusaurus/router';
 import Layout from '@theme/Layout';
 import {usePluginData} from '@docusaurus/useGlobalData';
-import {useAuth} from '../telemark/useAuth';
 import styles from './search.module.css';
 
 interface SearchEntry {
@@ -12,7 +11,6 @@ interface SearchEntry {
   path: string;
   track: 'software' | 'mechanical';
   unit: number | null;
-  protected: boolean;
   excerpt: string;
 }
 
@@ -26,7 +24,6 @@ const TRACK_FILTERS: {value: TrackFilter; label: string}[] = [
 
 export default function SearchPage(): React.JSX.Element {
   const entries = usePluginData('telemark-search') as SearchEntry[];
-  const {user, loading} = useAuth();
   const location = useLocation();
   const [query, setQuery] = useState(
     () => new URLSearchParams(location.search).get('q') ?? '',
@@ -51,8 +48,7 @@ export default function SearchPage(): React.JSX.Element {
           <p className={styles.eyebrow}>// curriculum.search</p>
           <h1 className={styles.title}>Find a Telemark lesson</h1>
           <p className={styles.intro}>
-            Search both tracks by lesson title and public lesson text.
-            Protected units and modules are indexed by title only.
+            Search lesson titles and text across both open curriculum tracks.
           </p>
 
           <label htmlFor="telemark-search" className="sr-only">Search lessons</label>
@@ -91,7 +87,6 @@ export default function SearchPage(): React.JSX.Element {
 
           <div className={styles.results}>
             {results.map((entry) => {
-              const locked = entry.protected && !user;
               return (
                 <Link className={styles.result} to={entry.path} key={entry.path}>
                   <div className={styles.resultHeader}>
@@ -99,14 +94,9 @@ export default function SearchPage(): React.JSX.Element {
                     <span className={styles.badge}>
                       {entry.track === 'mechanical' ? 'Mechanical' : 'Software'}
                     </span>
-                    {locked && (
-                      <span className={styles.badge}>
-                        {loading ? 'Checking access' : 'Sign in required'}
-                      </span>
-                    )}
                   </div>
                   <p className={styles.path}>{entry.path}</p>
-                  {!locked && entry.excerpt && (
+                  {entry.excerpt && (
                     <p className={styles.excerpt}>{entry.excerpt}</p>
                   )}
                 </Link>
