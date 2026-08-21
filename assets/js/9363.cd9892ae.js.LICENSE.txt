@@ -27,13 +27,6 @@
  */
 
 /**
- * Anime.js - events - ESM
- * @version v4.5.0
- * @license MIT
- * @copyright 2026 - Julian Garnier
- */
-
-/**
  * Anime.js - timeline - ESM
  * @version v4.5.0
  * @license MIT
@@ -42,13 +35,6 @@
 
 /**
  * Anime.js - timer - ESM
- * @version v4.5.0
- * @license MIT
- * @copyright 2026 - Julian Garnier
- */
-
-/**
- * Anime.js - utils - ESM
  * @version v4.5.0
  * @license MIT
  * @copyright 2026 - Julian Garnier
