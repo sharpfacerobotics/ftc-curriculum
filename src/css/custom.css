@@ -116,7 +116,10 @@
   --tm-ease:            cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── Layout ───────────────────────────────────────────────────────── */
-  --tm-measure:         68ch;
+  /* ch is the width of a zero, which is wider than an average letter, so 68ch
+     set lines of about 82 characters. This lands near 70, which is where the
+     eye stops losing its place on the return sweep. */
+  --tm-measure:         58ch;
   --tm-page-max:        1180px;
 
   /* ── Docusaurus bindings ──────────────────────────────────────────── */
@@ -567,7 +570,9 @@ code {
 
 /* ── Reading measure and rhythm ──────────────────────────────────────── */
 .theme-doc-markdown {
-  font-size: var(--tm-fs-base);
+  /* A step up from the interface size. Lesson prose is read continuously for
+     twenty minutes at a time, which is a different job from a control label. */
+  font-size: var(--tm-fs-md);
   line-height: var(--tm-lh-normal);
 }
 
