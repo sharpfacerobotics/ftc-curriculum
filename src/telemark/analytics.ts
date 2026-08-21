@@ -15,7 +15,8 @@ export type AnalyticsEventName =
   | 'simulator_gate_request'
   | 'quiz_graded'
   | 'calculator_used'
-  | 'cad_checked';
+  | 'cad_checked'
+  | 'ai_question_asked';
 
 type AnalyticsParameters = Record<string, string | number | boolean>;
 

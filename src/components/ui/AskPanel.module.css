@@ -1,0 +1,120 @@
+.panel {
+  padding: var(--tm-sp-5);
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  margin: var(--tm-sp-6) 0;
+  background: var(--tm-surface-1);
+}
+
+.title {
+  margin: 0 0 var(--tm-sp-2);
+  color: var(--tm-text-strong);
+  font-family: var(--telemark-font-display);
+  font-size: var(--tm-fs-md);
+}
+
+.blurb {
+  max-width: var(--tm-measure);
+  margin: 0 0 var(--tm-sp-4);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+}
+
+.row {
+  display: flex;
+  gap: var(--tm-sp-3);
+  flex-wrap: wrap;
+}
+
+.input {
+  flex: 1 1 18rem;
+  min-height: 44px;
+  padding: var(--tm-sp-2) var(--tm-sp-3);
+  border: 1px solid var(--tm-border-strong);
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-surface-3);
+  color: var(--tm-text-strong);
+  font-family: var(--tm-font-body);
+  font-size: var(--tm-fs-sm);
+}
+
+.input:focus-visible {
+  border-color: var(--tm-accent);
+  outline: none;
+}
+
+.askBtn,
+.signIn {
+  min-height: 44px;
+  padding: var(--tm-sp-2) var(--tm-sp-5);
+  border: 1px solid var(--tm-accent);
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-accent-a12);
+  color: var(--tm-accent);
+  cursor: pointer;
+  font-family: var(--telemark-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 160ms ease;
+}
+
+.askBtn:hover:not(:disabled),
+.signIn:hover {
+  background: var(--tm-accent-a20);
+}
+
+.askBtn:disabled {
+  border-color: var(--tm-border);
+  background: transparent;
+  color: var(--tm-text-faint);
+  cursor: not-allowed;
+}
+
+.answer {
+  max-width: var(--tm-measure);
+  margin-top: var(--tm-sp-4);
+  color: var(--tm-text);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+}
+
+.answer p {
+  margin: 0 0 var(--tm-sp-3);
+}
+
+.error {
+  margin: var(--tm-sp-3) 0 0;
+  color: var(--tm-warn);
+  font-size: var(--tm-fs-sm);
+}
+
+.sourcesLabel {
+  margin: var(--tm-sp-4) 0 var(--tm-sp-2);
+  color: var(--tm-text-muted);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sources {
+  padding-left: var(--tm-sp-4);
+  margin: 0;
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
+}
+
+.sourceName {
+  color: var(--tm-text-faint);
+}
+
+/* Stated every time, not once in a footer. A generated answer about a hole
+   size can be wrong in a way a student cannot detect. */
+.limit {
+  margin: var(--tm-sp-4) 0 0;
+  color: var(--tm-text-faint);
+  font-size: var(--tm-fs-xs);
+}
