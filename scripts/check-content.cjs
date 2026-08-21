@@ -113,8 +113,11 @@ const visuals = fs.existsSync(visualsDir)
   : [];
 
 for (const visual of visuals) {
-  if (!calculatorText.includes(`<${visual}`)) {
-    failures.push(`Visual ${visual} is not rendered by any calculator`);
+  // A visual can belong to a calculator or directly to a lesson: the failure
+  // drawings illustrate prose rather than a live calculation. What matters is
+  // that nothing in this directory is orphaned.
+  if (!calculatorText.includes(`<${visual}`) && !mechanicalText.includes(`<${visual}`)) {
+    failures.push(`Visual ${visual} is rendered by no calculator or lesson`);
   }
 }
 
@@ -133,7 +136,9 @@ for (const file of [...visuals.map((v) => path.join(visualsDir, `${v}.tsx`)), di
 
 // Every photo slot must carry alt text and a shot description, or it is
 // neither accessible nor actionable.
-const photoSlots = [...mechanicalText.matchAll(/<LessonPhoto\b([\s\S]*?)\/>/g)];
+// Terminated on a close tag at the start of a line, because a prop can now
+// hold a self closing component and "the first />" is then inside the props.
+const photoSlots = [...mechanicalText.matchAll(/<LessonPhoto\b([\s\S]*?)\n\/>/g)];
 for (const [index, slot] of photoSlots.entries()) {
   const block = slot[1];
   for (const required of ['alt=', 'caption=', 'shot=']) {

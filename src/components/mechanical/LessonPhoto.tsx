@@ -14,6 +14,13 @@ export interface LessonPhotoProps {
   caption: string;
   /** What to photograph, precise enough that someone can go and shoot it. */
   shot: string;
+  /**
+   * A drawing to show until a photograph exists. Not a substitute for one: a
+   * real stripped thread is recognisable on sight in a way no drawing is. It
+   * is here so the lesson has the picture it needs now, while the shot request
+   * stays open underneath it.
+   */
+  drawing?: React.ReactNode;
   /** Framing guidance: distance, lighting, what must be in frame. */
   framing?: string;
   credit?: string;
@@ -32,6 +39,7 @@ export default function LessonPhoto({
   alt,
   caption,
   shot,
+  drawing,
   framing,
   credit,
 }: LessonPhotoProps): React.JSX.Element {
@@ -44,6 +52,15 @@ export default function LessonPhoto({
           alt={alt}
           loading="lazy"
         />
+      ) : drawing ? (
+        <>
+          {drawing}
+          <details className={styles.shotRequest}>
+            <summary>A photograph would show this better</summary>
+            <span className={styles.shot}>{shot}</span>
+            {framing && <span className={styles.shotMeta}>Framing: {framing}</span>}
+          </details>
+        </>
       ) : (
         <div className={styles.placeholder} role="note" aria-label={`Photograph needed: ${shot}`}>
           <span className={styles.placeholderLabel}>Photograph needed</span>
@@ -65,8 +82,17 @@ export default function LessonPhoto({
 /**
  * Prefixes the site base URL without pulling in a hook, so the component can be
  * rendered in the Node test harness.
+ *
+ * The base is read from the document rather than written in: a literal
+ * "/telemark/" is correct on the deployed site and wrong everywhere else,
+ * which is the same bug that once sent every search result to a 404.
  */
 function useBaseUrlSafe(src: string): string {
   if (/^https?:\/\//.test(src)) return src;
-  return `/telemark/${src.replace(/^\/+/, '')}`;
+  const base =
+    typeof document !== 'undefined'
+      ? document.querySelector('base')?.getAttribute('href')
+        ?? (document.documentElement.dataset.baseUrl || '/')
+      : '/';
+  return `${base.replace(/\/+$/, '')}/${src.replace(/^\/+/, '')}`;
 }

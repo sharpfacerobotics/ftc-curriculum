@@ -7,6 +7,7 @@ sidebar_position: 3
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import LessonPhoto from '@site/src/components/mechanical/LessonPhoto';
+import StrainRelief from '@site/src/components/mechanical/visuals/StrainRelief';
 import {StrainReliefDiagram} from '@site/src/components/mechanical/EngineeringDiagrams';
 
 # Lesson 9.3: Routing, Strain Relief, and Surviving Robot Motion
@@ -99,6 +100,7 @@ Decide where the wire runs go while the robot is still in CAD, and reserve the s
 ---
 
 <LessonPhoto
+  drawing={<StrainRelief />}
   alt="A motor cable pulled taut into its connector with no slack or anchor nearby."
   caption="A cable under tension at the connector. Every motion of the mechanism is transferred into the conductor where it is crimped, which fatigues it until the circuit becomes intermittent while the insulation still looks perfect."
   shot="A motor or encoder cable pulled tight into its connector on a moving mechanism at full travel, with no anchor within reach."
