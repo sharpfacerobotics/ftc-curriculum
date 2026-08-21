@@ -10,6 +10,7 @@ import {
 import NavbarItem, {type Props as NavbarItemConfig} from '@theme/NavbarItem';
 import NavbarMobileSidebarToggle from '@theme/Navbar/MobileSidebar/Toggle';
 import NavbarLogo from '@theme/Navbar/Logo';
+import NavbarColorModeToggle from '@theme/Navbar/ColorModeToggle';
 
 function useNavbarItems() {
   return useThemeConfig().navbar.items as NavbarItemConfig[];
@@ -49,6 +50,10 @@ export default function NavbarContent(): ReactNode {
       </div>
 
       <div className="navbar__items navbar__items--right telemark-navbar-account">
+        {/* This navbar is swizzled, so nothing renders the theme switch unless
+            it is placed here. Enabling colorMode in the config was not enough:
+            the site shipped a light theme with no way to reach it. */}
+        <NavbarColorModeToggle className="telemark-navbar-theme" />
         <NavbarItems items={rightItems} />
       </div>
     </div>

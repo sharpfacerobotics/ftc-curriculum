@@ -254,6 +254,12 @@
   margin-bottom: 0;
 }
 
+/* A unit whose menu is open has to outrank the units below it, since they are
+   later siblings and would otherwise paint over the popover. */
+.unitGroup:has([role='menu']) {
+  z-index: 60;
+}
+
 .unitGroup {
   margin-bottom: 0;
   position: relative;
@@ -390,6 +396,13 @@
 .actionMenu {
   position: relative;
   z-index: 5;
+}
+
+/* The popover's own z-index only competes inside this element's stacking
+   context, so a menu opened on unit 13 was painted under units 14 and 15. The
+   context itself has to rise while the menu is open. */
+.actionMenu:has([role='menu']) {
+  z-index: 60;
 }
 
 .actionMenuTrigger {
