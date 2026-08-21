@@ -318,8 +318,48 @@
     padding: 1.35rem;
   }
 
+  .titleRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .titleBlock {
+    width: 100%;
+  }
+
+  .title {
+    font-size: clamp(2rem, 11vw, 2.65rem);
+    overflow-wrap: normal;
+  }
+
+  .tag {
+    order: -1;
+  }
+
   .stats {
     grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+    text-align: center;
+  }
+
+  .panel {
+    padding: 1rem;
+  }
+
+  .lessonCard {
+    grid-template-columns: auto 1fr;
+  }
+
+  .lessonStatus {
+    grid-column: 2;
   }
 }
 

@@ -129,7 +129,11 @@ assert.match(indexDoc, /TrackOverview/, 'engineering index must render the track
 const config = fs.readFileSync(path.join(root, 'docusaurus.config.ts'), 'utf8');
 assert.match(config, /routeBasePath: 'mechanical'/, 'engineering docs plugin not configured');
 assert.match(config, /sidebarPath: '\.\/sidebarsMechanical\.ts'/, 'engineering sidebar not configured');
-assert.match(config, /to: '\/mechanical'/, 'navbar is missing the engineering link');
+assert.match(
+  config,
+  /to: '\/mechanical\/module-00\/design-cycle'/,
+  'navbar must start the engineering track at its first lesson',
+);
 
 // Access gating must treat engineering modules exactly like software units.
 const accessPolicy = fs.readFileSync(path.join(root, 'src/telemark/accessPolicy.ts'), 'utf8');

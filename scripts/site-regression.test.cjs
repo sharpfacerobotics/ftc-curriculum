@@ -22,6 +22,7 @@ const docItem = read('src/theme/DocItem/index.tsx');
 const rootTheme = read('src/theme/Root.tsx');
 const navbarItem = read('src/theme/NavbarItem/DefaultNavbarItem/index.tsx');
 const homepage = read('src/pages/index.tsx');
+const homepageCss = read('src/pages/index.module.css');
 const searchPlugin = read('plugins/telemark-search/index.js');
 const deployedSmoke = read('scripts/smoke-deployed.cjs');
 const config = read('docusaurus.config.ts');
@@ -29,6 +30,7 @@ const customCss = read('src/css/custom.css');
 const mechanicalData = read('src/telemark/mechanical.ts');
 const tracks = read('src/telemark/tracks.ts');
 const trackOverview = read('src/components/TrackOverview.tsx');
+const trackOverviewCss = read('src/components/TrackOverview.module.css');
 const unitOverview = read('src/components/UnitOverview.tsx');
 const unitOverviewCss = read('src/components/UnitOverview.module.css');
 const contentLock = read('src/components/ContentLock.tsx');
@@ -52,10 +54,11 @@ for (let unit = 2; unit <= 15; unit += 1) {
 assert.match(accessPolicy, /unitNumber >= FIRST_GATED_UNIT/);
 assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MIN = 2/);
 assert.match(navigator, /HOMEPAGE_DEMO_UNIT_MAX = 5/);
-assert.match(docItem, /isProtectedUnit\(unitNumber\)/);
-assert.match(rootTheme, /isPublicRoute/);
-assert.match(rootTheme, /const publicUnit = unitNumber !== null && !isProtectedUnit\(unitNumber\)/);
-assert.match(rootTheme, /isPublicRoute\(relativePath\) \|\| publicUnit \|\| user/);
+assert.match(accessPolicy, /export function isUnitOverviewPath/);
+assert.match(accessPolicy, /export function isProtectedLessonPath/);
+assert.match(docItem, /isProtectedLessonPath\(docPath\)/);
+assert.match(rootTheme, /const protectedLesson = isProtectedLessonPath\(relativePath\)/);
+assert.match(rootTheme, /!protectedLesson \|\| user/);
 assert.match(rootTheme, /<ContentLock/);
 assert.match(navbarItem, /isAuthItem && loading[\s\S]*return null/);
 assert.doesNotMatch(homepage, /useState<string>\(isNumeric \? '0'/);
@@ -70,6 +73,8 @@ assert.match(config, /title: 'Telemark'/);
 assert.match(config, /label: 'GitHub'/);
 assert.match(config, /favicon: 'img\/telemark\.png'/, 'the existing web icon must remain the favicon');
 assert.match(config, /src: 'img\/telemark_logo\.png'/, 'the transparent logo must be used in the navbar');
+assert.match(config, /to: '\/docs\/unit-00\/classes-and-objects'[\s\S]{0,80}label: 'Software'/);
+assert.match(config, /to: '\/mechanical\/module-00\/design-cycle'[\s\S]{0,80}label: 'Mechanical'/);
 assert.match(config, /theme: prismThemes\.github/);
 assert.match(config, /darkTheme: prismThemes\.dracula/);
 assert.match(
@@ -99,6 +104,8 @@ for (const frameSource of [simulatorFrame, authenticatedNavigator]) {
 // so moving the boundary cannot leave this test asserting the old one.
 {
   const policy = loadTs('src/telemark/accessPolicy.ts', 'isProtectedUnit');
+  const protectedLesson = loadTs('src/telemark/accessPolicy.ts', 'isProtectedLessonPath');
+  const overview = loadTs('src/telemark/accessPolicy.ts', 'isUnitOverviewPath');
   const firstGated = loadTs('src/telemark/accessPolicy.ts', 'FIRST_GATED_UNIT');
   assert.equal(typeof firstGated, 'number');
   for (let unit = 0; unit < firstGated; unit += 1) {
@@ -107,6 +114,15 @@ for (const frameSource of [simulatorFrame, authenticatedNavigator]) {
   for (let unit = firstGated; unit <= 15; unit += 1) {
     assert.equal(policy(unit), true, `unit ${unit} should need an account`);
   }
+  assert.equal(overview('/docs/unit-05'), true);
+  assert.equal(overview('/mechanical/module-12/'), true);
+  assert.equal(overview('/docs/unit-05/if-statements'), false);
+  assert.equal(protectedLesson('/docs/unit-05'), false, 'gated unit overview should stay public');
+  assert.equal(protectedLesson('/mechanical/module-12'), false, 'gated module overview should stay public');
+  assert.equal(protectedLesson('/docs/unit-05/if-statements'), true);
+  assert.equal(protectedLesson('/mechanical/module-12/hole-standards'), true);
+  assert.equal(protectedLesson('/docs/official-docs'), false);
+  assert.equal(protectedLesson('/mechanical/learning-paths'), false);
 }
 
 // ── Mechanical track ──────────────────────────────────────────────────────
@@ -116,7 +132,7 @@ for (const frameSource of [simulatorFrame, authenticatedNavigator]) {
 
 assert.match(config, /id: 'mechanical'/, 'engineering docs plugin instance missing');
 assert.match(config, /routeBasePath: 'mechanical'/);
-assert.match(config, /to: '\/mechanical'/, 'navbar must link to the mechanical track');
+assert.match(config, /to: '\/mechanical\/module-00\/design-cycle'/, 'navbar must start the mechanical track');
 assert.match(mechanicalData, /MECHANICAL_UNITS/);
 assert.match(mechanicalData, /MECHANICAL_LESSONS/);
 
@@ -143,6 +159,12 @@ assert.match(homepage, /TracksSection/, 'homepage must offer both tracks');
 assert.match(homepage, /MECHANICAL_LESSON_COUNT/);
 assert.match(trackOverview, /companionTrackId/);
 assert.match(dashboard, /activeTrack/, 'dashboard must switch between tracks');
+assert.doesNotMatch(trackOverview, /signInWithGoogle/, 'track cards should open public overviews, not sign in');
+assert.doesNotMatch(homepage, /homepage_\$\{id\}_card/, 'homepage unit cards should not trigger sign in');
+assert.match(homepage, /MOBILE_CURRICULUM_PREVIEW_COUNT/);
+assert.match(trackOverview, /MOBILE_UNIT_PREVIEW_COUNT/);
+assert.match(homepageCss, /\.mobileCurriculumExtra\s*\{\s*display: none/);
+assert.match(trackOverviewCss, /\.mobileCurriculumExtra\s*\{\s*display: none !important/);
 
 console.log('Site access, navbar, homepage demos, protected search, and mechanical track regression checks passed');
 

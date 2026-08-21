@@ -589,6 +589,10 @@
   line-height: var(--tm-lh-normal);
 }
 
+.mobileCurriculumToggle {
+  display: none;
+}
+
 @media (max-width: 700px) {
   .unitCard {
     column-gap: var(--tm-sp-3);
@@ -610,6 +614,32 @@
     grid-column: 1 / -1;
     justify-self: start;
     margin-top: var(--tm-sp-2);
+  }
+
+  .mobileCurriculumExtra {
+    display: none;
+  }
+
+  .mobileCurriculumToggle {
+    display: block;
+    width: 100%;
+    margin-top: var(--tm-sp-4);
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--tm-border-strong);
+    border-radius: var(--tm-r-pill);
+    background: var(--tm-surface-2);
+    color: var(--tm-text-strong);
+    cursor: pointer;
+    font-family: var(--tm-font-label);
+    font-size: var(--tm-fs-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mobileCurriculumToggle:hover,
+  .mobileCurriculumToggle:focus-visible {
+    border-color: var(--tm-accent);
+    background: var(--tm-accent-a08);
   }
 }
 

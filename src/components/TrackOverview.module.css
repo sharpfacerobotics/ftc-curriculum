@@ -239,22 +239,14 @@
   line-height: 1.55;
 }
 
-/* Locked cards are buttons rather than links, so they need the card reset. */
+/* Locked lessons are disclosed without blocking the public unit overview. */
 .cardLocked {
   border-style: dashed;
   border-color: var(--tm-border-quiet);
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
 }
 
-.cardLocked:hover:not(:disabled) {
+.cardLocked:hover {
   border-color: var(--tm-border-strong);
-}
-
-.cardLocked:disabled {
-  cursor: wait;
-  opacity: 0.75;
 }
 
 .tagLocked {
@@ -263,13 +255,56 @@
   color: var(--tm-text-muted);
 }
 
-.unlockError {
-  margin: var(--tm-sp-4) 0 0;
-  color: var(--tm-danger);
-  font-size: var(--tm-fs-sm);
-  text-align: center;
-}
-
 /* Reveal wraps each card, so the wrapper must not collapse the grid cell. */
 .grid > * { display: flex; }
 .grid > * > .card { flex: 1; }
+
+.mobileCurriculumToggle {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 1.1rem;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    width: 100%;
+    text-align: center;
+  }
+
+  .mobileCurriculumExtra {
+    display: none !important;
+  }
+
+  .mobileCurriculumToggle {
+    display: block;
+    width: 100%;
+    margin-top: var(--tm-sp-4);
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--tm-border-strong);
+    border-radius: var(--tm-r-pill);
+    background: var(--tm-surface-2);
+    color: var(--tm-text-strong);
+    cursor: pointer;
+    font-family: var(--tm-font-label);
+    font-size: var(--tm-fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mobileCurriculumToggle:hover,
+  .mobileCurriculumToggle:focus-visible {
+    border-color: var(--tm-accent);
+    background: var(--tm-accent-a08);
+  }
+}
