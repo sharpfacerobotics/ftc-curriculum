@@ -135,7 +135,9 @@ export default function AskPanel(): React.JSX.Element {
             className={message.role === 'you' ? styles.fromYou : styles.fromAi}
           >
             {message.text === '' ? (
-              <span className={styles.typing}>Thinking</span>
+              <span className={styles.typing} aria-label="Thinking">
+                <span className={styles.typingDot} />
+              </span>
             ) : (
               message.text.split('\n').filter(Boolean).map((line, n) => <p key={n}>{line}</p>)
             )}

@@ -139,9 +139,58 @@
   margin-bottom: 0;
 }
 
+/* Three dots travelling, so a wait that runs several seconds reads as work in
+   progress rather than a hang. Motion is the only signal available here: there
+   is no progress to report until the first token lands. */
 .typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--tm-text-faint);
   font-size: var(--tm-fs-xs);
+}
+
+.typing::before,
+.typing::after,
+.typingDot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--tm-r-pill);
+  background: var(--tm-accent);
+  content: '';
+  animation: thinking 1.1s ease-in-out infinite;
+}
+
+.typing::before {
+  animation-delay: 0s;
+}
+
+.typingDot {
+  animation-delay: 0.15s;
+}
+
+.typing::after {
+  animation-delay: 0.3s;
+}
+
+@keyframes thinking {
+  0%, 60%, 100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing::before,
+  .typing::after,
+  .typingDot {
+    animation: none;
+    opacity: 0.6;
+  }
 }
 
 .error {
