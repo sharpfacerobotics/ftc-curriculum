@@ -290,7 +290,8 @@ function readable(text: string): string {
       part.startsWith('```')
         ? part
         : part
-            .replace(/(^|[^\w`\]])\s*\[\d+\](?:\s*,\s*\[\d+\])*/g, '$1')
+            // Both forms the model produces: [4], [8] and [2, 6].
+            .replace(/(^|[^\w`\]])\s*\[\d+(?:\s*,\s*\d+)*\](?:\s*,\s*\[\d+(?:\s*,\s*\d+)*\])*/g, '$1')
             .replace(/[ \t]+([.,;:])/g, '$1')
             // A marker removed mid sentence leaves the space either side of it.
             .replace(/ {2,}/g, ' '),
