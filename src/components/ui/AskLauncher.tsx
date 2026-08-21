@@ -70,7 +70,17 @@ export default function AskLauncher(): React.JSX.Element {
         >
           <div className={styles.dockHead}>
             <img className={styles.dockLogo} src={logo} alt="" width="20" height="20" />
-            <span className={styles.dockTitle}>Sharp AI</span>
+            {/* Sharp AI is its own product; this panel is one place it shows
+                up. The link is how a student finds the rest of it. */}
+            <a
+              className={styles.dockTitle}
+              href="https://sharp-ai-8a1.pages.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Sharp AI
+              <span className={styles.dockOut} aria-hidden="true"> ↗</span>
+            </a>
             <button
               type="button"
               className={styles.dockClose}

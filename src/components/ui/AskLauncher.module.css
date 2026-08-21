@@ -83,11 +83,21 @@
 
 .dockTitle {
   flex: 1;
+  text-decoration: none;
   color: var(--tm-text-strong);
   font-family: var(--telemark-font-label);
   font-size: var(--tm-fs-2xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.dockTitle:hover {
+  color: var(--tm-accent);
+  text-decoration: none;
+}
+
+.dockOut {
+  color: var(--tm-text-faint);
 }
 
 .dockClose {

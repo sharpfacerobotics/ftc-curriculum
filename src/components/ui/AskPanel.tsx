@@ -4,6 +4,9 @@ import {useAuth} from '@site/src/telemark/useAuth';
 import {signInWithGoogle} from '@site/src/telemark/googleAuth';
 import {askSharpAi, type PageContext} from '@site/src/telemark/askSharpAi';
 import {trackEvent} from '@site/src/telemark/analytics';
+import {
+  chatLabel, deleteChat, listChats, loadChat, newChatId, saveChat, type StoredChat,
+} from '@site/src/telemark/chatStore';
 import styles from './AskPanel.module.css';
 
 interface Message {
@@ -30,6 +33,9 @@ export default function AskPanel(): React.JSX.Element {
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [here, setHere] = useState<PageContext | null>(null);
+  const [chatId, setChatId] = useState(() => newChatId());
+  const [history, setHistory] = useState<StoredChat[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const abort = useRef<AbortController | null>(null);
   const thread = useRef<HTMLDivElement>(null);
 
@@ -37,7 +43,26 @@ export default function AskPanel(): React.JSX.Element {
   // different heading invites reading it as being about this page.
   useEffect(() => {
     setMessages([]);
+    setChatId(newChatId());
+    setShowHistory(false);
   }, [pathname]);
+
+  // Saved after every exchange rather than on unload, which never fires
+  // reliably on a phone.
+  useEffect(() => {
+    if (messages.length === 0) return;
+    saveChat({
+      id: chatId,
+      title: here?.title || document.title,
+      path: pathname,
+      updatedAt: Date.now(),
+      messages,
+    });
+  }, [messages, chatId, pathname, here]);
+
+  useEffect(() => {
+    if (showHistory) setHistory(listChats());
+  }, [showHistory]);
 
   // Tracked while scrolling so the panel can show what it is looking at, not
   // only use it silently when a question is sent.
@@ -114,7 +139,30 @@ export default function AskPanel(): React.JSX.Element {
 
   return (
     <section className={styles.panel}>
-      {here && (
+      <div className={styles.toolbar}>
+        <button
+          type="button"
+          className={styles.toolBtn}
+          onClick={() => setShowHistory((current) => !current)}
+          aria-pressed={showHistory}
+        >
+          {showHistory ? 'Back to chat' : 'Past chats'}
+        </button>
+        {messages.length > 0 && !showHistory && (
+          <button
+            type="button"
+            className={styles.toolBtn}
+            onClick={() => {
+              setMessages([]);
+              setChatId(newChatId());
+            }}
+          >
+            New chat
+          </button>
+        )}
+      </div>
+
+      {here && !showHistory && (
         <p className={styles.here}>
           <span className={styles.hereDot} aria-hidden="true" />
           Reading {here.title}
@@ -122,6 +170,42 @@ export default function AskPanel(): React.JSX.Element {
         </p>
       )}
 
+      {showHistory ? (
+        <div className={styles.thread}>
+          {history.length === 0 && (
+            <p className={styles.empty}>No earlier conversations on this device yet.</p>
+          )}
+          {history.map((chat) => (
+            <div key={chat.id} className={styles.historyRow}>
+              <button
+                type="button"
+                className={styles.historyOpen}
+                onClick={() => {
+                  const loaded = loadChat(chat.id);
+                  if (!loaded) return;
+                  setMessages(loaded.messages);
+                  setChatId(loaded.id);
+                  setShowHistory(false);
+                }}
+              >
+                <span className={styles.historyQuestion}>{chatLabel(chat)}</span>
+                <span className={styles.historyMeta}>{chat.title}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.historyDelete}
+                aria-label={`Delete conversation: ${chatLabel(chat)}`}
+                onClick={() => {
+                  deleteChat(chat.id);
+                  setHistory(listChats());
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
       <div className={styles.thread} ref={thread} aria-live="polite">
         {messages.length === 0 && (
           <p className={styles.empty}>
@@ -147,6 +231,8 @@ export default function AskPanel(): React.JSX.Element {
         ))}
       </div>
 
+      )}
+
       <div className={styles.row}>
         <input
           className={styles.input}
@@ -170,7 +256,15 @@ export default function AskPanel(): React.JSX.Element {
 
       <p className={styles.limit}>
         It can be wrong. Check anything you are about to cut or buy against the
-        lesson.
+        lesson. Past chats are kept on this device only.{' '}
+        <a
+          className={styles.limitLink}
+          href="https://sharp-ai-8a1.pages.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Sharp AI
+        </a>
       </p>
     </section>
   );

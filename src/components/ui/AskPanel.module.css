@@ -206,3 +206,84 @@
   color: var(--tm-text-faint);
   font-size: var(--tm-fs-xs);
 }
+
+.toolbar {
+  display: flex;
+  gap: var(--tm-sp-2);
+  margin-bottom: var(--tm-sp-3);
+}
+
+.toolBtn {
+  min-height: 32px;
+  padding: 0 var(--tm-sp-3);
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-pill);
+  background: transparent;
+  color: var(--tm-text-muted);
+  cursor: pointer;
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.toolBtn:hover {
+  border-color: var(--tm-accent);
+  color: var(--tm-accent);
+}
+
+/* Past conversations. The opening question is the title, because that is what
+   a person remembers about a chat, not when they had it. */
+.historyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tm-sp-2);
+  border-bottom: 1px solid var(--tm-border-hair);
+}
+
+.historyOpen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--tm-sp-3) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.historyQuestion {
+  color: var(--tm-text-strong);
+  font-size: var(--tm-fs-sm);
+}
+
+.historyMeta {
+  color: var(--tm-text-faint);
+  font-size: var(--tm-fs-2xs);
+}
+
+.historyDelete {
+  min-width: 32px;
+  min-height: 32px;
+  border: 0;
+  background: none;
+  color: var(--tm-text-faint);
+  cursor: pointer;
+}
+
+.historyDelete:hover {
+  color: var(--tm-danger);
+}
+
+.limitLink {
+  color: var(--tm-text-muted);
+  text-decoration: underline;
+}
+
+.limitLink:hover {
+  color: var(--tm-accent);
+}
