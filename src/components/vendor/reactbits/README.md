@@ -17,8 +17,12 @@ instead, so the site carries what it actually uses.
   hidden entirely for reduced motion.
 - `ShinyText` — a shimmer across the hero line.
 - `ClickSpark` — sparks at the pointer on click, wrapping the whole app.
-- `TiltedCard` — the screenshots on the homepage, which tilt toward the
-  pointer.
+- `CircularGallery` — the homepage gallery of screenshots, dragged through on
+  a curve. Its own labels are drawn into the canvas as bitmap text, which no
+  screen reader can read and no eye reads comfortably, so they are turned off
+  and listed as real text underneath.
+- `TiltedCard` — vendored and currently unused, kept for a single image where
+  a gallery is too much.
 
 Fixes applied to the copies, since they are ours once vendored:
 

@@ -42,23 +42,16 @@ function Divider(): React.JSX.Element {
 // ─── Page sections ────────────────────────────────────────────────────────────
 
 /** A few tools that show the range, not a catalogue dump. */
-/** Screenshots of the actual tools, not mockups. */
+/** Screenshots of the actual tools and pages, not mockups. */
 const SHOWCASE = [
-  {
-    src: 'img/showcase/slide-calculator.jpg',
-    alt: 'The linear slide calculator, showing extension speed, lifting force and a drawing of a three stage cascading rigging.',
-    caption: 'Linear slide sizing',
-  },
-  {
-    src: 'img/showcase/cad-check.jpg',
-    alt: 'The CAD file check, with an exercise selected and a drop area for a STEP or STL export.',
-    caption: 'CAD file check',
-  },
-  {
-    src: 'img/showcase/lesson.jpg',
-    alt: 'A lesson on metric fasteners, with a table of head styles and a drawing of a sound and a stripped thread.',
-    caption: 'A lesson, in full',
-  },
+  {image: 'img/showcase/slide-calculator.jpg', text: 'Linear slide sizing'},
+  {image: 'img/showcase/cad-check.jpg', text: 'CAD file check'},
+  {image: 'img/showcase/arm-simulator.jpg', text: 'Arm simulator'},
+  {image: 'img/showcase/gear-ratio.jpg', text: 'Gear ratio'},
+  {image: 'img/showcase/beam-deflection.jpg', text: 'Beam deflection'},
+  {image: 'img/showcase/weight-budget.jpg', text: 'Weight budget'},
+  {image: 'img/showcase/lesson.jpg', text: 'A lesson'},
+  {image: 'img/showcase/cad-practice.jpg', text: 'CAD practice'},
 ];
 
 const HOME_TOOLS = [
@@ -298,44 +291,55 @@ function ToolsSection(): React.JSX.Element {
 }
 
 function ShowcaseSection(): React.JSX.Element {
+  const withBase = useBaseUrl('/');
+  const items = SHOWCASE.map((shot) => ({
+    image: `${withBase.replace(/\/$/, '')}/${shot.image}`,
+    text: shot.text,
+  }));
+
   return (
     <section className={styles.section} id="showcase">
       <p className={styles.sectionLabel}>Inside</p>
       <h2 className={styles.sectionTitle}>What you actually get</h2>
       <p className={styles.sectionDesc}>
-        Screenshots of the real thing, not mockups.
+        Drag through it. Screenshots of the running site, not mockups.
       </p>
 
-      <div className={styles.showcaseRow}>
-        {SHOWCASE.map((shot) => (
-          <figure key={shot.src} className={styles.showcaseItem}>
-            <BrowserOnly
-              fallback={
-                <img className={styles.showcaseFallback} src={useBaseUrl(shot.src)} alt={shot.alt} />
-              }
-            >
-              {() => {
-                const TiltedCard =
-                  require('@site/src/components/vendor/reactbits/TiltedCard').default;
-                return (
-                  <TiltedCard
-                    imageSrc={useBaseUrl(shot.src)}
-                    altText={shot.alt}
-                    captionText={shot.caption}
-                    containerHeight="260px"
-                    imageHeight="260px"
-                    imageWidth="100%"
-                    scaleOnHover={1.04}
-                    rotateAmplitude={9}
-                    showTooltip={false}
-                  />
-                );
-              }}
-            </BrowserOnly>
-            <figcaption className={styles.showcaseCaption}>{shot.caption}</figcaption>
-          </figure>
-        ))}
+      <div className={styles.gallery}>
+        <BrowserOnly
+          fallback={
+            <div className={styles.galleryFallback}>
+              {SHOWCASE.slice(0, 3).map((shot) => (
+                <img
+                  key={shot.image}
+                  className={styles.showcaseFallback}
+                  src={`${withBase.replace(/\/$/, '')}/${shot.image}`}
+                  alt={shot.text}
+                />
+              ))}
+            </div>
+          }
+        >
+          {() => {
+            const CircularGallery =
+              require('@site/src/components/vendor/reactbits/CircularGallery').default;
+            return (
+              <CircularGallery
+                items={items}
+                bend={2}
+                borderRadius={0.06}
+                scrollSpeed={1.6}
+                scrollEase={0.06}
+                textColor="transparent"
+              />
+            );
+          }}
+        </BrowserOnly>
       </div>
+
+      <p className={styles.galleryNote}>
+        {SHOWCASE.map((shot) => shot.text).join(' · ')}
+      </p>
     </section>
   );
 }

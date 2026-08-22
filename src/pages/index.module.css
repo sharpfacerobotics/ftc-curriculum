@@ -1273,50 +1273,29 @@
   }
 }
 
-/* Screenshots of the tools. Sized so three sit in a row on a desktop and stack
-   on a phone, where a shrunken screenshot is unreadable anyway. */
-.showcaseRow {
-  display: grid;
-  gap: var(--tm-sp-5);
-  grid-template-columns: repeat(3, 1fr);
-  align-items: start;
+
+/* The gallery draws itself into a canvas, so it needs a height rather than
+   content to size against. */
+.gallery {
+  position: relative;
+  height: 460px;
   margin-top: var(--tm-sp-5);
 }
 
-.showcaseItem {
-  margin: 0;
+/* Labels are rendered into the canvas by the gallery as bitmap text, which is
+   fuzzy and unreadable by anything but an eye. They are turned off there and
+   listed here instead, where they are selectable and announced. */
+.galleryNote {
+  margin-top: var(--tm-sp-4);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
 }
 
-/* The tilt card sizes its figure to a fixed 300px and drops the image in at
-   whatever width it is told, so a 1600px screenshot spilled across the
-   neighbouring column. Both are pinned to the grid column, and the image is
-   cropped from the top left, which is where the tool actually is. */
-.showcaseItem :global(.tilted-card-figure) {
-  width: 100% !important;
-  height: 260px !important;
-  /* Clipped here as well: the card positions its image itself, and pinning the
-     width still left it sitting proud of the column by its own offset. */
-  overflow: hidden;
-  border-radius: var(--tm-r-md);
-}
-
-.showcaseItem :global(.tilted-card-inner) {
-  width: 100%;
-  overflow: hidden;
-  border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-md);
-  background: var(--tm-surface-1);
-}
-
-.showcaseItem :global(.tilted-card-img) {
-  width: 100% !important;
-  height: 260px !important;
-  object-fit: cover;
-  object-position: top left;
-}
-
-.showcaseItem :global(.tilted-card-mobile-alert) {
-  display: none;
+.galleryFallback {
+  display: grid;
+  gap: var(--tm-sp-4);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .showcaseFallback {
@@ -1326,14 +1305,12 @@
   border-radius: var(--tm-r-md);
 }
 
-.showcaseCaption {
-  margin-top: var(--tm-sp-3);
-  color: var(--tm-text-muted);
-  font-size: var(--tm-fs-xs);
-}
+@media (max-width: 700px) {
+  .gallery {
+    height: 320px;
+  }
 
-@media (max-width: 900px) {
-  .showcaseRow {
+  .galleryFallback {
     grid-template-columns: 1fr;
   }
 }
