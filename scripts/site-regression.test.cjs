@@ -155,7 +155,15 @@ assert.match(searchPlugin, /routeBase: '\/mechanical'/);
 assert.match(searchPlugin, /\(\?:unit\|module\)-/);
 
 // Discovery surfaces.
-assert.match(homepage, /TracksSection/, 'homepage must offer both tracks');
+// Asserted as reachability rather than by component name: what matters is that
+// a visitor can get into either track from the homepage, not which component
+// happens to render the link this month.
+assert.match(homepage, /units=\{CURRICULUM_UNITS\}/, 'homepage must list software units');
+assert.match(homepage, /units=\{MECHANICAL_UNITS\}/, 'homepage must list mechanical modules');
+assert.ok(
+  homepage.includes('/docs/unit-00/') && homepage.includes('/mechanical/module-00/'),
+  'homepage must link into the start of both tracks',
+);
 assert.match(homepage, /MECHANICAL_LESSON_COUNT/);
 assert.match(trackOverview, /companionTrackId/);
 assert.match(dashboard, /activeTrack/, 'dashboard must switch between tracks');

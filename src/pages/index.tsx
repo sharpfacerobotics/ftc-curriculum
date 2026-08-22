@@ -46,25 +46,6 @@ const TRACKS_SUMMARY = [
   },
 ];
 
-const FEATURES = [
-  {
-    title: 'Browser simulator',
-    desc: 'Write the lesson\'s Java, run the FTC lifecycle against simulated hardware, and read the telemetry back. On 47 software lessons.',
-  },
-  {
-    title: 'Design calculators',
-    desc: 'Twelve of them, covering gear ratios, arm torque, drivetrain limits, slide rigging, wire gauge, and beam deflection. Each one draws the result, not just the number.',
-  },
-  {
-    title: 'Progress that follows you',
-    desc: 'Sign in and completed lessons are recorded across both tracks and every device. No streaks, no badges.',
-  },
-  {
-    title: 'Open source',
-    desc: 'Read it, adapt it for your team, or send a fix. Built by FTC team 30450.',
-  },
-];
-
 const TIER_CLASS: Record<Tier, string> = {
   Beginner:     'tagBasic',
   Intermediate: 'tagInter',
@@ -80,6 +61,9 @@ function Divider(): React.JSX.Element {
 // ─── Page sections ────────────────────────────────────────────────────────────
 
 /** A few tools that show the range, not a catalogue dump. */
+/** How much of each track the homepage shows before handing over. */
+const PREVIEW_UNITS = 5;
+
 const HOME_TOOLS = [
   {name: 'CAD file check', path: '/simulator#cad-check', desc: 'Drop in a STEP or STL export and see which of the exercise\u2019s numbers your model actually hit.'},
   {name: 'Arm gravity torque', path: '/simulator#arm-torque', desc: 'Work the torque an arm needs at its worst angle, then the reduction that delivers it.'},
@@ -140,40 +124,6 @@ function StatsBar(): React.JSX.Element {
   );
 }
 
-function TracksSection(): React.JSX.Element {
-  return (
-    <section className={styles.section} id="tracks">
-      <p className={styles.sectionLabel}>Two tracks</p>
-      <h2 className={styles.sectionTitle}>Both halves of the robot</h2>
-      <p className={styles.sectionDesc}>
-        Your team needs people who can write the code and people who can build
-        the robot it runs on. Both tracks are here, and you can start with
-        either one.
-      </p>
-
-      <div className={styles.trackGrid}>
-        {TRACKS_SUMMARY.map((track) => (
-          <Link key={track.id} to={track.to} className={styles.trackCard}>
-            <span className={styles.trackEyebrow}>{track.eyebrow}</span>
-            <h3 className={styles.trackTitle}>{track.title}</h3>
-            <p className={styles.trackDesc}>{track.desc}</p>
-            <span className={styles.trackStat}>{track.stat}</span>
-            <span className={styles.trackCta}>{track.cta} →</span>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/**
- * One track's units as a grid.
- *
- * Both tracks render through this rather than the software track having a
- * hand-written section, because the homepage previously gave software a full
- * unit grid and the mechanical track nothing comparable, which made a site
- * covering both read as a software site with an engineering appendix.
- */
 function CurriculumSection({
   signedIn,
   authLoading,
@@ -182,6 +132,9 @@ function CurriculumSection({
   id,
   heading,
   blurb,
+  allPath,
+  allLabel,
+  stat,
 }: {
   signedIn: boolean;
   authLoading: boolean;
@@ -190,6 +143,11 @@ function CurriculumSection({
   id: string;
   heading: string;
   blurb: string;
+  /** Where the whole list lives. */
+  allPath: string;
+  allLabel: string;
+  /** The track's size, kept from the section this replaced. */
+  stat: string;
 }): React.JSX.Element {
   const [showAllMobile, setShowAllMobile] = useState(false);
 
@@ -198,9 +156,10 @@ function CurriculumSection({
       <p className={styles.sectionLabel}>{label}</p>
       <h2 className={styles.sectionTitle}>{heading}</h2>
       <p className={styles.sectionDesc}>{blurb}</p>
+      <p className={styles.trackStat}>{stat}</p>
 
       <div className={styles.curriculumGrid} id={`${id}-curriculum-list`}>
-        {units.map((unit, index) => {
+        {units.slice(0, PREVIEW_UNITS).map((unit, index) => {
           const unitNumber = Number.parseInt(unit.slug.replace(/^(unit|module)-/, ''), 10);
           const protectedUnit = isProtectedUnit(unitNumber);
           const locked = !authLoading && !signedIn && protectedUnit;
@@ -243,23 +202,6 @@ function CurriculumSection({
           {showAllMobile ? 'Show fewer' : `Show all ${units.length}`}
         </button>
       )}
-    </section>
-  );
-}
-
-function FeaturesSection(): React.JSX.Element {
-  return (
-    <section className={styles.section}>
-      <p className={styles.sectionLabel}>Why Telemark</p>
-      <h2 className={styles.sectionTitle}>Learn it, then check it</h2>
-
-      <dl className={styles.featureList}>
-        {FEATURES.map((f) => (
-          <div key={f.title} className={styles.featureRow}><dt className={styles.featureTerm}>{f.title}</dt>
-            <dd className={styles.featureDesc}>{f.desc}</dd>
-          </div>
-        ))}
-      </dl>
     </section>
   );
 }
@@ -313,7 +255,7 @@ function ToolsSection(): React.JSX.Element {
       </p>
 
       <div className={styles.toolStrip}>
-        {HOME_TOOLS.map((tool) => (
+        {HOME_TOOLS.slice(0, 4).map((tool) => (
           <Link key={tool.path} to={tool.path} className={styles.toolCard}>
             <span className={styles.toolName}>{tool.name}</span>
             <span className={styles.toolDesc}>{tool.desc}</span>
@@ -345,6 +287,10 @@ function CtaSection(): React.JSX.Element {
         <h2 className={styles.ctaTitle}>
           Start with the fundamentals.<br />Build toward competition.
         </h2>
+        <p className={styles.ctaNote}>
+          Sign in and your progress is recorded across both tracks and every
+          device. No streaks, no badges. The whole site is open source.
+        </p>
         <p className={styles.ctaSub}>
           Write the code in the browser, design the robot with the calculators,
           and bring both to the field.
@@ -389,8 +335,6 @@ export default function Home(): React.JSX.Element {
         <HeroSection />
         <StatsBar />
         <Divider />
-        <TracksSection />
-        <Divider />
         <CurriculumSection
           signedIn={Boolean(user)}
           authLoading={loading}
@@ -399,6 +343,9 @@ export default function Home(): React.JSX.Element {
           id="curriculum"
           heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
           blurb="Start at the beginning or go straight to what your team needs."
+          allPath="/docs"
+          allLabel={`See all ${CURRICULUM_UNIT_COUNT} software units`}
+          stat={`${CURRICULUM_UNIT_COUNT} units · ${CURRICULUM_LESSON_COUNT} lessons`}
         />
         <Divider />
         <CurriculumSection
@@ -409,13 +356,15 @@ export default function Home(): React.JSX.Element {
           id="mechanical"
           heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
           blurb="How to design a robot: the process, CAD, materials, gears and belts, and the standards that keep it together."
+          allPath="/mechanical"
+          allLabel={`See all ${MECHANICAL_UNIT_COUNT} mechanical modules`}
+          stat={`${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`}
         />
         <Divider />
         <SimulatorSection />
         <Divider />
         <ToolsSection />
         <Divider />
-        <FeaturesSection />
         <CtaSection />
       </main>
     </Layout>

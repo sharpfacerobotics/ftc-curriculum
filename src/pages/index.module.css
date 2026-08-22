@@ -1211,3 +1211,52 @@
   max-width: 34rem;
   margin: var(--tm-sp-6) auto 0;
 }
+
+/* The way through to the full list, once the section became a preview. */
+.seeAll {
+  display: inline-block;
+  margin-top: var(--tm-sp-5);
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.seeAll:hover {
+  color: var(--tm-accent-bright);
+  text-decoration: none;
+}
+
+.ctaNote {
+  max-width: var(--tm-measure);
+  margin: 0 auto var(--tm-sp-4);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+}
+
+/* A preview row stacks to three lines on a phone, so five of them per track is
+   another two screens of scrolling before the page says anything new. Three
+   is enough to show the shape of a track, and "see all" is right underneath. */
+@media (max-width: 700px) {
+  .curriculumGrid > .unitCard:nth-of-type(n + 4) {
+    display: none;
+  }
+}
+
+/* Phone trims. The homepage has to say what Telemark is and let you start;
+   everything here is detail that the section's own page carries better. */
+@media (max-width: 700px) {
+  /* The four step workflow is 427px of cards restating the sentence above it. */
+  .simulatorWorkflow,
+  .simulatorTasks {
+    display: none;
+  }
+
+  /* Two tools show the range; the workbench is one tap away. */
+  .toolStrip > .toolCard:nth-of-type(n + 3) {
+    display: none;
+  }
+}
