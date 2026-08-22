@@ -1,74 +1,89 @@
-import { useEffect, useState, useCallback } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { User } from 'firebase/auth';
-import { db } from './firebase';
-import { trackEvent } from './analytics';
-import { getAnyLessonsForUnit } from './tracks';
+import {useCallback, useEffect, useState} from 'react';
+import type {User} from 'firebase/auth';
+import {trackEvent} from './analytics';
+import {getAnyLessonsForUnit} from './tracks';
+import {saveCloudProgress, syncLocalProgressWithUser} from './progressCloud';
+import {
+  PROGRESS_CHANGED_EVENT,
+  emptyProgress,
+  mergeProgress,
+  normalizeProgress,
+  readLocalProgress,
+  writeLocalProgress,
+  type ProgressData,
+} from './progressStore';
 
-export interface ProgressData {
-  completedLessons: string[];
-  skippedLessons: string[];
-  reviewingUnits: string[];
-  lastLesson: string | null;
-}
-
-function stringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return [...new Set(value.filter((item): item is string => typeof item === 'string'))];
-}
-
-function normalizeProgress(value: Partial<ProgressData> | undefined): ProgressData {
-  const skippedLessons = stringArray(value?.skippedLessons);
-  return {
-    completedLessons: [
-      ...new Set([...stringArray(value?.completedLessons), ...skippedLessons]),
-    ],
-    skippedLessons,
-    reviewingUnits: stringArray(value?.reviewingUnits),
-    lastLesson: typeof value?.lastLesson === 'string' ? value.lastLesson : null,
-  };
-}
+export type {ProgressData} from './progressStore';
 
 function unitSlugForLessons(lessonIds: string[]): string | null {
   return lessonIds[0]?.split('/')[0] ?? null;
 }
 
 export function useProgress(user: User | null) {
-  const [progress, setProgress] = useState<ProgressData | null>(null);
-  const [loading, setLoading]   = useState(false);
+  // Start with the same value during server rendering and hydration, then read
+  // browser storage in the effect below. Reading localStorage here would make
+  // completed lessons hydrate with different markup from the generated page.
+  const [progress, setProgress] = useState<ProgressData>(() => emptyProgress());
+  const [loading, setLoading] = useState(Boolean(user));
 
   useEffect(() => {
-    if (!user) {
-      setProgress(null);
-      setLoading(false);
-      return;
+    function receiveProgress(event: Event) {
+      const next = event instanceof CustomEvent
+        ? normalizeProgress(event.detail)
+        : readLocalProgress();
+      setProgress(next);
     }
+    window.addEventListener(PROGRESS_CHANGED_EVENT, receiveProgress);
+    window.addEventListener('storage', receiveProgress);
+    return () => {
+      window.removeEventListener(PROGRESS_CHANGED_EVENT, receiveProgress);
+      window.removeEventListener('storage', receiveProgress);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) {
+      setProgress(readLocalProgress());
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
     setLoading(true);
-    const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
-    getDoc(ref).then((snap) => {
-      if (snap.exists()) {
-        setProgress(normalizeProgress(snap.data() as Partial<ProgressData>));
-      } else {
-        const initial = normalizeProgress(undefined);
-        setDoc(ref, initial);
-        setProgress(initial);
-      }
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
+    syncLocalProgressWithUser(user)
+      .then((merged) => {
+        if (!cancelled) setProgress(merged);
+      })
+      .catch((error) => {
+        console.error('Telemark cloud progress sync failed:', error);
+        if (!cancelled) setProgress(readLocalProgress());
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
-  const saveProgress = useCallback(async (nextProgress: ProgressData) => {
-    if (!user) return;
-    const ref = doc(db, 'users', user.uid, 'telemark', 'progress');
-    const payload = JSON.parse(JSON.stringify(nextProgress));
-    await setDoc(ref, payload, {merge: true});
-    setProgress(nextProgress);
+  const saveProgress = useCallback(async (nextValue: ProgressData) => {
+    const local = writeLocalProgress(nextValue);
+    setProgress(local);
+    if (!user) return local;
+
+    const merged = await saveCloudProgress(user, local);
+    setProgress(merged);
+    return merged;
   }, [user]);
+
+  const mergeImportedProgress = useCallback(async (imported: ProgressData) => {
+    return saveProgress(mergeProgress(progress, imported));
+  }, [progress, saveProgress]);
 
   const markComplete = useCallback(async (lessonId: string) => {
-    if (!user || !progress) return;
     const alreadyComplete = progress.completedLessons.includes(lessonId);
     const wasSkipped = progress.skippedLessons.includes(lessonId);
     if (alreadyComplete && !wasSkipped) return;
@@ -80,41 +95,32 @@ export function useProgress(user: User | null) {
     const unitLessonIds = getAnyLessonsForUnit(unitSlug).map((lesson) => lesson.id);
     const unitNowComplete = unitLessonIds.length > 0
       && unitLessonIds.every((id) => newCompleted.includes(id));
-    const nextProgress: ProgressData = {
+    await saveProgress({
       completedLessons: newCompleted,
       skippedLessons: progress.skippedLessons.filter((id) => id !== lessonId),
       reviewingUnits: unitNowComplete
         ? progress.reviewingUnits.filter((slug) => slug !== unitSlug)
         : progress.reviewingUnits,
       lastLesson: lessonId,
-    };
-    await saveProgress(nextProgress);
-    trackEvent('lesson_complete', {
-      lesson_id: lessonId,
-      unit_slug: unitSlug,
     });
-  }, [user, progress, saveProgress]);
+    trackEvent('lesson_complete', {lesson_id: lessonId, unit_slug: unitSlug});
+  }, [progress, saveProgress]);
 
   const markManyComplete = useCallback(async (lessonIds: string[]) => {
-    if (!user || !progress || lessonIds.length === 0) return;
-
+    if (lessonIds.length === 0) return;
     const additions = lessonIds.filter((lessonId) => !progress.completedLessons.includes(lessonId));
     const skippedToComplete = lessonIds.some((lessonId) => progress.skippedLessons.includes(lessonId));
     if (additions.length === 0 && !skippedToComplete) return;
 
-    const newCompleted = [...progress.completedLessons, ...additions];
-    const lastLesson = lessonIds[lessonIds.length - 1];
     const unitSlug = unitSlugForLessons(lessonIds);
-    const nextProgress: ProgressData = {
-      completedLessons: newCompleted,
+    await saveProgress({
+      completedLessons: [...progress.completedLessons, ...additions],
       skippedLessons: progress.skippedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
       reviewingUnits: unitSlug
         ? progress.reviewingUnits.filter((slug) => slug !== unitSlug)
         : progress.reviewingUnits,
-      lastLesson,
-    };
-
-    await saveProgress(nextProgress);
+      lastLesson: lessonIds[lessonIds.length - 1],
+    });
     additions.forEach((lessonId) => {
       trackEvent('lesson_complete', {
         lesson_id: lessonId,
@@ -125,22 +131,20 @@ export function useProgress(user: User | null) {
       unit_slug: unitSlug ?? 'unknown',
       lessons_completed: additions.length,
     });
-  }, [user, progress, saveProgress]);
+  }, [progress, saveProgress]);
 
   const markManySkipped = useCallback(async (lessonIds: string[]) => {
-    if (!user || !progress || lessonIds.length === 0) return;
+    if (lessonIds.length === 0) return;
     const unitSlug = unitSlugForLessons(lessonIds);
-    const completedLessons = [
-      ...progress.completedLessons,
-      ...lessonIds.filter((lessonId) => !progress.completedLessons.includes(lessonId)),
-    ];
-    const skippedLessons = [
-      ...progress.skippedLessons,
-      ...lessonIds.filter((lessonId) => !progress.skippedLessons.includes(lessonId)),
-    ];
     await saveProgress({
-      completedLessons,
-      skippedLessons,
+      completedLessons: [
+        ...progress.completedLessons,
+        ...lessonIds.filter((lessonId) => !progress.completedLessons.includes(lessonId)),
+      ],
+      skippedLessons: [
+        ...progress.skippedLessons,
+        ...lessonIds.filter((lessonId) => !progress.skippedLessons.includes(lessonId)),
+      ],
       reviewingUnits: unitSlug
         ? progress.reviewingUnits.filter((slug) => slug !== unitSlug)
         : progress.reviewingUnits,
@@ -150,10 +154,10 @@ export function useProgress(user: User | null) {
       unit_slug: unitSlug ?? 'unknown',
       lessons_skipped: lessonIds.length,
     });
-  }, [user, progress, saveProgress]);
+  }, [progress, saveProgress]);
 
   const reviewMany = useCallback(async (lessonIds: string[]) => {
-    if (!user || !progress || lessonIds.length === 0) return;
+    if (lessonIds.length === 0) return;
     const unitSlug = unitSlugForLessons(lessonIds);
     await saveProgress({
       completedLessons: progress.completedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
@@ -164,10 +168,10 @@ export function useProgress(user: User | null) {
       lastLesson: lessonIds[0],
     });
     trackEvent('unit_review', {unit_slug: unitSlug ?? 'unknown'});
-  }, [user, progress, saveProgress]);
+  }, [progress, saveProgress]);
 
   const unmarkMany = useCallback(async (lessonIds: string[]) => {
-    if (!user || !progress || lessonIds.length === 0) return;
+    if (lessonIds.length === 0) return;
     const unitSlug = unitSlugForLessons(lessonIds);
     await saveProgress({
       completedLessons: progress.completedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
@@ -178,22 +182,10 @@ export function useProgress(user: User | null) {
       lastLesson: lessonIds[0],
     });
     trackEvent('unit_unmark', {unit_slug: unitSlug ?? 'unknown'});
-  }, [user, progress, saveProgress]);
+  }, [progress, saveProgress]);
 
-  /**
-   * Skip or unskip a single lesson.
-   *
-   * The bulk variants above operate on a whole unit; these are the per lesson
-   * controls the lesson footer uses. Both route through saveProgress so the
-   * reviewing state travels with the write instead of being dropped by a
-   * partial update.
-   */
   const markSkipped = useCallback(async (lessonId: string) => {
-    if (!user || !progress || progress.skippedLessons.includes(lessonId)) return;
-    // Skipped lessons stay inside completedLessons, which is the invariant
-    // normalizeProgress and markManySkipped both maintain: a skipped lesson is
-    // handled, so it counts toward progress and "next lesson" walks past it
-    // instead of offering back the lesson the student just chose to skip.
+    if (progress.skippedLessons.includes(lessonId)) return;
     await saveProgress({
       ...progress,
       completedLessons: progress.completedLessons.includes(lessonId)
@@ -201,21 +193,18 @@ export function useProgress(user: User | null) {
         : [...progress.completedLessons, lessonId],
       skippedLessons: [...progress.skippedLessons, lessonId],
     });
-  }, [user, progress, saveProgress]);
+  }, [progress, saveProgress]);
 
   const unskip = useCallback(async (lessonId: string) => {
-    if (!user || !progress || !progress.skippedLessons.includes(lessonId)) return;
-    // It was only counted as handled because it was skipped, so undoing the
-    // skip has to take it back out of both lists.
+    if (!progress.skippedLessons.includes(lessonId)) return;
     await saveProgress({
       ...progress,
       completedLessons: progress.completedLessons.filter((id) => id !== lessonId),
       skippedLessons: progress.skippedLessons.filter((id) => id !== lessonId),
     });
-  }, [user, progress, saveProgress]);
+  }, [progress, saveProgress]);
 
   const unmarkComplete = useCallback(async (lessonId: string) => {
-    if (!user || !progress) return;
     const unitSlug = lessonId.split('/')[0];
     await saveProgress({
       completedLessons: progress.completedLessons.filter((id) => id !== lessonId),
@@ -224,26 +213,25 @@ export function useProgress(user: User | null) {
       lastLesson: lessonId,
     });
     trackEvent('lesson_unmark', {lesson_id: lessonId, unit_slug: unitSlug});
-  }, [user, progress, saveProgress]);
+  }, [progress, saveProgress]);
 
   const isComplete = useCallback(
-    (lessonId: string) => progress?.completedLessons.includes(lessonId) ?? false,
+    (lessonId: string) => progress.completedLessons.includes(lessonId),
     [progress],
   );
-
   const isSkipped = useCallback(
-    (lessonId: string) => progress?.skippedLessons.includes(lessonId) ?? false,
+    (lessonId: string) => progress.skippedLessons.includes(lessonId),
     [progress],
   );
-
   const isReviewingUnit = useCallback(
-    (unitSlug: string) => progress?.reviewingUnits.includes(unitSlug) ?? false,
+    (unitSlug: string) => progress.reviewingUnits.includes(unitSlug),
     [progress],
   );
 
   return {
     progress,
     loading,
+    mergeImportedProgress,
     markComplete,
     markManyComplete,
     markManySkipped,

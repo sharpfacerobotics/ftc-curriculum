@@ -16,10 +16,12 @@ export interface AdminMetrics {
     engagedSessions: number;
     engagementRate: number;
     averageSessionDuration: number;
+    curriculumUsers: number;
   };
   actions: {
     logins: number;
     signUps: number;
+    curriculumStarts: number;
     lessonCompletions: number;
     unitCompletions: number;
     simulatorLaunches: number;

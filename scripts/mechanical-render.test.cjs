@@ -319,13 +319,6 @@ assert.match(progressSource, /role="progressbar"/, 'progress bar needs a progres
 assert.match(progressSource, /aria-valuenow/, 'progress bar must report its value');
 assert.match(progressSource, /docs\|engineering/, 'progress bar must only render on lesson routes');
 
-// A locked page replaces the entire app shell, navbar included. Without links
-// of its own it is reachable only by the browser back button.
-const lockSource = fs.readFileSync(path.join(root, 'src/components/ContentLock.tsx'), 'utf8');
-assert.match(lockSource, /escapeHatch/, 'the lock screen must offer a way out');
-const lockLinks = (lockSource.match(/<Link to="/g) || []).length;
-assert.ok(lockLinks >= 3, `lock screen offers only ${lockLinks} ways out`);
-
 const CadExercise = require(path.join(root, 'src/components/mechanical/CadExercise.tsx')).default;
 renders(
   'CadExercise',

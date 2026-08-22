@@ -616,10 +616,6 @@
     margin-top: var(--tm-sp-2);
   }
 
-  .mobileCurriculumExtra {
-    display: none;
-  }
-
   .mobileCurriculumToggle {
     display: block;
     width: 100%;
@@ -1237,14 +1233,6 @@
   line-height: var(--tm-lh-normal);
 }
 
-/* A preview row stacks to three lines on a phone, so five of them per track is
-   another two screens of scrolling before the page says anything new. Three
-   is enough to show the shape of a track, and "see all" is right underneath. */
-@media (max-width: 700px) {
-  .curriculumGrid > .unitCard:nth-of-type(n + 4) {
-    display: none;
-  }
-}
 
 /* Phone trims. The homepage has to say what Telemark is and let you start;
    everything here is detail that the section's own page carries better. */
@@ -1259,4 +1247,39 @@
   .toolStrip > .toolCard:nth-of-type(n + 3) {
     display: none;
   }
+}
+
+/* Curriculum preview, at every width.
+
+   This was a phone-only trim. The reason for it is not about screen size: two
+   full lists put thirty rows between the hero and anything the page has to
+   say, and the track pages are already that list. The control that was written
+   for phones does the same job here. */
+/* Scoped to the grid rather than relying on being the last rule in the file:
+   the minifier merges identical declarations and gives the merged rule the
+   position of the earliest one, which put this ahead of .unitCard's own
+   display and let every row show. Two classes beats one, whatever the order. */
+.curriculumGrid .mobileCurriculumExtra {
+  display: none;
+}
+
+.mobileCurriculumToggle {
+  display: block;
+  margin-top: var(--tm-sp-4);
+  padding: 0.7rem 1.4rem;
+  border: 1px solid var(--tm-border-strong);
+  border-radius: var(--tm-r-pill);
+  background: transparent;
+  color: var(--tm-text);
+  cursor: pointer;
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.mobileCurriculumToggle:hover {
+  border-color: var(--tm-accent);
+  color: var(--tm-accent);
 }

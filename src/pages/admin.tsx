@@ -148,6 +148,7 @@ export default function AdminPage(): React.JSX.Element {
     return (
       metrics.actions.logins +
       metrics.actions.signUps +
+      metrics.actions.curriculumStarts +
       metrics.actions.lessonCompletions +
       metrics.actions.unitCompletions +
       metrics.actions.simulatorLaunches +
@@ -158,7 +159,7 @@ export default function AdminPage(): React.JSX.Element {
   async function handleAdminSignIn() {
     setError(null);
     try {
-      await signInWithGoogle({trackAnalytics: false});
+      await signInWithGoogle({trackAnalytics: false, syncProgress: false});
     } catch (caught) {
       console.error('Admin sign-in failed:', caught);
       setError('Google sign-in did not complete. Please try again.');
@@ -252,7 +253,8 @@ export default function AdminPage(): React.JSX.Element {
               <p>People who viewed and used the website during this range.</p>
             </div>
             <div className={styles.statGrid}>
-              <StatCard label="Website visitors" value={formatNumber(metrics.traffic.totalUsers)} />
+              <StatCard label="Estimated visitors" value={formatNumber(metrics.traffic.totalUsers)} detail="GA4 browser identities" />
+              <StatCard label="Curriculum users" value={formatNumber(metrics.traffic.curriculumUsers)} detail="Opened curriculum content" />
               <StatCard label="Active visitors" value={formatNumber(metrics.traffic.activeUsers)} detail="Viewed and engaged" />
               <StatCard label="New visitors" value={formatNumber(metrics.traffic.newUsers)} />
               <StatCard label="Sessions" value={formatNumber(metrics.traffic.sessions)} />
@@ -278,17 +280,17 @@ export default function AdminPage(): React.JSX.Element {
           <section className={styles.splitSection}>
             <div className={styles.panel}>
               <div className={styles.sectionHeading}>
-                <div><span>03</span><h2>Accounts</h2></div>
+                <div><span>03</span><h2>Verified Accounts</h2></div>
               </div>
               <div className={styles.statGridCompact}>
-                <StatCard label="Total accounts" value={formatNumber(metrics.accounts.totalAccounts)} />
+                <StatCard label="Google accounts" value={formatNumber(metrics.accounts.totalAccounts)} />
                 <StatCard label={`Created in ${range}`} value={formatNumber(metrics.accounts.newAccounts)} />
-                <StatCard label="Saved progress" value={formatNumber(metrics.learning.accountsWithProgress)} />
+                <StatCard label="Cloud progress" value={formatNumber(metrics.learning.accountsWithProgress)} />
               </div>
             </div>
             <div className={styles.panel}>
               <div className={styles.sectionHeading}>
-                <div><span>04</span><h2>Learning</h2></div>
+                <div><span>04</span><h2>Synced Learning</h2></div>
               </div>
               <div className={styles.statGridCompact}>
                 <StatCard label="Started learners" value={formatNumber(metrics.learning.startedLearners)} />

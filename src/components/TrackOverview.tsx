@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
 import {useAuth} from '@site/src/telemark/useAuth';
 import {useProgress} from '@site/src/telemark/useProgress';
-import {isProtectedUnit} from '@site/src/telemark/accessPolicy';
 import {getTrack, type TrackId} from '@site/src/telemark/tracks';
 import type {Tier} from '@site/src/telemark/curriculum';
 import Reveal from '@site/src/components/ui/Reveal';
@@ -25,8 +24,8 @@ interface TrackOverviewProps {
 
 /**
  * Landing grid for an entire track, rendered inside the docs layout so the
- * sidebar stays available. Shows per-unit progress once the student is signed
- * in.
+ * sidebar stays available. Progress comes from the browser for guests and is
+ * also synchronized for a signed-in learner.
  */
 export default function TrackOverview({
   trackId,
@@ -35,7 +34,7 @@ export default function TrackOverview({
 }: TrackOverviewProps): React.JSX.Element {
   const track = getTrack(trackId);
   const companion = companionTrackId ? getTrack(companionTrackId) : null;
-  const {user, loading} = useAuth();
+  const {user} = useAuth();
   const {isComplete} = useProgress(user);
   const [showAllMobile, setShowAllMobile] = useState(false);
 
@@ -101,22 +100,14 @@ export default function TrackOverview({
                 ? 'Complete'
                 : `${done} of ${unitLessons.length} done`;
 
-          const unitNumber = Number.parseInt(unit.slug.replace(/\D+/g, ''), 10);
-          const gated = isProtectedUnit(unitNumber);
-          const locked = !loading && !user && gated;
-
           const body = (
             <>
               <span className={styles.cardNum}>{unit.label}</span>
               <span className={styles.cardTitle}>{unit.title}</span>
               <span className={styles.cardDesc}>{unit.desc}</span>
               <span className={styles.cardMeta}>
-                <span
-                  className={`${styles.tag} ${
-                    locked ? styles.tagLocked : TIER_CLASS[unit.tier]
-                  }`}
-                >
-                  {locked ? 'Lessons require account' : unit.tier}
+                <span className={`${styles.tag} ${TIER_CLASS[unit.tier]}`}>
+                  {unit.tier}
                 </span>
                 <span className={`${styles.tag} ${styles.tagProgress}`}>
                   {unit.lessonCount} lessons
@@ -146,7 +137,7 @@ export default function TrackOverview({
             >
               <Link
                 to={unit.overviewPath}
-                className={`${styles.card} ${locked ? styles.cardLocked : ''}`}
+                className={styles.card}
               >
                 {body}
               </Link>

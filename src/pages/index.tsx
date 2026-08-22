@@ -6,8 +6,6 @@ import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
 import RobotAssembly from '@site/src/components/ui/RobotAssembly';
 import styles from './index.module.css';
-import { useAuth } from '../telemark/useAuth';
-import { isProtectedUnit } from '../telemark/accessPolicy';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
 import {
@@ -61,9 +59,6 @@ function Divider(): React.JSX.Element {
 // ─── Page sections ────────────────────────────────────────────────────────────
 
 /** A few tools that show the range, not a catalogue dump. */
-/** How much of each track the homepage shows before handing over. */
-const PREVIEW_UNITS = 5;
-
 const HOME_TOOLS = [
   {name: 'CAD file check', path: '/simulator#cad-check', desc: 'Drop in a STEP or STL export and see which of the exercise\u2019s numbers your model actually hit.'},
   {name: 'Arm gravity torque', path: '/simulator#arm-torque', desc: 'Work the torque an arm needs at its worst angle, then the reduction that delivers it.'},
@@ -125,29 +120,17 @@ function StatsBar(): React.JSX.Element {
 }
 
 function CurriculumSection({
-  signedIn,
-  authLoading,
   units,
   label,
   id,
   heading,
   blurb,
-  allPath,
-  allLabel,
-  stat,
 }: {
-  signedIn: boolean;
-  authLoading: boolean;
   units: typeof CURRICULUM_UNITS;
   label: string;
   id: string;
   heading: string;
   blurb: string;
-  /** Where the whole list lives. */
-  allPath: string;
-  allLabel: string;
-  /** The track's size, kept from the section this replaced. */
-  stat: string;
 }): React.JSX.Element {
   const [showAllMobile, setShowAllMobile] = useState(false);
 
@@ -156,21 +139,15 @@ function CurriculumSection({
       <p className={styles.sectionLabel}>{label}</p>
       <h2 className={styles.sectionTitle}>{heading}</h2>
       <p className={styles.sectionDesc}>{blurb}</p>
-      <p className={styles.trackStat}>{stat}</p>
 
       <div className={styles.curriculumGrid} id={`${id}-curriculum-list`}>
-        {units.slice(0, PREVIEW_UNITS).map((unit, index) => {
-          const unitNumber = Number.parseInt(unit.slug.replace(/^(unit|module)-/, ''), 10);
-          const protectedUnit = isProtectedUnit(unitNumber);
-          const locked = !authLoading && !signedIn && protectedUnit;
+        {units.map((unit, index) => {
           const cardContent = (
             <>
             <div className={styles.unitNum}>{unit.label}</div>
             <div className={styles.unitTitle}>{unit.title}</div>
-            <span className={`${styles.unitTag} ${locked ? styles.tagLocked : styles[TIER_CLASS[unit.tier]]}`}>
-              {locked && <i className="fa-solid fa-lock" aria-hidden="true" />}
-              {' '}
-              {locked ? 'Lessons require account' : unit.tier}
+            <span className={`${styles.unitTag} ${styles[TIER_CLASS[unit.tier]]}`}>
+              {unit.tier}
             </span>
             <div className={styles.unitDesc}>{unit.desc}</div>
             </>
@@ -180,7 +157,7 @@ function CurriculumSection({
             <Link
               to={unit.overviewPath}
               key={unit.id}
-              className={`${styles.unitCard} ${locked ? styles.unitCardLocked : ''} ${
+              className={`${styles.unitCard} ${
                 index >= MOBILE_CURRICULUM_PREVIEW_COUNT && !showAllMobile
                   ? styles.mobileCurriculumExtra
                   : ''
@@ -230,7 +207,6 @@ function SimulatorSection(): React.JSX.Element {
         wrapperClassName={styles.simulatorWrapper}
         toolbarClassName={styles.simulatorToolbar}
         toolbarButtonClassName={styles.simulatorToolbarButton}
-        allowHomepageDemos
       />
     </section>
   );
@@ -287,10 +263,6 @@ function CtaSection(): React.JSX.Element {
         <h2 className={styles.ctaTitle}>
           Start with the fundamentals.<br />Build toward competition.
         </h2>
-        <p className={styles.ctaNote}>
-          Sign in and your progress is recorded across both tracks and every
-          device. No streaks, no badges. The whole site is open source.
-        </p>
         <p className={styles.ctaSub}>
           Write the code in the browser, design the robot with the calculators,
           and bring both to the field.
@@ -312,7 +284,6 @@ function CtaSection(): React.JSX.Element {
 
 export default function Home(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const { user, loading } = useAuth();
   const buildCommit = String(siteConfig.customFields?.buildCommit ?? 'unknown');
 
   return (
@@ -325,7 +296,7 @@ export default function Home(): React.JSX.Element {
         <meta name="telemark-build-commit" content={buildCommit} />
       </Head>
 
-      {/* Font Awesome is used by the lock icons on gated unit cards */}
+      {/* Font Awesome is used by the simulator controls. */}
       <link
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
         rel="stylesheet"
@@ -335,30 +306,21 @@ export default function Home(): React.JSX.Element {
         <HeroSection />
         <StatsBar />
         <Divider />
+        <Divider />
         <CurriculumSection
-          signedIn={Boolean(user)}
-          authLoading={loading}
           units={CURRICULUM_UNITS}
           label="Software track"
           id="curriculum"
           heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
           blurb="Start at the beginning or go straight to what your team needs."
-          allPath="/docs"
-          allLabel={`See all ${CURRICULUM_UNIT_COUNT} software units`}
-          stat={`${CURRICULUM_UNIT_COUNT} units · ${CURRICULUM_LESSON_COUNT} lessons`}
         />
         <Divider />
         <CurriculumSection
-          signedIn={Boolean(user)}
-          authLoading={loading}
           units={MECHANICAL_UNITS}
           label="Mechanical track"
           id="mechanical"
           heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
           blurb="How to design a robot: the process, CAD, materials, gears and belts, and the standards that keep it together."
-          allPath="/mechanical"
-          allLabel={`See all ${MECHANICAL_UNIT_COUNT} mechanical modules`}
-          stat={`${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`}
         />
         <Divider />
         <SimulatorSection />

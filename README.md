@@ -17,8 +17,11 @@ data lives in that file; the mechanical track's lives in
 `src/telemark/mechanical.ts`. Components that must work for both read through
 `src/telemark/tracks.ts` rather than importing one track directly.
 
-Access gating is identical across tracks: unit 0 and module 0 are public, and
-everything numbered 1 or above requires a Google account.
+Both tracks, their simulators, and the design calculators are public. Progress
+saves in the browser without an account and can be exported or imported from
+the dashboard. Google sign-in is required only for Sharp AI and the private
+analytics dashboard; when a learner signs in, browser progress is merged into
+their existing Firestore progress.
 
 ### Adding an mechanical module
 
@@ -200,9 +203,9 @@ crawler, sees `157`, not `0`. And it skips the animation when the element was
 already on screen at mount, since counting up then means visibly resetting a
 number the reader has already seen.
 
-The lock screen carries its own navigation links. A locked page replaces the
-entire app shell, navbar included, so without them it is a dead end reachable
-only by the browser back button.
+Progress uses one normalized shape across local storage, portable JSON backups,
+and Firestore. Imported and cloud records are merged so moving devices never
+erases completion that exists in only one place.
 
 ### Keeping the two tracks consistent
 
@@ -214,8 +217,8 @@ They had already drifted, and the fixes were:
 
 - **One landing component.** The software landing was a bespoke page with its
   own 317 line stylesheet while the mechanical landing rendered
-  `TrackOverview`. Both now render `TrackOverview`, which absorbed the sign-in
-  gating the software page used to own.
+  `TrackOverview`. Both now render `TrackOverview`, including the same local
+  progress indicators.
 - **The same track-level pages.** Both tracks have `getting-started.mdx` and
   `learning-paths.mdx`.
 - **The same assessment.** All 26 mastery quizzes across both tracks end with a
@@ -225,8 +228,7 @@ They had already drifted, and the fixes were:
 - **The same shell.** Both landings are docs index pages owning their track
   root (`/docs` and `/engineering`), so each opens with its own sidebar and
   identical chrome. `/curriculum` survives as a redirect for old links, and is
-  public so the redirect can actually run rather than being intercepted by the
-  auth gate.
+  public so old bookmarks keep working.
 - **One navbar.** The homepage used to hand roll its own `<nav>`, so it had
   different chrome from every other page and the command palette was
   unreachable there. It now renders inside the shared `Layout`.
@@ -248,21 +250,18 @@ restates the tokens and maps them onto the variable names those pages already
 use, and is linked after each page's inline `<style>` so it wins on equal
 specificity. That themes all of them without rewriting any.
 
-### Public routes
+### Access and progress
 
-Most of the site requires an account, but four routes do not, and each for a
-reason:
+The homepage, both curriculum tracks, full-text search, simulators, calculators,
+and the progress dashboard are public. The dashboard reads the same browser
+record as the lesson controls and offers **Export Progress** and **Import
+Progress**. Clearing browser site data removes the local copy, so the exported
+JSON file is the no-account recovery path.
 
-| Route | Why it is public |
-| --- | --- |
-| `/` | The homepage has to be readable before signing up |
-| `/login` | Obviously |
-| `/search` | Titles are indexed for every lesson but excerpts of protected ones are redacted, so browsing signed out is safe and is the only way to judge whether an account is worth making |
-| `/simulator` | The design calculators compute from numbers the student types and hold no lesson content; the Java simulators on the page gate themselves |
-| `/curriculum`, `/engineering` | Redirects to the renamed routes, which cannot run if the gate intercepts them |
-
-`/search` and `/simulator` were previously gated, which meant the navbar had
-two links that led to a lock screen.
+Sharp AI still asks for Google sign-in because its question limit is enforced
+per authenticated account. Signing in also merges the device record into
+Firestore for automatic cross-device progress. `/admin` separately requires
+the authorized Sharp Face Robotics account.
 
 ### Tests
 
@@ -270,7 +269,7 @@ two links that led to a lock screen.
 | --- | --- |
 | `npm run typecheck` | Types across the site |
 | `npm run check:content` | Prose rules, and that every calculator, visual, diagram, quiz, and photo slot is reachable |
-| `npm run test:site` | Access gating, design tokens, design rules, track parity, track data model, 127 math assertions, component render smoke tests |
+| `npm run test:site` | Open access, local progress import/export, design tokens, design rules, track parity, track data model, math assertions, component render smoke tests |
 | `npm run test:simulator` | Software track simulator runtimes |
 | `npm run functions:test` | Analytics backend. Requires `npm ci` inside `functions/` first, which is easy to miss: without it every import resolves to `any` and the type errors look like code faults |
 | `npm run verify:build` | Built routes, homepage counts, and every internal cross-track link |
@@ -303,9 +302,11 @@ verifies every mechanical calculator is reachable from a lesson.
 
 ## Analytics administration
 
-The private dashboard is available at `/telemark/admin`. Google login is visible
-to everyone, but both the browser and the callable backend restrict metrics to
-`sharpfacerobotics@gmail.com`. The backend returns aggregate values only.
+The private analytics dashboard is available at `/telemark/admin`. Both the
+browser and callable backend restrict it to `sharpfacerobotics@gmail.com`. It
+reports GA4 estimated visitors, curriculum users, engagement, verified Google
+accounts, and aggregate cloud-synced progress; it never returns learner names,
+emails, or UIDs.
 
 See [ANALYTICS_SETUP.md](./ANALYTICS_SETUP.md) for the required one-time Google
 Analytics, Firebase, IAM, and GitHub Actions configuration.

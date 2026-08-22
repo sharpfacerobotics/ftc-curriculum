@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useHistory } from '@docusaurus/router';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import { signOut } from 'firebase/auth';
@@ -7,8 +6,9 @@ import { auth } from '../telemark/firebase';
 import { useAuth } from '../telemark/useAuth';
 import { useProgress } from '../telemark/useProgress';
 import { getTrack, TRACKS, type TrackId } from '../telemark/tracks';
+import {parseProgressExport, serializeProgress} from '../telemark/progressStore';
+import {trackEvent} from '../telemark/analytics';
 import styles from './dashboard.module.css';
-import {useBasePath} from '@site/src/telemark/useBasePath';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -24,22 +24,16 @@ export default function DashboardPage(): React.JSX.Element {
     markManySkipped,
     reviewMany,
     unmarkMany,
+    mergeImportedProgress,
   } = useProgress(user);
-  const history                    = useHistory();
-  const basePath = useBasePath();
   const [activeTrack, setActiveTrack] = useState<TrackId>('software');
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [savingUnit, setSavingUnit] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [transferMessage, setTransferMessage] = useState<string | null>(null);
   const previousStatusesRef = useRef<Record<string, string>>({});
-
-  // Redirect to login if not signed in
-  useEffect(() => {
-    if (!loading && !user) {
-      history.push(basePath('/login'));
-    }
-  }, [user, loading, history]);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const track = getTrack(activeTrack);
   const trackLessons = track.lessons;
@@ -135,7 +129,45 @@ export default function DashboardPage(): React.JSX.Element {
 
   async function handleSignOut() {
     await signOut(auth);
-    history.push(basePath('/'));
+    setTransferMessage('Signed out. Progress remains saved on this device.');
+  }
+
+  function handleExport() {
+    const blob = new Blob([serializeProgress(progress)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `telemark-progress-${new Date().toISOString().slice(0, 10)}.json`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setTransferMessage('Progress backup downloaded.');
+    trackEvent('progress_export', {surface: 'dashboard'});
+  }
+
+  async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 1_000_000) {
+      setTransferMessage('That file is too large to be a Telemark progress backup.');
+      return;
+    }
+
+    try {
+      const imported = parseProgressExport(await file.text());
+      await mergeImportedProgress(imported);
+      setTransferMessage(
+        user
+          ? 'Imported progress merged and synced to your account.'
+          : 'Imported progress merged into this browser.',
+      );
+      trackEvent('progress_import', {surface: 'dashboard'});
+    } catch (error) {
+      setTransferMessage(error instanceof Error ? error.message : 'Could not import that file.');
+    }
   }
 
   function toggleUnit(unitSlug: string, nextValue: boolean) {
@@ -168,7 +200,7 @@ export default function DashboardPage(): React.JSX.Element {
     }
   }
 
-  if (loading || progressLoading || !user || !progress) {
+  if (loading || progressLoading) {
     return (
       <Layout title="Dashboard · Telemark" noFooter>
         <main className={styles.page}>
@@ -191,21 +223,49 @@ export default function DashboardPage(): React.JSX.Element {
             <div>
               <p className={styles.eyebrow}>// telemark.dashboard</p>
               <h1 className={styles.title}>
-                Welcome back,{' '}
-                <span className={styles.name}>
-                  {user.displayName?.split(' ')[0] ?? 'teammate'}
-                </span>
+                {user ? (
+                  <>Welcome back, <span className={styles.name}>
+                    {user.displayName?.split(' ')[0] ?? 'teammate'}
+                  </span></>
+                ) : 'Your Telemark progress'}
               </h1>
+              <p className={styles.storageNote}>
+                {user
+                  ? 'Synced with your Google account and saved on this device.'
+                  : 'Saved automatically in this browser. Export a backup before clearing site data.'}
+              </p>
             </div>
             <div className={styles.headerActions}>
               <Link to={nextLesson?.path ?? fallbackUnit.overviewPath} className={styles.resumeBtn}>
                 {nextLesson ? `Resume → ${nextLesson.label}` : `Review ${fallbackUnit.label} ✓`}
               </Link>
-              <button className={styles.signOutBtn} onClick={handleSignOut}>
-                Sign Out
+              <button type="button" className={styles.signOutBtn} onClick={handleExport}>
+                Export Progress
               </button>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept="application/json,.json"
+                className={styles.importInput}
+                onChange={(event) => void handleImport(event)}
+              />
+              <button
+                type="button"
+                className={styles.signOutBtn}
+                onClick={() => importInputRef.current?.click()}
+              >
+                Import Progress
+              </button>
+              {user && (
+                <button type="button" className={styles.signOutBtn} onClick={handleSignOut}>
+                  Sign Out
+                </button>
+              )}
             </div>
           </div>
+          {transferMessage && (
+            <p className={styles.transferMessage} role="status">{transferMessage}</p>
+          )}
 
           {/* ── Track switcher ── */}
           <div className={styles.trackSwitcher} role="group" aria-label="Choose a track">

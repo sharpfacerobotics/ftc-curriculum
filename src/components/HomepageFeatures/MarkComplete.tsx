@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Link from '@docusaurus/Link';
 import { useAuth } from '@site/src/telemark/useAuth';
 import { useProgress } from '@site/src/telemark/useProgress';
-import { signInWithGoogle } from '@site/src/telemark/googleAuth';
 import styles from './MarkComplete.module.css';
 
 interface MarkCompleteProps {
@@ -73,14 +72,6 @@ export default function MarkComplete({
     }
   }
 
-  async function handleSignIn() {
-    try {
-      await signInWithGoogle();
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  
   // ── Completed ─────────────────────────────────────────────
   if (done) {
     return (
@@ -88,14 +79,16 @@ export default function MarkComplete({
         <div className={styles.successHeader}>
           <span className={styles.successIcon} aria-hidden="true">✓</span>
           <span className={styles.successTitle}>Lesson Complete</span>
-          {user && <span className={styles.savedBadge}>saved to Telemark</span>}
+          <span className={styles.savedBadge}>
+            {user ? 'synced to your account' : 'saved on this device'}
+          </span>
         </div>
         <p className={styles.successMsg}>
           Nice work. Hold yourself to it: there are no shortcuts in competition.
         </p>
         <div className={styles.successActions}>
           <Link to={nextUnit} className={styles.nextBtn}>Proceed to {nextUnitName} →</Link>
-          {user && <button className={styles.actionBtn} onClick={handleUnmark} disabled={saving}>Unmark</button>}
+          <button className={styles.actionBtn} onClick={handleUnmark} disabled={saving}>Unmark</button>
         </div>
       </div>
     );
@@ -106,7 +99,9 @@ export default function MarkComplete({
       <div className={styles.successBox}>
         <div className={styles.successHeader}>
           <span className={styles.successTitle}>Section Skipped</span>
-          <span className={styles.savedBadge}>saved to Telemark</span>
+          <span className={styles.savedBadge}>
+            {user ? 'synced to your account' : 'saved on this device'}
+          </span>
         </div>
         <p className={styles.successMsg}>You can come back to this section whenever you are ready.</p>
         <div className={styles.successActions}>
@@ -117,32 +112,6 @@ export default function MarkComplete({
     );
   }
 
-  // ── Not signed in ─────────────────────────────────────────
-  if (!user) {
-    return (
-      <div className={styles.completeBox}>
-        <div className={styles.completeInner}>
-          <div className={styles.completeText}>
-            <p className={styles.completeTitle}>Ready to move on?</p>
-            <p className={styles.completeDesc}>
-              Sign in with Google to save your progress with Telemark, or
-              continue without saving.
-            </p>
-          </div>
-          <div className={styles.completeActions}>
-            <button className={styles.signInBtn} onClick={handleSignIn}>
-              Sign in with Google
-            </button>
-            <button className={styles.completeBtn} onClick={() => setDone(true)}>
-              Continue without saving
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Signed in ─────────────────────────────────────────────
   return (
     <div className={styles.completeBox}>
       <div className={styles.completeInner}>
@@ -150,7 +119,7 @@ export default function MarkComplete({
           <p className={styles.completeTitle}>Ready to move on?</p>
           <p className={styles.completeDesc}>
             Only mark complete if you genuinely understand the material.
-            Your progress will be saved to Telemark.
+            Your progress will be {user ? 'synced to your account' : 'saved in this browser'}.
           </p>
         </div>
         <button
