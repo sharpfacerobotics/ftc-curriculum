@@ -239,9 +239,6 @@ export default function DashboardPage(): React.JSX.Element {
               <Link to={nextLesson?.path ?? fallbackUnit.overviewPath} className={styles.resumeBtn}>
                 {nextLesson ? `Resume → ${nextLesson.label}` : `Review ${fallbackUnit.label} ✓`}
               </Link>
-              <button type="button" className={styles.signOutBtn} onClick={handleExport}>
-                Export Progress
-              </button>
               <input
                 ref={importInputRef}
                 type="file"
@@ -249,18 +246,26 @@ export default function DashboardPage(): React.JSX.Element {
                 className={styles.importInput}
                 onChange={(event) => void handleImport(event)}
               />
-              <button
-                type="button"
-                className={styles.signOutBtn}
-                onClick={() => importInputRef.current?.click()}
-              >
-                Import Progress
-              </button>
-              {user && (
-                <button type="button" className={styles.signOutBtn} onClick={handleSignOut}>
-                  Sign Out
+              {/* Account chores, kept in one row. Stacked, each sized to its own
+                  label against a right edge, they came out as a staircase and
+                  read as three choices as weighty as resuming the course. */}
+              <div className={styles.utilityRow}>
+                <button type="button" className={styles.signOutBtn} onClick={handleExport}>
+                  Export
                 </button>
-              )}
+                <button
+                  type="button"
+                  className={styles.signOutBtn}
+                  onClick={() => importInputRef.current?.click()}
+                >
+                  Import
+                </button>
+                {user && (
+                  <button type="button" className={styles.signOutBtn} onClick={handleSignOut}>
+                    Sign out
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           {transferMessage && (

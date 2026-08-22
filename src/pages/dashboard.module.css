@@ -105,8 +105,32 @@
 .headerActions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-end;
+}
+
+/* One row, so the account chores read as a set of small utilities under the
+   primary action rather than as a ladder of equal choices beside it. */
+.utilityRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .headerActions {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .utilityRow {
+    justify-content: flex-start;
+  }
+
+  .resumeBtn {
+    text-align: center;
+  }
 }
 
 .resumeBtn {

@@ -1259,26 +1259,21 @@
 
 /* The gallery draws itself into a canvas, so it needs a height rather than
    content to size against. */
+/* The gallery steps outside the reading column. Screenshots of a dense
+   interface shrunk to a third of a text measure are unreadable, and the
+   section is sized for prose, not for pictures. */
 .gallery {
   position: relative;
-  height: 460px;
+  width: min(1320px, calc(100vw - 3rem));
   margin-top: var(--tm-sp-5);
-}
-
-/* Labels are rendered into the canvas by the gallery as bitmap text, which is
-   fuzzy and unreadable by anything but an eye. They are turned off there and
-   listed here instead, where they are selectable and announced. */
-.galleryNote {
-  margin-top: var(--tm-sp-4);
-  color: var(--tm-text-muted);
-  font-size: var(--tm-fs-xs);
-  line-height: var(--tm-lh-normal);
+  margin-left: 50%;
+  transform: translateX(-50%);
 }
 
 .galleryFallback {
   display: grid;
   gap: var(--tm-sp-4);
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .showcaseFallback {
@@ -1288,11 +1283,58 @@
   border-radius: var(--tm-r-md);
 }
 
-@media (max-width: 700px) {
-  .gallery {
-    height: 320px;
+/* A screenshot beside the text that describes it. The image carries the width
+   it can use rather than filling the measure, so the caption underneath stays
+   inside a readable line. */
+/* Heading beside the screenshot it describes. Stacked, the picture cost a
+   full extra screen of scrolling each time; alongside, it fills room the
+   heading was already leaving empty. */
+.featureRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4rem);
+  margin-bottom: var(--tm-sp-5);
+}
+
+.featureRow .sectionTitle,
+.featureRow .sectionDesc {
+  max-width: 30ch;
+}
+
+.featureShot {
+  margin: 0;
+}
+
+.featureShot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  box-shadow: 0 18px 48px -28px rgba(15, 23, 42, 0.45);
+}
+
+.featureShot figcaption {
+  margin-top: var(--tm-sp-2);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
+}
+
+@media (max-width: 860px) {
+  .featureRow {
+    grid-template-columns: 1fr;
+    gap: var(--tm-sp-4);
   }
 
+  .featureRow .sectionTitle,
+  .featureRow .sectionDesc {
+    max-width: none;
+  }
+}
+
+@media (max-width: 700px) {
   .galleryFallback {
     grid-template-columns: 1fr;
   }

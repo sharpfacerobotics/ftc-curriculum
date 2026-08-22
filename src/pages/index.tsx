@@ -44,14 +44,22 @@ function Divider(): React.JSX.Element {
 /** A few tools that show the range, not a catalogue dump. */
 /** Screenshots of the actual tools and pages, not mockups. */
 const SHOWCASE = [
-  {image: 'img/showcase/slide-calculator.jpg', text: 'Linear slide sizing'},
-  {image: 'img/showcase/cad-check.jpg', text: 'CAD file check'},
-  {image: 'img/showcase/arm-simulator.jpg', text: 'Arm simulator'},
-  {image: 'img/showcase/gear-ratio.jpg', text: 'Gear ratio'},
-  {image: 'img/showcase/beam-deflection.jpg', text: 'Beam deflection'},
-  {image: 'img/showcase/weight-budget.jpg', text: 'Weight budget'},
-  {image: 'img/showcase/lesson.jpg', text: 'A lesson'},
-  {image: 'img/showcase/cad-practice.jpg', text: 'CAD practice'},
+  {image: 'img/showcase/slide-calculator.jpg', text: 'Linear slide sizing', url: '/simulator#slide', height: 520,
+   alt: 'The linear slide calculator, with extension, spool diameter and cable force filled in.'},
+  {image: 'img/showcase/cad-check.jpg', text: 'CAD file check', url: '/simulator#cad-check', height: 620,
+   alt: 'The CAD check reporting measured wall thickness and hole sizes from an uploaded STEP file.'},
+  {image: 'img/showcase/arm-simulator.jpg', text: 'Arm simulator', url: '/simulator#arm-sim', height: 560,
+   alt: 'The arm simulator running a time-stepped arm and plotting whether it holds.'},
+  {image: 'img/showcase/gear-ratio.jpg', text: 'Gear ratio', url: '/simulator#arm-torque', height: 480,
+   alt: 'The gear ratio calculator working a reduction from a required output torque.'},
+  {image: 'img/showcase/beam-deflection.jpg', text: 'Beam deflection', url: '/simulator', height: 600,
+   alt: 'The beam deflection calculator showing how far a given extrusion sags under load.'},
+  {image: 'img/showcase/weight-budget.jpg', text: 'Weight budget', url: '/simulator#weight', height: 500,
+   alt: 'The weight budget, with the robot mass split across named subsystems.'},
+  {image: 'img/showcase/lesson.jpg', text: 'A lesson', url: '/software/module-00/oop-basics', height: 640,
+   alt: 'A lesson page, with the explanation running beside a worked example.'},
+  {image: 'img/showcase/cad-practice.jpg', text: 'CAD practice', url: '/mechanical/module-00/design-cycle', height: 540,
+   alt: 'A CAD practice exercise stating the dimensions a submitted model has to hit.'},
 ];
 
 const HOME_TOOLS = [
@@ -187,16 +195,42 @@ function CurriculumSection({
   );
 }
 
+/**
+ * A screenshot beside the copy that describes it.
+ *
+ * The two feature sections explained a simulator and a set of calculators
+ * without ever showing one, so the only picture of either was the wall of
+ * gallery tiles further down the page.
+ */
+function FeatureShot({src, alt, caption}: {src: string; alt: string; caption: string}): React.JSX.Element {
+  const base = useBaseUrl('/').replace(/\/$/, '');
+  return (
+    <figure className={styles.featureShot}>
+      <img src={`${base}/${src}`} alt={alt} loading="lazy" decoding="async" width={1100} height={726} />
+      <figcaption>{caption}</figcaption>
+    </figure>
+  );
+}
+
 function SimulatorSection(): React.JSX.Element {
   return (
     <section className={styles.section}>
-      <p className={styles.sectionLabel}>Browser simulator</p>
-      <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
-      <p className={styles.sectionDesc}>
-        Write the code for a lesson, run it, and see what the robot does. You
-        get telemetry, checks against what the lesson asked for, and simulated
-        hardware to test against.
-      </p>
+      <div className={styles.featureRow}>
+        <div>
+          <p className={styles.sectionLabel}>Browser simulator</p>
+          <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
+          <p className={styles.sectionDesc}>
+            Write the code for a lesson, run it, and see what the robot does.
+            You get telemetry, checks against what the lesson asked for, and
+            simulated hardware to test against.
+          </p>
+        </div>
+        <FeatureShot
+          src="img/showcase/arm-simulator.jpg"
+          alt="The arm simulator mid-run, with telemetry beside the simulated arm."
+          caption="The arm simulator, running a student's own numbers."
+        />
+      </div>
       <SimulatorWorkflow
         className={styles.simulatorWorkflow}
         itemClassName={styles.simulatorStep}
@@ -226,13 +260,22 @@ function SimulatorSection(): React.JSX.Element {
 function ToolsSection(): React.JSX.Element {
   return (
     <section className={styles.section} id="tools">
-      <p className={styles.sectionLabel}>Design tools</p>
-      <h2 className={styles.sectionTitle}>Check the design before you cut</h2>
-      <p className={styles.sectionDesc}>
-        {TOOL_CATALOG.length} calculators for the numbers that decide whether a
-        mechanism will work, and a check that reads your exported CAD file and
-        measures it.
-      </p>
+      <div className={styles.featureRow}>
+        <div>
+          <p className={styles.sectionLabel}>Design tools</p>
+          <h2 className={styles.sectionTitle}>Check the design before you cut</h2>
+          <p className={styles.sectionDesc}>
+            {TOOL_CATALOG.length} calculators for the numbers that decide
+            whether a mechanism will work, and a check that reads your exported
+            CAD file and measures it.
+          </p>
+        </div>
+        <FeatureShot
+          src="img/showcase/cad-check.jpg"
+          alt="The CAD check reporting measured wall thickness and hole sizes from an uploaded file."
+          caption="The CAD check, measuring an exported STEP file against the exercise."
+        />
+      </div>
 
       <div className={styles.toolStrip}>
         {HOME_TOOLS.slice(0, 4).map((tool) => (
@@ -264,10 +307,14 @@ function ToolsSection(): React.JSX.Element {
 }
 
 function ShowcaseSection(): React.JSX.Element {
-  const withBase = useBaseUrl('/');
+  const base = useBaseUrl('/').replace(/\/$/, '');
   const items = SHOWCASE.map((shot) => ({
-    image: `${withBase.replace(/\/$/, '')}/${shot.image}`,
-    text: shot.text,
+    id: shot.image,
+    img: `${base}/${shot.image}`,
+    url: shot.url,
+    height: shot.height,
+    alt: shot.alt,
+    caption: shot.text,
   }));
 
   return (
@@ -275,44 +322,41 @@ function ShowcaseSection(): React.JSX.Element {
       <p className={styles.sectionLabel}>Inside</p>
       <h2 className={styles.sectionTitle}>What you actually get</h2>
       <p className={styles.sectionDesc}>
-        Drag through it. Screenshots of the running site, not mockups.
+        Screenshots of the running site, not mockups. Every one of them opens
+        the thing it shows.
       </p>
 
       <div className={styles.gallery}>
         <BrowserOnly
           fallback={
             <div className={styles.galleryFallback}>
-              {SHOWCASE.slice(0, 3).map((shot) => (
+              {SHOWCASE.slice(0, 4).map((shot) => (
                 <img
                   key={shot.image}
                   className={styles.showcaseFallback}
-                  src={`${withBase.replace(/\/$/, '')}/${shot.image}`}
-                  alt={shot.text}
+                  src={`${base}/${shot.image}`}
+                  alt={shot.alt}
+                  loading="lazy"
                 />
               ))}
             </div>
           }
         >
           {() => {
-            const CircularGallery =
-              require('@site/src/components/vendor/reactbits/CircularGallery').default;
+            const Masonry =
+              require('@site/src/components/vendor/reactbits/Masonry').default;
             return (
-              <CircularGallery
+              <Masonry
                 items={items}
-                bend={2}
-                borderRadius={0.06}
-                scrollSpeed={1.6}
-                scrollEase={0.06}
-                textColor="transparent"
+                LinkComponent={Link}
+                duration={0.5}
+                stagger={0.04}
+                columnCounts={[3, 3, 2, 2]}
               />
             );
           }}
         </BrowserOnly>
       </div>
-
-      <p className={styles.galleryNote}>
-        {SHOWCASE.map((shot) => shot.text).join(' · ')}
-      </p>
     </section>
   );
 }
