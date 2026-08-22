@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
@@ -20,6 +21,8 @@ import {
   MECHANICAL_UNIT_COUNT,
 } from '../telemark/mechanical';
 import {TOTAL_LESSON_COUNT} from '../telemark/tracks';
+import CountUp from '@site/src/components/vendor/reactbits/CountUp';
+import SpotlightCard from '@site/src/components/vendor/reactbits/SpotlightCard';
 
 const MOBILE_CURRICULUM_PREVIEW_COUNT = 4;
 
@@ -90,7 +93,12 @@ function StatsBar(): React.JSX.Element {
 
   return (
     <p className={styles.summaryLine}>
-      <span className={styles.summaryFigure}>{TOTAL_LESSON_COUNT}</span> lessons across
+      <span className={styles.summaryFigure}>
+        <BrowserOnly fallback={<>{TOTAL_LESSON_COUNT}</>}>
+          {() => <CountUp to={TOTAL_LESSON_COUNT} duration={1.2} />}
+        </BrowserOnly>
+      </span>{' '}
+      lessons across
       {' '}<span className={styles.summaryFigure}>2</span> tracks, written in
       Java against the FTC SDK, with simulators on one side and design
       calculators on the other.
@@ -215,10 +223,16 @@ function ToolsSection(): React.JSX.Element {
 
       <div className={styles.toolStrip}>
         {HOME_TOOLS.slice(0, 4).map((tool) => (
-          <Link key={tool.path} to={tool.path} className={styles.toolCard}>
-            <span className={styles.toolName}>{tool.name}</span>
-            <span className={styles.toolDesc}>{tool.desc}</span>
-          </Link>
+          <SpotlightCard
+            key={tool.path}
+            className={styles.toolCard}
+            spotlightColor="rgba(34, 211, 238, 0.12)"
+          >
+            <Link to={tool.path} className={styles.toolLink}>
+              <span className={styles.toolName}>{tool.name}</span>
+              <span className={styles.toolDesc}>{tool.desc}</span>
+            </Link>
+          </SpotlightCard>
         ))}
       </div>
 

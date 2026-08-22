@@ -1117,15 +1117,22 @@
 }
 
 .toolCard {
+  /* Frame, border and hover now come from the spotlight card this wraps. */
   display: flex;
+}
+
+.toolLink {
+  display: flex;
+  width: 100%;
   flex-direction: column;
   gap: var(--tm-sp-2);
   padding: var(--tm-sp-4);
-  border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-md);
-  background: var(--tm-surface-2);
+  color: inherit;
   text-decoration: none;
-  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.toolLink:hover {
+  text-decoration: none;
 }
 
 .toolCard:hover {
