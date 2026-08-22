@@ -66,36 +66,9 @@ const HOME_TOOLS = [
 function HeroSection(): React.JSX.Element {
   return (
     <section className={styles.hero}>
-      <div className={styles.heroAurora} aria-hidden="true">
-        <BrowserOnly>
-          {() => {
-            const Aurora =
-              require('@site/src/components/vendor/reactbits/Aurora').default;
-            return (
-              <Aurora
-                colorStops={['#38bdf8', '#22d3ee', '#2563eb']}
-                amplitude={0.55}
-                blend={0.35}
-                speed={0.4}
-              />
-            );
-          }}
-        </BrowserOnly>
-      </div>
       <div className={styles.heroBadge}>
         <span className={styles.badgeDot} aria-hidden="true" />
-        <BrowserOnly fallback={<span>Student-built FTC software and mechanical curriculum</span>}>
-          {() => {
-            const ShinyText =
-              require('@site/src/components/vendor/reactbits/ShinyText').default;
-            return (
-              <ShinyText
-                text="Student-built FTC software and mechanical curriculum"
-                speed={6}
-              />
-            );
-          }}
-        </BrowserOnly>
+        <span>Student-built FTC software and mechanical curriculum</span>
       </div>
 
       <h1 className={styles.heroTitle}>
@@ -396,7 +369,6 @@ export default function Home(): React.JSX.Element {
       <main className={styles.lp}>
         <HeroSection />
         <StatsBar />
-        <Divider />
         <Divider />
         <CurriculumSection
           units={CURRICULUM_UNITS}
