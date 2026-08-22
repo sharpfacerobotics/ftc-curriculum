@@ -1254,3 +1254,21 @@
   border-color: var(--tm-accent);
   color: var(--tm-accent);
 }
+
+/* The aurora sits behind the hero, clipped to it and held back so the headline
+   stays the loudest thing on the page. */
+.heroAurora {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  opacity: 0.5;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 92%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroAurora {
+    display: none;
+  }
+}
