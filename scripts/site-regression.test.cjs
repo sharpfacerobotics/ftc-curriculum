@@ -59,8 +59,13 @@ assert.match(accessPolicy, /export function isProtectedLessonPath/);
 assert.doesNotMatch(docItem, /ContentLock|isProtectedLessonPath/);
 assert.doesNotMatch(rootTheme, /ContentLock|isProtectedLessonPath|useAuth/);
 assert.match(docItem, /trackEvent\('curriculum_start'/);
-assert.match(navbarItem, /to: '\/dashboard'/);
-assert.doesNotMatch(navbarItem, /to: user \? '\/dashboard' : '\/login'/);
+// The account slot follows the session. It was pinned to the dashboard for
+// everyone, which left a visitor who had never signed in with no sign in link
+// anywhere on the site: the only way to reach the gate was to open a locked
+// lesson and be stopped by it. Signed out is what the server renders, so a
+// static page opens on "Sign in" and upgrades once an account resolves.
+assert.match(navbarItem, /to: user \? '\/dashboard' : '\/login'/);
+assert.match(navbarItem, /label: user \? 'Dashboard' : 'Sign in'/);
 assert.doesNotMatch(homepage, /useState<string>\(isNumeric \? '0'/);
 assert.match(homepage, /CURRICULUM_UNIT_COUNT/);
 assert.match(homepage, /CURRICULUM_LESSON_COUNT/);
