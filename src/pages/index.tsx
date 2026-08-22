@@ -23,27 +23,6 @@ import {TOTAL_LESSON_COUNT} from '../telemark/tracks';
 
 const MOBILE_CURRICULUM_PREVIEW_COUNT = 4;
 
-const TRACKS_SUMMARY = [
-  {
-    id: 'software',
-    eyebrow: 'Track 01',
-    title: 'Software',
-    desc: 'FTC Java from classes and OpModes through sensors, vision, and full autonomous routines, with a browser simulator on every lesson.',
-    stat: `${CURRICULUM_UNIT_COUNT} units · ${CURRICULUM_LESSON_COUNT} lessons`,
-    to: '/docs',
-    cta: 'Open the software track',
-  },
-  {
-    id: 'mechanical',
-    eyebrow: 'Track 02',
-    title: 'Mechanical',
-    desc: 'Build the robot the code runs on: the design process, CAD, materials, power transmission, mechanisms, wiring, and competition readiness.',
-    stat: `${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`,
-    to: '/mechanical',
-    cta: 'Open the mechanical track',
-  },
-];
-
 const TIER_CLASS: Record<Tier, string> = {
   Beginner:     'tagBasic',
   Intermediate: 'tagInter',
@@ -125,12 +104,15 @@ function CurriculumSection({
   id,
   heading,
   blurb,
+  stat,
 }: {
   units: typeof CURRICULUM_UNITS;
   label: string;
   id: string;
   heading: string;
   blurb: string;
+  /** The track's size, which the removed tracks section used to carry. */
+  stat: string;
 }): React.JSX.Element {
   const [showAllMobile, setShowAllMobile] = useState(false);
 
@@ -139,6 +121,7 @@ function CurriculumSection({
       <p className={styles.sectionLabel}>{label}</p>
       <h2 className={styles.sectionTitle}>{heading}</h2>
       <p className={styles.sectionDesc}>{blurb}</p>
+      <p className={styles.trackStat}>{stat}</p>
 
       <div className={styles.curriculumGrid} id={`${id}-curriculum-list`}>
         {units.map((unit, index) => {
@@ -313,6 +296,7 @@ export default function Home(): React.JSX.Element {
           id="curriculum"
           heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
           blurb="Start at the beginning or go straight to what your team needs."
+          stat={`${CURRICULUM_UNIT_COUNT} units · ${CURRICULUM_LESSON_COUNT} lessons`}
         />
         <Divider />
         <CurriculumSection
@@ -321,6 +305,7 @@ export default function Home(): React.JSX.Element {
           id="mechanical"
           heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
           blurb="How to design a robot: the process, CAD, materials, gears and belts, and the standards that keep it together."
+          stat={`${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`}
         />
         <Divider />
         <SimulatorSection />
