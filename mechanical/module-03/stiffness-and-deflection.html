@@ -15,9 +15,9 @@
 
 
 
-<script>window.dataLayer=window.dataLayer||[],"function"!=typeof window.gtag&&(window.gtag=function(){window.dataLayer.push(arguments)})</script><link rel="stylesheet" href="/telemark/assets/css/styles.ad1b7508.css">
-<script src="/telemark/assets/js/runtime~main.d1a37c8f.js" defer="defer"></script>
-<script src="/telemark/assets/js/main.1c0f1afe.js" defer="defer"></script>
+<script>window.dataLayer=window.dataLayer||[],"function"!=typeof window.gtag&&(window.gtag=function(){window.dataLayer.push(arguments)})</script><link rel="stylesheet" href="/telemark/assets/css/styles.b6781ce3.css">
+<script src="/telemark/assets/js/runtime~main.edf05125.js" defer="defer"></script>
+<script src="/telemark/assets/js/main.b6b64aca.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -31,9 +31,9 @@
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-deflection-relationship">The Deflection Relationship<a href="#the-deflection-relationship" class="hash-link" aria-label="Direct link to The Deflection Relationship" title="Direct link to The Deflection Relationship" translate="no">​</a></h2>
 <p>For a cantilever beam with a load at the free end:</p>
-<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">deflection = (F * L^3) / (3 * E * I)</span><br></span></code></pre></div></div>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">deflection = (F * L^3) / (3 * E * I)</span><br></span></code></pre></div></div>
 <p>For a beam supported at both ends with a load in the middle:</p>
-<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">deflection = (F * L^3) / (48 * E * I)</span><br></span></code></pre></div></div>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">deflection = (F * L^3) / (48 * E * I)</span><br></span></code></pre></div></div>
 <p>Where <code>F</code> is the load, <code>L</code> is the span, <code>E</code> is Young&#x27;s modulus of the material, and <code>I</code> is the area moment of inertia of the cross section.</p>
 <p>Three consequences follow immediately, and all three are actionable.</p>
 <hr>
@@ -44,7 +44,7 @@
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="consequence-2-depth-dominates-the-cross-section">Consequence 2: Depth Dominates the Cross Section<a href="#consequence-2-depth-dominates-the-cross-section" class="hash-link" aria-label="Direct link to Consequence 2: Depth Dominates the Cross Section" title="Direct link to Consequence 2: Depth Dominates the Cross Section" translate="no">​</a></h2>
 <p>For a rectangular section, the area moment of inertia is:</p>
-<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">I = (b * h^3) / 12</span><br></span></code></pre></div></div>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">I = (b * h^3) / 12</span><br></span></code></pre></div></div>
 <p>Where <code>b</code> is the width and <code>h</code> is the height in the load direction. Height is cubed; width is not.</p>
 <p>Take a 1/2 in by 1 1/2 in bar. Loaded on edge, with the 1.5 in dimension along the load, it is <code>(0.5 * 1.5^3)/12</code>. Loaded flat, it is <code>(1.5 * 0.5^3)/12</code>. The ratio is 9 to 1: the same bar is nine times more flexible lying flat.</p>
 <p>This is why orientation is a design decision, and why a well-oriented aluminum beam beats a badly oriented steel one despite steel&#x27;s much higher modulus.</p>
