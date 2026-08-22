@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import Link from '@docusaurus/Link';
 import BrowserOnly from '@docusaurus/BrowserOnly';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
@@ -41,6 +42,25 @@ function Divider(): React.JSX.Element {
 // ─── Page sections ────────────────────────────────────────────────────────────
 
 /** A few tools that show the range, not a catalogue dump. */
+/** Screenshots of the actual tools, not mockups. */
+const SHOWCASE = [
+  {
+    src: 'img/showcase/slide-calculator.jpg',
+    alt: 'The linear slide calculator, showing extension speed, lifting force and a drawing of a three stage cascading rigging.',
+    caption: 'Linear slide sizing',
+  },
+  {
+    src: 'img/showcase/cad-check.jpg',
+    alt: 'The CAD file check, with an exercise selected and a drop area for a STEP or STL export.',
+    caption: 'CAD file check',
+  },
+  {
+    src: 'img/showcase/lesson.jpg',
+    alt: 'A lesson on metric fasteners, with a table of head styles and a drawing of a sound and a stripped thread.',
+    caption: 'A lesson, in full',
+  },
+];
+
 const HOME_TOOLS = [
   {name: 'CAD file check', path: '/simulator#cad-check', desc: 'Drop in a STEP or STL export and see which of the exercise\u2019s numbers your model actually hit.'},
   {name: 'Arm gravity torque', path: '/simulator#arm-torque', desc: 'Work the torque an arm needs at its worst angle, then the reduction that delivers it.'},
@@ -277,6 +297,49 @@ function ToolsSection(): React.JSX.Element {
   );
 }
 
+function ShowcaseSection(): React.JSX.Element {
+  return (
+    <section className={styles.section} id="showcase">
+      <p className={styles.sectionLabel}>Inside</p>
+      <h2 className={styles.sectionTitle}>What you actually get</h2>
+      <p className={styles.sectionDesc}>
+        Screenshots of the real thing, not mockups.
+      </p>
+
+      <div className={styles.showcaseRow}>
+        {SHOWCASE.map((shot) => (
+          <figure key={shot.src} className={styles.showcaseItem}>
+            <BrowserOnly
+              fallback={
+                <img className={styles.showcaseFallback} src={useBaseUrl(shot.src)} alt={shot.alt} />
+              }
+            >
+              {() => {
+                const TiltedCard =
+                  require('@site/src/components/vendor/reactbits/TiltedCard').default;
+                return (
+                  <TiltedCard
+                    imageSrc={useBaseUrl(shot.src)}
+                    altText={shot.alt}
+                    captionText={shot.caption}
+                    containerHeight="260px"
+                    imageHeight="260px"
+                    imageWidth="100%"
+                    scaleOnHover={1.04}
+                    rotateAmplitude={9}
+                    showTooltip={false}
+                  />
+                );
+              }}
+            </BrowserOnly>
+            <figcaption className={styles.showcaseCaption}>{shot.caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function CtaSection(): React.JSX.Element {
   return (
     <div className={styles.ctaSection}>
@@ -352,6 +415,8 @@ export default function Home(): React.JSX.Element {
         <SimulatorSection />
         <Divider />
         <ToolsSection />
+        <Divider />
+        <ShowcaseSection />
         <Divider />
         <CtaSection />
       </main>

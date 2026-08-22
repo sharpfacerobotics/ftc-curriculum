@@ -1272,3 +1272,68 @@
     display: none;
   }
 }
+
+/* Screenshots of the tools. Sized so three sit in a row on a desktop and stack
+   on a phone, where a shrunken screenshot is unreadable anyway. */
+.showcaseRow {
+  display: grid;
+  gap: var(--tm-sp-5);
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  margin-top: var(--tm-sp-5);
+}
+
+.showcaseItem {
+  margin: 0;
+}
+
+/* The tilt card sizes its figure to a fixed 300px and drops the image in at
+   whatever width it is told, so a 1600px screenshot spilled across the
+   neighbouring column. Both are pinned to the grid column, and the image is
+   cropped from the top left, which is where the tool actually is. */
+.showcaseItem :global(.tilted-card-figure) {
+  width: 100% !important;
+  height: 260px !important;
+  /* Clipped here as well: the card positions its image itself, and pinning the
+     width still left it sitting proud of the column by its own offset. */
+  overflow: hidden;
+  border-radius: var(--tm-r-md);
+}
+
+.showcaseItem :global(.tilted-card-inner) {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-1);
+}
+
+.showcaseItem :global(.tilted-card-img) {
+  width: 100% !important;
+  height: 260px !important;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.showcaseItem :global(.tilted-card-mobile-alert) {
+  display: none;
+}
+
+.showcaseFallback {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+}
+
+.showcaseCaption {
+  margin-top: var(--tm-sp-3);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+}
+
+@media (max-width: 900px) {
+  .showcaseRow {
+    grid-template-columns: 1fr;
+  }
+}

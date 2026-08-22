@@ -17,6 +17,8 @@ instead, so the site carries what it actually uses.
   hidden entirely for reduced motion.
 - `ShinyText` — a shimmer across the hero line.
 - `ClickSpark` — sparks at the pointer on click, wrapping the whole app.
+- `TiltedCard` — the screenshots on the homepage, which tilt toward the
+  pointer.
 
 Fixes applied to the copies, since they are ours once vendored:
 
@@ -29,6 +31,10 @@ Fixes applied to the copies, since they are ours once vendored:
   imported at the top of the page. A static import is evaluated in the server
   pass even when the component only renders in the browser, and their
   stylesheet imports fail there, which broke the build outright.
+- `TiltedCard` sizes its figure to a fixed 300px and places the image itself,
+  so a 1600px screenshot sat across the neighbouring column. Pinned to the grid
+  column and clipped, since pinning the width alone still left it proud by the
+  card's own offset.
 - `ClickSpark` sizes its canvas from its own wrapper, so it has to contain the
   page. Rendered as a sibling it collapsed to nothing and drew no sparks.
 
