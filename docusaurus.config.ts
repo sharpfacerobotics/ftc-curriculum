@@ -136,7 +136,7 @@ const config: Config = {
     // in a team chat is a bare URL with no title card at all.
     image: 'img/og.png',
     colorMode: {
-      defaultMode: 'dark',
+      defaultMode: 'light',
       disableSwitch: false, // Both themes ship; the toggle is in the navbar
       respectPrefersColorScheme: true,
     },

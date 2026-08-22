@@ -2,7 +2,7 @@
    TELEMARK THEME
    Logo palette: black + light blue + aqua
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   color-scheme: dark;
@@ -63,10 +63,14 @@
   --tm-border-hair:     rgba(148, 170, 189, 0.08);
 
   /* ── Type ─────────────────────────────────────────────────────────── */
-  --tm-font-display:    'Rajdhani', 'Arial Narrow', sans-serif;
-  --tm-font-body:       'Exo 2', 'Segoe UI', sans-serif;
-  --tm-font-label:      'Share Tech Mono', 'JetBrains Mono', monospace;
-  --tm-font-mono:       'JetBrains Mono', 'Fira Code', monospace;
+  /* Headings in an editorial serif and text in Inter.
+     Rajdhani, Exo 2 and Share Tech Mono are the three faces every generated
+     "tech" site reaches for, and using all three at once is most of why this
+     looked machine made. A serif for headings is a decision a person makes. */
+  --tm-font-display:    'Fraunces', Georgia, serif;
+  --tm-font-body:       'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --tm-font-label:      'Inter', -apple-system, sans-serif;
+  --tm-font-mono:       'JetBrains Mono', ui-monospace, monospace;
 
   --tm-fs-2xs:          0.68rem;
   --tm-fs-xs:           0.74rem;
@@ -103,8 +107,10 @@
   --tm-r-pill:          999px;
   /* The slightly irregular corner is a Telemark signature. Two variants so
      alternating cards do not look mechanically identical. */
-  --tm-r-hand:          14px 19px 13px 21px;
-  --tm-r-hand-alt:      20px 13px 22px 15px;
+  /* Was an asymmetric wobble on every card. Quirk without a reason reads as
+     a template trying to look handmade. */
+  --tm-r-hand:          10px;
+  --tm-r-hand-alt:      10px;
 
   /* ── Elevation ────────────────────────────────────────────────────── */
   --tm-shadow-sm:       0 1px 2px rgba(0, 0, 0, 0.4);
@@ -288,8 +294,8 @@
   font-family: var(--telemark-font-label);
   font-size: var(--tm-fs-xs);
   font-weight: 400;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .telemark-navbar-center .navbar__link:hover,
@@ -306,7 +312,7 @@
   font-weight: 700;
   font-size: var(--tm-fs-md);
   letter-spacing: 2px;
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--telemark-color-aqua);
 }
 
@@ -317,8 +323,8 @@
   color: var(--telemark-color-aqua);
   font-family: var(--telemark-font-label);
   font-size: var(--tm-fs-xs);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: none;
+  letter-spacing: 0;
   padding: 8px 22px !important;
   transition: background-color 0.2s ease, border-color 0.2s ease,
     transform 0.2s ease;
@@ -361,13 +367,19 @@ article {
 }
 
 /* ---- HEADINGS ---- */
+/* The lesson title is the one place the display face belongs, in ink. It was a
+   heavy blue sans while every heading under it was a serif, so the page opened
+   in one voice and continued in another. */
 .theme-doc-markdown h1 {
-  color: var(--telemark-color-blue-light);
-  font-weight: 800;
+  color: var(--tm-text-strong);
+  font-family: var(--tm-font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 .theme-doc-markdown h2 {
-  color: var(--telemark-color-aqua);
+  color: var(--tm-text-strong);
+  font-family: var(--tm-font-display);
   border-bottom: 1px solid var(--tm-accent-a20);
   padding-bottom: 0.3rem;
 }
@@ -661,6 +673,9 @@ code {
 }
 
 .theme-doc-markdown h2 {
+  /* Ink, not accent. A page of cyan headings competes with the prose it is
+     supposed to be organising. */
+  color: var(--tm-text-strong);
   margin-top: var(--tm-sp-7);
   padding-bottom: var(--tm-sp-2);
   border-bottom: 1px solid var(--tm-border-hair);
@@ -698,7 +713,7 @@ code {
   font-size: var(--tm-fs-2xs);
   font-weight: 700;
   letter-spacing: var(--tm-track-label);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .theme-doc-markdown table td {
@@ -740,7 +755,7 @@ code {
   font-family: var(--tm-font-label);
   font-size: var(--tm-fs-2xs);
   letter-spacing: var(--tm-track-label);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .alert--info { border-color: var(--tm-accent-a35); background: var(--tm-accent-a08); }
@@ -777,8 +792,8 @@ a code {
 .theme-doc-markdown details > summary {
   font-family: var(--tm-font-label);
   font-size: var(--tm-fs-xs);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* ── Pagination ──────────────────────────────────────────────────────── */
@@ -800,7 +815,7 @@ a code {
   font-family: var(--tm-font-label);
   font-size: var(--tm-fs-2xs);
   letter-spacing: var(--tm-track-label);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .pagination-nav__label {
