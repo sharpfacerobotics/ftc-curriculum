@@ -3,8 +3,23 @@
 Copied from [React Bits](https://reactbits.dev) (MIT), which is distributed to
 be copied rather than installed. The published npm bundle is a single barrel
 that pulls in eighteen peer dependencies, including three.js, react-three-fiber,
-rapier and matter-js, to use any one component. These two are copied in
-instead, so the site carries what it actually uses.
+rapier and matter-js, to use any one component. These are copied in instead, so
+the site carries what it actually uses.
+
+## Where these come from
+
+React Bits publishes a shadcn-compatible registry, wired up in the project's
+`components.json`. There is no React Bits MCP server of its own: the docs point
+at the shadcn one, aimed at the registry. To add or re-add a component:
+
+    npx shadcn@latest view @react-bits/SpotlightCard-TS-CSS   # inspect first
+    npx shadcn@latest add  @react-bits/SpotlightCard-TS-CSS
+
+Item names are `Component-{JS|TS}-{CSS|TW}`, four variants of each of the 166
+components. This site has no Tailwind, so `-CSS`. The existing copies here are
+the `-JS-CSS` variants and every one of them was checked byte for byte against
+the registry: only the two changes listed below differ, so the rest can be
+re-pulled and diffed cleanly when upstream moves.
 
 - `SpotlightCard` — a highlight that follows the pointer across a card.
   Restyled onto the theme tokens; the stock version hardcodes a dark surface
@@ -12,10 +27,6 @@ instead, so the site carries what it actually uses.
 - `CountUp` — counts a number to its value when it scrolls into view. Used on
   the lesson total, which is a real figure.
 
-- `Aurora` — a WebGL wash behind the hero. Given the site's own blues rather
-  than the stock purple and green, held at half opacity under a mask, and
-  hidden entirely for reduced motion.
-- `ShinyText` — a shimmer across the hero line.
 - `ClickSpark` — sparks at the pointer on click, wrapping the whole app.
 - `CircularGallery` — the homepage gallery of screenshots, dragged through on
   a curve. Its own labels are drawn into the canvas as bitmap text, which no
@@ -44,3 +55,13 @@ Fixes applied to the copies, since they are ours once vendored:
 
 `SplitText` was wanted and could not be used: it depends on GSAP's SplitText
 plugin, which is not free.
+
+## Removed, on purpose
+
+`Aurora` and `ShinyText` were vendored, tried on the homepage and taken back
+out. Both were byte for byte the upstream files, so neither failed through
+being miscopied: both assume a dark page. Aurora rendered as a bounded
+grey-blue rectangle over the bone background and washed out the text above it,
+and ShinyText sweeps a light gradient through the glyphs, which on a light page
+erases each word as the shimmer crosses it. They are one `shadcn add` away if
+the page ever goes dark.
