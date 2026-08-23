@@ -14,14 +14,18 @@ of the build, and the project has no browser automation dependency otherwise.
 """
 import asyncio
 import socket
-import subprocess
 import sys
+import threading
 import urllib.request
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import unquote
 
 from playwright.async_api import async_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
+BUILD = ROOT / "build"
 OUT = ROOT / "static" / "img" / "showcase"
 def _free_port() -> int:
     """A port nothing else holds.
@@ -60,18 +64,56 @@ SHOTS = [
     ("weight-budget", "/simulator#weight", WORKBENCH),
     ("lesson", "/docs/unit-00/classes-and-objects", "article, main"),
     ("cad-practice", "/mechanical/module-00/design-cycle", "article, main"),
+    # The full-screen simulator, which is the one that shows the 3D field, the
+    # gamepad and the editor at once. The whole page is the app, so there is
+    # nothing to scroll to.
+    ("unit-8-2-simulator", "/simulator/unit8.2.html", "body"),
 ]
+
+
+class PagesHandler(SimpleHTTPRequestHandler):
+    """Resolves paths the way GitHub Pages does.
+
+    Two things a plain static server gets wrong here. The site is published
+    under /telemark, and `/simulator` has to resolve to `simulator.html` even
+    though a `simulator/` directory sits beside it holding the standalone
+    simulators. Left to itself the server returned a directory listing for the
+    tools page.
+
+    `docusaurus serve` is not the answer either: it answers a request for a
+    .html file with a 301 to the site root, so a shot of the full-screen
+    simulator came out as a shot of the homepage.
+    """
+
+    def translate_path(self, path: str) -> str:
+        rel = unquote(path.split("?", 1)[0].split("#", 1)[0])
+        if rel.startswith("/telemark"):
+            rel = rel[len("/telemark") :]
+        rel = rel.lstrip("/")
+
+        target = BUILD / rel
+        if target.is_file():
+            return str(target)
+        # A file wins over a directory of the same name, as it does on Pages.
+        as_html = BUILD / f"{rel.rstrip('/')}.html"
+        if rel and as_html.is_file():
+            return str(as_html)
+        index = target / "index.html"
+        if index.is_file():
+            return str(index)
+        return str(target)
+
+    def log_message(self, *args: object) -> None:  # keep the run quiet
+        return
 
 
 async def wait_for_server() -> None:
     for _ in range(60):
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.25)
         try:
             with urllib.request.urlopen(f"{BASE}/", timeout=2) as response:
                 if response.status != 200:
                     continue
-                # 200 is not proof it is our site: whatever is listening may
-                # answer for any path. Check who it is.
                 body = response.read(4096).decode("utf-8", "replace")
                 if "Telemark" not in body:
                     raise RuntimeError(
@@ -87,12 +129,12 @@ async def wait_for_server() -> None:
 
 async def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    server = subprocess.Popen(
-        ["npx", "docusaurus", "serve", "--port", str(PORT), "--no-open"],
-        cwd=ROOT,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+    if not (BUILD / "index.html").is_file():
+        raise RuntimeError("no build to shoot; run `npm run build` first")
+    server = ThreadingHTTPServer(
+        ("127.0.0.1", PORT), partial(PagesHandler, directory=str(BUILD))
     )
+    threading.Thread(target=server.serve_forever, daemon=True).start()
     try:
         await wait_for_server()
         async with async_playwright() as p:
@@ -119,6 +161,14 @@ async def main() -> None:
                 if "Telemark" not in title:
                     raise RuntimeError(
                         f"{name}: expected a Telemark page, got {title!r}"
+                    )
+                # The title check alone is not enough: every page here is
+                # titled Telemark, so being bounced to the homepage passes it.
+                landed = page.url.split("#")[0].rstrip("/")
+                wanted = f"{BASE}{url}".split("#")[0].rstrip("/")
+                if landed != wanted:
+                    raise RuntimeError(
+                        f"{name}: asked for {wanted} and landed on {landed}"
                     )
                 # Assert on the pixels, not the attribute. What matters is
                 # that the shot came out dark, and the attribute can lag a
@@ -161,7 +211,7 @@ async def main() -> None:
             await context.close()
             await browser.close()
     finally:
-        server.terminate()
+        server.shutdown()
     print(f"Wrote {len(SHOTS)} {THEME}-theme screenshots to static/img/showcase")
 
 

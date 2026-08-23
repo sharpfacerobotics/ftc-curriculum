@@ -45,6 +45,8 @@ function Divider(): React.JSX.Element {
 const SHOWCASE = [
   {image: 'img/showcase/slide-calculator.jpg', text: 'Linear slide sizing', url: '/simulator#slide', height: 520,
    alt: 'The linear slide calculator, with extension, spool diameter and cable force filled in.'},
+  {image: 'img/showcase/unit-8-2-simulator.jpg', text: 'Unit 8.2 simulator', url: '/docs/unit-08/set-direction', height: 660,
+   alt: 'The Unit 8.2 simulator: a mecanum drivetrain in a 3D field, the checklist of requirements it has to meet, the OpMode being written, and a gamepad.'},
   {image: 'img/showcase/cad-check.jpg', text: 'CAD file check', url: '/simulator#cad-check', height: 620,
    alt: 'The CAD check reporting measured wall thickness and hole sizes from an uploaded STEP file.'},
   {image: 'img/showcase/arm-simulator.jpg', text: 'Arm simulator', url: '/simulator#arm-sim', height: 560,
