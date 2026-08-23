@@ -77,7 +77,30 @@ const HERO_SHOTS = [
    alt: 'The CAD check measuring an uploaded STEP file against an exercise.', label: 'CAD check'},
   {image: 'img/showcase/lesson.jpg', url: '/docs/unit-00/classes-and-objects',
    alt: 'A lesson page, with the explanation beside a worked example.', label: 'A lesson'},
+  {image: 'img/showcase/slide-calculator.jpg', url: '/simulator#slide',
+   alt: 'The linear slide calculator, with extension and cable force worked out.', label: 'Calculators'},
+  {image: 'img/showcase/cad-practice.jpg', url: '/mechanical/module-00/design-cycle',
+   alt: 'A CAD exercise stating the dimensions a submitted model has to hit.', label: 'CAD practice'},
 ];
+
+/**
+ * True once the viewport matches, false on the server and on first paint.
+ *
+ * The accordion needs room to be an accordion: below its own breakpoint it
+ * stacks its panels into a column, which on a phone is taller than the screen
+ * the hero has to fit inside.
+ */
+function useWide(query: string): boolean {
+  const [wide, setWide] = React.useState(false);
+  React.useEffect(() => {
+    const mq = window.matchMedia(query);
+    const update = () => setWide(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [query]);
+  return wide;
+}
 
 /**
  * The three screenshots that open the page.
@@ -87,31 +110,53 @@ const HERO_SHOTS = [
  */
 function HeroShots(): React.JSX.Element {
   const base = useBaseUrl('/').replace(/\/$/, '');
-  return (
+  // A hook, at the top of the component. This lived inside the BrowserOnly
+  // render prop, which runs as part of BrowserOnly's own render: the hook count
+  // changed between the hydration pass and the one after it, and the panels
+  // came out inert, with a click following the anchor instead of running the
+  // handler that should have caught it.
+  const wide = useWide('(min-width: 700px)');
+
+  const grid = (
     <div className={styles.heroShots}>
-      {HERO_SHOTS.map((shot, i) => (
-        <BrowserOnly
-          key={shot.image}
-          fallback={<HeroShot base={base} shot={shot} />}
-        >
-          {() => {
-            const AnimatedContent =
-              require('@site/src/components/vendor/reactbits/AnimatedContent').default;
-            return (
-              <AnimatedContent
-                animateOnMount
-                distance={64}
-                duration={0.75}
-                scale={0.94}
-                delay={0.12 + i * 0.11}
-              >
-                <HeroShot base={base} shot={shot} />
-              </AnimatedContent>
-            );
-          }}
-        </BrowserOnly>
+      {HERO_SHOTS.slice(0, 3).map((shot) => (
+        <HeroShot key={shot.image} base={base} shot={shot} />
       ))}
     </div>
+  );
+
+  if (!wide) return grid;
+
+  return (
+    <BrowserOnly fallback={grid}>
+      {() => {
+        const AccordionGallery =
+          require('@site/src/components/vendor/reactbits/AccordionGallery').default;
+        return (
+          <div className={styles.heroAccordion}>
+            <AccordionGallery
+              items={HERO_SHOTS.map((shot, i) => ({
+                image: `${base}/${shot.image}`,
+                link: shot.url,
+                label: shot.label,
+                alt: shot.alt,
+                eager: i < 2,
+              }))}
+              LinkComponent={Link}
+              defaultIndex={0}
+              height={null}
+              gap={8}
+              radius={12}
+              tilt={5}
+              expandRatio={0.46}
+              grayscale={false}
+              accentColor="var(--tm-accent)"
+              overlayColor="#050a14"
+            />
+          </div>
+        );
+      }}
+    </BrowserOnly>
   );
 }
 

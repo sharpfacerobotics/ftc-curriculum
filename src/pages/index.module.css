@@ -1173,6 +1173,30 @@
 
 /* One figure, centred. This was a two column pair until the typing code panel
    came out, and a two column grid holding one child parks it in the left half. */
+/* The accordion that opens the page. Its own stylesheet drops to a stacked
+   column below 520px with height:auto, which is right for a gallery and wrong
+   for a hero that has to finish above the fold, so the narrow case renders the
+   plain grid instead and never reaches that rule. */
+.heroAccordion {
+  width: min(1120px, 100%);
+  height: clamp(178px, 32vh, 340px);
+  margin: clamp(1.25rem, 3vh, 2.25rem) auto 0;
+}
+
+.heroAccordion :global(.ag-panel__text) {
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (max-height: 820px) {
+  .hero .heroAccordion {
+    margin-top: 1rem;
+  }
+}
+
 /* The three screenshots under the hero copy. The whole band has to finish
    above the fold, which is the point of it, so it is sized from the space the
    copy leaves rather than from the pictures. */

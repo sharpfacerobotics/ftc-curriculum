@@ -28,6 +28,8 @@ re-pulled and diffed cleanly when upstream moves.
   the lesson total, which is a real figure.
 
 - `ClickSpark` — sparks at the pointer on click, wrapping the whole app.
+- `AccordionGallery` — the panels that open the page. Five screenshots, the
+  one under the pointer expanding. See below.
 - `AnimatedContent` — brings the three hero screenshots in, one after the
   next, when the page opens. See below.
 - `Masonry` — the homepage grid of screenshots. Pulled from the registry with
@@ -74,6 +76,28 @@ Four things had to change before it could carry screenshots.
 - The column counts were baked in at up to five, and its classes were `.list`,
   `.item-wrapper` and `.item-img`, generic enough to collide with the site's
   own. Counts are a prop and the classes are prefixed.
+
+## AccordionGallery, as shipped and as changed
+
+- Its panels are plain anchors, so moving between two pages of this site
+  reloaded the whole of it. `LinkComponent` lets the host pass its router link.
+- Hover arrived as an `onMouseEnter` prop on that panel. A router link is free
+  to define its own `onMouseEnter` after spreading the props it was handed, and
+  Docusaurus's does exactly that to preload the route, so the prop was dropped
+  and the gallery went half dead: arrow keys moved the panels and the mouse did
+  nothing. Hover is bound as a native listener now, which nothing can overwrite.
+- The height was a number written to an inline style. The hero has to fit
+  whatever is left above the fold, and measuring that in JS feeds back on itself
+  because the hero centres its content, so a taller gallery moves its own top.
+  Passing `null` hands the height to CSS, which can size it in vh without the
+  loop.
+- Images were eager and their alt text fell back to the visible label. They
+  load lazily past the first two, and take real alt text.
+
+Note its own stylesheet turns the row into a stacked column below 520px with
+`height: auto !important`. That is right for a gallery and wrong for a hero
+that has to end above the fold, so narrow screens render a plain grid instead
+and never reach that rule.
 
 ## AnimatedContent, as shipped and as changed
 
