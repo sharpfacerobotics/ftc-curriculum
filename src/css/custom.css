@@ -2,7 +2,7 @@
    TELEMARK THEME
    Logo palette: black + light blue + aqua
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   color-scheme: dark;
@@ -67,7 +67,14 @@
      Rajdhani, Exo 2 and Share Tech Mono are the three faces every generated
      "tech" site reaches for, and using all three at once is most of why this
      looked machine made. A serif for headings is a decision a person makes. */
-  --tm-font-display:    'Fraunces', Georgia, serif;
+  /* The headings were a display serif. It is a good face, but the site sits
+     next to usaco.guide in a student's tabs, and that one is set in a heavy
+     sans throughout: black, tight, plain. The serif read as decoration on a
+     reference site. One family now, weighted rather than contrasted. */
+  --tm-font-display:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* A serif carries a heading at 600. A sans needs the extra weight to hold
+     the same size, so display type states it rather than inheriting. */
+  --tm-weight-display:  800;
   --tm-font-body:       'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --tm-font-label:      'Inter', -apple-system, sans-serif;
   --tm-font-mono:       'JetBrains Mono', ui-monospace, monospace;
@@ -309,7 +316,7 @@
 
 .navbar__title {
   font-family: var(--telemark-font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: var(--tm-fs-md);
   letter-spacing: 2px;
   text-transform: none;
@@ -373,8 +380,8 @@ article {
 .theme-doc-markdown h1 {
   color: var(--tm-text-strong);
   font-family: var(--tm-font-display);
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-weight: var(--tm-weight-display);
+  letter-spacing: -0.03em;
 }
 
 .theme-doc-markdown h2 {

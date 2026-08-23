@@ -207,20 +207,39 @@ function HeroSection(): React.JSX.Element {
   );
 }
 
-function StatsBar(): React.JSX.Element {
+const FIGURES = [
+  {value: TOTAL_LESSON_COUNT, label: 'Lessons', count: true},
+  {value: CURRICULUM_UNIT_COUNT + MECHANICAL_UNIT_COUNT, label: 'Units and modules', count: true},
+  {value: TOOL_CATALOG.length, label: 'Calculators and checks', count: true},
+];
 
+/**
+ * The size of the thing, in figures.
+ *
+ * This was one sentence with the lesson count buried in it, which is a hard
+ * way to answer the only question a visitor has in the first few seconds:
+ * whether there is enough here to be worth starting.
+ */
+function StatsBar(): React.JSX.Element {
   return (
-    <p className={styles.summaryLine}>
-      <span className={styles.summaryFigure}>
-        <BrowserOnly fallback={<>{TOTAL_LESSON_COUNT}</>}>
-          {() => <CountUp to={TOTAL_LESSON_COUNT} duration={1.2} />}
-        </BrowserOnly>
-      </span>{' '}
-      lessons across
-      {' '}<span className={styles.summaryFigure}>2</span> tracks, written in
-      Java against the FTC SDK, with simulators on one side and design
-      calculators on the other.
-    </p>
+    <div className={styles.figures}>
+      <div className={styles.figureRow}>
+      {FIGURES.map((figure) => (
+        <div key={figure.label} className={styles.figure}>
+          <span className={styles.figureValue}>
+            <BrowserOnly fallback={<>{figure.value}</>}>
+              {() => <CountUp to={figure.value} duration={1.1} />}
+            </BrowserOnly>
+          </span>
+          <span className={styles.figureLabel}>{figure.label}</span>
+        </div>
+      ))}
+      </div>
+      <p className={styles.figuresNote}>
+        Written in Java against the FTC SDK, with simulators on one side and
+        design calculators on the other.
+      </p>
+    </div>
   );
 }
 
@@ -293,6 +312,20 @@ function CurriculumSection({
 }
 
 /**
+ * The small rounded tile that marks a feature.
+ *
+ * A heading on its own gives a reader nothing to aim at when they are skimming
+ * a long page; the tile is the thing the eye lands on first.
+ */
+function FeatureMark({tone, children}: {tone: string; children: React.ReactNode}): React.JSX.Element {
+  return (
+    <span className={styles.featureMark} data-tone={tone} aria-hidden="true">
+      {children}
+    </span>
+  );
+}
+
+/**
  * A screenshot beside the copy that describes it.
  *
  * The two feature sections explained a simulator and a set of calculators
@@ -314,6 +347,12 @@ function SimulatorSection(): React.JSX.Element {
     <section className={styles.section}>
       <div className={styles.featureRow}>
         <div>
+          <FeatureMark tone="blue">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="8 6 3 12 8 18" />
+              <polyline points="16 6 21 12 16 18" />
+            </svg>
+          </FeatureMark>
           <p className={styles.sectionLabel}>Browser simulator</p>
           <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
           <p className={styles.sectionDesc}>
@@ -357,8 +396,14 @@ function SimulatorSection(): React.JSX.Element {
 function ToolsSection(): React.JSX.Element {
   return (
     <section className={styles.section} id="tools">
-      <div className={styles.featureRow}>
+      <div className={`${styles.featureRow} ${styles.featureRowFlip}`}>
         <div>
+          <FeatureMark tone="amber">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 21v-4L15 5l4 4L7 21H3z" />
+              <path d="M14 6l4 4" />
+            </svg>
+          </FeatureMark>
           <p className={styles.sectionLabel}>Design tools</p>
           <h2 className={styles.sectionTitle}>Check the design before you cut</h2>
           <p className={styles.sectionDesc}>
@@ -485,6 +530,15 @@ function CtaSection(): React.JSX.Element {
   );
 }
 
+/** A full-width ground for one section. */
+function Band({tint, children}: {tint?: boolean; children: React.ReactNode}): React.JSX.Element {
+  return (
+    <div className={tint ? `${styles.band} ${styles.bandTint}` : styles.band}>
+      {children}
+    </div>
+  );
+}
+
 // ─── Root export ──────────────────────────────────────────────────────────────
 
 export default function Home(): React.JSX.Element {
@@ -509,33 +563,51 @@ export default function Home(): React.JSX.Element {
 
       <main className={styles.lp}>
         <HeroSection />
-        <StatsBar />
-        <Divider />
-        <CurriculumSection
-          units={CURRICULUM_UNITS}
-          label="Software track"
-          id="curriculum"
-          heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
-          blurb="Start at the beginning or go straight to what your team needs."
-          stat={`${CURRICULUM_UNIT_COUNT} units · ${CURRICULUM_LESSON_COUNT} lessons`}
-        />
-        <Divider />
-        <CurriculumSection
-          units={MECHANICAL_UNITS}
-          label="Mechanical track"
-          id="mechanical"
-          heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
-          blurb="How to design a robot: the process, CAD, materials, gears and belts, and the standards that keep it together."
-          stat={`${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`}
-        />
-        <Divider />
-        <SimulatorSection />
-        <Divider />
-        <ToolsSection />
-        <Divider />
-        <ShowcaseSection />
-        <Divider />
-        <CtaSection />
+
+        {/* Sections sit on alternating grounds rather than being separated by
+            hairlines. A rule between two identical backgrounds says only that
+            something ended; a change of ground says what the next thing is. */}
+        <Band tint>
+          <StatsBar />
+        </Band>
+
+        <Band>
+          <CurriculumSection
+            units={CURRICULUM_UNITS}
+            label="Software track"
+            id="curriculum"
+            heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
+            blurb="Start at the beginning or go straight to what your team needs."
+            stat={`${CURRICULUM_UNIT_COUNT} units · ${CURRICULUM_LESSON_COUNT} lessons`}
+          />
+        </Band>
+
+        <Band tint>
+          <CurriculumSection
+            units={MECHANICAL_UNITS}
+            label="Mechanical track"
+            id="mechanical"
+            heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
+            blurb="How to design a robot: the process, CAD, materials, gears and belts, and the standards that keep it together."
+            stat={`${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`}
+          />
+        </Band>
+
+        <Band>
+          <SimulatorSection />
+        </Band>
+
+        <Band tint>
+          <ToolsSection />
+        </Band>
+
+        <Band>
+          <ShowcaseSection />
+        </Band>
+
+        <Band tint>
+          <CtaSection />
+        </Band>
       </main>
     </Layout>
   );

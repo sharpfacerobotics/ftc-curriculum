@@ -185,11 +185,10 @@
   margin: 0 0 1.5rem;
   color: var(--home-text);
   font-family: var(--telemark-font-display);
-  font-size: clamp(48px, 8vw, 88px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 0.96;
-  transform: rotate(-0.35deg);
+  font-size: clamp(44px, 7.5vw, 84px);
+  font-weight: var(--tm-weight-display);
+  letter-spacing: -0.04em;
+  line-height: 0.98;
   animation: fadeInUp 750ms ease both 80ms;
 }
 
@@ -358,10 +357,10 @@
   margin: 0 0 1rem;
   color: var(--home-text);
   font-family: var(--telemark-font-display);
-  font-size: clamp(30px, 4.5vw, 48px);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.08;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: var(--tm-weight-display);
+  letter-spacing: -0.035em;
+  line-height: 1.1;
 }
 
 .sectionDesc {
@@ -1173,6 +1172,113 @@
 
 /* One figure, centred. This was a two column pair until the typing code panel
    came out, and a two column grid holding one child parks it in the left half. */
+/* ── Bands ───────────────────────────────────────────────────────────────
+   One ground per section, alternating, so the page reads as a stack of parts
+   rather than a scroll broken up by rules. */
+.band {
+  width: 100%;
+  background: var(--tm-bg);
+}
+
+.bandTint {
+  background: var(--tm-surface-2);
+  border-top: 1px solid var(--tm-border-hair);
+  border-bottom: 1px solid var(--tm-border-hair);
+}
+
+/* Two tinted bands in a row would draw a line through the middle of what
+   looks like one block. */
+.bandTint + .bandTint {
+  border-top: 0;
+}
+
+/* ── Figures ─────────────────────────────────────────────────────────────
+   The size of the curriculum, stated. */
+.figures {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--tm-sp-5) 2rem;
+}
+
+/* The figures share a row and the sentence sits under it. Left to flex-wrap
+   the sentence stayed on the same line: a 100% flex-basis is clamped by the
+   max-width that keeps it readable, and the wrap is decided after that clamp. */
+.figureRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: clamp(2rem, 6vw, 4.5rem);
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.figureValue {
+  color: var(--tm-accent);
+  font-family: var(--tm-font-display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: var(--tm-weight-display);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.figureLabel {
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
+}
+
+.figuresNote {
+  max-width: 52ch;
+  margin: var(--tm-sp-4) auto 0;
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
+  text-align: center;
+}
+
+/* ── Feature marks ───────────────────────────────────────────────────────
+   The tile that opens a feature, so a skimming eye has something to land on
+   before it reaches the heading. */
+.featureMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 1rem;
+  border-radius: 9px;
+  color: #fff;
+}
+
+.featureMark[data-tone='blue'] {
+  background: linear-gradient(140deg, #3b6df5, #2b52c9);
+  box-shadow: 0 8px 20px -10px rgba(43, 82, 201, 0.85);
+}
+
+.featureMark[data-tone='amber'] {
+  background: linear-gradient(140deg, #e08b2c, #c26a12);
+  box-shadow: 0 8px 20px -10px rgba(194, 106, 18, 0.85);
+}
+
+/* The second feature row leads with its picture, so the page alternates
+   instead of running the same shape twice. */
+.featureRowFlip > *:first-child {
+  order: 2;
+}
+
+@media (max-width: 860px) {
+  .featureRowFlip > *:first-child {
+    order: 0;
+  }
+}
+
 /* The accordion that opens the page. Its own stylesheet drops to a stacked
    column below 520px with height:auto, which is right for a gallery and wrong
    for a hero that has to finish above the fold, so the narrow case renders the
@@ -1181,6 +1287,13 @@
   width: min(1120px, 100%);
   height: clamp(178px, 32vh, 340px);
   margin: clamp(1.25rem, 3vh, 2.25rem) auto 0;
+}
+
+/* The screenshots are dark and so is the page behind them in dark mode, where
+   the component's drop shadow does nothing. Without an edge the panels bleed
+   into the background and the gallery stops looking like separate things. */
+.heroAccordion :global(.ag-panel) {
+  border: 1px solid var(--tm-border);
 }
 
 .heroAccordion :global(.ag-panel__text) {
