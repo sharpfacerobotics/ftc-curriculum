@@ -1,0 +1,36 @@
+---
+id: mastery-coding-challenge
+title: "Unit 15 Comprehensive Coding Challenge: Full Sensor-Fused Autonomous"
+sidebar_label: "Unit 15 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 15 Comprehensive Coding Challenge
+
+This final simulator begins with only the advanced-library imports, `@Autonomous`, and an empty class. Architect the complete routine yourself.
+
+## Your Task
+
+1. Map, select a pipeline for, and start the Limelight 3A.
+2. Create a Pedro Pathing `Follower` and establish a starting `Pose`.
+3. Build a `PathChain` that uses both a `BezierLine` and a `BezierCurve`.
+4. Create a named `enum` state machine for path and mechanism phases.
+5. Call `follower.update()` on every active loop before state logic.
+6. Validate each `LLResult` before using it, then fuse a valid global pose back into the Follower.
+7. Coordinate a servo action with a `getRuntime()` deadline instead of `sleep()`.
+8. Report path, state, and vision status, then stop the Limelight during cleanup.
+
+No state may block the loop. Vision loss and a busy follower must both be handled as expected operating conditions.
+
+## Mastery Simulator
+
+<MasterySimulator unit={15} />
+
+<MarkComplete
+  lessonId="unit-15/mastery-coding-challenge"
+  nextUnit="/docs/unit-15/mastery-quiz"
+  nextUnitName="Unit 15 Mastery Quiz"
+/>

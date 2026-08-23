@@ -3,7 +3,7 @@
 Telemark is Sharp Face Robotics' Docusaurus-based FTC curriculum. It has two
 parallel tracks:
 
-- **Software** (`docs/`, served at `/docs`): 16 units and 70 lessons of FTC
+- **Software** (`docs/`, served at `/docs`): 16 units and 111 lessons of FTC
   Java, from classes and OpModes through sensors, vision, and autonomous, with
   a browser simulator on most lessons.
 - **Mechanical** (`mechanical/`, served at `/mechanical`): 12 modules and 60
@@ -244,7 +244,7 @@ by running it.
 
 ### Simulator theming
 
-The 47 simulator pages under `static/simulator/` are iframes, so they cannot
+The 61 simulator pages under `static/simulator/` are iframes, so they cannot
 inherit the site's design tokens through the cascade. `telemark-sim.css`
 restates the tokens and maps them onto the variable names those pages already
 use, and is linked after each page's inline `<style>` so it wins on equal

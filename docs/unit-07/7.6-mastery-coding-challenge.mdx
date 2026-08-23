@@ -1,0 +1,37 @@
+---
+id: mastery-coding-challenge
+title: "Unit 7 Comprehensive Coding Challenge: Reusable Hardware Subsystem"
+sidebar_label: "Unit 7 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 7 Comprehensive Coding Challenge
+
+The simulator gives you one empty TeleOp class. Add the OpMode logic and a reusable nested subsystem without relying on a supplied method skeleton.
+
+## Your Task
+
+Build a reusable mechanism that owns a motor, digital limit, and analog sensor:
+
+1. Centralize the exact Robot Controller configuration names as `static final String` constants.
+2. Create a mechanism or subsystem class with private hardware fields.
+3. Give it an `init(HardwareMap)` method that maps all three device types.
+4. Put the digital channel in input mode and expose the analog voltage for telemetry.
+5. Initialize the subsystem once from the OpMode's `init()`.
+6. Delegate gamepad-driven movement from `loop()` to a subsystem method.
+7. Stop the motor when the digital limit says motion is unsafe.
+
+The OpMode should coordinate the mechanism, not repeat its mapping details.
+
+## Mastery Simulator
+
+<MasterySimulator unit={7} />
+
+<MarkComplete
+  lessonId="unit-07/mastery-coding-challenge"
+  nextUnit="/docs/unit-07/mastery-quiz"
+  nextUnitName="Unit 7 Mastery Quiz"
+/>

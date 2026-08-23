@@ -1,0 +1,36 @@
+---
+id: mastery-coding-challenge
+title: "Unit 3 Comprehensive Coding Challenge: Robot State Variables"
+sidebar_label: "Unit 3 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 3 Comprehensive Coding Challenge
+
+The starter contains only imports, `@TeleOp`, and an empty class. You must decide which fields, lifecycle methods, and statements belong inside it.
+
+## Your Task
+
+Build a motor-control TeleOp that demonstrates every variable type from this unit:
+
+1. Store the motor's configuration name in a `String` and use that variable in `hardwareMap.get()`.
+2. Use a `double` as a driver-power scale.
+3. Use a `boolean` to track whether precision mode is enabled.
+4. Use an `int` to count completed driver actions.
+5. Calculate final motor power from gamepad input and the current mode.
+6. Report all important values through telemetry so another programmer can debug the state.
+
+Choose clear names and keep each value as a single source of truth.
+
+## Mastery Simulator
+
+<MasterySimulator unit={3} />
+
+<MarkComplete
+  lessonId="unit-03/mastery-coding-challenge"
+  nextUnit="/docs/unit-03/mastery-quiz"
+  nextUnitName="Unit 3 Mastery Quiz"
+/>

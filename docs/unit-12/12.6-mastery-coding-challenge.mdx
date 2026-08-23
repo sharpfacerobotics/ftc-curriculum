@@ -1,0 +1,36 @@
+---
+id: mastery-coding-challenge
+title: "Unit 12 Comprehensive Coding Challenge: IMU Field-Centric Drive"
+sidebar_label: "Unit 12 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 12 Comprehensive Coding Challenge
+
+The starter is an empty TeleOp with the required IMU and drivetrain imports.
+
+## Your Task
+
+1. Map the IMU and initialize it with the Control Hub's physical logo and USB orientation.
+2. Map four drive motors and make their directions consistent.
+3. Read yaw, pitch, and roll from `YawPitchRollAngles` in a named `AngleUnit`.
+4. Let the driver reset yaw with a button.
+5. Rotate joystick input with sine and cosine for field-centric control.
+6. Calculate and normalize four mecanum wheel powers.
+7. Detect a dangerous pitch or roll angle and stop or reduce motion.
+8. Include a target-heading error or correction term and report orientation through telemetry.
+
+Keep all angle units explicit. Degrees and radians must not be mixed accidentally.
+
+## Mastery Simulator
+
+<MasterySimulator unit={12} />
+
+<MarkComplete
+  lessonId="unit-12/mastery-coding-challenge"
+  nextUnit="/docs/unit-12/mastery-quiz"
+  nextUnitName="Unit 12 Mastery Quiz"
+/>

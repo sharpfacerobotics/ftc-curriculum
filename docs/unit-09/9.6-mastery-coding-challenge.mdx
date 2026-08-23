@@ -1,0 +1,35 @@
+---
+id: mastery-coding-challenge
+title: "Unit 9 Comprehensive Coding Challenge: Coordinated Servo Mechanism"
+sidebar_label: "Unit 9 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 9 Comprehensive Coding Challenge
+
+The empty starter class must become a complete gripper and intake TeleOp.
+
+## Your Task
+
+1. Map two positional `Servo` objects and one `CRServo`.
+2. Restrict both positional servos with safe `scaleRange()` values.
+3. Reverse one servo so mirrored hardware moves symmetrically.
+4. Use buttons to command coordinated open and closed positions.
+5. Use bumpers or another clear input pair to run the CRServo forward and reverse.
+6. Give the CRServo an explicit zero-power neutral branch.
+7. Report gripper position and intake direction through telemetry.
+
+The positional servos should behave as a synchronized pair while the CRServo remains speed-controlled.
+
+## Mastery Simulator
+
+<MasterySimulator unit={9} />
+
+<MarkComplete
+  lessonId="unit-09/mastery-coding-challenge"
+  nextUnit="/docs/unit-09/mastery-quiz"
+  nextUnitName="Unit 9 Mastery Quiz"
+/>

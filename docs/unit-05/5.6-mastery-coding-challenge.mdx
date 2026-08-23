@@ -1,0 +1,37 @@
+---
+id: mastery-coding-challenge
+title: "Unit 5 Comprehensive Coding Challenge: Safe Intake Decision Tree"
+sidebar_label: "Unit 5 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 5 Comprehensive Coding Challenge
+
+The simulator provides an empty TeleOp class. Write the complete decision system inside it.
+
+## Your Task
+
+Create a sensor-aware intake controller:
+
+1. Map an intake motor, a color sensor, and a distance sensor.
+2. Read the sensors once per loop and store their values clearly.
+3. Use an `if` / `else if` / `else` chain so only one power command wins each cycle.
+4. Use comparison operators to establish safe sensor thresholds.
+5. Use both `&&` and `||` where combined conditions are appropriate.
+6. Allow deliberate driver input to run or reverse the intake when it is safe.
+7. Include an explicit `setPower(0)` fallback and report the selected state through telemetry.
+
+Your result should fail safely when no branch authorizes movement.
+
+## Mastery Simulator
+
+<MasterySimulator unit={5} />
+
+<MarkComplete
+  lessonId="unit-05/mastery-coding-challenge"
+  nextUnit="/docs/unit-05/mastery-quiz"
+  nextUnitName="Unit 5 Mastery Quiz"
+/>

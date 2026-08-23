@@ -1,0 +1,35 @@
+---
+id: mastery-coding-challenge
+title: "Unit 11 Comprehensive Coding Challenge: Multi-Sensor Intake"
+sidebar_label: "Unit 11 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 11 Comprehensive Coding Challenge
+
+Build the complete multi-sensor TeleOp inside the empty class shell.
+
+## Your Task
+
+1. Map an intake motor, digital touch input, potentiometer, color sensor, and distance sensor.
+2. Configure the digital channel correctly and read its active state.
+3. Scale potentiometer voltage into a useful mechanism angle with `Range.scale()`.
+4. Compare red and blue readings to classify the detected game element.
+5. Read distance in an explicit `DistanceUnit`.
+6. Combine sensor conditions to authorize intake power, with a zero-power fallback.
+7. Report raw readings and your interpreted state through telemetry.
+
+Read each sensor once per loop where practical so the decision and telemetry describe the same instant.
+
+## Mastery Simulator
+
+<MasterySimulator unit={11} />
+
+<MarkComplete
+  lessonId="unit-11/mastery-coding-challenge"
+  nextUnit="/docs/unit-11/mastery-quiz"
+  nextUnitName="Unit 11 Mastery Quiz"
+/>

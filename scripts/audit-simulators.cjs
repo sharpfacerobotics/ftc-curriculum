@@ -9,6 +9,9 @@ const htmlFiles = fs.readdirSync(simulatorRoot)
   .filter((name) => name.endsWith('.html'))
   .sort();
 const lessonFiles = htmlFiles.filter((name) => /^unit\d/.test(name));
+const masteryFiles = new Set(
+  Array.from({length: 14}, (_, index) => `unit${index + 2}.mastery.html`),
+);
 const legacyLessonFiles = new Set([
   'unit2.html',
   'unit3.html',
@@ -24,8 +27,48 @@ const legacyLessonFiles = new Set([
   'unit9.1.html',
 ]);
 
-assert.equal(htmlFiles.length, 47, 'Expected 47 simulator HTML pages');
-assert.equal(lessonFiles.length, 46, 'Expected 46 lesson simulator pages');
+assert.equal(htmlFiles.length, 61, 'Expected 61 simulator HTML pages');
+assert.equal(lessonFiles.length, 60, 'Expected 60 lesson simulator pages');
+
+const masteryRuntimeSource = fs.readFileSync(
+  path.join(simulatorRoot, 'mastery_challenge.js'),
+  'utf8',
+);
+assert.match(
+  masteryRuntimeSource,
+  /TelemarkSimulatorBase\.compileStudentSource\s*\(/,
+  'the mastery runtime must compile through simulator_base',
+);
+assert.match(
+  masteryRuntimeSource,
+  /setRequirement\s*\(/,
+  'the mastery runtime must publish unit-objective results',
+);
+
+const masteryContext = {window: {}, document: {currentScript: null}};
+vm.runInNewContext(masteryRuntimeSource, masteryContext, {filename: 'mastery_challenge.js'});
+const masteryConfigs = masteryContext.window.TelemarkMasteryChallenge.configs;
+assert.deepEqual(
+  Object.keys(masteryConfigs),
+  Array.from({length: 14}, (_, index) => String(index + 2)),
+  'mastery runtime must configure Units 2-15',
+);
+
+for (let unit = 2; unit <= 15; unit += 1) {
+  const name = `unit${unit}.mastery.html`;
+  const source = fs.readFileSync(path.join(simulatorRoot, name), 'utf8');
+  const config = masteryConfigs[unit];
+  assert.match(source, new RegExp(`mastery_challenge\\.js["'][^>]*data-unit=["']${unit}["']`));
+  assert.match(config.starter, /^import\s/m, `Unit ${unit} starter must begin with imports`);
+  assert.match(config.starter, /@(TeleOp|Autonomous)\s*\(/, `Unit ${unit} starter needs an OpMode annotation`);
+  assert.match(
+    config.starter,
+    /public\s+class\s+\w+\s+extends\s+(?:OpMode|LinearOpMode)\s*\{\s*\}\s*$/,
+    `Unit ${unit} starter must leave the entire class body empty`,
+  );
+  assert.doesNotMatch(config.starter, /\b(?:init|loop|runOpMode|start|stop)\s*\(/);
+  assert.ok(config.checks.length >= 6, `Unit ${unit} mastery challenge is not comprehensive`);
+}
 
 let starterCount = 0;
 for (const name of htmlFiles) {
@@ -59,7 +102,8 @@ for (const name of htmlFiles) {
       || /TelemarkJava\s*\.\s*(?:compile|transpileBody)\s*\(/.test(source)
       || /\btranspileAndRun\s*\(/.test(source)
       || /\b_simTranspile\s*\(/.test(source)
-      || (/\b(?:eval|new Function)\s*\(/.test(source) && /\b(?:transpil|compileStudent)/i.test(source));
+      || (/\b(?:eval|new Function)\s*\(/.test(source) && /\b(?:transpil|compileStudent)/i.test(source))
+      || (masteryFiles.has(name) && /mastery_challenge\.js/.test(source));
     assert.equal(
       convertsAndExecutesJava,
       true,

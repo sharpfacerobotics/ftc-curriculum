@@ -80,7 +80,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-02/registering-programs',
     nextPath: '/docs/unit-03',
     nextLabel: 'Unit 3: Java Variables',
-    lessonCount: 7,
+    lessonCount: 8,
     overview:
       'In this unit, we map out the FTC OpMode lifecycle so it is clear where setup, repeated control logic, and one-time transitions belong.',
     outcomes: [
@@ -100,7 +100,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-03/string-literals',
     nextPath: '/docs/unit-04',
     nextLabel: 'Unit 4: Gamepad Input',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we focus on the Java data types that show up constantly in FTC code, from hardware mapping to sensor reads and control calculations.',
     outcomes: [
@@ -120,7 +120,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-04/button-toggles',
     nextPath: '/docs/unit-05',
     nextLabel: 'Unit 5: Logic & Decisions',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we turn driver input into deliberate robot behavior, from simple button toggles to analog control shaping.',
     outcomes: [
@@ -140,7 +140,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-05/if-statements',
     nextPath: '/docs/unit-06',
     nextLabel: 'Unit 6: Loops & Iteration',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we build the decision-making layer of robot code, from basic button checks to multi-sensor logic that safely automates mechanism behavior.',
     outcomes: [
@@ -160,7 +160,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-06/opmode-active',
     nextPath: '/docs/unit-07',
     nextLabel: 'Unit 7: Hardware Mapping',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we move from one-shot commands into repeated execution, timing control, and scalable iteration patterns for real FTC robots.',
     outcomes: [
@@ -180,7 +180,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-07/hardware-map-object',
     nextPath: '/docs/unit-08',
     nextLabel: 'Unit 8: DC Motor Control',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we connect FTC configuration names to Java objects so motors, sensors, and reusable mechanisms can be instantiated safely and consistently.',
     outcomes: [
@@ -200,7 +200,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-08/set-power',
     nextPath: '/docs/unit-09',
     nextLabel: 'Unit 9: Servo Control',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we turn mapped motors into predictable mechanisms by covering power control, direction reversal, braking behavior, and safety-limited motion.',
     outcomes: [
@@ -220,7 +220,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-09/set-position',
     nextPath: '/docs/unit-10',
     nextLabel: 'Unit 10: Encoders & Precision',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we extend mechanism control beyond DC motors by working through both positional and continuous-rotation servos in a safe, predictable way.',
     outcomes: [
@@ -240,7 +240,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-10/get-current-position',
     nextPath: '/docs/unit-11',
     nextLabel: 'Unit 11: Digital & Analog Sensors',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we use encoders as real feedback so autonomous movement becomes measurable and repeatable instead of guesswork.',
     outcomes: [
@@ -260,7 +260,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-11/touch-sensor',
     nextPath: '/docs/unit-12',
     nextLabel: 'Unit 12: IMU & Rotation',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we read, scale, and respond to the main sensor categories used in FTC: digital, analog, and I2C-based color and distance sensors.',
     outcomes: [
@@ -280,7 +280,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-12/imu-initialization',
     nextPath: '/docs/unit-13',
     nextLabel: 'Unit 13: OOP & Inheritance',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we use the REV Hub IMU for heading data, field-relative control, tilt monitoring, and closed-loop autonomous turning.',
     outcomes: [
@@ -300,7 +300,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-13/encapsulation',
     nextPath: '/docs/unit-14',
     nextLabel: 'Unit 14: Computer Vision',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we structure a competition robot codebase with object-oriented design so it stays maintainable, reusable, and resilient to last-minute hardware changes.',
     outcomes: [
@@ -320,7 +320,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-14/vision-portal',
     nextPath: '/docs/unit-15',
     nextLabel: 'Unit 15: Advanced Integration',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we give the robot visual awareness of the field using the FTC Vision SDK, building from camera setup to a reliable autonomous scoring selector.',
     outcomes: [
@@ -340,7 +340,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-15/limelight',
     nextPath: '/dashboard',
     nextLabel: 'Dashboard',
-    lessonCount: 6,
+    lessonCount: 7,
     overview:
       'In this unit, we bring the advanced systems together into competition-ready autonomous routines, combining vision, localization, path following, and state-machine control.',
     outcomes: [
@@ -515,6 +515,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'OpMode Structure',
   },
   {
+    id: 'unit-02/mastery-coding-challenge',
+    label: 'Unit 2 · Coding Challenge',
+    title: 'Unit 2 Comprehensive Coding Challenge: Complete OpMode Lifecycle',
+    path: '/docs/unit-02/mastery-coding-challenge',
+    unitSlug: 'unit-02',
+    unitLabel: 'Unit 2',
+    unitTitle: 'OpMode Structure',
+  },
+  {
     id: 'unit-02/mastery-quiz',
     label: 'Unit 2 · Mastery Quiz',
     title: 'Unit 2 Mastery Quiz: OpMode Structure',
@@ -564,6 +573,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     label: '3.5 · Challenge: Dynamic Power',
     title: 'Lesson 3.5: Challenge: Build Dynamic Power Logic with Multiple Variables',
     path: '/docs/unit-03/dynamic-power-challenge',
+    unitSlug: 'unit-03',
+    unitLabel: 'Unit 3',
+    unitTitle: 'Java Variables',
+  },
+  {
+    id: 'unit-03/mastery-coding-challenge',
+    label: 'Unit 3 · Coding Challenge',
+    title: 'Unit 3 Comprehensive Coding Challenge: Robot State Variables',
+    path: '/docs/unit-03/mastery-coding-challenge',
     unitSlug: 'unit-03',
     unitLabel: 'Unit 3',
     unitTitle: 'Java Variables',
@@ -623,6 +641,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'Gamepad Input',
   },
   {
+    id: 'unit-04/mastery-coding-challenge',
+    label: 'Unit 4 · Coding Challenge',
+    title: 'Unit 4 Comprehensive Coding Challenge: Driver-Controlled Drivetrain',
+    path: '/docs/unit-04/mastery-coding-challenge',
+    unitSlug: 'unit-04',
+    unitLabel: 'Unit 4',
+    unitTitle: 'Gamepad Input',
+  },
+  {
     id: 'unit-04/mastery-quiz',
     label: 'Unit 4 · Mastery Quiz',
     title: 'Unit 4 Mastery Quiz: Gamepad Input',
@@ -672,6 +699,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     label: '5.5 · Challenge: Intake Logic',
     title: 'Lesson 5.5: Challenge: Build Intake Logic for Multi-Stage Game Piece Sorting',
     path: '/docs/unit-05/intake-logic-challenge',
+    unitSlug: 'unit-05',
+    unitLabel: 'Unit 5',
+    unitTitle: 'Logic & Decisions',
+  },
+  {
+    id: 'unit-05/mastery-coding-challenge',
+    label: 'Unit 5 · Coding Challenge',
+    title: 'Unit 5 Comprehensive Coding Challenge: Safe Intake Decision Tree',
+    path: '/docs/unit-05/mastery-coding-challenge',
     unitSlug: 'unit-05',
     unitLabel: 'Unit 5',
     unitTitle: 'Logic & Decisions',
@@ -731,6 +767,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'Loops & Iteration',
   },
   {
+    id: 'unit-06/mastery-coding-challenge',
+    label: 'Unit 6 · Coding Challenge',
+    title: 'Unit 6 Comprehensive Coding Challenge: Non-Blocking Autonomous Loop',
+    path: '/docs/unit-06/mastery-coding-challenge',
+    unitSlug: 'unit-06',
+    unitLabel: 'Unit 6',
+    unitTitle: 'Loops & Iteration',
+  },
+  {
     id: 'unit-06/mastery-quiz',
     label: 'Unit 6 · Mastery Quiz',
     title: 'Unit 6 Mastery Quiz: Loops & Iteration',
@@ -780,6 +825,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     label: '7.5 · Challenge: Mechanism Classes',
     title: 'Lesson 7.5: Challenge: Keep Shared Hardware Classes Consistent Across OpModes',
     path: '/docs/unit-07/mechanism-classes',
+    unitSlug: 'unit-07',
+    unitLabel: 'Unit 7',
+    unitTitle: 'Hardware Mapping',
+  },
+  {
+    id: 'unit-07/mastery-coding-challenge',
+    label: 'Unit 7 · Coding Challenge',
+    title: 'Unit 7 Comprehensive Coding Challenge: Reusable Hardware Subsystem',
+    path: '/docs/unit-07/mastery-coding-challenge',
     unitSlug: 'unit-07',
     unitLabel: 'Unit 7',
     unitTitle: 'Hardware Mapping',
@@ -839,6 +893,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'DC Motor Control',
   },
   {
+    id: 'unit-08/mastery-coding-challenge',
+    label: 'Unit 8 · Coding Challenge',
+    title: 'Unit 8 Comprehensive Coding Challenge: Limit-Safe Linear Slide',
+    path: '/docs/unit-08/mastery-coding-challenge',
+    unitSlug: 'unit-08',
+    unitLabel: 'Unit 8',
+    unitTitle: 'DC Motor Control',
+  },
+  {
     id: 'unit-08/mastery-quiz',
     label: 'Unit 8 · Mastery Quiz',
     title: 'Unit 8 Mastery Quiz: DC Motor Control',
@@ -888,6 +951,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     label: '9.5 · Challenge: Dual-Servo Gripper',
     title: 'Lesson 9.5: Challenge: Sync a Dual-Servo Gripper with Offset Tuning',
     path: '/docs/unit-09/dual-servo-challenge',
+    unitSlug: 'unit-09',
+    unitLabel: 'Unit 9',
+    unitTitle: 'Servo Control',
+  },
+  {
+    id: 'unit-09/mastery-coding-challenge',
+    label: 'Unit 9 · Coding Challenge',
+    title: 'Unit 9 Comprehensive Coding Challenge: Coordinated Servo Mechanism',
+    path: '/docs/unit-09/mastery-coding-challenge',
     unitSlug: 'unit-09',
     unitLabel: 'Unit 9',
     unitTitle: 'Servo Control',
@@ -947,6 +1019,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'Encoders & Precision',
   },
   {
+    id: 'unit-10/mastery-coding-challenge',
+    label: 'Unit 10 · Coding Challenge',
+    title: 'Unit 10 Comprehensive Coding Challenge: Encoder Distance Autonomous',
+    path: '/docs/unit-10/mastery-coding-challenge',
+    unitSlug: 'unit-10',
+    unitLabel: 'Unit 10',
+    unitTitle: 'Encoders & Precision',
+  },
+  {
     id: 'unit-10/mastery-quiz',
     label: 'Unit 10 · Mastery Quiz',
     title: 'Unit 10 Mastery Quiz: Encoders & Precision',
@@ -996,6 +1077,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     label: '11.5 · Challenge: Sensor-Gated Intake',
     title: 'Lesson 11.5: Challenge: Creating an Automated Sensor-Gated Intake System',
     path: '/docs/unit-11/sensor-gated-intake',
+    unitSlug: 'unit-11',
+    unitLabel: 'Unit 11',
+    unitTitle: 'Digital & Analog Sensors',
+  },
+  {
+    id: 'unit-11/mastery-coding-challenge',
+    label: 'Unit 11 · Coding Challenge',
+    title: 'Unit 11 Comprehensive Coding Challenge: Multi-Sensor Intake',
+    path: '/docs/unit-11/mastery-coding-challenge',
     unitSlug: 'unit-11',
     unitLabel: 'Unit 11',
     unitTitle: 'Digital & Analog Sensors',
@@ -1055,6 +1145,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'IMU & Rotation',
   },
   {
+    id: 'unit-12/mastery-coding-challenge',
+    label: 'Unit 12 · Coding Challenge',
+    title: 'Unit 12 Comprehensive Coding Challenge: IMU Field-Centric Drive',
+    path: '/docs/unit-12/mastery-coding-challenge',
+    unitSlug: 'unit-12',
+    unitLabel: 'Unit 12',
+    unitTitle: 'IMU & Rotation',
+  },
+  {
     id: 'unit-12/mastery-quiz',
     label: 'Unit 12 · Mastery Quiz',
     title: 'Unit 12 Mastery Quiz: IMU & Rotation',
@@ -1104,6 +1203,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     label: '13.5 · Challenge: Robot Class',
     title: 'Lesson 13.5: Challenge: Architecting a Modular Robot Class with Nested Subsystems',
     path: '/docs/unit-13/robot-class',
+    unitSlug: 'unit-13',
+    unitLabel: 'Unit 13',
+    unitTitle: 'OOP & Inheritance',
+  },
+  {
+    id: 'unit-13/mastery-coding-challenge',
+    label: 'Unit 13 · Coding Challenge',
+    title: 'Unit 13 Comprehensive Coding Challenge: Modular Robot Architecture',
+    path: '/docs/unit-13/mastery-coding-challenge',
     unitSlug: 'unit-13',
     unitLabel: 'Unit 13',
     unitTitle: 'OOP & Inheritance',
@@ -1163,6 +1271,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'Computer Vision',
   },
   {
+    id: 'unit-14/mastery-coding-challenge',
+    label: 'Unit 14 · Coding Challenge',
+    title: 'Unit 14 Comprehensive Coding Challenge: Vision-Guided Autonomous',
+    path: '/docs/unit-14/mastery-coding-challenge',
+    unitSlug: 'unit-14',
+    unitLabel: 'Unit 14',
+    unitTitle: 'Computer Vision',
+  },
+  {
     id: 'unit-14/mastery-quiz',
     label: 'Unit 14 · Mastery Quiz',
     title: 'Unit 14 Mastery Quiz: Computer Vision',
@@ -1212,6 +1329,15 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     label: '15.5 · Challenge: Full Autonomous',
     title: 'Lesson 15.5: Challenge: Designing a Full Autonomous Sequence using Bézier Pathing and Vision',
     path: '/docs/unit-15/full-autonomous',
+    unitSlug: 'unit-15',
+    unitLabel: 'Unit 15',
+    unitTitle: 'Advanced Integration',
+  },
+  {
+    id: 'unit-15/mastery-coding-challenge',
+    label: 'Unit 15 · Coding Challenge',
+    title: 'Unit 15 Comprehensive Coding Challenge: Full Sensor-Fused Autonomous',
+    path: '/docs/unit-15/mastery-coding-challenge',
     unitSlug: 'unit-15',
     unitLabel: 'Unit 15',
     unitTitle: 'Advanced Integration',

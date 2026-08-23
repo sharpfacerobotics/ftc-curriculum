@@ -1,0 +1,36 @@
+---
+id: mastery-coding-challenge
+title: "Unit 10 Comprehensive Coding Challenge: Encoder Distance Autonomous"
+sidebar_label: "Unit 10 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 10 Comprehensive Coding Challenge
+
+The simulator starts with an empty autonomous class. Write the full encoder-based move.
+
+## Your Task
+
+1. Declare shared constants for ticks per revolution and wheel diameter or circumference.
+2. Convert a requested travel distance into encoder ticks.
+3. Map the drive motors and reset their encoders.
+4. Assign target positions and select `RUN_TO_POSITION`.
+5. Apply power only after the targets and run mode are configured.
+6. Continue while the OpMode is active and the motors are busy.
+7. Report current positions and target error through telemetry.
+8. Stop both motors and restore `RUN_USING_ENCODER` when the move ends.
+
+Make the conversion readable enough that a teammate can change wheel size without rewriting the routine.
+
+## Mastery Simulator
+
+<MasterySimulator unit={10} />
+
+<MarkComplete
+  lessonId="unit-10/mastery-coding-challenge"
+  nextUnit="/docs/unit-10/mastery-quiz"
+  nextUnitName="Unit 10 Mastery Quiz"
+/>

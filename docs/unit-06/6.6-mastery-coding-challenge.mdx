@@ -1,0 +1,37 @@
+---
+id: mastery-coding-challenge
+title: "Unit 6 Comprehensive Coding Challenge: Non-Blocking Autonomous Loop"
+sidebar_label: "Unit 6 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 6 Comprehensive Coding Challenge
+
+The starter is an empty `LinearOpMode` class. Build the entire autonomous lifecycle and control flow yourself.
+
+## Your Task
+
+Create an autonomous program that manages several motors without blocking:
+
+1. Implement `runOpMode()` and map a `DcMotor[]` array.
+2. Use a counted `for` loop for a fixed repeated setup or action.
+3. Use a for-each loop to configure every motor in the array consistently.
+4. Call `waitForStart()` before motion.
+5. Guard repeated work with `opModeIsActive()`.
+6. Create a deadline from `getRuntime()` and keep one mechanism timed while other work continues.
+7. Update telemetry during the active loop and stop every motor afterward.
+
+Do not use `sleep()` or `while(true)`. The program must stay responsive to Stop.
+
+## Mastery Simulator
+
+<MasterySimulator unit={6} />
+
+<MarkComplete
+  lessonId="unit-06/mastery-coding-challenge"
+  nextUnit="/docs/unit-06/mastery-quiz"
+  nextUnitName="Unit 6 Mastery Quiz"
+/>

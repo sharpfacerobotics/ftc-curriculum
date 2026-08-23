@@ -1,0 +1,36 @@
+---
+id: mastery-coding-challenge
+title: "Unit 8 Comprehensive Coding Challenge: Limit-Safe Linear Slide"
+sidebar_label: "Unit 8 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 8 Comprehensive Coding Challenge
+
+Start with the simulator's empty TeleOp class and build a complete linear-slide controller.
+
+## Your Task
+
+1. Map one slide motor and upper and lower digital limit switches.
+2. Configure both switches as inputs.
+3. Correct the motor's installed direction with `setDirection()`.
+4. Select `BRAKE` as its zero-power behavior and initialize it at zero power.
+5. Read proportional joystick input for two-way movement.
+6. Allow upward power only before the upper limit and downward power only before the lower limit.
+7. Send `setPower(0)` whenever the request is neutral or unsafe.
+8. Report power and limit state through telemetry.
+
+The mechanism must never retain an old nonzero command after a limit becomes active.
+
+## Mastery Simulator
+
+<MasterySimulator unit={8} />
+
+<MarkComplete
+  lessonId="unit-08/mastery-coding-challenge"
+  nextUnit="/docs/unit-08/mastery-quiz"
+  nextUnitName="Unit 8 Mastery Quiz"
+/>

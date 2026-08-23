@@ -44,6 +44,8 @@ const simulatorFrame = read('src/components/SimulatorFrame.tsx');
 const authenticatedNavigator = read('src/components/AuthenticatedSimulatorNavigator.tsx');
 const askPanel = read('src/components/ui/AskPanel.tsx');
 const adminPage = read('src/pages/admin.tsx');
+const masterySimulator = read('src/components/MasterySimulator.tsx');
+const curriculum = read('src/telemark/curriculum.ts');
 
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
@@ -52,7 +54,16 @@ for (let unit = 2; unit <= 15; unit += 1) {
     /<SimulatorFrame\b/,
     `Unit ${unit} must use the shared fullscreen simulator frame`,
   );
+  const masteryLesson = read(
+    fs.readdirSync(path.join(root, `docs/unit-${String(unit).padStart(2, '0')}`))
+      .map((name) => `docs/unit-${String(unit).padStart(2, '0')}/${name}`)
+      .find((name) => name.endsWith('mastery-coding-challenge.mdx')),
+  );
+  assert.match(masteryLesson, new RegExp(`<MasterySimulator unit=\\{${unit}\\} />`));
+  assert.match(masteryLesson, /nextUnit="\/docs\/unit-\d{2}\/mastery-quiz"/);
 }
+assert.match(masterySimulator, /<SimulatorFrame\b/);
+assert.match(masterySimulator, /unit\$\{unit\}\.mastery\.html/);
 
 assert.match(accessPolicy, /return false;/);
 assert.match(accessPolicy, /export function isProtectedLessonPath/);
@@ -88,6 +99,7 @@ assert.match(
   /© 2026 Telemark\. Built by FTC Team Sharp Face Robotics #30450\. Built with Docusaurus\. Not affiliated with FIRST®/,
 );
 assert.match(customCss, /\.telemark-navbar-center[\s\S]*left: 50%/);
+assert.equal((curriculum.match(/id: 'unit-\d{2}\/mastery-coding-challenge'/g) || []).length, 14);
 assert.match(customCss, /\.footer[\s\S]*padding: 0\.85rem 1\.5rem/);
 
 // Light mode must use the same shared surfaces and readable action colours on

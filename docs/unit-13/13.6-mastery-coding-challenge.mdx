@@ -1,0 +1,36 @@
+---
+id: mastery-coding-challenge
+title: "Unit 13 Comprehensive Coding Challenge: Modular Robot Architecture"
+sidebar_label: "Unit 13 · Coding Challenge"
+sidebar_position: 6
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 13 Comprehensive Coding Challenge
+
+The simulator supplies one empty TeleOp class. Design the supporting classes and the OpMode implementation yourself.
+
+## Your Task
+
+1. Create a reusable parent mechanism class with encapsulated hardware state.
+2. Create at least one child subsystem with `extends` and specialized behavior.
+3. Use `@Override` for behavior that differs from the parent implementation.
+4. Centralize hardware names and calibration values as `static final` constants.
+5. Create a Robot class that composes multiple subsystem objects.
+6. Give the Robot class one `init(HardwareMap)` entry point.
+7. Instantiate the Robot in the OpMode, initialize it in `init()`, and control it from `loop()`.
+8. Provide one cleanup path that leaves powered mechanisms safe.
+
+The OpMode should read like coordination code. Hardware details belong inside the subsystem classes.
+
+## Mastery Simulator
+
+<MasterySimulator unit={13} />
+
+<MarkComplete
+  lessonId="unit-13/mastery-coding-challenge"
+  nextUnit="/docs/unit-13/mastery-quiz"
+  nextUnitName="Unit 13 Mastery Quiz"
+/>

@@ -1,0 +1,35 @@
+---
+id: mastery-coding-challenge
+title: "Unit 2 Comprehensive Coding Challenge: Complete OpMode Lifecycle"
+sidebar_label: "Unit 2 · Coding Challenge"
+sidebar_position: 7
+---
+
+import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
+import MasterySimulator from '@site/src/components/MasterySimulator';
+
+# Unit 2 Comprehensive Coding Challenge
+
+This is a blank-file assessment. The simulator gives you only the required imports, the `@TeleOp` annotation, and an empty class declaration. Write everything inside the class yourself.
+
+## Your Task
+
+Build a competition TeleOp that uses the complete iterative OpMode lifecycle:
+
+1. Use `init()` for one-time setup and an initial status message.
+2. Use `init_loop()` to repeat a pre-match robot health check.
+3. Use `start()` to reset the runtime exactly when Play is pressed.
+4. Use `loop()` to read a gamepad value and report live runtime and input telemetry.
+5. Use `stop()` to report a clear shutdown state.
+
+Your code must make the purpose of each lifecycle method visible through telemetry. Do not copy a previous lesson's completed class; reconstruct the lifecycle from memory.
+
+## Mastery Simulator
+
+<MasterySimulator unit={2} />
+
+<MarkComplete
+  lessonId="unit-02/mastery-coding-challenge"
+  nextUnit="/docs/unit-02/mastery-quiz"
+  nextUnitName="Unit 2 Mastery Quiz"
+/>
