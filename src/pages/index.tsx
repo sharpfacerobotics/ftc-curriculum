@@ -6,7 +6,6 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
-import RobotAssembly from '@site/src/components/ui/RobotAssembly';
 import styles from './index.module.css';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
@@ -56,7 +55,7 @@ const SHOWCASE = [
    alt: 'The beam deflection calculator showing how far a given extrusion sags under load.'},
   {image: 'img/showcase/weight-budget.jpg', text: 'Weight budget', url: '/simulator#weight', height: 500,
    alt: 'The weight budget, with the robot mass split across named subsystems.'},
-  {image: 'img/showcase/lesson.jpg', text: 'A lesson', url: '/software/module-00/oop-basics', height: 640,
+  {image: 'img/showcase/lesson.jpg', text: 'A lesson', url: '/docs/unit-00/classes-and-objects', height: 640,
    alt: 'A lesson page, with the explanation running beside a worked example.'},
   {image: 'img/showcase/cad-practice.jpg', text: 'CAD practice', url: '/mechanical/module-00/design-cycle', height: 540,
    alt: 'A CAD practice exercise stating the dimensions a submitted model has to hit.'},
@@ -70,6 +69,60 @@ const HOME_TOOLS = [
   {name: 'Tap drill and clearance', path: '/simulator#tap-drill', desc: 'The hole sizes that stop a screw binding, straight from the standards.'},
   {name: 'Weight budget', path: '/simulator#weight', desc: 'Spend the robot\u2019s mass on purpose instead of discovering it at inspection.'},
 ];
+
+const HERO_SHOTS = [
+  {image: 'img/showcase/arm-simulator.jpg', url: '/simulator#arm-sim',
+   alt: 'The arm simulator running, with telemetry beside the simulated arm.', label: 'Simulator'},
+  {image: 'img/showcase/cad-check.jpg', url: '/simulator#cad-check',
+   alt: 'The CAD check measuring an uploaded STEP file against an exercise.', label: 'CAD check'},
+  {image: 'img/showcase/lesson.jpg', url: '/docs/unit-00/classes-and-objects',
+   alt: 'A lesson page, with the explanation beside a worked example.', label: 'A lesson'},
+];
+
+/**
+ * The three screenshots that open the page.
+ *
+ * They render as ordinary images in the served HTML and are animated after,
+ * so the pictures are there whether or not the script arrives.
+ */
+function HeroShots(): React.JSX.Element {
+  const base = useBaseUrl('/').replace(/\/$/, '');
+  return (
+    <div className={styles.heroShots}>
+      {HERO_SHOTS.map((shot, i) => (
+        <BrowserOnly
+          key={shot.image}
+          fallback={<HeroShot base={base} shot={shot} />}
+        >
+          {() => {
+            const AnimatedContent =
+              require('@site/src/components/vendor/reactbits/AnimatedContent').default;
+            return (
+              <AnimatedContent
+                animateOnMount
+                distance={64}
+                duration={0.75}
+                scale={0.94}
+                delay={0.12 + i * 0.11}
+              >
+                <HeroShot base={base} shot={shot} />
+              </AnimatedContent>
+            );
+          }}
+        </BrowserOnly>
+      ))}
+    </div>
+  );
+}
+
+function HeroShot({base, shot}: {base: string; shot: (typeof HERO_SHOTS)[number]}): React.JSX.Element {
+  return (
+    <Link to={shot.url} className={styles.heroShot}>
+      <img src={`${base}/${shot.image}`} alt={shot.alt} width={1100} height={726} />
+      <span className={styles.heroShotLabel}>{shot.label}</span>
+    </Link>
+  );
+}
 
 function HeroSection(): React.JSX.Element {
   return (
@@ -100,12 +153,11 @@ function HeroSection(): React.JSX.Element {
         </Link>
       </div>
 
-      {/* One figure, not two. The robot earns its place because it shows the
-          build order the track teaches; a panel typing out code showed only
-          that text can appear one letter at a time. */}
-      <div className={styles.heroShowcase}>
-        <RobotAssembly />
-      </div>
+      {/* The screenshots were all below the fold, so the page opened on type
+          and a pair of buttons and the reader had to take on faith that
+          anything ran. These three are the first thing on the page: one from
+          each of the two tracks and one lesson, arriving in turn. */}
+      <HeroShots />
     </section>
   );
 }

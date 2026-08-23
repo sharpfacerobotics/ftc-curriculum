@@ -28,6 +28,8 @@ re-pulled and diffed cleanly when upstream moves.
   the lesson total, which is a real figure.
 
 - `ClickSpark` — sparks at the pointer on click, wrapping the whole app.
+- `AnimatedContent` — brings the three hero screenshots in, one after the
+  next, when the page opens. See below.
 - `Masonry` — the homepage grid of screenshots. Pulled from the registry with
   `shadcn add`, then reworked; see below.
 - `TiltedCard` — vendored and currently unused, kept for a single image where
@@ -72,6 +74,23 @@ Four things had to change before it could carry screenshots.
 - The column counts were baked in at up to five, and its classes were `.list`,
   `.item-wrapper` and `.item-img`, generic enough to collide with the site's
   own. Counts are a prop and the classes are prefixed.
+
+## AnimatedContent, as shipped and as changed
+
+- It reveals only from a `ScrollTrigger`, and it sets the element to
+  `opacity: 0` up front. For anything already on screen when the page opens
+  that is both the wrong mechanism and a dangerous one: if the trigger measures
+  stale positions while the images are still loading, `onEnter` never fires and
+  the content stays invisible for good. This was not hypothetical, it happened
+  on the first build here, on a 1280x720 laptop and on a phone. `animateOnMount`
+  plays the timeline directly and skips the trigger.
+- It animates whatever the reader has asked for. It runs on the hero, so it is
+  the first thing that moves on the page; under `prefers-reduced-motion` the
+  content is now placed and left alone.
+
+Note it renders with `visibility: hidden` until its effect runs, so anything
+that must survive a dead script has to render outside it. The hero images do:
+the animated copy is the `BrowserOnly` child and a plain one is the fallback.
 
 ## Removed, on purpose
 

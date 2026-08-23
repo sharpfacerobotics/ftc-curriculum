@@ -1173,10 +1173,134 @@
 
 /* One figure, centred. This was a two column pair until the typing code panel
    came out, and a two column grid holding one child parks it in the left half. */
-.heroShowcase {
+/* The three screenshots under the hero copy. The whole band has to finish
+   above the fold, which is the point of it, so it is sized from the space the
+   copy leaves rather than from the pictures. */
+.heroShots {
+  display: grid;
   width: 100%;
-  max-width: 34rem;
-  margin: var(--tm-sp-6) auto 0;
+  max-width: 940px;
+  margin: clamp(1.75rem, 4vh, 2.75rem) auto 0;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.heroShot {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-1);
+  box-shadow: 0 16px 40px -26px rgba(15, 23, 42, 0.5);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.heroShot:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 50px -24px rgba(15, 23, 42, 0.55);
+}
+
+.heroShot:focus-visible {
+  outline: 2px solid var(--tm-accent);
+  outline-offset: 3px;
+}
+
+.heroShot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.heroShotLabel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1.5rem 0.7rem 0.5rem;
+  background: linear-gradient(to top, rgba(9, 14, 26, 0.8), rgba(9, 14, 26, 0));
+  color: #fff;
+  font-family: var(--tm-font-label);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* A laptop is short before it is narrow. At 720px tall the hero was still
+   spending a fifth of the screen on padding above a badge, which pushed the
+   band it exists to show past the bottom of the window. */
+/* A laptop is short before it is narrow, and a phone is shorter still. The
+   hero was sized by width alone, so on a 720px-tall screen the badge, the
+   display type and the buttons took the whole window and pushed the band the
+   hero exists to show past the bottom of it. Below this height the type is
+   set from the height instead, and the badge, which is decoration, goes. */
+@media (max-height: 820px) {
+  .hero.hero {
+    min-height: 100vh;
+    padding-top: 2rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .hero .heroBadge {
+    display: none;
+  }
+
+  .hero .heroTitle {
+    margin-bottom: 1rem;
+    font-size: clamp(38px, 7vh, 64px);
+  }
+
+  .hero .heroSub {
+    margin-bottom: 1.25rem;
+  }
+
+  .hero .heroShots {
+    max-width: 660px;
+    margin-top: 1rem;
+  }
+}
+
+/* Shorter still: a small phone. The two buttons had stacked and the sentence
+   had run to three lines, and between them they took more room than the
+   pictures they sat above. */
+@media (max-height: 700px) {
+  .hero .heroTitle {
+    font-size: clamp(32px, 6.5vh, 48px);
+  }
+
+  .hero .heroSub {
+    margin-bottom: 1rem;
+    font-size: var(--tm-fs-sm);
+  }
+
+  .hero .heroActions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  /* The narrow-screen rules give each button a full-width block, which is why
+     they stacked. On a short screen the row matters more than the target. */
+  .hero .heroActions > * {
+    width: auto;
+    padding-right: 1.1rem;
+    padding-left: 1.1rem;
+    font-size: var(--tm-fs-sm);
+  }
+}
+
+/* Three across a phone leaves each one 110px wide, which is a smudge. Two,
+   and the third steps out. */
+@media (max-width: 620px) {
+  .heroShots {
+    max-width: 26rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .heroShots > *:nth-child(3) {
+    display: none;
+  }
 }
 
 /* The way through to the full list, once the section became a preview. */
