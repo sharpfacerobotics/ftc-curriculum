@@ -3,7 +3,7 @@
 
    The simulators are iframes, so they cannot inherit the site's design tokens
    through the cascade. This file restates them and maps them onto the variable
-   names the 47 simulator pages already use, so the panels inside an iframe
+   names the 61 simulator pages already use, so the panels inside an iframe
    match the page around it without rewriting each simulator.
 
    Linked after each page's inline <style>, so it wins on equal specificity.
