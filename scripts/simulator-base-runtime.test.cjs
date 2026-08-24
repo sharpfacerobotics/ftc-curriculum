@@ -139,6 +139,24 @@ function testMissingCompilerFailsClosed() {
   assert.match(telemetryText(page), /Java compiler is unavailable/i);
 }
 
+function testStudentOnlyTelemetryRoutesDiagnosticsToHints() {
+  const page = createBaseHarness();
+  page.context.setTelemetryStudentOnly(true);
+  installStudentSource(page, iterativeSource({start: 'int broken = ;'}));
+
+  assert.equal(page.context._simHandleInit(), false);
+  assert.equal(telemetryText(page).trim(), '', 'system diagnostics must not enter student telemetry');
+  const hints = page.elements.get('sim-hint-container');
+  assert.equal(hints.children.length, 1);
+  assert.match(hints.children[0].innerHTML, /Java compile error|Unexpected token/i);
+
+  installStudentSource(page, iterativeSource({
+    init: 'telemetry.addData("Student", "only"); telemetry.update();',
+  }));
+  assert.equal(page.context._simHandleInit(), true);
+  assert.match(telemetryText(page), /Student.*only/is);
+}
+
 function testFullSourceGateRejectsUnusedMalformedMethodAndRetries() {
   const page = createBaseHarness();
   const editor = page.context.document.getElementById('sim-code-editor');
@@ -253,6 +271,7 @@ function testLoopRuntimeErrorStopsExecution() {
 
 testCompileErrorGatesInit();
 testMissingCompilerFailsClosed();
+testStudentOnlyTelemetryRoutesDiagnosticsToHints();
 testFullSourceGateRejectsUnusedMalformedMethodAndRetries();
 testCompileErrorCleansPageStateForRetry();
 testResetRuntimeBindingAndStartContinuation();

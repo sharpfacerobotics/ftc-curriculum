@@ -87,6 +87,9 @@ assert.match(masterySimulator, /<SimulatorFrame\b/);
 assert.match(masterySimulator, /unit\$\{unit\}\.mastery\.html/);
 assert.match(masterySimulator, /FTC SDK imports, correct OpMode annotation, and an empty class shell/);
 assert.match(masteryChallengeRuntime, /setCode\(config\.starter\)/, 'coding challenges must load their FTC SDK shell');
+assert.match(masteryChallengeRuntime, /setTelemetryStudentOnly\(true\)/);
+assert.match(masteryChallengeRuntime, /return transpileAndRun\(/, 'coding challenges must execute student telemetry');
+assert.doesNotMatch(masteryChallengeRuntime, /addTelemetry\("(?:Unit|Compiler|Objectives|Lifecycle|Driver test|Ready)"/);
 assert.match(masteryChallengeRuntime, /createChallengeRobot\(unit\)/);
 assert.equal(
   (masteryChallengeRuntime.match(/^\s+\d+: \{name: "/gm) || []).length,
