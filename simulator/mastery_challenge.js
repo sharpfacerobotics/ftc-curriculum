@@ -708,6 +708,7 @@
 
     global.onSimulatorReady = function () {
       injectSummaryStyles();
+      setTelemetryStudentOnly(true);
       setCode(config.starter);
       setChallenge({
         title: config.title,
@@ -738,12 +739,6 @@
           setRequirement(index, passed && forbiddenFailures.length === 0);
         });
         updateSummary(results);
-        clearTelemetry();
-        addTelemetry("Unit", unit + " comprehensive challenge");
-        addTelemetry("Compiler", compilation.ok ? "Java parsed" : "Fix compile errors");
-        addTelemetry("Objectives", results.filter(Boolean).length + " / " + results.length);
-        addTelemetry("Lifecycle", "Init complete; press Start to test controls");
-        updateTelemetry();
 
         forbiddenFailures.forEach(function (rule) {
           addHint("<i class=\"fa-solid fa-triangle-exclamation\"></i> " + rule[0], "error");
@@ -756,16 +751,24 @@
         return results;
       }
 
-      global.onInit = validate;
-      global.onRun = validate;
+      global.onInit = function () {
+        validate();
+        return transpileAndRun(
+          getCode(),
+          function (initFn) {
+            initFn();
+            updateTelemetry();
+          },
+          function (loopFn) {
+            global._simStartLoop(loopFn);
+          }
+        );
+      };
       global.onStart = function () {
-        const results = validate();
-        addTelemetry("Driver test", config.inputs && config.inputs.length ? "Gamepad inputs enabled" : "Autonomous lifecycle active");
-        addTelemetry("Ready", results.every(Boolean) ? "Yes" : "Complete remaining objectives");
+        validate();
         updateTelemetry();
       };
       global.onStop = function () {
-        addTelemetry("Lifecycle", "Stopped safely");
         updateTelemetry();
       };
       global.onReset = function () {

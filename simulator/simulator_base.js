@@ -1903,6 +1903,8 @@
   let telemetryOrder = [];
   /** Whether telemetry has ever been flushed this run */
   let telemetryDirty = false;
+  /** Coding challenges can reserve this panel exclusively for student telemetry. */
+  let telemetryStudentOnly = false;
 
   function formatTelemetryValue(format, values) {
     let valueIndex = 0;
@@ -1943,7 +1945,9 @@
       const v = telemetryData[k];
       html += `<div class="sim-telemetry-line"><span class="sim-telemetry-key">${escHTML(k)}</span>: ${escHTML(v)}</div>`;
     }
-    panel.innerHTML = html || `<span style="color:#666">No telemetry data</span>`;
+    panel.innerHTML = html || (telemetryStudentOnly
+      ? ""
+      : `<span style="color:#666">No telemetry data</span>`);
     // Auto-scroll to bottom
     panel.scrollTop = panel.scrollHeight;
     telemetryDirty = false;
@@ -1957,10 +1961,24 @@
     if (panel) panel.innerHTML = "";
   };
 
+  window.setTelemetryStudentOnly = function (enabled) {
+    telemetryStudentOnly = Boolean(enabled);
+    if (telemetryStudentOnly) window.clearTelemetry();
+  };
+
   /**
    * Show an error in telemetry panel (appended, in red)
    */
   function showTelemetryError(msg) {
+    if (telemetryStudentOnly) {
+      if (typeof window.addHint === "function") {
+        window.addHint(
+          `<i class="fa-solid fa-triangle-exclamation"></i> ${escHTML(msg)}`,
+          "error"
+        );
+      }
+      return;
+    }
     const panel = document.getElementById("sim-telemetry-log");
     if (!panel) return;
     const div = document.createElement("div");
