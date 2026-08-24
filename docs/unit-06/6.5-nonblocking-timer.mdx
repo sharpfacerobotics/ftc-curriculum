@@ -1,14 +1,14 @@
 ---
 id: nonblocking-timer
-title: "Lesson 6.5: Challenge: Build a Non-Blocking Timer for Parallel Mechanism Control"
-sidebar_label: "6.5 · Challenge: Non-Blocking Timer"
+title: "Lesson 6.5: Build a Non-Blocking Timer for Parallel Mechanism Control"
+sidebar_label: "6.5 · Non-Blocking Timer"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
-# Lesson 6.5: Challenge: Build a Non-Blocking Timer for Parallel Mechanism Control
+# Lesson 6.5: Build a Non-Blocking Timer for Parallel Mechanism Control
 
 ---
 
@@ -20,7 +20,7 @@ import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
 ## How Non-Blocking Timing Lets Mechanisms Work Together
 
-This challenge integrates `while(opModeIsActive())` and `getRuntime()` comparisons from the previous lessons. The key insight is that the loop body runs many times per second. Instead of waiting inside the loop, the code simply **checks** whether a condition is met on each pass and acts accordingly: all other hardware logic continues to run uninterrupted every cycle.
+This lesson integrates `while(opModeIsActive())` and `getRuntime()` comparisons from the previous lessons. The key insight is that the loop body runs many times per second. Instead of waiting inside the loop, the code simply **checks** whether a condition is met on each pass and acts accordingly: all other hardware logic continues to run uninterrupted every cycle.
 
 This is the foundation of state machine transitions and parallel autonomous movement, used by championship-level FTC teams.
 
@@ -85,7 +85,7 @@ public class ParallelControlDemo extends LinearOpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 Use the simulator below to practice running one mechanism on a timer while another still responds every loop cycle.
 

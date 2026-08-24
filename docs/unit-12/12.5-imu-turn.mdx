@@ -1,14 +1,14 @@
 ---
 id: imu-turn
-title: "Lesson 12.5: Challenge: Implementing an IMU-Corrected 90-Degree Autonomous Turn"
-sidebar_label: "12.5 · Challenge: IMU Turn"
+title: "Lesson 12.5: Implementing an IMU-Corrected 90-Degree Autonomous Turn"
+sidebar_label: "12.5 · IMU Turn"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit12Simulator from '@site/src/components/Unit12Simulator';
 
-# Lesson 12.5: Challenge: Implementing an IMU-Corrected 90-Degree Autonomous Turn
+# Lesson 12.5: Implementing an IMU-Corrected 90-Degree Autonomous Turn
 
 ---
 
@@ -52,8 +52,8 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@Autonomous(name="IMU_Turn_Challenge")
-public class ImuTurnChallenge extends LinearOpMode {
+@Autonomous(name="IMU_Turn_Practice")
+public class ImuTurnPractice extends LinearOpMode {
 
     private DcMotor leftDrive, rightDrive;
     private IMU     imu;
@@ -147,7 +147,7 @@ public class ImuTurnChallenge extends LinearOpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 Use the simulator below to complete the autonomous IMU turn. The editor starts with incomplete starter code, so fill in proportional turn power, stopping logic, and the forward drive phase before running the path.
 

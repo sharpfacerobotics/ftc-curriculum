@@ -1,14 +1,14 @@
 ---
 id: robot-class
-title: "Lesson 13.5: Challenge: Architecting a Modular Robot Class with Nested Subsystems"
-sidebar_label: "13.5 · Challenge: Robot Class"
+title: "Lesson 13.5: Architecting a Modular Robot Class with Nested Subsystems"
+sidebar_label: "13.5 · Robot Class"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
-# Lesson 13.5: Challenge: Architecting a Modular Robot Class with Nested Subsystems
+# Lesson 13.5: Architecting a Modular Robot Class with Nested Subsystems
 
 ---
 
@@ -152,7 +152,7 @@ public class ModularTeleOp extends OpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 Complete the simulator's `ClawMechanism`, `WristMechanism`, and `MyRobot` classes. The claw should map the `"claw"` servo and expose `open()`, `close()`, and `stop()` methods. The wrist should map the `"wrist"` motor, brake when stopped, and expose `move()` and `stop()`. `MyRobot` should compose both subsystems, initialize them together, and provide one `stopAll()` cleanup method that the OpMode calls.
 

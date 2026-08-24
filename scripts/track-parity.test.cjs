@@ -8,10 +8,9 @@ const ts = require('typescript');
  *
  * The software and mechanical tracks teach different subjects, so their
  * lesson content differs by design. What must not differ is the furniture: a
- * student moving between them should meet the same landing page, the same
- * assessment, and the same navigation, not two products that happen to share
- * a navbar. This test exists because they had already drifted: two different
- * landing components, and scored quizzes on one side only.
+ * student moving between them should meet the same landing page and navigation.
+ * Assessment follows the work: blank-file coding challenges for software and
+ * scored design quizzes for mechanical.
  */
 
 const root = path.resolve(__dirname, '..');
@@ -105,23 +104,36 @@ function quizFiles(directory, pattern) {
 
 const softwareQuizzes = quizFiles('docs', /^unit-\d{2}$/);
 const mechanicalQuizzes = quizFiles('mechanical', /^module-\d{2}$/);
+const softwareChallenges = fs
+  .readdirSync(path.join(root, 'docs'))
+  .filter((name) => /^unit-\d{2}$/.test(name))
+  .flatMap((unit) => fs
+    .readdirSync(path.join(root, 'docs', unit))
+    .filter((file) => file.includes('mastery-coding-challenge'))
+    .map((file) => path.join(root, 'docs', unit, file)));
 
-assert.ok(softwareQuizzes.length >= 14, `expected 14 software quizzes, found ${softwareQuizzes.length}`);
+assert.equal(softwareQuizzes.length, 0, 'software mastery quizzes should be removed');
+assert.equal(softwareChallenges.length, 14, 'expected one comprehensive coding challenge in Units 2-15');
 assert.equal(mechanicalQuizzes.length, 14, 'expected 14 mechanical quizzes');
 
-for (const file of [...softwareQuizzes, ...mechanicalQuizzes]) {
+for (const file of mechanicalQuizzes) {
   const text = fs.readFileSync(file, 'utf8');
   assert.match(
     text,
     /<ScoredQuiz/,
-    `${path.relative(root, file)} has no scored section; both tracks are assessed the same way`,
+    `${path.relative(root, file)} has no scored section`,
   );
+}
+
+for (const file of softwareChallenges) {
+  const text = fs.readFileSync(file, 'utf8');
+  assert.match(text, /<MasterySimulator/, `${path.relative(root, file)} has no coding simulator`);
+  assert.doesNotMatch(text, /mastery-quiz/, `${path.relative(root, file)} still routes through a quiz`);
 }
 
 // ── Question banks are complete and well formed ─────────────────────────────
 
 const banks = [
-  {name: 'software', questions: loadTs('src/telemark/softwareQuizzes.ts', 'SOFTWARE_QUESTIONS'), expected: 14},
   {name: 'mechanical', questions: loadTs('src/telemark/mechanicalQuizzes.ts', 'MASTERY_QUESTIONS'), expected: 14},
 ];
 
@@ -164,6 +176,6 @@ for (const [file, component] of [
 
 console.log(
   `Track parity checks passed: both landings share TrackOverview, `
-  + `${softwareQuizzes.length + mechanicalQuizzes.length} quizzes all scored, `
+  + `${softwareChallenges.length} software coding challenges, ${mechanicalQuizzes.length} mechanical quizzes, `
   + `${totalQuestions} questions validated`,
 );

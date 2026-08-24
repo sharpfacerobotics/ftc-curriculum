@@ -24,9 +24,9 @@ export default function MasterySimulator({unit}: MasterySimulatorProps): React.J
       />
 
       <Admonition type="info" title={simulatorTitle}>
-        <div>The editor begins with only the imports, OpMode annotation, and empty class shell.</div>
-        <div>Write the complete implementation yourself, then use Init and Start to check every unit objective.</div>
-        <div>The requirement panel reports which concepts are present without revealing a finished solution.</div>
+        <div>The editor begins with the FTC SDK imports, correct OpMode annotation, and an empty class shell, just as it would in Android Studio.</div>
+        <div>Use Init and Start to check every unit objective. Passing every check demonstrates full unit mastery.</div>
+        <div>Write the complete implementation inside the class. The requirement panel identifies missing behaviors without supplying method scaffolding or a finished solution.</div>
       </Admonition>
     </>
   );

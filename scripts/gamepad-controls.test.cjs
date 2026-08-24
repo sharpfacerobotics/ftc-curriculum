@@ -174,6 +174,10 @@ function testUmdExports() {
   vm.createContext(browserContext);
   vm.runInContext(source, browserContext, {filename: 'gamepad-controls.js'});
   assert.equal(typeof browserContext.TelemarkGamepadControls.install, 'function');
+  assert.match(source, /\.telemark-gp-added-dpad\.up \{ left: 18\.8%; top: 29%; \}/);
+  assert.match(source, /\.telemark-gp-added-dpad\.down \{ left: 18\.8%; top: 45%; \}/);
+  assert.match(source, /\.telemark-gp-added-dpad\.left \{ left: 13\.5%; top: 37%; \}/);
+  assert.match(source, /\.telemark-gp-added-dpad\.right \{ left: 24\.1%; top: 37%; \}/);
 }
 
 function testPureKeyboardReducer() {

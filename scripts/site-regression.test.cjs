@@ -45,6 +45,7 @@ const authenticatedNavigator = read('src/components/AuthenticatedSimulatorNaviga
 const askPanel = read('src/components/ui/AskPanel.tsx');
 const adminPage = read('src/pages/admin.tsx');
 const masterySimulator = read('src/components/MasterySimulator.tsx');
+const masteryChallengeRuntime = read('static/simulator/mastery_challenge.js');
 const curriculum = read('src/telemark/curriculum.ts');
 
 for (let unit = 2; unit <= 15; unit += 1) {
@@ -60,21 +61,71 @@ for (let unit = 2; unit <= 15; unit += 1) {
       .find((name) => name.endsWith('mastery-coding-challenge.mdx')),
   );
   assert.match(masteryLesson, new RegExp(`<MasterySimulator unit=\\{${unit}\\} />`));
-  assert.match(masteryLesson, /nextUnit="\/docs\/unit-\d{2}\/mastery-quiz"/);
+  assert.ok(
+    masteryLesson.includes(`completesUnit="unit-${String(unit).padStart(2, '0')}"`),
+    `Unit ${unit} coding challenge must record full-unit mastery`,
+  );
+  const expectedNext = unit === 15
+    ? '/dashboard'
+    : `/docs/unit-${String(unit + 1).padStart(2, '0')}`;
+  assert.ok(
+    masteryLesson.includes(`nextUnit="${expectedNext}"`),
+    `Unit ${unit} coding challenge must proceed directly to ${expectedNext}`,
+  );
+
+  const lessonFiles = fs.readdirSync(path.join(root, `docs/unit-${String(unit).padStart(2, '0')}`));
+  for (const lessonFile of lessonFiles.filter((name) => name.endsWith('.mdx') && !name.includes('mastery-coding-challenge'))) {
+    const lessonSource = read(`docs/unit-${String(unit).padStart(2, '0')}/${lessonFile}`);
+    assert.doesNotMatch(
+      lessonSource,
+      /^(?:title|sidebar_label):.*Challenge:/m,
+      `${lessonFile} is a lesson and must not be presented as a second challenge`,
+    );
+  }
 }
 assert.match(masterySimulator, /<SimulatorFrame\b/);
 assert.match(masterySimulator, /unit\$\{unit\}\.mastery\.html/);
+assert.match(masterySimulator, /FTC SDK imports, correct OpMode annotation, and an empty class shell/);
+assert.match(masteryChallengeRuntime, /setCode\(config\.starter\)/, 'coding challenges must load their FTC SDK shell');
+assert.match(masteryChallengeRuntime, /createChallengeRobot\(unit\)/);
+assert.equal(
+  (masteryChallengeRuntime.match(/^\s+\d+: \{name: "/gm) || []).length,
+  14,
+  'every Unit 2-15 challenge needs a distinct robot profile',
+);
+{
+  const challengeWindow = {};
+  const challengeDocument = {currentScript: {dataset: {unit: '0'}}};
+  new Function('window', 'document', masteryChallengeRuntime)(challengeWindow, challengeDocument);
+  const challengeApi = challengeWindow.TelemarkMasteryChallenge;
+  assert.equal(Object.keys(challengeApi.configs).length, 14);
+  assert.equal(Object.keys(challengeApi.robotProfiles).length, 14);
+  assert.equal(
+    new Set(Object.values(challengeApi.robotProfiles).map((profile) => profile.name)).size,
+    14,
+    'challenge robot profiles must be distinct',
+  );
+  for (let unit = 2; unit <= 15; unit += 1) {
+    const starter = challengeApi.configs[unit].starter;
+    const isAutonomous = [6, 10, 14, 15].includes(unit);
+    assert.match(starter, new RegExp(`@${isAutonomous ? 'Autonomous' : 'TeleOp'}\\(name="Unit_${unit}_Mastery"\\)`));
+    assert.match(starter, new RegExp(`public class Unit${unit}Mastery extends ${isAutonomous ? 'LinearOpMode' : 'OpMode'} \\{\\n\\n\\}$`));
+    assert.equal(
+      challengeApi.checksForUnit(unit).length,
+      challengeApi.configs[unit].checks.length + 1,
+      `Unit ${unit} must preserve its FTC shell and assess every unit objective`,
+    );
+    const starterResults = challengeApi.evaluate(unit, starter);
+    assert.equal(starterResults[0], true, `Unit ${unit} starter shell should be valid`);
+    assert.ok(starterResults.slice(1).every((result) => result === false));
+  }
+}
 
 assert.match(accessPolicy, /return false;/);
 assert.match(accessPolicy, /export function isProtectedLessonPath/);
 assert.doesNotMatch(docItem, /ContentLock|isProtectedLessonPath/);
 assert.doesNotMatch(rootTheme, /ContentLock|isProtectedLessonPath|useAuth/);
 assert.match(docItem, /trackEvent\('curriculum_start'/);
-// The account slot follows the session. It was pinned to the dashboard for
-// everyone, which left a visitor who had never signed in with no sign in link
-// anywhere on the site: the only way to reach the gate was to open a locked
-// lesson and be stopped by it. Signed out is what the server renders, so a
-// static page opens on "Sign in" and upgrades once an account resolves.
 assert.match(navbarItem, /to: user \? '\/dashboard' : '\/login'/);
 assert.match(navbarItem, /label: user \? 'Dashboard' : 'Sign in'/);
 assert.doesNotMatch(homepage, /useState<string>\(isNumeric \? '0'/);
@@ -100,6 +151,7 @@ assert.match(
 );
 assert.match(customCss, /\.telemark-navbar-center[\s\S]*left: 50%/);
 assert.equal((curriculum.match(/id: 'unit-\d{2}\/mastery-coding-challenge'/g) || []).length, 14);
+assert.equal((curriculum.match(/id: 'unit-\d{2}\/mastery-quiz'/g) || []).length, 0);
 assert.match(customCss, /\.footer[\s\S]*padding: 0\.85rem 1\.5rem/);
 
 // Light mode must use the same shared surfaces and readable action colours on

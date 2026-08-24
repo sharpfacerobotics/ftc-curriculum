@@ -211,7 +211,8 @@ erases completion that exists in only one place.
 
 The tracks teach different subjects, so their lesson content differs by design.
 What must not differ is the furniture: a student moving between them should
-meet the same landing page, the same assessment, and the same navigation.
+meet the same landing page and the same navigation. Assessment matches the
+kind of work each track teaches.
 
 They had already drifted, and the fixes were:
 
@@ -221,9 +222,11 @@ They had already drifted, and the fixes were:
   progress indicators.
 - **The same track-level pages.** Both tracks have `getting-started.mdx` and
   `learning-paths.mdx`.
-- **The same assessment.** All 26 mastery quizzes across both tracks end with a
-  scored section: 70 software questions in `softwareQuizzes.ts` and 60
-  mechanical questions in `mechanicalQuizzes.ts`.
+- **Purpose-built assessment.** Software Units 2–15 end with one comprehensive
+  coding challenge that supplies the FTC SDK imports, annotation, and empty
+  class shell while leaving the implementation unscaffolded. Its checks cover the whole unit. The
+  mechanical modules retain scored mastery quizzes because calculations and
+  design judgment are better checked directly than through a Java simulator.
 
 - **The same shell.** Both landings are docs index pages owning their track
   root (`/docs` and `/engineering`), so each opens with its own sidebar and
@@ -233,9 +236,9 @@ They had already drifted, and the fixes were:
   different chrome from every other page and the command palette was
   unreachable there. It now renders inside the shared `Layout`.
 
-`npm run test:parity` enforces all of it, validates every one of the 130
-questions for answer index range, duplicate options, and a real explanation,
-and fails if any page stops using the shared shell or grows its own navbar.
+`npm run test:parity` enforces all of it, verifies all 14 software coding
+challenges and 14 mechanical mastery quizzes, validates the mechanical question
+bank, and fails if any page stops using the shared shell or grows its own navbar.
 
 Legitimate differences remain: software lessons carry browser simulators and
 mechanical lessons carry calculators, because a mechanism's behaviour is

@@ -1,14 +1,14 @@
 ---
 id: health-check-challenge
-title: "Lesson 2.5: Challenge: Build a Robot Health-Check OpMode with Telemetry"
-sidebar_label: "2.5 · Challenge: Health-Check"
+title: "Lesson 2.5: Build a Robot Health-Check OpMode with Telemetry"
+sidebar_label: "2.5 · Robot Health-Check"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit2Simulator from '@site/src/components/Unit2Simulator';
 
-# Lesson 2.5: Challenge: Build a Robot Health-Check OpMode with Telemetry
+# Lesson 2.5: Build a Robot Health-Check OpMode with Telemetry
 
 ---
 
@@ -20,14 +20,14 @@ A "Health-Check" routine prevents match-start failures by providing the drive te
 
 ## Robot Checks
 
-This challenge requires integrating `init()`, `init_loop()`, and `loop()`. The `init_loop()` method is particularly powerful for teams because it runs repeatedly after "Init" but **before** "Play". This is where hardware-heavy tasks like IMU calibration or computer vision stream processing should occur. By using telemetry in `init_loop()`, the driver can wait for a "System Ready" message before starting the match.
+This lesson integrates `init()`, `init_loop()`, and `loop()`. The `init_loop()` method is particularly powerful for teams because it runs repeatedly after "Init" but **before** "Play". This is where hardware-heavy tasks like IMU calibration or computer vision stream processing should occur. By using telemetry in `init_loop()`, the driver can wait for a "System Ready" message before starting the match.
 
 ---
 
 ## Annotated Code
 
 ```java
-@TeleOp(name="Health_Check", group="Challenge")
+@TeleOp(name="Health_Check", group="Practice")
 public class HealthCheck extends OpMode {
 
     @Override
@@ -74,7 +74,7 @@ public class HealthCheck extends OpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 Create a master health-check program. Use `init_loop()` to show the driver the current runtime while they are waiting to press start, and use `stop()` to print "Robot Powering Down".
 

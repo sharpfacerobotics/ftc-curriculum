@@ -1,20 +1,20 @@
 ---
 id: full-autonomous
-title: "Lesson 15.5: Challenge: Designing a Full Autonomous Sequence using Bézier Pathing and Vision"
-sidebar_label: "15.5 · Challenge: Full Autonomous"
+title: "Lesson 15.5: Designing a Full Autonomous Sequence using Bézier Pathing and Vision"
+sidebar_label: "15.5 · Full Autonomous"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
-# Lesson 15.5: Challenge: Designing a Full Autonomous Sequence using Bézier Pathing and Vision
+# Lesson 15.5: Designing a Full Autonomous Sequence using Bézier Pathing and Vision
 
 ---
 
-## What This Challenge Assembles
+## What This Lesson Assembles
 
-    This challenge brings the major techniques from the unit into one competition-ready autonomous sequence. It combines:
+    This lesson brings the major techniques from the unit into one competition-ready autonomous sequence. It combines:
 
 - Pre-match spike mark detection via a custom `VisionProcessor` (Unit 14) to select the correct scoring path.
 - A `Follower` and `PathChain` of `BezierCurve` segments (Lessons 15.2 and 15.3) to execute smooth field navigation.
@@ -99,8 +99,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@Autonomous(name="Full_Autonomous_Challenge")
-public class FullAutonomousChallenge extends LinearOpMode {
+@Autonomous(name="Full_Autonomous_Practice")
+public class FullAutonomousPractice extends LinearOpMode {
 
     // ── Subsystems ─────────────────────────────────────────────────────
     private Follower               follower;
@@ -271,7 +271,7 @@ public class FullAutonomousChallenge extends LinearOpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 Complete the simulator's state machine transition logic. The routine starts in `State.DRIVE_TO_TARGET`, transitions to `State.DELIVER` when the robot finishes driving (`!follower.isBusy()`), opens the claw, and records `deliverTimer = getRuntime()`. Once `getRuntime() - deliverTimer >= 0.5`, transition to `State.DONE`.
 

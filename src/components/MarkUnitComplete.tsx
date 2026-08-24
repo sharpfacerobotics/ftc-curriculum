@@ -15,6 +15,7 @@ export default function MarkUnitComplete({
   const unit = getAnyUnitBySlug(unitSlug);
   const lessons = getAnyLessonsForUnit(unitSlug);
   const lessonIds = lessons.map((lesson) => lesson.id);
+  const codingChallenge = lessons.find((lesson) => lesson.label.includes('Coding Challenge'));
 
   const { user } = useAuth();
   const { isComplete, markManyComplete, unmarkMany } = useProgress(user);
@@ -79,6 +80,24 @@ export default function MarkUnitComplete({
           >
             {saving ? 'Updating...' : 'Unmark unit'}
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (codingChallenge) {
+    return (
+      <div className={styles.completeBox}>
+        <div className={styles.completeInner}>
+          <div className={styles.completeText}>
+            <p className={styles.completeTitle}>Already know this unit?</p>
+            <p className={styles.completeDesc}>
+              Complete the comprehensive coding challenge to prove every unit objective and jump directly to {unit.nextLabel}.
+            </p>
+          </div>
+          <Link to={codingChallenge.path} className={styles.nextBtn}>
+            Take the Coding Challenge →
+          </Link>
         </div>
       </div>
     );

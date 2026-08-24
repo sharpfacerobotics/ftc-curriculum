@@ -415,9 +415,9 @@
     .telemark-gp-added-small.start { left: 58%; }
     .telemark-gp-added-dpad { width: 5.3%; height: 8%; border-radius: 3px; }
     .telemark-gp-added-dpad.up { left: 18.8%; top: 29%; }
-    .telemark-gp-added-dpad.down { left: 18.8%; top: 53%; }
-    .telemark-gp-added-dpad.left { left: 13.5%; top: 41%; }
-    .telemark-gp-added-dpad.right { left: 24.1%; top: 41%; }
+    .telemark-gp-added-dpad.down { left: 18.8%; top: 45%; }
+    .telemark-gp-added-dpad.left { left: 13.5%; top: 37%; }
+    .telemark-gp-added-dpad.right { left: 24.1%; top: 37%; }
     .telemark-gp-added-stick {
       top: 65.5%;
       width: 17%;

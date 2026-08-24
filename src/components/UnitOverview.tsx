@@ -89,8 +89,8 @@ export default function UnitOverview({
           <div className={styles.lessonList}>
             {lessons.map((lesson) => {
               const done = isComplete(lesson.id);
-              const lessonBadge = lesson.label.includes('Mastery Quiz')
-                ? 'MQ'
+              const lessonBadge = lesson.label.includes('Coding Challenge')
+                ? 'CC'
                 : lesson.label.split(' ·')[0];
               return (
                 <Link

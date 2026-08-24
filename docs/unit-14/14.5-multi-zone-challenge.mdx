@@ -1,14 +1,14 @@
 ---
 id: multi-zone-challenge
-title: "Lesson 14.5: Challenge: Multi-Zone Vision Processing for Autonomous Scoring Selection"
-sidebar_label: "14.5 · Challenge: Multi-Zone Vision"
+title: "Lesson 14.5: Multi-Zone Vision Processing for Autonomous Scoring Selection"
+sidebar_label: "14.5 · Multi-Zone Vision"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit14Simulator from '@site/src/components/Unit14Simulator';
 
-# Lesson 14.5: Challenge: Multi-Zone Vision Processing for Autonomous Scoring Selection
+# Lesson 14.5: Multi-Zone Vision Processing for Autonomous Scoring Selection
 
 ---
 
@@ -16,7 +16,7 @@ import Unit14Simulator from '@site/src/components/Unit14Simulator';
 
 One of the highest-value autonomous tasks in recent FTC seasons requires the robot to identify which of three possible spike mark locations contains the team's scoring element before the match begins. The robot then commits to a path that scores in the correct location. A team that solves this reliably earns those points every match; a team that hard-codes a single location scores them only one-third of the time.
 
-The challenge combines every technique from this unit: a `VisionPortal` to open the camera stream, a custom `VisionProcessor` to analyze the frame, `Rect` zone boundaries to isolate the three candidate locations, and a result that the OpMode reads to select the correct autonomous path.
+This lesson combines every technique from the unit: a `VisionPortal` to open the camera stream, a custom `VisionProcessor` to analyze the frame, `Rect` zone boundaries to isolate the three candidate locations, and a result that the OpMode reads to select the correct autonomous path.
 
 ---
 
@@ -194,7 +194,7 @@ public class SpikeSelectionAuto extends LinearOpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 Complete the simulator's `processFrame(Mat frame)` method for a two-zone processor. It should read average saturation from `LEFT_ZONE` and `RIGHT_ZONE` with the provided `getAverageSaturation(frame, zone)` helper, assign `detectedLocation` to `SpikeLocation.LEFT` if the left zone's saturation is higher, and assign `SpikeLocation.RIGHT` otherwise.
 

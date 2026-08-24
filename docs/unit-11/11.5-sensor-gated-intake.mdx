@@ -1,14 +1,14 @@
 ---
 id: sensor-gated-intake
-title: "Lesson 11.5: Challenge: Creating an Automated Sensor-Gated Intake System"
-sidebar_label: "11.5 · Challenge: Sensor-Gated Intake"
+title: "Lesson 11.5: Creating an Automated Sensor-Gated Intake System"
+sidebar_label: "11.5 · Sensor-Gated Intake"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
-# Lesson 11.5: Challenge: Creating an Automated Sensor-Gated Intake System
+# Lesson 11.5: Creating an Automated Sensor-Gated Intake System
 
 ---
 
@@ -22,7 +22,7 @@ This approach reduces the number of simultaneous decisions the driver must make 
 
 ## Combining Multiple Sensor Types
 
-This challenge integrates a `DistanceSensor` and a `DigitalChannel` to create a two-condition gate. The intake motor should run only when both of the following are true:
+This lesson integrates a `DistanceSensor` and a `DigitalChannel` to create a two-condition gate. The intake motor should run only when both of the following are true:
 
 - A game element is within detection range of the distance sensor (close enough to collect).
 - The internal storage is not yet full (the touch sensor at the back of the intake is not triggered).
@@ -123,7 +123,7 @@ public class SensorGateDemo extends LinearOpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 Use the simulator below to complete the smart intake gate. The editor starts with incomplete starter code, so fill in the distance read, storage sensor check, and single `if/else` motor gate before collecting elements.
 

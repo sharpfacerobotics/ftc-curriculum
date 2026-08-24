@@ -1,14 +1,14 @@
 ---
 id: arcade-drive-challenge
-title: "Lesson 4.5: Challenge: Build Full Arcade Drive with Deadzones and Sensitivity Curves"
-sidebar_label: "4.5 · Challenge: Arcade Drive"
+title: "Lesson 4.5: Build Full Arcade Drive with Deadzones and Sensitivity Curves"
+sidebar_label: "4.5 · Arcade Drive"
 sidebar_position: 5
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
-# Lesson 4.5: Challenge: Build Full Arcade Drive with Deadzones and Sensitivity Curves
+# Lesson 4.5: Build Full Arcade Drive with Deadzones and Sensitivity Curves
 
 ---
 
@@ -20,14 +20,14 @@ A **deadzone** prevents robot creep when a joystick does not return to exactly `
 
 ## How to Build an Arcade Drive That Feels Good
 
-This challenge combines nested logic and method calls. A deadzone can use a comparison such as `if (Math.abs(input) < 0.1) power = 0;`. Passing the filtered value to `squareInputWithSign()` keeps the input math separate from the motor command, which makes later drive-feel adjustments easier to test.
+This lesson combines nested logic and method calls. A deadzone can use a comparison such as `if (Math.abs(input) < 0.1) power = 0;`. Passing the filtered value to `squareInputWithSign()` keeps the input math separate from the motor command, which makes later drive-feel adjustments easier to test.
 
 ---
 
 ## Annotated Code
 
 ```java
-@TeleOp(name="Pro_Drive_System", group="Challenge")
+@TeleOp(name="Pro_Drive_System", group="Practice")
 public class ProDrive extends OpMode {
 
     @Override
@@ -71,7 +71,7 @@ public class ProDrive extends OpMode {
 
 ---
 
-## Simulator Challenge
+## Simulator Practice
 
 **Robot Scenario:** Combine everything. Create an OpMode where the `A` button acts as a "Turbo Switch." If `A` is pressed, use the raw joystick values. If `A` is **NOT** pressed, use squared joystick values for precision.
 
