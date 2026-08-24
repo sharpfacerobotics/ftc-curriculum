@@ -12,6 +12,8 @@ import styles from './AskPanel.module.css';
 interface Message {
   role: 'you' | 'ai';
   text: string;
+  /** Set once the assistant moves past what the sources support. */
+  beyond?: string;
 }
 
 /**
@@ -139,6 +141,26 @@ export default function AskPanel(): React.JSX.Element {
             next[next.length - 1] = {role: 'ai', text: next[next.length - 1].text + t};
             return next;
           }),
+        onBeyondStart: () =>
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            next[next.length - 1] = {...last, beyond: last.beyond ?? ''};
+            return next;
+          }),
+        onBeyond: (t) =>
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            next[next.length - 1] = {...last, beyond: (last.beyond ?? '') + t};
+            return next;
+          }),
+        // Without prose there are still sources, and saying so beats a blank.
+        onDegrade: (answerMd) =>
+          replaceLast(
+            setMessages,
+            answerMd || 'The assistant has reached its limit for today. The sources below still apply.',
+          ),
         onError: (message) => replaceLast(setMessages, message),
       },
     );
@@ -252,6 +274,21 @@ export default function AskPanel(): React.JSX.Element {
                 <p key={n}>{line}</p>
               ))
             )}
+            {/*
+              Labelled, not blended in. Everything above this line is held up by
+              a cited section; everything below it is the assistant reasoning
+              past them. A student deciding what to trust needs to see where one
+              stops and the other starts, which is the same rule the public site
+              follows.
+            */}
+            {message.beyond ? (
+              <div className={styles.beyond}>
+                <p className={styles.beyondLabel}>Beyond the curriculum — uncited reasoning</p>
+                {readable(message.beyond).split('\n').filter(Boolean).map((line, n) => (
+                  <p key={n}>{line}</p>
+                ))}
+              </div>
+            ) : null}
           </div>
         ))}
       </div>
@@ -284,7 +321,7 @@ export default function AskPanel(): React.JSX.Element {
         lesson. Past chats are kept on this device only.{' '}
         <a
           className={styles.limitLink}
-          href="https://sharp-ai-8a1.pages.dev"
+          href="https://sharpftc.pages.dev"
           target="_blank"
           rel="noopener noreferrer"
         >

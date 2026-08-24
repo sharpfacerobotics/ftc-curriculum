@@ -21,6 +21,16 @@ export interface Turn {
 export interface AskEvents {
   onMeta?: (citations: Citation[]) => void;
   onToken?: (text: string) => void;
+  /**
+   * The assistant has finished what the sources support and is about to reason
+   * past them. Telemark used to drop this event and every token after it, so a
+   * student saw only the cited half of an answer and never the part that
+   * actually applied it to their robot — with no sign anything was missing.
+   */
+  onBeyondStart?: () => void;
+  onBeyond?: (text: string) => void;
+  /** The daily generation ceiling was reached; sources arrive without prose. */
+  onDegrade?: (answerMd: string) => void;
   onDone?: () => void;
   onError?: (message: string) => void;
 }
@@ -100,6 +110,9 @@ export async function askSharpAi(
             const payload = safeParse(line.slice(5).trim());
             if (event === 'meta') events.onMeta?.((payload?.citations as Citation[]) ?? []);
             else if (event === 'token' && typeof payload?.t === 'string') events.onToken?.(payload.t);
+            else if (event === 'beyond_start') events.onBeyondStart?.();
+            else if (event === 'beyond' && typeof payload?.t === 'string') events.onBeyond?.(payload.t);
+            else if (event === 'degrade') events.onDegrade?.(String(payload?.answerMd ?? ''));
             else if (event === 'done') finish();
             else if (event === 'error') events.onError?.(String(payload?.message ?? 'Something went wrong.'));
           }

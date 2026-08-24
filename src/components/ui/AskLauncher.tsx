@@ -82,7 +82,7 @@ export default function AskLauncher(): React.JSX.Element {
                 up. The link is how a student finds the rest of it. */}
             <a
               className={styles.dockTitle}
-              href="https://sharp-ai-8a1.pages.dev"
+              href="https://sharpftc.pages.dev"
               target="_blank"
               rel="noopener noreferrer"
             >
