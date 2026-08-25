@@ -157,6 +157,29 @@ function testStudentOnlyTelemetryRoutesDiagnosticsToHints() {
   assert.match(telemetryText(page), /Student.*only/is);
 }
 
+function testFtcHardwareRegistrySupportsChallengeDevices() {
+  const page = createBaseHarness();
+  const {hardwareMap} = page.context;
+  let commandedPower = 0;
+  hardwareMap.onMotorPower((_name, power) => { commandedPower = power; });
+  const motor = hardwareMap.get('DcMotor', 'leftFront');
+  motor.setMode(page.context.DcMotor.RunMode.RUN_TO_POSITION);
+  motor.setTargetPosition(560);
+  motor.setPower(1);
+  assert.equal(commandedPower, 1);
+  assert.equal(motor.isBusy(), true);
+  hardwareMap.tick(0.1);
+  assert.ok(motor.getCurrentPosition() > 0, 'encoder state should advance with motor power');
+
+  const digital = hardwareMap.get('DigitalChannel', 'upperLimit');
+  digital.setMode(page.context.DigitalChannel.Mode.INPUT);
+  assert.equal(digital.getState(), true);
+  digital._setState(false);
+  assert.equal(digital.getState(), false);
+  assert.equal(hardwareMap.get('AnalogInput', 'pot').getVoltage(), 1.65);
+  assert.equal(hardwareMap.get('DistanceSensor', 'distance').getDistance('INCH'), 24);
+}
+
 function testFullSourceGateRejectsUnusedMalformedMethodAndRetries() {
   const page = createBaseHarness();
   const editor = page.context.document.getElementById('sim-code-editor');
@@ -272,6 +295,7 @@ function testLoopRuntimeErrorStopsExecution() {
 testCompileErrorGatesInit();
 testMissingCompilerFailsClosed();
 testStudentOnlyTelemetryRoutesDiagnosticsToHints();
+testFtcHardwareRegistrySupportsChallengeDevices();
 testFullSourceGateRejectsUnusedMalformedMethodAndRetries();
 testCompileErrorCleansPageStateForRetry();
 testResetRuntimeBindingAndStartContinuation();

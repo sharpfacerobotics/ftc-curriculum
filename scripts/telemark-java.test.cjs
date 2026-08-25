@@ -130,6 +130,20 @@ function testHardwareAndTelemetry() {
   assert.deepEqual(telemetry, [['Power', 0.5]]);
 }
 
+function testJavaMathHelpers() {
+  const program = compile(`
+    import java.lang.Math;
+    public class MathTest extends OpMode {
+      double result;
+      public void loop() {
+        result = Math.min(Math.abs(-0.75), Math.max(0.2, 0.5));
+      }
+    }
+  `);
+  program.methods.loop();
+  assert.equal(program.scope.result, 0.5);
+}
+
 function testMethodLocalVariableTracking() {
   const gamepad = {a: false, left_bumper: false, left_stick_y: -0.8};
   const runtime = TelemarkJava.createRuntime({gamepad});
@@ -570,6 +584,7 @@ async function main() {
   testClassesAndInheritance();
   testEnumsAndSwitch();
   testHardwareAndTelemetry();
+  testJavaMathHelpers();
   testMethodLocalVariableTracking();
   testTelemetryFramesAutoClear();
   testResetRuntimeBindingInEditedStart();

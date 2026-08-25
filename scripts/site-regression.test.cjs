@@ -46,6 +46,7 @@ const askPanel = read('src/components/ui/AskPanel.tsx');
 const adminPage = read('src/pages/admin.tsx');
 const masterySimulator = read('src/components/MasterySimulator.tsx');
 const masteryChallengeRuntime = read('static/simulator/mastery_challenge.js');
+const masteryMotionRuntime = read('static/simulator/mastery_motion.js');
 const curriculum = read('src/telemark/curriculum.ts');
 
 for (let unit = 2; unit <= 15; unit += 1) {
@@ -61,6 +62,7 @@ for (let unit = 2; unit <= 15; unit += 1) {
       .find((name) => name.endsWith('mastery-coding-challenge.mdx')),
   );
   assert.match(masteryLesson, new RegExp(`<MasterySimulator unit=\\{${unit}\\} />`));
+  assert.match(read(`static/simulator/unit${unit}.mastery.html`), /mastery_motion\.js/);
   assert.ok(
     masteryLesson.includes(`completesUnit="unit-${String(unit).padStart(2, '0')}"`),
     `Unit ${unit} coding challenge must record full-unit mastery`,
@@ -90,7 +92,7 @@ assert.match(masteryChallengeRuntime, /setCode\(config\.starter\)/, 'coding chal
 assert.match(masteryChallengeRuntime, /setTelemetryStudentOnly\(true\)/);
 assert.match(masteryChallengeRuntime, /return transpileAndRun\(/, 'coding challenges must execute student telemetry');
 assert.doesNotMatch(masteryChallengeRuntime, /addTelemetry\("(?:Unit|Compiler|Objectives|Lifecycle|Driver test|Ready)"/);
-assert.match(masteryChallengeRuntime, /createChallengeRobot\(unit\)/);
+assert.match(masteryChallengeRuntime, /createChallengeRobot\(unit, challengeMotion\)/);
 assert.equal(
   (masteryChallengeRuntime.match(/^\s+\d+: \{name: "/gm) || []).length,
   14,
@@ -113,6 +115,7 @@ assert.equal(
     const isAutonomous = [6, 10, 14, 15].includes(unit);
     assert.match(starter, new RegExp(`@${isAutonomous ? 'Autonomous' : 'TeleOp'}\\(name="Unit_${unit}_Mastery"\\)`));
     assert.match(starter, new RegExp(`public class Unit${unit}Mastery extends ${isAutonomous ? 'LinearOpMode' : 'OpMode'} \\{\\n\\n\\}$`));
+    assert.match(starter, /import java\.lang\.Math;/);
     assert.equal(
       challengeApi.checksForUnit(unit).length,
       challengeApi.configs[unit].checks.length + 1,
@@ -123,6 +126,11 @@ assert.equal(
     assert.ok(starterResults.slice(1).every((result) => result === false));
   }
 }
+assert.match(masteryChallengeRuntime, /challengeMotion\.connectHardwareMap\(global\.hardwareMap\)/);
+assert.match(masteryChallengeRuntime, /motion\.step\(dt\)/);
+assert.match(masteryMotionRuntime, /function integrateDrive\(dt, mecanum\)/);
+assert.match(masteryMotionRuntime, /setServoPosition/);
+assert.match(masteryMotionRuntime, /startFollower/);
 
 assert.match(accessPolicy, /return false;/);
 assert.match(accessPolicy, /export function isProtectedLessonPath/);
