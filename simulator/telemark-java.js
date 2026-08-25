@@ -12,12 +12,26 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
+  // Java and JavaScript share most Math methods, but these FTC-friendly Java
+  // methods are not part of the browser Math object on every supported engine.
+  if (typeof Math.copySign !== "function") {
+    Math.copySign = function (magnitude, sign) {
+      return Math.abs(Number(magnitude)) * (Number(sign) < 0 || Object.is(Number(sign), -0) ? -1 : 1);
+    };
+  }
+  if (typeof Math.signum !== "function") Math.signum = function (value) { return Math.sign(Number(value)); };
+  if (typeof Math.toRadians !== "function") Math.toRadians = function (degrees) { return Number(degrees) * Math.PI / 180; };
+  if (typeof Math.toDegrees !== "function") Math.toDegrees = function (radians) { return Number(radians) * 180 / Math.PI; };
+
   const TYPE_NAMES = new Set([
     "boolean", "byte", "char", "double", "float", "int", "long", "short",
     "String", "Object", "DcMotor", "DcMotorEx", "Servo", "CRServo",
     "TouchSensor", "DigitalChannel", "AnalogInput", "ColorSensor",
-    "DistanceSensor", "IMU", "BNO055IMU", "ElapsedTime", "Pose", "Path",
-    "PathChain", "BezierCurve", "BezierLine", "AprilTagDetection",
+    "DistanceSensor", "IMU", "BNO055IMU", "ElapsedTime", "HardwareMap",
+    "RevHubOrientationOnRobot", "YawPitchRollAngles", "WebcamName",
+    "VisionPortal", "AprilTagProcessor", "AprilTagDetection", "Rect",
+    "Limelight3A", "LLResult", "Follower", "Pose", "Point", "Path",
+    "PathChain", "BezierCurve", "BezierLine",
   ]);
   const MODIFIERS = new Set([
     "public", "private", "protected", "static", "final", "abstract",

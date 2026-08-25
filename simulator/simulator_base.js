@@ -3440,6 +3440,7 @@
     onTouchSensor: [],
     onColorSensor: [],
     onIMU: [],
+    onVisionState: [],
   };
 
   /** Registry of mock devices by name */
@@ -3455,6 +3456,7 @@
     this._mode = "RUN_WITHOUT_ENCODER";
     this._zeroPowerBehavior = "BRAKE";
     this._currentPosition = 0;
+    this._targetPosition = 0;
     this._ticksPerRev = 1120;
   }
 
@@ -3486,6 +3488,10 @@
 
   MockDcMotor.prototype.setMode = function (mode) {
     this._mode = mode;
+    if (mode === "STOP_AND_RESET_ENCODER") {
+      this._currentPosition = 0;
+      this._targetPosition = 0;
+    }
     hwCallbacks.onMotorMode.forEach(
       function (cb) {
         cb(this._name, mode);
@@ -3523,7 +3529,20 @@
   };
 
   MockDcMotor.prototype.isBusy = function () {
-    return false;
+    return this._mode === "RUN_TO_POSITION"
+      && Math.abs(this._targetPosition - this._currentPosition) > 4;
+  };
+
+  MockDcMotor.prototype._tick = function (seconds) {
+    const dt = Math.max(0, Math.min(0.1, Number(seconds) || 0));
+    if (this._mode === "RUN_TO_POSITION") {
+      const remaining = this._targetPosition - this._currentPosition;
+      const step = Math.abs(this._power) * this._ticksPerRev * dt;
+      if (Math.abs(remaining) <= step) this._currentPosition = this._targetPosition;
+      else this._currentPosition += Math.sign(remaining) * step;
+      return;
+    }
+    this._currentPosition += this._power * this._ticksPerRev * dt;
   };
 
   /**
@@ -3632,6 +3651,45 @@
     );
   };
 
+  function MockDigitalChannel(name) {
+    this._name = name;
+    this._mode = "INPUT";
+    this._state = true;
+  }
+
+  MockDigitalChannel.prototype.setMode = function (mode) { this._mode = mode; };
+  MockDigitalChannel.prototype.getMode = function () { return this._mode; };
+  MockDigitalChannel.prototype.getState = function () { return this._state; };
+  MockDigitalChannel.prototype.setState = function (state) { this._state = Boolean(state); };
+  MockDigitalChannel.prototype._setState = MockDigitalChannel.prototype.setState;
+
+  function MockAnalogInput(name) {
+    this._name = name;
+    this._voltage = 1.65;
+  }
+
+  MockAnalogInput.prototype.getVoltage = function () { return this._voltage; };
+  MockAnalogInput.prototype.getMaxVoltage = function () { return 3.3; };
+  MockAnalogInput.prototype._setVoltage = function (voltage) {
+    this._voltage = Math.max(0, Math.min(3.3, Number(voltage) || 0));
+  };
+
+  function MockDistanceSensor(name) {
+    this._name = name;
+    this._distanceInches = 24;
+  }
+
+  MockDistanceSensor.prototype.getDistance = function (unit) {
+    const normalized = String(unit || "INCH").toUpperCase();
+    if (normalized === "MM") return this._distanceInches * 25.4;
+    if (normalized === "CM") return this._distanceInches * 2.54;
+    if (normalized === "METER") return this._distanceInches * 0.0254;
+    return this._distanceInches;
+  };
+  MockDistanceSensor.prototype._setDistance = function (inches) {
+    this._distanceInches = Math.max(0, Number(inches) || 0);
+  };
+
   /**
    * Mock ColorSensor
    */
@@ -3719,6 +3777,34 @@
     );
   };
 
+  function MockLimelight(name) {
+    this._name = name;
+    this._running = false;
+    this._pipeline = 0;
+  }
+
+  MockLimelight.prototype.pipelineSwitch = function (pipeline) { this._pipeline = Number(pipeline) || 0; };
+  MockLimelight.prototype.setPollRateHz = function () {};
+  MockLimelight.prototype.start = function () {
+    this._running = true;
+    hwCallbacks.onVisionState.forEach(function (cb) { cb(this._name, true); }.bind(this));
+  };
+  MockLimelight.prototype.stop = function () {
+    this._running = false;
+    hwCallbacks.onVisionState.forEach(function (cb) { cb(this._name, false); }.bind(this));
+  };
+  MockLimelight.prototype.getLatestResult = function () {
+    const running = this._running;
+    return {
+      isValid: function () { return running; },
+      getTx: function () { return 0; },
+      getTy: function () { return 0; },
+      getBotpose: function () {
+        return typeof window.Pose === "function" ? new window.Pose(0, 0, 0) : {x: 0, y: 0, heading: 0};
+      },
+    };
+  };
+
   /**
    * The global hardwareMap object
    */
@@ -3755,6 +3841,30 @@
       return sensor;
     },
 
+    registerDigitalChannel: function (name) {
+      const sensor = new MockDigitalChannel(name);
+      hwDevices[name] = sensor;
+      return sensor;
+    },
+
+    registerAnalogInput: function (name) {
+      const sensor = new MockAnalogInput(name);
+      hwDevices[name] = sensor;
+      return sensor;
+    },
+
+    registerDistanceSensor: function (name) {
+      const sensor = new MockDistanceSensor(name);
+      hwDevices[name] = sensor;
+      return sensor;
+    },
+
+    registerLimelight: function (name) {
+      const camera = new MockLimelight(name);
+      hwDevices[name] = camera;
+      return camera;
+    },
+
     registerIMU: function (name) {
       const imu = new MockIMU(name);
       hwDevices[name] = imu;
@@ -3781,8 +3891,19 @@
         return this.registerTouchSensor(name);
       } else if (typeStr.includes("color")) {
         return this.registerColorSensor(name);
+      } else if (typeStr.includes("digitalchannel")) {
+        return this.registerDigitalChannel(name);
+      } else if (typeStr.includes("analoginput")) {
+        return this.registerAnalogInput(name);
+      } else if (typeStr.includes("distancesensor")) {
+        return this.registerDistanceSensor(name);
       } else if (typeStr.includes("imu")) {
         return this.registerIMU(name);
+      } else if (typeStr.includes("limelight")) {
+        return this.registerLimelight(name);
+      } else if (typeStr.includes("webcam")) {
+        hwDevices[name] = {_name: name, _type: "WebcamName"};
+        return hwDevices[name];
       }
 
       // Fallback: create a generic motor
@@ -3829,6 +3950,23 @@
     onIMU: function (cb) {
       hwCallbacks.onIMU.push(cb);
     },
+    onVisionState: function (cb) {
+      hwCallbacks.onVisionState.push(cb);
+    },
+
+    tick: function (seconds) {
+      Object.keys(hwDevices).forEach(function (name) {
+        const device = hwDevices[name];
+        if (device && typeof device._tick === "function") device._tick(seconds);
+      });
+    },
+
+    stopAll: function () {
+      Object.keys(hwDevices).forEach(function (name) {
+        const device = hwDevices[name];
+        if (device instanceof MockDcMotor || device instanceof MockCRServo) device.setPower(0);
+      });
+    },
 
     /**
      * Clear all registered devices and callbacks.
@@ -3871,6 +4009,13 @@
     Direction: {
       FORWARD: "FORWARD",
       REVERSE: "REVERSE",
+    },
+  };
+
+  window.DigitalChannel = {
+    Mode: {
+      INPUT: "INPUT",
+      OUTPUT: "OUTPUT",
     },
   };
 

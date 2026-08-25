@@ -9,7 +9,11 @@
   "use strict";
 
   function shell(imports, annotation, className, parent) {
-    return imports.join("\n")
+    const sdkImports = imports.slice();
+    if (sdkImports.indexOf("import java.lang.Math;") === -1) {
+      sdkImports.push("import java.lang.Math;");
+    }
+    return sdkImports.join("\n")
       + "\n\n" + annotation
       + "\npublic class " + className + " extends " + parent + " {\n\n}";
   }
@@ -353,11 +357,12 @@
     15: {name: "Sensor-fused autonomous robot", detail: "Limelight, path follower, and timed scoring arm on one platform", accent: 0x06b6d4}
   });
 
-  function createChallengeRobot(unit) {
+  function createChallengeRobot(unit, challengeMotion) {
     const THREE = global.THREE;
     const scene = global.scene;
     const profile = ROBOT_PROFILES[unit];
     if (!THREE || !scene || !profile) return null;
+    const motion = challengeMotion || global.TelemarkMasteryMotion.create(unit);
 
     const oldVisual = scene.getObjectByName && scene.getObjectByName("mastery-challenge-visual");
     if (oldVisual) scene.remove(oldVisual);
@@ -440,6 +445,15 @@
 
     let animation = null;
 
+    function applyDriveState() {
+      robot.position.x = motion.state.x;
+      robot.position.z = motion.state.z;
+      robot.rotation.y = motion.state.heading;
+      wheels.forEach(function (wheel, index) {
+        wheel.rotation.x = motion.state.wheelAngles[index];
+      });
+    }
+
     if (unit === 2) {
       box([0.12, 0.72, 0.12], [0, 1.08, 0.12], frameMat);
       const statusLights = [redMat, warningMat, greenMat].map(function (lightMat, index) {
@@ -455,19 +469,17 @@
       const flywheel = cylinder(0.38, 0.18, [0, 0.98, -0.12], accentMat, [Math.PI / 2, 0, 0]);
       cylinder(0.14, 0.5, [0, 0.98, 0.2], darkMat, [Math.PI / 2, 0, 0]);
       box([0.58, 0.38, 0.38], [0, 0.77, 0.38], frameMat);
-      animation = function (time) { flywheel.rotation.y = time * 2.2; };
+      animation = function () { flywheel.rotation.y = motion.state.primaryAngle; };
     } else if (unit === 4) {
       box([1.95, 0.16, 0.16], [0, 0.55, -0.74], accentMat);
       box([0.5, 0.16, 0.42], [0, 0.72, 0.32], darkMat);
-      animation = function (time) {
-        wheels.forEach(function (wheel, index) { wheel.rotation.x = time * (index < 2 ? 1.2 : -1.2); });
-      };
+      animation = applyDriveState;
     } else if (unit === 5) {
       const roller = cylinder(0.19, 1.35, [0, 0.34, -0.87], warningMat, [0, 0, Math.PI / 2]);
       box([0.16, 0.25, 0.82], [-0.82, 0.35, -0.76], frameMat, null, [0, 0.22, 0]);
       box([0.16, 0.25, 0.82], [0.82, 0.35, -0.76], frameMat, null, [0, -0.22, 0]);
       sphere(0.12, [0, 0.63, -0.71], sensorMat);
-      animation = function (time) { roller.rotation.x = time * 2.4; };
+      animation = function () { roller.rotation.x = motion.state.primaryAngle; };
     } else if (unit === 6) {
       const arm = new THREE.Group();
       arm.position.set(-0.56, 0.65, 0.12);
@@ -476,13 +488,17 @@
       box([0.16, 1.05, 0.16], [0, 0.48, 0], frameMat, arm);
       box([0.48, 0.14, 0.34], [0, 1.0, 0], warningMat, arm);
       box([0.42, 0.34, 0.42], [0.5, 0.77, 0.1], darkMat);
-      animation = function (time) { arm.rotation.z = -0.25 + Math.sin(time * 0.9) * 0.22; };
+      animation = function () {
+        applyDriveState();
+        arm.rotation.z = -0.25 + motion.state.armAngle;
+      };
     } else if (unit === 7) {
       box([0.48, 0.58, 0.48], [-0.45, 0.92, 0.12], accentMat);
-      cylinder(0.18, 0.42, [0.42, 0.87, 0.14], darkMat, [Math.PI / 2, 0, 0]);
+      const subsystemMotor = cylinder(0.18, 0.42, [0.42, 0.87, 0.14], darkMat, [Math.PI / 2, 0, 0]);
       box([0.18, 0.18, 0.18], [0.66, 0.68, -0.18], warningMat);
       sphere(0.12, [0.52, 1.16, -0.12], sensorMat);
       box([0.08, 0.65, 0.08], [0.08, 0.96, 0.12], frameMat);
+      animation = function () { subsystemMotor.rotation.y = motion.state.primaryAngle; };
     } else if (unit === 8) {
       [-0.34, 0.34].forEach(function (x) {
         box([0.11, 1.55, 0.12], [x, 1.22, 0.08], frameMat);
@@ -490,7 +506,7 @@
       const carriage = box([0.9, 0.22, 0.48], [0, 1.32, 0.08], accentMat);
       box([0.16, 0.12, 0.18], [0.48, 0.55, 0.08], redMat);
       box([0.16, 0.12, 0.18], [0.48, 1.9, 0.08], greenMat);
-      animation = function (time) { carriage.position.y = 1.25 + Math.sin(time * 0.75) * 0.48; };
+      animation = function () { carriage.position.y = motion.state.slidePosition; };
     } else if (unit === 9) {
       const leftFinger = new THREE.Group();
       const rightFinger = new THREE.Group();
@@ -503,11 +519,13 @@
       box([0.28, 0.25, 0.28], [0, 0, 0], accentMat, rightFinger);
       box([0.13, 0.64, 0.16], [0, -0.28, -0.18], frameMat, rightFinger, [0.22, 0, 0]);
       const intake = cylinder(0.15, 0.9, [0, 0.38, -0.82], warningMat, [0, 0, Math.PI / 2]);
-      animation = function (time) {
-        const open = 0.1 + (Math.sin(time) + 1) * 0.14;
-        leftFinger.rotation.z = -open;
-        rightFinger.rotation.z = open;
-        intake.rotation.x = time * 1.8;
+      animation = function () {
+        const positions = motion.servoValues();
+        const left = positions[0] == null ? 0 : positions[0];
+        const right = positions[1] == null ? left : positions[1];
+        leftFinger.rotation.z = -(0.08 + left * 0.44);
+        rightFinger.rotation.z = 0.08 + right * 0.44;
+        intake.rotation.x = motion.state.primaryAngle;
       };
     } else if (unit === 10) {
       wheels.forEach(function (wheel) {
@@ -515,7 +533,7 @@
         ring.userData.encoderRing = true;
       });
       box([0.08, 0.42, 0.08], [0, 0.74, -0.45], warningMat, null, [Math.PI / 4, 0, 0]);
-      animation = function (time) { wheels.forEach(function (wheel) { wheel.rotation.x = time * 1.45; }); };
+      animation = applyDriveState;
     } else if (unit === 11) {
       const intake = cylinder(0.18, 1.25, [0, 0.35, -0.86], warningMat, [0, 0, Math.PI / 2]);
       box([0.15, 0.15, 0.15], [-0.56, 0.62, -0.64], redMat);
@@ -523,7 +541,7 @@
       box([0.15, 0.15, 0.15], [0.2, 0.62, -0.64], blueMat);
       sphere(0.11, [0.56, 0.62, -0.64], sensorMat);
       cylinder(0.09, 0.38, [0.72, 0.82, 0.12], accentMat, [Math.PI / 2, 0, 0]);
-      animation = function (time) { intake.rotation.x = time * 2.1; };
+      animation = function () { intake.rotation.x = motion.state.primaryAngle; };
     } else if (unit === 12) {
       box([0.38, 0.24, 0.38], [0, 0.87, 0.1], accentMat);
       box([0.62, 0.045, 0.045], [0.31, 1.08, 0.1], redMat);
@@ -532,7 +550,7 @@
       wheels.forEach(function (wheel, index) {
         box([0.05, 0.36, 0.08], [wheel.position.x, wheel.position.y, wheel.position.z], accentMat, null, [0.65, 0, index % 2 ? 0.65 : -0.65]);
       });
-      animation = function (time) { robot.rotation.y = Math.sin(time * 0.55) * 0.22; };
+      animation = applyDriveState;
     } else if (unit === 13) {
       box([0.56, 0.38, 0.5], [-0.5, 0.84, 0.1], blueMat);
       box([0.56, 0.58, 0.5], [0.12, 0.94, 0.1], accentMat);
@@ -541,7 +559,17 @@
       arm.position.set(0.12, 1.18, 0.1);
       robot.add(arm);
       box([0.14, 0.82, 0.14], [0, 0.34, 0], frameMat, arm, [0, 0, -0.35]);
-      animation = function (time) { arm.rotation.z = Math.sin(time * 0.7) * 0.15; };
+      const claw = new THREE.Group();
+      claw.position.set(0.32, 1.66, 0.1);
+      robot.add(claw);
+      const clawLeft = box([0.08, 0.34, 0.12], [-0.12, 0, 0], frameMat, claw);
+      const clawRight = box([0.08, 0.34, 0.12], [0.12, 0, 0], frameMat, claw);
+      animation = function () {
+        const position = motion.servoValues()[0] || 0;
+        arm.rotation.z = motion.state.armAngle;
+        clawLeft.rotation.z = -position * 0.55;
+        clawRight.rotation.z = position * 0.55;
+      };
     } else if (unit === 14) {
       box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
       const cameraHead = new THREE.Group();
@@ -556,7 +584,7 @@
         box([0.24, 0.24, 0.025], [x, 0.38, -2.51], zoneMat, visual);
       });
       robot.position.z = 0.65;
-      animation = function (time) { cameraHead.rotation.y = Math.sin(time * 0.9) * 0.52; };
+      animation = function () { cameraHead.rotation.y = motion.state.cameraAngle; };
     } else if (unit === 15) {
       box([0.1, 0.72, 0.1], [-0.45, 1.0, -0.02], frameMat);
       const limelight = box(
@@ -580,12 +608,13 @@
         new THREE.LineBasicMaterial({color: profile.accent, transparent: true, opacity: 0.75})
       );
       visual.add(pathLine);
-      animation = function (time) {
-        const point = path.getPoint((time * 0.055) % 1);
+      animation = function () {
+        const point = path.getPoint(motion.state.pathProgress);
         robot.position.set(point.x, 0, point.z);
-        scoringArm.rotation.z = -0.18 + Math.sin(time * 0.7) * 0.16;
+        const servoPosition = motion.servoValues()[0] || 0;
+        scoringArm.rotation.z = -0.38 + servoPosition * 0.7;
         limelight.material.emissive = new THREE.Color(0x064e3b);
-        limelight.material.emissiveIntensity = 0.18 + (Math.sin(time * 2) + 1) * 0.1;
+        limelight.material.emissiveIntensity = motion.state.visionActive ? 0.52 : 0.08;
       };
     }
 
@@ -607,8 +636,19 @@
       global.setCameraOrbit({theta: 0.56, phi: 0.78, radius: unit >= 14 ? 6.8 : 5.2, target: {x: 0, y: 0.72, z: unit >= 14 ? -0.35 : 0}});
     }
     if (animation && typeof global.addAnimationCallback === "function") {
-      global.addAnimationCallback(function () { animation(Date.now() * 0.001); });
+      let previousTime = Date.now() * 0.001;
+      global.addAnimationCallback(function () {
+        const currentTime = Date.now() * 0.001;
+        const dt = currentTime - previousTime;
+        previousTime = currentTime;
+        if (global.hardwareMap && typeof global.hardwareMap.tick === "function") {
+          global.hardwareMap.tick(dt);
+        }
+        motion.step(dt);
+        animation(currentTime);
+      });
     }
+    visual.userData.challengeMotion = motion;
     return visual;
   }
 
@@ -705,8 +745,16 @@
     const config = CONFIGS[unit];
     if (!config) throw new Error("Unknown mastery simulator unit: " + unit);
     const checks = checksForUnit(unit);
+    let challengeMotion = null;
 
     global.onSimulatorReady = function () {
+      if (!global.TelemarkMasteryMotion) {
+        throw new Error("The coding challenge motion runtime is unavailable");
+      }
+      challengeMotion = global.TelemarkMasteryMotion.create(unit);
+      global.TelemarkMasteryMotion.installSdkMocks(global, challengeMotion);
+      challengeMotion.connectHardwareMap(global.hardwareMap);
+      global.__telemarkMasteryMotion = challengeMotion;
       injectSummaryStyles();
       setTelemetryStudentOnly(true);
       setCode(config.starter);
@@ -724,7 +772,7 @@
       ]);
       setActiveInputs(config.inputs || []);
       createSummary(checks);
-      createChallengeRobot(unit);
+      createChallengeRobot(unit, challengeMotion);
 
       function validate() {
         const source = getCode();
@@ -770,6 +818,9 @@
       };
       global.onStop = function () {
         updateTelemetry();
+        if (global.hardwareMap && typeof global.hardwareMap.stopAll === "function") {
+          global.hardwareMap.stopAll();
+        }
       };
       global.onReset = function () {
         updateSummary(evaluate(unit, getCode()));
