@@ -281,6 +281,29 @@ function testInitLoopRuntimeErrorGatesInitialized() {
   assert.match(telemetryText(page), /init_loop\(\) runtime error.*missingInitLoopAction/is);
 }
 
+function testLifecycleTelemetryFramesFlushAutomatically() {
+  const page = createBaseHarness();
+  installStudentSource(page, iterativeSource({
+    initLoop: 'telemetry.addData("Phase", "init loop visible");',
+    start: 'telemetry.addData("Phase", "start visible");',
+  }));
+
+  assert.equal(page.context._simHandleInit(), true);
+  page.runIntervals();
+  assert.match(
+    telemetryText(page),
+    /Phase.*init loop visible/is,
+    'init_loop telemetry.addData() should render after that lifecycle frame',
+  );
+
+  assert.equal(page.context._simHandleStart(), true);
+  assert.match(
+    telemetryText(page),
+    /Phase.*start visible/is,
+    'start telemetry.addData() should render after that lifecycle frame',
+  );
+}
+
 function testLoopRuntimeErrorStopsExecution() {
   const page = createBaseHarness();
   installStudentSource(page, iterativeSource({loop: 'missingLoopAction();'}));
@@ -301,5 +324,6 @@ testCompileErrorCleansPageStateForRetry();
 testResetRuntimeBindingAndStartContinuation();
 testStartRuntimeErrorGatesRunning();
 testInitLoopRuntimeErrorGatesInitialized();
+testLifecycleTelemetryFramesFlushAutomatically();
 testLoopRuntimeErrorStopsExecution();
 console.log('Shared simulator lifecycle regression tests passed.');

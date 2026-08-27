@@ -4,6 +4,7 @@ const TelemarkEditor = require('../static/simulator/telemark-editor.js');
 function makeEditor(value, selectionStart = value.length, selectionEnd = selectionStart) {
   const listeners = new Map();
   return {
+    id: 'code-editor',
     value,
     selectionStart,
     selectionEnd,
@@ -32,6 +33,21 @@ function makeEditor(value, selectionStart = value.length, selectionEnd = selecti
       if (listener) listener(event);
       else TelemarkEditor.handleKeydown(event);
       return event;
+    },
+  };
+}
+
+function makeStorage() {
+  const values = new Map();
+  return {
+    getItem(key) {
+      return values.has(key) ? values.get(key) : null;
+    },
+    setItem(key, value) {
+      values.set(key, String(value));
+    },
+    removeItem(key) {
+      values.delete(key);
     },
   };
 }
@@ -130,10 +146,50 @@ function testSingleChangeNotification() {
   assert.equal(changes, 2);
 }
 
+function testDraftPersistenceByLesson() {
+  const storage = makeStorage();
+  const unitTwo = {
+    storage,
+    location: {pathname: '/simulator/unit2.html', search: '?lesson=challenge&code=starter-a'},
+  };
+  const unitThree = {
+    storage,
+    location: {pathname: '/simulator/unit3.html', search: '?lesson=challenge&code=starter-b'},
+  };
+  const edited = makeEditor('frontLeft.setPower(0.5);');
+  assert.equal(TelemarkEditor.saveDraft(edited, unitTwo), true);
+
+  const restored = makeEditor('starter');
+  assert.equal(TelemarkEditor.restoreDraft(restored, unitTwo), true);
+  assert.equal(restored.value, edited.value);
+
+  const otherLesson = makeEditor('other starter');
+  assert.equal(TelemarkEditor.restoreDraft(otherLesson, unitThree), false);
+  assert.equal(otherLesson.value, 'other starter');
+  assert.notEqual(
+    TelemarkEditor.draftKey(edited, unitTwo),
+    TelemarkEditor.draftKey(edited, unitThree),
+  );
+}
+
+function testPairedEditsAreSaved() {
+  const storage = makeStorage();
+  const options = {storage, scope: 'unit-4-test', restore: false};
+  const editor = makeEditor('telemetry.update');
+  TelemarkEditor.attach(editor, options);
+  editor.press('(');
+
+  const freshEditor = makeEditor('starter');
+  assert.equal(TelemarkEditor.restoreDraft(freshEditor, options), true);
+  assert.equal(freshEditor.value, 'telemetry.update()');
+}
+
 testClosingDelimiterOvertype();
 testPairingAndSelectionWrapping();
 testStructuredEnterIndentation();
 testPairedBackspaceAndBraceDedent();
 testMultilineIndentAndOutdent();
 testSingleChangeNotification();
+testDraftPersistenceByLesson();
+testPairedEditsAreSaved();
 console.log('TelemarkEditor tests passed');

@@ -1788,6 +1788,8 @@
       e.stopPropagation();
       const handled = window.TelemarkEditor.handleKeydown(e);
       if (handled) {
+        window.TelemarkEditor.clearDiagnostics(document);
+        window.TelemarkEditor.saveDraft(e.currentTarget);
         updateHighlighting();
         syncScroll();
       }
@@ -1865,7 +1867,15 @@
     const editor = document.getElementById("sim-code-editor");
     if (!editor) return;
 
+    if (window.TelemarkEditor) {
+      // The starter is assigned asynchronously by each lesson. Bind saving
+      // now, then restore only after the first setCode() call below so a saved
+      // student draft cannot be overwritten by the starter.
+      window.TelemarkEditor.bindPersistence(editor, {restore: false});
+    }
+
     editor.addEventListener("input", function () {
+      clearStaleDiagnostics();
       updateHighlighting();
       syncScroll();
     });
@@ -1885,6 +1895,10 @@
     const editor = document.getElementById("sim-code-editor");
     if (editor) {
       editor.value = str;
+      if (!editor.__telemarkInitialCodeSet) {
+        editor.__telemarkInitialCodeSet = true;
+        if (window.TelemarkEditor) window.TelemarkEditor.restoreDraft(editor);
+      }
       updateHighlighting();
       syncScroll();
     }
@@ -1987,6 +2001,20 @@
     panel.appendChild(div);
     panel.scrollTop = panel.scrollHeight;
   }
+
+  function clearStaleDiagnostics() {
+    if (window.TelemarkEditor && typeof window.TelemarkEditor.clearDiagnostics === "function") {
+      window.TelemarkEditor.clearDiagnostics(document);
+      return;
+    }
+    if (typeof document.querySelectorAll === "function") {
+      document.querySelectorAll(".sim-telemetry-error,.sim-hint.error").forEach(function (element) {
+        element.remove();
+      });
+    }
+  }
+
+  window.clearSimulatorDiagnostics = clearStaleDiagnostics;
 
   // ========================================================================
   // SECTION 5: FLOATING GAMEPAD CARD
@@ -2766,6 +2794,7 @@
 
   function handleInit() {
     if (initialized || running) return;
+    clearStaleDiagnostics();
     initialized = true;
     running = false;
     stopRequested = false;
@@ -3241,10 +3270,25 @@
           return false;
         }
 
+        clearStaleDiagnostics();
+
+        function telemetryFrame(method) {
+          if (typeof method !== "function") return null;
+          return function () {
+            window.clearTelemetry();
+            const result = method();
+            window.updateTelemetry();
+            return result;
+          };
+        }
+
+        // Iterative FTC OpModes receive an automatic telemetry frame after
+        // every lifecycle callback. Without this, addData() in init_loop(),
+        // start(), or stop() remained pending and appeared to do nothing.
         studentLifecycle = {
-          initLoop: compiled.methods.init_loop || null,
-          start: compiled.methods.start || null,
-          stop: compiled.methods.stop || null,
+          initLoop: telemetryFrame(compiled.methods.init_loop),
+          start: telemetryFrame(compiled.methods.start),
+          stop: telemetryFrame(compiled.methods.stop),
         };
 
         if (compiled.kind === "linear") {
@@ -4782,6 +4826,17 @@
             console.error("[onSimulatorReady error]", e);
             showTelemetryError("Setup error: " + e.message);
           }
+        }
+
+        // Most lessons set a starter through setCode(), which restores their
+        // matching draft there. This fallback covers generated lessons that
+        // deliberately leave the editor content in the base template.
+        const editor = document.getElementById("sim-code-editor");
+        if (editor && !editor.__telemarkInitialCodeSet && window.TelemarkEditor) {
+          editor.__telemarkInitialCodeSet = true;
+          window.TelemarkEditor.restoreDraft(editor);
+          updateHighlighting();
+          syncScroll();
         }
       }
     }

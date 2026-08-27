@@ -15,6 +15,162 @@
   const DEFAULT_INDENT = "    ";
   const PAIRS = {"(": ")", "[": "]", "{": "}", '"': '"', "'": "'"};
   const CLOSERS = new Set(Object.values(PAIRS));
+  const DRAFT_PREFIX = "telemark.editor.v1:";
+  const DRAFT_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+
+  function runtimeRoot() {
+    return typeof globalThis !== "undefined" ? globalThis : {};
+  }
+
+  function hashString(value) {
+    let hash = 2166136261;
+    const source = String(value || "");
+    for (let index = 0; index < source.length; index++) {
+      hash ^= source.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(36);
+  }
+
+  function pageDraftScope(options) {
+    options = options || {};
+    if (options.scope) return String(options.scope);
+    const host = runtimeRoot();
+    const location = options.location || host.location || {};
+    const path = location.pathname || "simulator";
+    const search = String(location.search || "");
+    const variants = [];
+
+    if (typeof URLSearchParams === "function") {
+      const params = new URLSearchParams(search);
+      ["lesson", "challenge", "step", "unit"].forEach(function (name) {
+        if (params.has(name)) variants.push(name + "=" + params.get(name));
+      });
+      if (params.has("code")) variants.push("code=" + hashString(params.get("code")));
+    } else if (search) {
+      variants.push("query=" + hashString(search));
+    }
+    if (location.hash) variants.push("hash=" + hashString(location.hash));
+    return path + (variants.length ? "::" + variants.join("&") : "");
+  }
+
+  function draftKey(editor, options) {
+    options = options || {};
+    if (options.key) return String(options.key);
+    const identity = editor && (editor.id || editor.name) || "code-editor";
+    return DRAFT_PREFIX + hashString(pageDraftScope(options)) + ":" + identity;
+  }
+
+  function draftStorage(options) {
+    options = options || {};
+    if (options.storage) return options.storage;
+    try {
+      return runtimeRoot().localStorage || null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function saveDraft(editor, options) {
+    if (!editor || typeof editor.value !== "string") return false;
+    const storage = draftStorage(options);
+    if (!storage) return false;
+    try {
+      storage.setItem(draftKey(editor, options), JSON.stringify({
+        value: editor.value,
+        savedAt: Date.now(),
+      }));
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function restoreDraft(editor, options) {
+    if (!editor || typeof editor.value !== "string") return false;
+    const storage = draftStorage(options);
+    if (!storage) return false;
+    const key = draftKey(editor, options);
+    try {
+      const draft = JSON.parse(storage.getItem(key) || "null");
+      if (!draft || typeof draft.value !== "string") return false;
+      if (!Number.isFinite(draft.savedAt) || Date.now() - draft.savedAt > DRAFT_MAX_AGE) {
+        storage.removeItem(key);
+        return false;
+      }
+      if (editor.value === draft.value) return true;
+      editor.value = draft.value;
+      if (typeof editor.dispatchEvent === "function") {
+        const EventType = runtimeRoot().Event;
+        if (typeof EventType === "function") {
+          editor.dispatchEvent(new EventType("input", {bubbles: true}));
+          editor.dispatchEvent(new EventType("telemark:draft-restored"));
+        }
+      }
+      return true;
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function clearDiagnostics(documentOverride) {
+    const doc = documentOverride || runtimeRoot().document;
+    if (!doc || typeof doc.querySelectorAll !== "function") return;
+
+    doc.querySelectorAll(
+      ".sim-telemetry-error,.telemetry-error,.sim-hint.error,.hint.error,.hint-error"
+    ).forEach(function (element) {
+      if (element && typeof element.remove === "function") element.remove();
+    });
+    doc.querySelectorAll(".scene-hint.error").forEach(function (element) {
+      element.classList.remove("visible", "error");
+      element.textContent = "";
+    });
+
+    // A few early lessons rendered compiler failures directly into the
+    // telemetry panel instead of assigning an error class. Only clear panels
+    // whose whole contents describe a compiler/runtime failure; student
+    // telemetry remains untouched.
+    ["sim-telemetry-log", "telemetry-log"].forEach(function (id) {
+      const panel = typeof doc.getElementById === "function" ? doc.getElementById(id) : null;
+      if (!panel || panel.querySelector(".sim-telemetry-error,.telemetry-error")) return;
+      const text = String(panel.textContent || "").trim();
+      if (/^(?:ERROR:\s*)?(?:(?:Java|init\(\)|init_loop\(\)|loop\(\)|runOpMode\(\)|Setup|simulator)\s+)?(?:compile(?:\/runtime)?|runtime) error\b/i.test(text)) {
+        panel.innerHTML = "";
+      }
+    });
+  }
+
+  function scheduleDraftRestore(editor, options) {
+    const host = runtimeRoot();
+    const restore = function () {
+      const defer = typeof host.setTimeout === "function" ? host.setTimeout : function (fn) { fn(); };
+      defer(function () { restoreDraft(editor, options); }, 0);
+    };
+    if (host.document && host.document.readyState !== "complete"
+        && typeof host.addEventListener === "function") {
+      host.addEventListener("load", restore, {once: true});
+    } else {
+      restore();
+    }
+  }
+
+  function bindPersistence(editor, options) {
+    if (!editor) return function () {};
+    if (editor.__telemarkPersistenceDetach) return editor.__telemarkPersistenceDetach;
+    options = options || {};
+    const listener = function () {
+      clearDiagnostics();
+      saveDraft(editor, options);
+    };
+    editor.addEventListener("input", listener);
+    editor.__telemarkPersistenceDetach = function () {
+      editor.removeEventListener("input", listener);
+      delete editor.__telemarkPersistenceDetach;
+    };
+    if (options.restore !== false) scheduleDraftRestore(editor, options);
+    return editor.__telemarkPersistenceDetach;
+  }
 
   function lineStartAt(text, position) {
     return text.lastIndexOf("\n", Math.max(0, position - 1)) + 1;
@@ -230,9 +386,14 @@
 
     const listener = function (event) {
       const handled = handleKeydown(event, options);
-      if (handled && typeof options.onChange === "function") options.onChange(editor);
+      if (handled) {
+        clearDiagnostics();
+        saveDraft(editor, options);
+        if (typeof options.onChange === "function") options.onChange(editor);
+      }
     };
     editor.addEventListener("keydown", listener);
+    bindPersistence(editor, options);
     editor.__telemarkEditorDetach = function () {
       editor.removeEventListener("keydown", listener);
       delete editor.__telemarkEditorDetach;
@@ -240,9 +401,48 @@
     return editor.__telemarkEditorDetach;
   }
 
-  return {
-    version: "1.0.0",
-    attach,
-    handleKeydown,
-  };
+  function autoBindEditors() {
+    const host = runtimeRoot();
+    const doc = host.document;
+    if (!doc || typeof doc.querySelectorAll !== "function") return;
+    const bind = function (root) {
+      if (root && typeof root.matches === "function" && root.matches("textarea")) {
+        bindPersistence(root, {restore: root.id !== "sim-code-editor"});
+      }
+      if (!root || typeof root.querySelectorAll !== "function") return;
+      root.querySelectorAll("textarea").forEach(function (editor) {
+        bindPersistence(editor, {restore: editor.id !== "sim-code-editor"});
+      });
+    };
+    bind(doc);
+    if (typeof host.MutationObserver === "function") {
+      const observer = new host.MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          Array.prototype.forEach.call(mutation.addedNodes || [], bind);
+        });
+      });
+      const target = doc.documentElement || doc.body;
+      if (target) observer.observe(target, {childList: true, subtree: true});
+    }
+  }
+
+  const host = runtimeRoot();
+  if (host.document) {
+    if (host.document.readyState === "loading" && typeof host.document.addEventListener === "function") {
+      host.document.addEventListener("DOMContentLoaded", autoBindEditors, {once: true});
+    } else {
+      autoBindEditors();
+    }
+  }
+
+  return Object.freeze({
+    version: "1.1.0",
+    attach: attach,
+    bindPersistence: bindPersistence,
+    clearDiagnostics: clearDiagnostics,
+    draftKey: draftKey,
+    handleKeydown: handleKeydown,
+    restoreDraft: restoreDraft,
+    saveDraft: saveDraft,
+  });
 });

@@ -27,6 +27,46 @@ function testUnit4Drivetrain() {
   assert.notEqual(motion.snapshot().heading, heading, 'opposite side powers should turn the robot');
 }
 
+function testIndependentWheelOutputs() {
+  const motion = MasteryMotion.create(4);
+  motion.setMotorPower('leftFront', 0.9);
+  motion.step(0.1);
+  const angles = motion.snapshot().wheelAngles;
+  assert.notEqual(angles[0], 0, 'the mapped left-front CAD wheel should spin');
+  assert.equal(angles[1], 0, 'an unpowered left-back CAD wheel should remain still');
+  assert.equal(angles[2], 0, 'an unpowered right-front CAD wheel should remain still');
+  assert.equal(angles[3], 0, 'an unpowered right-back CAD wheel should remain still');
+  assert.notEqual(motion.snapshot().heading, 0, 'one powered chassis side should rotate the robot');
+}
+
+function testEveryImportedRobotChassis() {
+  for (let unit = 2; unit <= 15; unit++) {
+    const motion = MasteryMotion.create(unit);
+    motion.setMotorPower('leftFront', 0.7);
+    motion.setMotorPower('leftBack', 0.7);
+    motion.setMotorPower('rightFront', 0.7);
+    motion.setMotorPower('rightBack', 0.7);
+    const before = motion.snapshot();
+    motion.step(0.1);
+    const after = motion.snapshot();
+    assert.notEqual(after.z, before.z, `Unit ${unit} imported chassis should translate`);
+    assert.ok(after.wheelAngles.every((angle) => Math.abs(angle) > 0), `Unit ${unit} should animate all four CAD wheels`);
+  }
+}
+
+function testUnit2KgDrivetrain() {
+  const motion = MasteryMotion.create(2);
+  motion.setMotorPower('leftFront', 0.75);
+  motion.setMotorPower('leftBack', 0.75);
+  motion.setMotorPower('rightFront', 0.75);
+  motion.setMotorPower('rightBack', 0.75);
+  const before = motion.snapshot();
+  motion.step(0.1);
+  const after = motion.snapshot();
+  changed(before, after, 'z');
+  assert.ok(after.wheelAngles.every((angle) => Math.abs(angle) > 0));
+}
+
 function testUnit4StudentProgramEndToEnd() {
   const motion = MasteryMotion.create(4);
   const runtime = TelemarkJava.createRuntime({
@@ -63,6 +103,87 @@ function testUnit4StudentProgramEndToEnd() {
   assert.notEqual(motion.snapshot().z, 0, 'the Unit 4 student program should move the robot mesh');
 }
 
+function testProvidedArcadeDriveProgramEndToEnd() {
+  const source = `
+    package org.firstinspires.ftc.teamcode;
+
+    import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+    import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+    import com.qualcomm.robotcore.hardware.DcMotor;
+    import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+    @TeleOp(name="Arcade_Drive_System")
+    public class ArcadeDrive extends OpMode {
+      private DcMotor leftFront, rightFront, leftBack, rightBack;
+      private DcMotor[] allMotors;
+      private final double DEADZONE = 0.1;
+
+      @Override
+      public void init() {
+        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
+        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        allMotors = new DcMotor[]{leftFront, rightFront, leftBack, rightBack};
+        for (DcMotor motor : allMotors) {
+          motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+          motor.setPower(0.0);
+        }
+      }
+
+      @Override
+      public void loop() {
+        double x = gamepad1.left_stick_x;
+        double y = -gamepad1.left_stick_y;
+        if (Math.abs(x) < DEADZONE) x = 0;
+        if (Math.abs(y) < DEADZONE) y = 0;
+        double finalX = x * x * Math.signum(x);
+        double finalY = y * y * Math.signum(y);
+        double leftPower = finalY + finalX;
+        double rightPower = finalY - finalX;
+        double max = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+        if (max > 1.0) {
+          leftPower /= max;
+          rightPower /= max;
+        }
+        leftFront.setPower(leftPower);
+        leftBack.setPower(leftPower);
+        rightFront.setPower(rightPower);
+        rightBack.setPower(rightPower);
+      }
+    }
+  `;
+
+  function run(gamepad1) {
+    const motion = MasteryMotion.create(4);
+    const runtime = TelemarkJava.createRuntime({
+      gamepad1,
+      onPower(power, device) { motion.setMotorPower(device.name, power); },
+    });
+    const compiled = TelemarkJava.compile(source, runtime);
+    assert.equal(compiled.ok, true, compiled.diagnostics?.[0]?.message);
+    compiled.methods.init();
+    compiled.methods.loop();
+    motion.step(0.1);
+    return {motion, runtime};
+  }
+
+  const forward = run({left_stick_x: 0, left_stick_y: -1});
+  assert.ok(forward.motion.snapshot().z < 0, 'provided arcade code should drive the chassis forward');
+  assert.ok(
+    forward.motion.snapshot().wheelAngles.every((angle) => angle > 0),
+    'provided arcade code should advance every wheel animation state',
+  );
+  for (const motor of forward.runtime.devices.values()) {
+    assert.equal(motor.getZeroPowerBehavior(), 'BRAKE');
+  }
+
+  const turning = run({left_stick_x: 1, left_stick_y: 0});
+  assert.notEqual(turning.motion.snapshot().heading, 0, 'provided arcade code should rotate the chassis');
+}
+
 function testMotorDrivenMechanisms() {
   for (const unit of [3, 5, 7, 11]) {
     const motion = MasteryMotion.create(unit);
@@ -85,6 +206,59 @@ function testMotorDrivenMechanisms() {
   slide.setMotorPower('slide', 0.8);
   slide.step(0.1);
   assert.notEqual(slide.snapshot().slidePosition, slideBefore, 'Unit 8 slide should move');
+}
+
+function testImportedRobotOutputReadouts() {
+  const flywheel = MasteryMotion.create(3);
+  flywheel.setMotorPower('flywheel', 0.65);
+  flywheel.step(0.1);
+  assert.equal(flywheel.outputs().primary, 0.65);
+
+  const intake = MasteryMotion.create(5);
+  intake.setMotorPower('intake', -0.7);
+  intake.step(0.1);
+  assert.equal(intake.outputs().primary, -0.7);
+
+  const autonomous = MasteryMotion.create(6);
+  autonomous.setMotorPower('leftDrive', 0.8);
+  autonomous.setMotorPower('rightDrive', 0.6);
+  autonomous.setMotorPower('arm', 0.5);
+  const before = autonomous.snapshot();
+  autonomous.step(0.1);
+  const after = autonomous.snapshot();
+  assert.notEqual(after.z, before.z, 'Unit 6 drive output should translate the imported robot');
+  assert.notEqual(after.armAngle, before.armAngle, 'Unit 6 arm output should animate its mechanism rig');
+  assert.equal(autonomous.outputs().arm, 0.5);
+}
+
+function testUnit5StudentProgramDrivesIntakeAndTelemetry() {
+  const motion = MasteryMotion.create(5);
+  const telemetry = [];
+  const runtime = TelemarkJava.createRuntime({
+    gamepad1: {a: true},
+    onPower(power, device) { motion.setMotorPower(device.name, power); },
+    onTelemetry(key, value) { telemetry.push([key, value]); },
+  });
+  const compiled = TelemarkJava.compile(`
+    public class Unit5Mastery extends OpMode {
+      DcMotor intake;
+      public void init() {
+        intake = hardwareMap.get(DcMotor.class, "intake");
+      }
+      public void loop() {
+        if (gamepad1.a) intake.setPower(0.8);
+        else intake.setPower(0);
+        telemetry.addData("Intake", intake.getPower());
+      }
+    }
+  `, runtime);
+  assert.equal(compiled.ok, true, compiled.diagnostics?.[0]?.message);
+  compiled.methods.init();
+  compiled.methods.loop();
+  const before = motion.snapshot().primaryAngle;
+  motion.step(0.1);
+  assert.notEqual(motion.snapshot().primaryAngle, before, 'Unit 5 student motor code should rotate the intake rig');
+  assert.deepEqual(telemetry, [['Intake', 0.8]], 'Unit 5 student telemetry should reach the runtime');
 }
 
 function testServosVisionAndPaths() {
@@ -145,9 +319,15 @@ function testChallengeSdkMocks() {
   assert.ok(pathMotion.snapshot().pathProgress > 0);
 }
 
+testUnit2KgDrivetrain();
 testUnit4Drivetrain();
+testIndependentWheelOutputs();
+testEveryImportedRobotChassis();
 testUnit4StudentProgramEndToEnd();
+testProvidedArcadeDriveProgramEndToEnd();
 testMotorDrivenMechanisms();
+testImportedRobotOutputReadouts();
+testUnit5StudentProgramDrivesIntakeAndTelemetry();
 testServosVisionAndPaths();
 testMecanumDrive();
 testChallengeSdkMocks();

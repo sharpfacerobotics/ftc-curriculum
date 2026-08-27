@@ -1,0 +1,245 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const repoRoot = path.resolve(__dirname, '..');
+const chassisModels = [
+  'kg-sfr-telemark.glb',
+  'quixilver-8404-itd-telemark.glb',
+  '2025-ftc-robot-manning-telemark.glb',
+  '2024-centerstage-manning-telemark.glb',
+  'ftc17438-inputoutput-telemark.glb',
+];
+const mechanismModels = new Set([
+  'quixilver-8404-itd-telemark.glb',
+  '2024-centerstage-manning-telemark.glb',
+  'ftc17438-inputoutput-telemark.glb',
+]);
+const wheelNames = ['left-front', 'left-back', 'right-front', 'right-back'];
+const wheelGeometry = {
+  'kg-sfr-telemark.glb': {rawAxle: 2, spinAxis: 'x', outerRotationX: 0, maxAxleRatio: 0.58, minTriangles: 17000},
+  'quixilver-8404-itd-telemark.glb': {rawAxle: 1, spinAxis: 'z', outerRotationX: Math.PI / 2, maxAxleRatio: 0.60, minTriangles: 11000},
+  '2025-ftc-robot-manning-telemark.glb': {rawAxle: 0, spinAxis: 'x', outerRotationX: -Math.PI / 2, maxAxleRatio: 0.78, minTriangles: 8000},
+  '2024-centerstage-manning-telemark.glb': {rawAxle: 1, spinAxis: 'z', outerRotationX: -Math.PI / 2, maxAxleRatio: 0.95, minTriangles: 9000},
+  'ftc17438-inputoutput-telemark.glb': {rawAxle: 0, spinAxis: 'x', outerRotationX: 0, maxAxleRatio: 0.68, minTriangles: 18000},
+};
+
+function rotateByQuaternion(vector, quaternion) {
+  const [x, y, z] = vector;
+  const [qx, qy, qz, qw] = quaternion || [0, 0, 0, 1];
+  const ix = qw * x + qy * z - qz * y;
+  const iy = qw * y + qz * x - qx * z;
+  const iz = qw * z + qx * y - qy * x;
+  const iw = -qx * x - qy * y - qz * z;
+  return [
+    ix * qw + iw * -qx + iy * -qz - iz * -qy,
+    iy * qw + iw * -qy + iz * -qx - ix * -qz,
+    iz * qw + iw * -qz + ix * -qy - iy * -qx,
+  ];
+}
+
+function rotateAroundX(vector, angle) {
+  const cosine = Math.cos(angle);
+  const sine = Math.sin(angle);
+  return [vector[0], vector[1] * cosine - vector[2] * sine, vector[1] * sine + vector[2] * cosine];
+}
+
+function readGlb(relativeFile) {
+  const file = path.join(repoRoot, 'static/simulator/models', relativeFile);
+  const bytes = fs.readFileSync(file);
+  assert.equal(bytes.toString('ascii', 0, 4), 'glTF', `${relativeFile} must be a binary glTF`);
+  const jsonLength = bytes.readUInt32LE(12);
+  const json = JSON.parse(bytes.subarray(20, 20 + jsonLength).toString().replace(/\0+$/, ''));
+  const binHeader = 20 + jsonLength;
+  const binLength = bytes.readUInt32LE(binHeader);
+  return {json, bin: bytes.subarray(binHeader + 8, binHeader + 8 + binLength)};
+}
+
+function indexedBounds(gltf, node) {
+  const {json, bin} = gltf;
+  const min = [Infinity, Infinity, Infinity];
+  const max = [-Infinity, -Infinity, -Infinity];
+  for (const primitive of json.meshes[node.mesh].primitives) {
+    const positionAccessor = json.accessors[primitive.attributes.POSITION];
+    const positionView = json.bufferViews[positionAccessor.bufferView];
+    const indexAccessor = json.accessors[primitive.indices];
+    const indexView = json.bufferViews[indexAccessor.bufferView];
+    const positionStart = (positionView.byteOffset || 0) + (positionAccessor.byteOffset || 0);
+    const indexStart = (indexView.byteOffset || 0) + (indexAccessor.byteOffset || 0);
+    const stride = positionView.byteStride || 6;
+    const widths = {5121: 1, 5123: 2, 5125: 4};
+    const indexWidth = widths[indexAccessor.componentType];
+    assert.ok(indexWidth, `unsupported wheel index type ${indexAccessor.componentType}`);
+    for (let offset = 0; offset < indexAccessor.count; offset++) {
+      const byteOffset = indexStart + offset * indexWidth;
+      const vertex = indexWidth === 1
+        ? bin.readUInt8(byteOffset)
+        : indexWidth === 2
+          ? bin.readUInt16LE(byteOffset)
+          : bin.readUInt32LE(byteOffset);
+      const positionOffset = positionStart + vertex * stride;
+      const coordinates = [
+        bin.readInt16LE(positionOffset) / 32767,
+        bin.readInt16LE(positionOffset + 2) / 32767,
+        bin.readInt16LE(positionOffset + 4) / 32767,
+      ];
+      for (let axis = 0; axis < 3; axis++) {
+        min[axis] = Math.min(min[axis], coordinates[axis]);
+        max[axis] = Math.max(max[axis], coordinates[axis]);
+      }
+    }
+  }
+  return {
+    min,
+    max,
+    size: min.map((value, axis) => max[axis] - value),
+  };
+}
+
+function triangleSignatures(gltf, node) {
+  const {json, bin} = gltf;
+  const signatures = new Set();
+  for (const primitive of json.meshes[node.mesh].primitives) {
+    const accessor = json.accessors[primitive.indices];
+    const view = json.bufferViews[accessor.bufferView];
+    const start = (view.byteOffset || 0) + (accessor.byteOffset || 0);
+    const widths = {5121: 1, 5123: 2, 5125: 4};
+    const width = widths[accessor.componentType];
+    const read = width === 1
+      ? (offset) => bin.readUInt8(offset)
+      : width === 2
+        ? (offset) => bin.readUInt16LE(offset)
+        : (offset) => bin.readUInt32LE(offset);
+    for (let offset = 0; offset < accessor.count; offset += 3) {
+      const vertices = [0, 1, 2].map((corner) => read(start + (offset + corner) * width));
+      vertices.sort((left, right) => left - right);
+      signatures.add(`${primitive.attributes.POSITION}:${vertices.join(',')}`);
+    }
+  }
+  return signatures;
+}
+
+for (const model of chassisModels) {
+  const gltf = readGlb(model);
+  const {json: gltfJson} = gltf;
+  const chassisNode = gltfJson.nodes.find((node) => node.name === 'telemark-cad-chassis');
+  assert.ok(chassisNode, `${model} must retain an actual CAD chassis node`);
+  assert.equal(gltfJson.extras?.telemarkCadChassis, true, `${model} must carry the reusable chassis marker`);
+  const chassisTriangles = gltfJson.meshes[chassisNode.mesh].primitives.reduce(
+    (sum, primitive) => sum + gltfJson.accessors[primitive.indices].count / 3,
+    0,
+  );
+  assert.ok(chassisTriangles > 10000, `${model} chassis geometry must not be empty`);
+  const chassisSignatures = triangleSignatures(gltf, chassisNode);
+
+  for (const name of wheelNames) {
+    const wheelNode = gltfJson.nodes.find((node) => node.name === `telemark-cad-wheel-${name}`);
+    assert.ok(wheelNode, `${model} must expose its actual ${name} wheel geometry`);
+    assert.equal(wheelNode.extras?.telemarkCadWheel, name);
+    assert.equal(wheelNode.extras?.spinAxis, wheelGeometry[model].spinAxis);
+    const rawAxleVector = [0, 0, 0];
+    rawAxleVector[wheelGeometry[model].rawAxle] = 1;
+    const renderedAxle = rotateAroundX(
+      rotateByQuaternion(rawAxleVector, wheelNode.rotation),
+      wheelGeometry[model].outerRotationX,
+    );
+    const spinIndex = {x: 0, y: 1, z: 2}[wheelNode.extras.spinAxis];
+    assert.ok(
+      Math.abs(renderedAxle[spinIndex]) > 0.999,
+      `${model} ${name} spin axis must align with its rendered axle; got ${renderedAxle.join(', ')}`,
+    );
+    const wheelTriangles = gltfJson.meshes[wheelNode.mesh].primitives.reduce(
+      (sum, primitive) => sum + gltfJson.accessors[primitive.indices].count / 3,
+      0,
+    );
+    assert.ok(
+      wheelTriangles >= wheelGeometry[model].minTriangles,
+      `${model} ${name} wheel must contain complete real CAD wheel geometry; got ${wheelTriangles} triangles`,
+    );
+    const bounds = indexedBounds(gltf, wheelNode);
+    const size = bounds.size;
+    const recordedBounds = wheelNode.extras?.telemarkCadBounds;
+    const recordedCenter = wheelNode.extras?.telemarkCadCenter;
+    assert.ok(recordedBounds && recordedCenter, `${model} ${name} must record indexed pivot bounds`);
+    for (let axis = 0; axis < 3; axis++) {
+      assert.ok(
+        Math.abs(recordedBounds.min[axis] - bounds.min[axis]) < 0.0001
+          && Math.abs(recordedBounds.max[axis] - bounds.max[axis]) < 0.0001,
+        `${model} ${name} recorded bounds must match its indexed triangles`,
+      );
+      assert.ok(
+        Math.abs(recordedCenter[axis] - (bounds.min[axis] + bounds.max[axis]) / 2) < 0.0001,
+        `${model} ${name} pivot must be at its own indexed center`,
+      );
+    }
+    for (const triangle of triangleSignatures(gltf, wheelNode)) {
+      assert.equal(
+        chassisSignatures.has(triangle),
+        false,
+        `${model} ${name} wheel triangles must be removed from the chassis`,
+      );
+    }
+    const axle = wheelGeometry[model].rawAxle;
+    const radial = size.filter((_, axis) => axis !== axle);
+    assert.ok(
+      size[axle] / Math.min(...radial) <= wheelGeometry[model].maxAxleRatio,
+      `${model} ${name} must be cylindrical around its recorded axle; got ${size.join(', ')}`,
+    );
+    assert.ok(
+      Math.max(...radial) / Math.min(...radial) < 1.18,
+      `${model} ${name} wheel must have a circular radial envelope; got ${size.join(', ')}`,
+    );
+  }
+
+  if (model === '2024-centerstage-manning-telemark.glb') {
+    const front = gltfJson.nodes.find((node) => node.name === 'telemark-cad-wheel-left-front');
+    const back = gltfJson.nodes.find((node) => node.name === 'telemark-cad-wheel-left-back');
+    const rightFront = gltfJson.nodes.find((node) => node.name === 'telemark-cad-wheel-right-front');
+    assert.ok(
+      front.extras.telemarkCadCenter[0] < back.extras.telemarkCadCenter[0],
+      'CENTERSTAGE front wheel mapping must use the intake/sloped negative-X end of the source CAD',
+    );
+    assert.ok(
+      front.extras.telemarkCadCenter[1] < rightFront.extras.telemarkCadCenter[1],
+      'CENTERSTAGE left/right wheel mapping must be relative to its negative-X front',
+    );
+  }
+
+  if (mechanismModels.has(model)) {
+    const mechanismNode = gltfJson.nodes.find((node) => node.name === 'telemark-cad-mechanism');
+    assert.ok(mechanismNode, `${model} must expose actual CAD mechanism geometry`);
+    assert.equal(mechanismNode.extras?.telemarkCadMechanism, true);
+    const mechanismTriangles = gltfJson.meshes[mechanismNode.mesh].primitives.reduce(
+      (sum, primitive) => sum + gltfJson.accessors[primitive.indices].count / 3,
+      0,
+    );
+    assert.ok(mechanismTriangles > 1000, `${model} mechanism must contain real CAD triangles`);
+  }
+}
+
+const challengeSource = fs.readFileSync(
+  path.join(repoRoot, 'static/simulator/mastery_challenge.js'),
+  'utf8',
+);
+assert.doesNotMatch(
+  challengeSource,
+  /add(?:DriveWheel|Flywheel|Intake|Arm)Rig/,
+  'Imported CAD robots must not receive fabricated teaching mechanisms',
+);
+assert.match(challengeSource, /getObjectByName\("telemark-cad-mechanism"\)/);
+assert.match(challengeSource, /getObjectByName\("telemark-cad-wheel-" \+ name\)/);
+assert.match(challengeSource, /importedCadCenter\(THREE, part\)/);
+assert.match(challengeSource, /importedCadBounds\(THREE, wheel\)/);
+assert.match(challengeSource, /const driveCenter = wheelCenters\.length/);
+assert.match(challengeSource, /object\.rotation\[axis\] = wheelSpinSign \* motion\.state\.wheelAngles\[index\]/);
+assert.match(
+  challengeSource,
+  /5:\s*\{[\s\S]*?name:\s*"2024 FTC Robot — CENTERSTAGE"[\s\S]*?driveYaw:\s*Math\.PI \/ 2[\s\S]*?wheelSpinSign:\s*1[\s\S]*?\n\s*\}/,
+  'CENTERSTAGE motion must point toward the intake/sloped front instead of a chassis side',
+);
+assert.match(challengeSource, /2 \+ \(\(numericUnit - 2\) % 5\)/);
+assert.match(challengeSource, /loadCadRobotForUnit\(cadSourceUnit/);
+assert.match(challengeSource, /createHardwareMap\(unit\)/);
+assert.doesNotMatch(challengeSource, /Unit objective coverage/);
+
+console.log('Imported CAD asset tests passed');
