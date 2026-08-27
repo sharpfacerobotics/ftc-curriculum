@@ -37,6 +37,11 @@
       visionActive: false,
       followerActive: false,
       elapsed: 0,
+      driveLeftPower: 0,
+      driveRightPower: 0,
+      primaryPower: 0,
+      armPower: 0,
+      lifecyclePhase: "stopped",
     };
 
     function setMotorPower(name, power) {
@@ -63,18 +68,21 @@
       return entries.reduce(function (total, entry) { return total + entry[1]; }, 0) / entries.length;
     }
 
-    function matchingPower(pattern, fallbackIndex) {
+    function mechanismPower(pattern) {
       const entries = motorEntries();
       const match = entries.find(function (entry) { return pattern.test(normalizedName(entry[0])); });
       if (match) return match[1];
-      return entries[fallbackIndex || 0] ? entries[fallbackIndex || 0][1] : 0;
+      if (entries.length !== 1) return 0;
+      const name = normalizedName(entries[0][0]);
+      const looksLikeDrive = /left|right|front|back|rear|drive|^(?:lf|fl|lb|bl|rf|fr|rb|br)/.test(name);
+      return looksLikeDrive ? 0 : entries[0][1];
     }
 
     function drivetrainPowers() {
-      const mechanismName = /intake|arm|lift|slide|turret|wrist|flywheel|shooter|roller|claw|grip/;
+      const mechanismName = /intake|arm|lift|slide|turret|wrist|flywheel|shooter|roller|claw|grip|mechanism/;
       const all = motorEntries();
       const drive = all.filter(function (entry) { return !mechanismName.test(normalizedName(entry[0])); });
-      const candidates = drive.length ? drive : all;
+      const candidates = drive;
       let left = candidates.filter(function (entry) {
         const name = normalizedName(entry[0]);
         return name.includes("left") || /^(?:lf|fl)/.test(name);
@@ -83,7 +91,7 @@
         const name = normalizedName(entry[0]);
         return name.includes("right") || /^(?:rf|fr)/.test(name);
       });
-      if (!left.length || !right.length) {
+      if (!left.length && !right.length) {
         if (candidates.length >= 2) {
           const split = Math.ceil(candidates.length / 2);
           left = candidates.slice(0, split);
@@ -93,7 +101,29 @@
           right = candidates;
         }
       }
-      return {left: average(left), right: average(right), entries: candidates};
+      const leftPower = average(left);
+      const rightPower = average(right);
+      const hasLeftWheelNames = left.some(function (entry) {
+        return /front|back|rear|^(?:lf|fl|lb|bl|lr|rl)/.test(normalizedName(entry[0]));
+      });
+      const hasRightWheelNames = right.some(function (entry) {
+        return /front|back|rear|^(?:rf|fr|rb|br|rr)/.test(normalizedName(entry[0]));
+      });
+      function named(pattern, fallback) {
+        const found = candidates.find(function (entry) { return pattern.test(normalizedName(entry[0])); });
+        return found ? found[1] : fallback;
+      }
+      return {
+        left: leftPower,
+        right: rightPower,
+        entries: candidates,
+        wheels: [
+          named(/leftfront|frontleft|^lf|^fl/, hasLeftWheelNames ? 0 : leftPower),
+          named(/leftback|backleft|rearleft|leftrear|^lb|^bl|^lr|^rl/, hasLeftWheelNames ? 0 : leftPower),
+          named(/rightfront|frontright|^rf|^fr/, hasRightWheelNames ? 0 : rightPower),
+          named(/rightback|backright|rearright|rightrear|^rb|^br|^rr/, hasRightWheelNames ? 0 : rightPower),
+        ],
+      };
     }
 
     function mecanumPowers() {
@@ -112,11 +142,14 @@
         forward: (fl + bl + fr + br) / 4,
         strafe: (fl - bl - fr + br) / 4,
         turn: (fl + bl - fr - br) / 4,
+        wheels: [fl, bl, fr, br],
       };
     }
 
     function integrateDrive(dt, mecanum) {
       const powers = mecanum ? mecanumPowers() : drivetrainPowers();
+      state.driveLeftPower = powers.left;
+      state.driveRightPower = powers.right;
       const forward = mecanum ? powers.forward : (powers.left + powers.right) / 2;
       const strafe = mecanum ? powers.strafe : 0;
       const turn = mecanum ? powers.turn : (powers.left - powers.right) / 2;
@@ -126,21 +159,23 @@
       state.z += (-Math.cos(state.heading) * forward + Math.sin(state.heading) * strafe) * speed * dt;
       state.x = clamp(state.x, -2.7, 2.7);
       state.z = clamp(state.z, -2.7, 2.7);
-      state.wheelAngles[0] += powers.left * dt * 11;
-      state.wheelAngles[1] += powers.left * dt * 11;
-      state.wheelAngles[2] += powers.right * dt * 11;
-      state.wheelAngles[3] += powers.right * dt * 11;
+      state.wheelAngles[0] += powers.wheels[0] * dt * 11;
+      state.wheelAngles[1] += powers.wheels[1] * dt * 11;
+      state.wheelAngles[2] += powers.wheels[2] * dt * 11;
+      state.wheelAngles[3] += powers.wheels[3] * dt * 11;
     }
 
     function step(seconds) {
       const dt = clamp(seconds, 0, 0.1);
       state.elapsed += dt;
-      const primaryPower = matchingPower(/intake|flywheel|shooter|roller|motor/, 0);
-      const armPower = matchingPower(/arm|lift|slide|turret|wrist/, Math.max(0, motors.size - 1));
+      const primaryPower = mechanismPower(/intake|flywheel|shooter|roller|mechanism/);
+      const armPower = mechanismPower(/arm|lift|slide|turret|wrist/);
       const crPower = average(Array.from(crServos.entries()));
+      state.primaryPower = primaryPower || crPower;
+      state.armPower = armPower;
 
       if (unit === 3) state.primaryAngle += primaryPower * dt * 13;
-      if (unit === 4 || unit === 6 || unit === 10) integrateDrive(dt, false);
+      if (unit !== 12) integrateDrive(dt, false);
       if (unit === 5 || unit === 7 || unit === 11) state.primaryAngle += primaryPower * dt * 12;
       if (unit === 6 || unit === 13) {
         state.armAngle = clamp(state.armAngle + armPower * dt * 1.4, -0.55, 0.55);
@@ -193,6 +228,18 @@
       step,
       servoValues,
       connectHardwareMap,
+      setLifecyclePhase(phase) { state.lifecyclePhase = String(phase || "stopped"); },
+      outputs() {
+        return {
+          motors: Object.fromEntries(motorEntries()),
+          servos: Object.fromEntries(servos.entries()),
+          crServos: Object.fromEntries(crServos.entries()),
+          driveLeft: state.driveLeftPower,
+          driveRight: state.driveRightPower,
+          primary: state.primaryPower,
+          arm: state.armPower,
+        };
+      },
       snapshot() {
         return {
           ...state,

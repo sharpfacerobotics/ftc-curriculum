@@ -1031,6 +1031,12 @@
           state.direction = direction;
           options.onDirection?.(direction, state);
         },
+        getDirection: () => state.direction,
+        setZeroPowerBehavior(behavior) {
+          state.zeroPowerBehavior = behavior;
+          options.onZeroPowerBehavior?.(behavior, state);
+        },
+        getZeroPowerBehavior: () => state.zeroPowerBehavior || "BRAKE",
         setMode(mode) {
           state.mode = mode;
           options.onMode?.(mode, state);

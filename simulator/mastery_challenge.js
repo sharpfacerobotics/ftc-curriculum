@@ -2,7 +2,7 @@
  * Shared runtime for the Unit 2-15 comprehensive coding challenges.
  *
  * Each unit owns a small HTML entry point, while this adapter owns the editor,
- * compiler integration, requirement checks, telemetry, and visual summary.
+ * compiler integration, requirement checks, telemetry, and hardware map.
  * simulator_base.js remains the sole owner of the simulator shell and lifecycle.
  */
 (function (global) {
@@ -341,11 +341,40 @@
   };
 
   const ROBOT_PROFILES = Object.freeze({
-    2: {name: "Lifecycle diagnostics robot", detail: "Status tower, Control Hub, and pre-match health lights", accent: 0x22d3ee},
-    3: {name: "Variable-power test robot", detail: "Single-motor flywheel for power, state, and count telemetry", accent: 0x38bdf8},
-    4: {name: "Arcade-drive robot", detail: "Two-sided drivetrain configured for mixed forward and turn input", accent: 0x60a5fa},
-    5: {name: "Sensor-safe intake robot", detail: "Front roller and guides for the intake decision tree", accent: 0xf59e0b},
-    6: {name: "Non-blocking autonomous robot", detail: "Drivetrain and moving arm that must operate in parallel", accent: 0xa78bfa},
+    2: {name: "KG-SFR competition robot", detail: "Team CAD model driven by student motor commands", accent: 0x22d3ee, driveYaw: 0},
+    3: {
+      name: "Quixilver 8404 · Into the Deep robot",
+      detail: "Full Team 8404 competition robot CAD, optimized for the browser",
+      accent: 0x38bdf8,
+      driveYaw: -Math.PI / 2,
+      wheelAxis: "z",
+      sourceLabel: "Open Vault FTC · ITD 2024–2025 Robot — By Quixilver",
+      sourceUrl: "https://www.open-vault-ftc.org/cad/robots"
+    },
+    4: {
+      name: "2025 FTC Robot",
+      detail: "Manning competition robot CAD, optimized for the browser",
+      accent: 0x60a5fa,
+      sourceLabel: "Manning, 2025 FTC Robot, Cad Crowd, 2025 · Creative Commons Attribution · Modified from the original",
+      sourceUrl: "https://www.cadcrowd.com/3d-models/2025-ftc-robot"
+    },
+    5: {
+      name: "2024 FTC Robot — CENTERSTAGE",
+      detail: "Manning CENTERSTAGE competition robot CAD, optimized for the browser",
+      accent: 0xf59e0b,
+      // The STEP model's negative-X end is the intake/sloped front.
+      driveYaw: Math.PI / 2,
+      wheelSpinSign: 1,
+      sourceLabel: "Manning, 2024 FTC Robot — CENTERSTAGE, Cad Crowd, 2025 · Creative Commons Attribution · Modified from the original",
+      sourceUrl: "https://www.cadcrowd.com/3d-models/2024-ftc-robot"
+    },
+    6: {
+      name: "FTC 17438 Input/Output Robot",
+      detail: "Team 17438 competition robot CAD, optimized for the browser",
+      accent: 0xa78bfa,
+      sourceLabel: "FTC Team 17438 Input/Output, FTC17438 Input/Output Robot Model 29.03.2024, Charleston Dragon Robotics · CC BY 4.0 · Modified from the original",
+      sourceUrl: "https://charlestondragonrobotics.org/ftc/"
+    },
     7: {name: "Reusable subsystem robot", detail: "Mapped motor, limit switch, and analog sensor module", accent: 0x2dd4bf},
     8: {name: "Limit-safe slide robot", detail: "Twin slide rails, moving carriage, and upper/lower limits", accent: 0xfb7185},
     9: {name: "Servo gripper robot", detail: "Mirrored fingers with a continuous-rotation intake roller", accent: 0xf472b6},
@@ -357,10 +386,263 @@
     15: {name: "Sensor-fused autonomous robot", detail: "Limelight, path follower, and timed scoring arm on one platform", accent: 0x06b6d4}
   });
 
+  function cadSourceUnitFor(unit) {
+    const numericUnit = Number(unit);
+    if (numericUnit < 2 || numericUnit > 15) return null;
+    return 2 + ((numericUnit - 2) % 5);
+  }
+
+  function robotProfileForUnit(unit) {
+    return ROBOT_PROFILES[cadSourceUnitFor(unit)] || ROBOT_PROFILES[unit];
+  }
+
+  const DRIVE_HARDWARE = Object.freeze([
+    {label: "LF", name: "leftFront"},
+    {label: "LB", name: "leftBack"},
+    {label: "RF", name: "rightFront"},
+    {label: "RB", name: "rightBack"}
+  ]);
+  const HARDWARE_PROFILES = Object.freeze({
+    2: DRIVE_HARDWARE,
+    3: DRIVE_HARDWARE.concat([{label: "Front mechanism", name: "mechanism"}]),
+    4: DRIVE_HARDWARE,
+    5: DRIVE_HARDWARE.concat([{label: "Intake", name: "intake"}]),
+    6: DRIVE_HARDWARE.concat([{label: "Arm", name: "arm"}]),
+    7: DRIVE_HARDWARE.concat([{label: "Mechanism", name: "mechanism"}]),
+    8: DRIVE_HARDWARE.concat([{label: "Slide", name: "slide"}]),
+    9: DRIVE_HARDWARE.concat([
+      {label: "Left grip servo", name: "leftGrip"},
+      {label: "Right grip servo", name: "rightGrip"},
+      {label: "Intake CRServo", name: "intake"}
+    ]),
+    10: DRIVE_HARDWARE,
+    11: DRIVE_HARDWARE.concat([{label: "Intake", name: "intake"}]),
+    12: DRIVE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
+    13: DRIVE_HARDWARE.concat([{label: "Arm", name: "arm"}, {label: "Claw servo", name: "claw"}]),
+    14: DRIVE_HARDWARE.concat([{label: "Camera", name: "Webcam 1"}]),
+    15: DRIVE_HARDWARE.concat([{label: "Scoring servo", name: "scoringArm"}, {label: "Vision", name: "limelight"}])
+  });
+
+  const CAD_WHEEL_ORDER = Object.freeze(["left-front", "left-back", "right-front", "right-back"]);
+
+  const KG_ROBOT_MODEL_URL = "./models/kg-sfr-telemark.glb";
+  const QUIXILVER_ROBOT_MODEL_URL = "./models/quixilver-8404-itd-telemark.glb";
+  const FTC_2025_ROBOT_MODEL_URL = "./models/2025-ftc-robot-manning-telemark.glb";
+  const FTC_2024_ROBOT_MODEL_URL = "./models/2024-centerstage-manning-telemark.glb";
+  const FTC_17438_ROBOT_MODEL_URL = "./models/ftc17438-inputoutput-telemark.glb";
+  const GLTF_LOADER_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
+
+  function setImportedRobotStatus(message) {
+    const label = document.getElementById("mastery-robot-label");
+    const detail = label && label.querySelector(".mastery-robot-status");
+    if (detail) detail.textContent = message;
+  }
+
+  function ensureGltfLoader(THREE, callback) {
+    if (THREE.GLTFLoader) {
+      callback(null);
+      return;
+    }
+
+    let script = document.querySelector("script[data-telemark-gltf-loader]");
+    if (!script) {
+      script = document.createElement("script");
+      script.src = GLTF_LOADER_URL;
+      script.dataset.telemarkGltfLoader = "true";
+      document.head.appendChild(script);
+    }
+
+    script.addEventListener("load", function () {
+      callback(THREE.GLTFLoader ? null : new Error("The GLB loader did not initialize."));
+    }, {once: true});
+    script.addEventListener("error", function () {
+      callback(new Error("The GLB loader could not be downloaded."));
+    }, {once: true});
+  }
+
+  function importedCadBounds(THREE, part) {
+    const stored = part && part.userData && part.userData.telemarkCadBounds;
+    if (!stored || !Array.isArray(stored.min) || !Array.isArray(stored.max)) {
+      return new THREE.Box3().setFromObject(part);
+    }
+    part.updateWorldMatrix(true, false);
+    const bounds = new THREE.Box3();
+    [stored.min[0], stored.max[0]].forEach(function (x) {
+      [stored.min[1], stored.max[1]].forEach(function (y) {
+        [stored.min[2], stored.max[2]].forEach(function (z) {
+          bounds.expandByPoint(part.localToWorld(new THREE.Vector3(x, y, z)));
+        });
+      });
+    });
+    return bounds;
+  }
+
+  function importedCadCenter(THREE, part) {
+    const stored = part && part.userData && part.userData.telemarkCadCenter;
+    if (Array.isArray(stored) && stored.length === 3) {
+      part.updateWorldMatrix(true, false);
+      return part.localToWorld(new THREE.Vector3(stored[0], stored[1], stored[2]));
+    }
+    return importedCadBounds(THREE, part).getCenter(new THREE.Vector3());
+  }
+
+  function loadImportedRobot(THREE, robot, options) {
+    ensureGltfLoader(THREE, function (loaderError) {
+      if (loaderError) {
+        console.error("[Imported robot loader]", loaderError);
+        setImportedRobotStatus(options.name + " unavailable: " + loaderError.message);
+        return;
+      }
+
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        options.url,
+        function (gltf) {
+          const model = gltf && gltf.scene;
+          if (!model) {
+            setImportedRobotStatus(options.name + " file did not contain a scene.");
+            return;
+          }
+
+          // Normalize the real footprint to the presentation scale used by the
+          // mastery field, center the chassis, and sink it slightly into the
+          // floor so wheel contact reads clearly. STEP-derived assets retain
+          // their CAD Z-up orientation and are rotated before measuring bounds.
+          if (options.rotation) {
+            model.rotation.set(options.rotation[0], options.rotation[1], options.rotation[2]);
+          }
+          model.updateMatrixWorld(true);
+          const bounds = new THREE.Box3().setFromObject(model);
+          const size = bounds.getSize(new THREE.Vector3());
+          const center = bounds.getCenter(new THREE.Vector3());
+          const wheelBounds = new THREE.Box3();
+          const wheelCenters = [];
+          CAD_WHEEL_ORDER.forEach(function (name) {
+            const wheel = model.getObjectByName && model.getObjectByName("telemark-cad-wheel-" + name);
+            if (wheel) {
+              wheelBounds.union(importedCadBounds(THREE, wheel));
+              wheelCenters.push(importedCadCenter(THREE, wheel));
+            }
+          });
+          const driveCenter = wheelCenters.length
+            ? wheelCenters.reduce(function (total, wheelCenter) {
+                return total.add(wheelCenter);
+              }, new THREE.Vector3()).multiplyScalar(1 / wheelCenters.length)
+            : center;
+          const groundY = wheelBounds.isEmpty() ? bounds.min.y : wheelBounds.min.y;
+          const footprint = Math.max(size.x, size.z);
+          const scale = footprint > 0 ? (options.footprint || 2.15) / footprint : 1;
+          model.scale.setScalar(scale);
+          model.position.set(
+            -driveCenter.x * scale,
+            -groundY * scale + (options.groundClearance || 0),
+            -driveCenter.z * scale
+          );
+
+          model.traverse(function (object) {
+            if (!object.isMesh) return;
+            object.castShadow = options.castShadow !== false;
+            object.receiveShadow = false;
+            const materials = Array.isArray(object.material) ? object.material : [object.material];
+            materials.forEach(function (entry) {
+              if (!entry) return;
+              entry.side = THREE.FrontSide;
+              entry.needsUpdate = true;
+            });
+          });
+
+          robot.add(model);
+          setImportedRobotStatus(options.loadedMessage);
+          if (typeof options.onLoad === "function") options.onLoad(model, scale);
+        },
+        function (event) {
+          if (!event || !event.total) return;
+          const percent = Math.min(100, Math.round(event.loaded / event.total * 100));
+          setImportedRobotStatus("Loading " + options.name + "… " + percent + "%");
+        },
+        function (error) {
+          console.error("[Imported robot model]", error);
+          setImportedRobotStatus(options.name + " could not be loaded.");
+        }
+      );
+    });
+  }
+
+  function loadKgRobot(THREE, robot, onLoad) {
+    loadImportedRobot(THREE, robot, {
+      name: "KG-SFR model",
+      url: KG_ROBOT_MODEL_URL,
+      footprint: 2.15,
+      groundClearance: 0,
+      loadedMessage: "Optimized team CAD model · real wheels driven by student code",
+      onLoad: onLoad
+    });
+  }
+
+  function loadQuixilverRobot(THREE, robot, onLoad) {
+    loadImportedRobot(THREE, robot, {
+      name: "Quixilver 8404 robot",
+      url: QUIXILVER_ROBOT_MODEL_URL,
+      footprint: 2.4,
+      rotation: [Math.PI / 2, 0, 0],
+      groundClearance: 0,
+      loadedMessage: "Full Team 8404 CAD · real wheels and mechanism driven by student code",
+      onLoad: onLoad
+    });
+  }
+
+  function load2025FtcRobot(THREE, robot, onLoad) {
+    loadImportedRobot(THREE, robot, {
+      name: "2025 FTC Robot",
+      url: FTC_2025_ROBOT_MODEL_URL,
+      footprint: 2.15,
+      rotation: [-Math.PI / 2, 0, 0],
+      groundClearance: 0,
+      castShadow: false,
+      loadedMessage: "Manning competition CAD · real wheels driven by student code",
+      onLoad: onLoad
+    });
+  }
+
+  function load2024CenterstageRobot(THREE, robot, onLoad) {
+    loadImportedRobot(THREE, robot, {
+      name: "2024 FTC Robot — CENTERSTAGE",
+      url: FTC_2024_ROBOT_MODEL_URL,
+      footprint: 2.15,
+      rotation: [-Math.PI / 2, 0, 0],
+      groundClearance: 0,
+      castShadow: false,
+      loadedMessage: "Manning CENTERSTAGE CAD · real wheels and intake driven by student code",
+      onLoad: onLoad
+    });
+  }
+
+  function load17438Robot(THREE, robot, onLoad) {
+    loadImportedRobot(THREE, robot, {
+      name: "FTC 17438 Input/Output robot",
+      url: FTC_17438_ROBOT_MODEL_URL,
+      footprint: 2.15,
+      groundClearance: 0,
+      castShadow: false,
+      loadedMessage: "FTC 17438 Input/Output CAD · real wheels and front arm driven by student code",
+      onLoad: onLoad
+    });
+  }
+
+  function loadCadRobotForUnit(sourceUnit, THREE, robot, onLoad) {
+    if (sourceUnit === 2) return loadKgRobot(THREE, robot, onLoad);
+    if (sourceUnit === 3) return loadQuixilverRobot(THREE, robot, onLoad);
+    if (sourceUnit === 4) return load2025FtcRobot(THREE, robot, onLoad);
+    if (sourceUnit === 5) return load2024CenterstageRobot(THREE, robot, onLoad);
+    if (sourceUnit === 6) return load17438Robot(THREE, robot, onLoad);
+    return null;
+  }
+
   function createChallengeRobot(unit, challengeMotion) {
     const THREE = global.THREE;
     const scene = global.scene;
-    const profile = ROBOT_PROFILES[unit];
+    const cadSourceUnit = cadSourceUnitFor(unit);
+    const profile = robotProfileForUnit(unit);
     if (!THREE || !scene || !profile) return null;
     const motion = challengeMotion || global.TelemarkMasteryMotion.create(unit);
 
@@ -427,70 +709,112 @@
       return mesh(new THREE.SphereGeometry(radius, 18, 12), meshMaterial, position, null, parent);
     }
 
-    // Every challenge starts from the same competition-scale chassis so the
-    // unit-specific mechanism reads as part of a robot rather than a loose prop.
-    box([1.85, 0.22, 1.35], [0, 0.34, 0], darkMat);
-    box([1.72, 0.10, 1.18], [0, 0.49, 0], accentMat);
-    [-0.78, 0.78].forEach(function (x) {
-      box([0.09, 0.15, 1.3], [x, 0.59, 0], frameMat);
-    });
-    const wheels = [];
-    [-1, 1].forEach(function (side) {
-      [-0.48, 0.48].forEach(function (z) {
-        wheels.push(cylinder(0.27, 0.20, [side * 1.0, 0.29, z], tireMat, [0, 0, Math.PI / 2]));
+    function rigCadMechanism(model, pivotEdge) {
+      const part = model.getObjectByName && model.getObjectByName("telemark-cad-mechanism");
+      if (!part) {
+        setImportedRobotStatus("The optimized CAD is missing its movable mechanism node.");
+        return null;
+      }
+      robot.updateMatrixWorld(true);
+      const bounds = new THREE.Box3().setFromObject(part);
+      const center = bounds.getCenter(new THREE.Vector3());
+      const pivotWorld = center.clone();
+      if (pivotEdge === "min-x") pivotWorld.x = bounds.min.x;
+      if (pivotEdge === "min-y") pivotWorld.y = bounds.min.y;
+      if (pivotEdge === "min-z") pivotWorld.z = bounds.min.z;
+      const pivot = new THREE.Group();
+      pivot.name = "telemark-cad-mechanism-pivot";
+      robot.add(pivot);
+      pivot.position.copy(robot.worldToLocal(pivotWorld.clone()));
+      robot.updateMatrixWorld(true);
+      pivot.attach(part);
+      return pivot;
+    }
+
+    function rigCadChassis(model) {
+      const rigged = [];
+      CAD_WHEEL_ORDER.forEach(function (name) {
+        const part = model.getObjectByName && model.getObjectByName("telemark-cad-wheel-" + name);
+        if (!part) return;
+        const spinAxis = part.userData && part.userData.spinAxis || profile.wheelAxis || "x";
+        robot.updateMatrixWorld(true);
+        const center = importedCadCenter(THREE, part);
+        const pivot = new THREE.Group();
+        pivot.name = "telemark-cad-wheel-pivot-" + name;
+        robot.add(pivot);
+        pivot.position.copy(robot.worldToLocal(center.clone()));
+        robot.updateMatrixWorld(true);
+        pivot.attach(part);
+        rigged.push({object: pivot, axis: spinAxis, name: name});
       });
-    });
-    const hub = box([0.68, 0.23, 0.48], [0, 0.67, 0.12], sensorMat);
-    box([0.48, 0.025, 0.34], [0, 0.795, 0.12], accentMat);
+      if (rigged.length !== CAD_WHEEL_ORDER.length) {
+        setImportedRobotStatus("The optimized CAD is missing one or more movable wheel nodes.");
+      }
+      wheels.splice(0, wheels.length);
+      CAD_WHEEL_ORDER.forEach(function (name) {
+        const wheel = rigged.find(function (entry) { return entry.name === name; });
+        if (wheel) wheels.push(wheel);
+      });
+      return rigged.length === CAD_WHEEL_ORDER.length;
+    }
+
+    const wheels = [];
+    if (!cadSourceUnit) {
+      // The generated challenge robots share a competition-scale chassis.
+      // Units 2–6 use imported full-robot CAD models instead.
+      box([1.85, 0.22, 1.35], [0, 0.34, 0], darkMat);
+      box([1.72, 0.10, 1.18], [0, 0.49, 0], accentMat);
+      [-0.78, 0.78].forEach(function (x) {
+        box([0.09, 0.15, 1.3], [x, 0.59, 0], frameMat);
+      });
+      [-1, 1].forEach(function (side) {
+        [-0.48, 0.48].forEach(function (z) {
+          wheels.push(cylinder(0.27, 0.20, [side * 1.0, 0.29, z], tireMat, [0, 0, Math.PI / 2]));
+        });
+      });
+      box([0.68, 0.23, 0.48], [0, 0.67, 0.12], sensorMat);
+      box([0.48, 0.025, 0.34], [0, 0.795, 0.12], accentMat);
+    }
 
     let animation = null;
 
     function applyDriveState() {
-      robot.position.x = motion.state.x;
-      robot.position.z = motion.state.z;
-      robot.rotation.y = motion.state.heading;
+      const driveYaw = profile.driveYaw || 0;
+      const wheelSpinSign = profile.wheelSpinSign == null ? -1 : profile.wheelSpinSign;
+      const cosYaw = Math.cos(driveYaw);
+      const sinYaw = Math.sin(driveYaw);
+      robot.position.x = cosYaw * motion.state.x + sinYaw * motion.state.z;
+      robot.position.z = -sinYaw * motion.state.x + cosYaw * motion.state.z;
+      robot.rotation.y = -motion.state.heading;
       wheels.forEach(function (wheel, index) {
-        wheel.rotation.x = motion.state.wheelAngles[index];
+        const object = wheel.object || wheel;
+        const axis = wheel.axis || "x";
+        // Student-positive drive power translates the chassis forward. The
+        // imported CAD axles use the opposite visual rotation convention, so
+        // invert only the presentation angle—not the drivetrain integration.
+        object.rotation[axis] = wheelSpinSign * motion.state.wheelAngles[index];
       });
     }
 
-    if (unit === 2) {
-      box([0.12, 0.72, 0.12], [0, 1.08, 0.12], frameMat);
-      const statusLights = [redMat, warningMat, greenMat].map(function (lightMat, index) {
-        return sphere(0.095, [0, 0.91 + index * 0.24, 0.12], lightMat);
+    if (cadSourceUnit) {
+      let cadMechanism = null;
+      loadCadRobotForUnit(cadSourceUnit, THREE, robot, function (model) {
+        rigCadChassis(model);
+        const pivotEdge = cadSourceUnit === 3 ? "min-x" : cadSourceUnit === 5 ? "min-y" : "min-z";
+        if (model.getObjectByName && model.getObjectByName("telemark-cad-mechanism")) {
+          cadMechanism = rigCadMechanism(model, pivotEdge);
+        }
       });
-      box([0.52, 0.14, 0.28], [0, 1.52, 0.12], darkMat);
-      animation = function (time) {
-        statusLights.forEach(function (light, index) {
-          light.material.emissiveIntensity = 0.18 + Math.max(0, Math.sin(time * 3.2 - index * 1.3)) * 0.75;
-        });
-      };
-    } else if (unit === 3) {
-      const flywheel = cylinder(0.38, 0.18, [0, 0.98, -0.12], accentMat, [Math.PI / 2, 0, 0]);
-      cylinder(0.14, 0.5, [0, 0.98, 0.2], darkMat, [Math.PI / 2, 0, 0]);
-      box([0.58, 0.38, 0.38], [0, 0.77, 0.38], frameMat);
-      animation = function () { flywheel.rotation.y = motion.state.primaryAngle; };
-    } else if (unit === 4) {
-      box([1.95, 0.16, 0.16], [0, 0.55, -0.74], accentMat);
-      box([0.5, 0.16, 0.42], [0, 0.72, 0.32], darkMat);
-      animation = applyDriveState;
-    } else if (unit === 5) {
-      const roller = cylinder(0.19, 1.35, [0, 0.34, -0.87], warningMat, [0, 0, Math.PI / 2]);
-      box([0.16, 0.25, 0.82], [-0.82, 0.35, -0.76], frameMat, null, [0, 0.22, 0]);
-      box([0.16, 0.25, 0.82], [0.82, 0.35, -0.76], frameMat, null, [0, -0.22, 0]);
-      sphere(0.12, [0, 0.63, -0.71], sensorMat);
-      animation = function () { roller.rotation.x = motion.state.primaryAngle; };
-    } else if (unit === 6) {
-      const arm = new THREE.Group();
-      arm.position.set(-0.56, 0.65, 0.12);
-      robot.add(arm);
-      cylinder(0.16, 0.32, [0, 0, 0], accentMat, [Math.PI / 2, 0, 0], arm);
-      box([0.16, 1.05, 0.16], [0, 0.48, 0], frameMat, arm);
-      box([0.48, 0.14, 0.34], [0, 1.0, 0], warningMat, arm);
-      box([0.42, 0.34, 0.42], [0.5, 0.77, 0.1], darkMat);
       animation = function () {
         applyDriveState();
-        arm.rotation.z = -0.25 + motion.state.armAngle;
+        if (!cadMechanism) return;
+        const axis = cadSourceUnit === 6 ? "x" : "z";
+        let angle = Math.sin(motion.state.primaryAngle * 0.3) * 0.42;
+        if (unit === 6 || unit === 13) angle = motion.state.armAngle;
+        else if (unit === 8) angle = (motion.state.slidePosition - 1.25) * 0.55;
+        else if (unit === 9 || unit === 15) angle = ((motion.servoValues()[0] || 0) - 0.5) * 0.7;
+        else if (unit === 14) angle = motion.state.cameraAngle;
+        cadMechanism.rotation[axis] = angle;
       };
     } else if (unit === 7) {
       box([0.48, 0.58, 0.48], [-0.45, 0.92, 0.12], accentMat);
@@ -498,7 +822,10 @@
       box([0.18, 0.18, 0.18], [0.66, 0.68, -0.18], warningMat);
       sphere(0.12, [0.52, 1.16, -0.12], sensorMat);
       box([0.08, 0.65, 0.08], [0.08, 0.96, 0.12], frameMat);
-      animation = function () { subsystemMotor.rotation.y = motion.state.primaryAngle; };
+      animation = function () {
+        applyDriveState();
+        subsystemMotor.rotation.y = motion.state.primaryAngle;
+      };
     } else if (unit === 8) {
       [-0.34, 0.34].forEach(function (x) {
         box([0.11, 1.55, 0.12], [x, 1.22, 0.08], frameMat);
@@ -506,7 +833,10 @@
       const carriage = box([0.9, 0.22, 0.48], [0, 1.32, 0.08], accentMat);
       box([0.16, 0.12, 0.18], [0.48, 0.55, 0.08], redMat);
       box([0.16, 0.12, 0.18], [0.48, 1.9, 0.08], greenMat);
-      animation = function () { carriage.position.y = motion.state.slidePosition; };
+      animation = function () {
+        applyDriveState();
+        carriage.position.y = motion.state.slidePosition;
+      };
     } else if (unit === 9) {
       const leftFinger = new THREE.Group();
       const rightFinger = new THREE.Group();
@@ -520,6 +850,7 @@
       box([0.13, 0.64, 0.16], [0, -0.28, -0.18], frameMat, rightFinger, [0.22, 0, 0]);
       const intake = cylinder(0.15, 0.9, [0, 0.38, -0.82], warningMat, [0, 0, Math.PI / 2]);
       animation = function () {
+        applyDriveState();
         const positions = motion.servoValues();
         const left = positions[0] == null ? 0 : positions[0];
         const right = positions[1] == null ? left : positions[1];
@@ -541,7 +872,10 @@
       box([0.15, 0.15, 0.15], [0.2, 0.62, -0.64], blueMat);
       sphere(0.11, [0.56, 0.62, -0.64], sensorMat);
       cylinder(0.09, 0.38, [0.72, 0.82, 0.12], accentMat, [Math.PI / 2, 0, 0]);
-      animation = function () { intake.rotation.x = motion.state.primaryAngle; };
+      animation = function () {
+        applyDriveState();
+        intake.rotation.x = motion.state.primaryAngle;
+      };
     } else if (unit === 12) {
       box([0.38, 0.24, 0.38], [0, 0.87, 0.1], accentMat);
       box([0.62, 0.045, 0.045], [0.31, 1.08, 0.1], redMat);
@@ -565,6 +899,7 @@
       const clawLeft = box([0.08, 0.34, 0.12], [-0.12, 0, 0], frameMat, claw);
       const clawRight = box([0.08, 0.34, 0.12], [0.12, 0, 0], frameMat, claw);
       animation = function () {
+        applyDriveState();
         const position = motion.servoValues()[0] || 0;
         arm.rotation.z = motion.state.armAngle;
         clawLeft.rotation.z = -position * 0.55;
@@ -584,7 +919,10 @@
         box([0.24, 0.24, 0.025], [x, 0.38, -2.51], zoneMat, visual);
       });
       robot.position.z = 0.65;
-      animation = function () { cameraHead.rotation.y = motion.state.cameraAngle; };
+      animation = function () {
+        applyDriveState();
+        cameraHead.rotation.y = motion.state.cameraAngle;
+      };
     } else if (unit === 15) {
       box([0.1, 0.72, 0.1], [-0.45, 1.0, -0.02], frameMat);
       const limelight = box(
@@ -609,8 +947,12 @@
       );
       visual.add(pathLine);
       animation = function () {
-        const point = path.getPoint(motion.state.pathProgress);
-        robot.position.set(point.x, 0, point.z);
+        if (motion.state.pathProgress > 0 || motion.state.followerActive) {
+          const point = path.getPoint(motion.state.pathProgress);
+          robot.position.set(point.x, 0, point.z);
+        } else {
+          applyDriveState();
+        }
         const servoPosition = motion.servoValues()[0] || 0;
         scoringArm.rotation.z = -0.38 + servoPosition * 0.7;
         limelight.material.emissive = new THREE.Color(0x064e3b);
@@ -627,13 +969,34 @@
       label.className = "mastery-robot-label";
       label.textContent = profile.name;
       const detail = document.createElement("span");
+      detail.className = "mastery-robot-status";
       detail.textContent = profile.detail;
       label.appendChild(detail);
+      const motionReadout = document.createElement("span");
+      motionReadout.className = "mastery-robot-motion";
+      motionReadout.textContent = "Outputs idle · initialize and run student code";
+      label.appendChild(motionReadout);
+      if (profile.sourceUrl && profile.sourceLabel) {
+        const source = document.createElement("a");
+        source.className = "mastery-robot-source";
+        source.href = profile.sourceUrl;
+        source.target = "_blank";
+        source.rel = "noopener noreferrer";
+        source.textContent = "Source: " + profile.sourceLabel;
+        source.setAttribute("aria-label", profile.sourceLabel + " (opens in a new tab)");
+        label.appendChild(source);
+      }
       sceneContainer.appendChild(label);
     }
 
     if (typeof global.setCameraOrbit === "function") {
-      global.setCameraOrbit({theta: 0.56, phi: 0.78, radius: unit >= 14 ? 6.8 : 5.2, target: {x: 0, y: 0.72, z: unit >= 14 ? -0.35 : 0}});
+      const groundView = unit === 2;
+      global.setCameraOrbit({
+        theta: groundView ? 0.82 : 0.56,
+        phi: groundView ? 1.2 : 0.78,
+        radius: unit >= 14 ? 6.8 : 5.2,
+        target: {x: 0, y: groundView ? 0.42 : 0.72, z: unit >= 14 ? -0.35 : 0}
+      });
     }
     if (animation && typeof global.addAnimationCallback === "function") {
       let previousTime = Date.now() * 0.001;
@@ -646,6 +1009,20 @@
         }
         motion.step(dt);
         animation(currentTime);
+        const readout = document.querySelector(".mastery-robot-motion");
+        if (readout && typeof motion.outputs === "function") {
+          const outputs = motion.outputs();
+          if (unit >= 2 && unit <= 6) {
+            readout.textContent = (unit === 2 ? motion.state.lifecyclePhase + " · " : "")
+              + "Drive L " + outputs.driveLeft.toFixed(2)
+              + " · R " + outputs.driveRight.toFixed(2)
+              + (unit === 3 ? " · mechanism " + outputs.primary.toFixed(2) : "")
+              + (unit === 5 ? " · intake " + outputs.primary.toFixed(2) : "")
+              + (unit === 6 ? " · arm " + outputs.arm.toFixed(2) : "");
+          } else {
+            readout.textContent = "Mechanism motor " + outputs.primary.toFixed(2);
+          }
+        }
       });
     }
     visual.userData.challengeMotion = motion;
@@ -690,55 +1067,46 @@
     });
   }
 
-  function injectSummaryStyles() {
+  function injectChallengeStyles() {
     if (document.getElementById("mastery-summary-styles")) return;
     const style = document.createElement("style");
     style.id = "mastery-summary-styles";
     style.textContent = ""
-      + ".mastery-summary{margin:10px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--panel);font-family:var(--font-ui);overflow:auto;max-height:42vh}"
-      + ".mastery-summary h2{margin:0 0 4px;color:var(--text-primary);font-size:1rem}"
-      + ".mastery-summary p{margin:0 0 10px;color:var(--text-secondary);font-size:.82rem;line-height:1.4}"
-      + ".mastery-summary-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.8rem}"
-      + ".mastery-summary-row i{width:16px;text-align:center}"
-      + ".mastery-summary-row.pass{color:var(--good)}"
-      + ".mastery-summary-row.fail{color:var(--text-secondary)}"
-      + ".mastery-summary-score{font-family:var(--font-code);color:var(--active);font-weight:700}"
+      + ".mastery-hardware-map{display:flex;align-items:center;gap:8px;margin:6px 10px 0;padding:6px 9px;border:1px solid color-mix(in srgb,var(--border) 78%,transparent);border-radius:7px;background:color-mix(in srgb,var(--panel) 84%,transparent);font-family:var(--font-ui);overflow-x:auto;scrollbar-width:none;white-space:nowrap}"
+      + ".mastery-hardware-map::-webkit-scrollbar{display:none}"
+      + ".mastery-hardware-title{display:flex;align-items:center;gap:5px;color:var(--text-secondary);font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}"
+      + ".mastery-hardware-items{display:flex;align-items:center;gap:6px}"
+      + ".mastery-hardware-item{display:inline-flex;align-items:center;gap:4px;color:var(--text-secondary);font-size:.69rem}"
+      + ".mastery-hardware-item+ .mastery-hardware-item:before{content:'·';margin-right:2px;color:var(--border)}"
+      + ".mastery-hardware-item code{padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--code-bg);color:var(--active);font:.68rem/1.35 var(--font-code)}"
       + ".mastery-robot-label{position:absolute;left:12px;bottom:12px;z-index:3;max-width:calc(100% - 24px);padding:7px 10px;border:1px solid rgba(34,211,238,.35);border-radius:7px;background:rgba(5,8,13,.82);color:#effbff;font:600 .72rem/1.3 var(--font-code);letter-spacing:.03em;pointer-events:none;backdrop-filter:blur(7px)}"
       + ".mastery-robot-label span{display:block;margin-top:2px;color:rgba(221,241,249,.68);font-family:var(--font-ui);font-weight:400;letter-spacing:0}"
+      + ".mastery-robot-label .mastery-robot-motion{color:#fbbf24;font-family:var(--font-code);font-weight:600}"
+      + ".mastery-robot-label a{display:block;margin-top:3px;color:#67e8f9;font-family:var(--font-ui);font-weight:500;letter-spacing:0;pointer-events:auto;text-decoration:none}"
+      + ".mastery-robot-label a:hover,.mastery-robot-label a:focus{text-decoration:underline}"
       + ":root[data-theme='light'] .mastery-robot-label,:root[data-telemark-theme='light'] .mastery-robot-label{background:rgba(255,255,255,.86);color:#102a36}"
       + "#sim-scene-container{min-height:260px}";
     document.head.appendChild(style);
   }
 
-  function createSummary(checks) {
+  function createHardwareMap(unit) {
     const rightPanel = document.getElementById("sim-right-panel");
     const scene = document.getElementById("sim-scene-container");
     if (!rightPanel || !scene) return;
-    const old = document.getElementById("mastery-summary");
+    const old = document.getElementById("mastery-hardware-map");
     if (old) old.remove();
     const panel = document.createElement("section");
-    panel.id = "mastery-summary";
-    panel.className = "mastery-summary";
-    panel.innerHTML = "<h2>Unit objective coverage</h2>"
-      + "<p>Each row represents a concept from this unit. Init recompiles the whole file and refreshes these checks.</p>"
-      + "<div class=\"mastery-summary-score\" id=\"mastery-summary-score\">0 / " + checks.length + " complete</div>"
-      + checks.map(function (check, index) {
-        return "<div class=\"mastery-summary-row fail\" id=\"mastery-summary-row-" + index + "\"><i class=\"fa-regular fa-circle\"></i><span>" + check[0] + "</span></div>";
-      }).join("");
+    panel.id = "mastery-hardware-map";
+    panel.className = "mastery-hardware-map";
+    panel.setAttribute("aria-label", "Simulator hardware configuration names");
+    const hardware = HARDWARE_PROFILES[unit] || DRIVE_HARDWARE;
+    panel.innerHTML = "<span class=\"mastery-hardware-title\"><i class=\"fa-solid fa-microchip\"></i> Hardware</span>"
+      + "<span class=\"mastery-hardware-items\">"
+      + hardware.map(function (item) {
+        return "<span class=\"mastery-hardware-item\"><span>" + item.label + "</span><code>\"" + item.name + "\"</code></span>";
+      }).join("")
+      + "</span>";
     rightPanel.insertBefore(panel, scene);
-  }
-
-  function updateSummary(results) {
-    const passed = results.filter(Boolean).length;
-    const score = document.getElementById("mastery-summary-score");
-    if (score) score.textContent = passed + " / " + results.length + " complete";
-    results.forEach(function (result, index) {
-      const row = document.getElementById("mastery-summary-row-" + index);
-      if (!row) return;
-      row.className = "mastery-summary-row " + (result ? "pass" : "fail");
-      const icon = row.querySelector("i");
-      if (icon) icon.className = result ? "fa-solid fa-circle-check" : "fa-regular fa-circle";
-    });
   }
 
   function install(unit) {
@@ -755,7 +1123,7 @@
       global.TelemarkMasteryMotion.installSdkMocks(global, challengeMotion);
       challengeMotion.connectHardwareMap(global.hardwareMap);
       global.__telemarkMasteryMotion = challengeMotion;
-      injectSummaryStyles();
+      injectChallengeStyles();
       setTelemetryStudentOnly(true);
       setCode(config.starter);
       setChallenge({
@@ -768,13 +1136,14 @@
         {iconClass: "fa-solid fa-file-code", label: "FTC SDK shell", active: true},
         {iconClass: "fa-solid fa-layer-group", label: "Whole unit", active: true},
         {iconClass: "fa-solid fa-list-check", label: checks.length + " checks", active: true},
-        {iconClass: "fa-solid fa-robot", label: ROBOT_PROFILES[unit].name, active: true}
+        {iconClass: "fa-solid fa-robot", label: robotProfileForUnit(unit).name, active: true}
       ]);
       setActiveInputs(config.inputs || []);
-      createSummary(checks);
+      createHardwareMap(unit);
       createChallengeRobot(unit, challengeMotion);
 
       function validate() {
+        clearHints();
         const source = getCode();
         const compilation = global.TelemarkSimulatorBase.compileStudentSource(source);
         const results = compilation.ok ? evaluate(unit, source) : checks.map(function () { return false; });
@@ -786,20 +1155,19 @@
         results.forEach(function (passed, index) {
           setRequirement(index, passed && forbiddenFailures.length === 0);
         });
-        updateSummary(results);
-
         forbiddenFailures.forEach(function (rule) {
           addHint("<i class=\"fa-solid fa-triangle-exclamation\"></i> " + rule[0], "error");
         });
         if (results.every(Boolean) && forbiddenFailures.length === 0) {
           addHint("<i class=\"fa-solid fa-circle-check\"></i> Source structure covers every unit objective.", "info");
         } else if (compilation.ok) {
-          addHint("Use the objective rows as a debugging map. They describe behavior, not exact code spelling.", "info");
+          addHint("Use the requirement list beside the editor as a debugging map. It describes behavior, not exact code spelling.", "info");
         }
         return results;
       }
 
       global.onInit = function () {
+        challengeMotion.setLifecyclePhase("initialized");
         validate();
         return transpileAndRun(
           getCode(),
@@ -813,17 +1181,19 @@
         );
       };
       global.onStart = function () {
+        challengeMotion.setLifecyclePhase("running");
         validate();
         updateTelemetry();
       };
       global.onStop = function () {
+        challengeMotion.setLifecyclePhase("stopped");
         updateTelemetry();
         if (global.hardwareMap && typeof global.hardwareMap.stopAll === "function") {
           global.hardwareMap.stopAll();
         }
       };
       global.onReset = function () {
-        updateSummary(evaluate(unit, getCode()));
+        validate();
       };
 
       validate();
@@ -835,6 +1205,8 @@
   global.TelemarkMasteryChallenge = Object.freeze({
     configs: CONFIGS,
     robotProfiles: ROBOT_PROFILES,
+    robotProfileForUnit: robotProfileForUnit,
+    cadSourceUnitFor: cadSourceUnitFor,
     checksForUnit: checksForUnit,
     createChallengeRobot: createChallengeRobot,
     evaluate: evaluate,
