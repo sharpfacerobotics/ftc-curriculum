@@ -297,7 +297,7 @@
 }
 .beyondLabel {
   margin: 0 0 0.35rem;
-  font-size: 0.72rem;
+  font-size: var(--tm-fs-2xs);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ifm-color-emphasis-600);

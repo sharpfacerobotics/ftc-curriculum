@@ -68,6 +68,15 @@ SHOTS = [
     # gamepad and the editor at once. The whole page is the app, so there is
     # nothing to scroll to.
     ("unit-8-2-simulator", "/simulator/unit8.2.html", "body"),
+    # The two mastery challenges that drive an imported team CAD robot. They
+    # load a 3D model, so they need longer to settle than a page of markup:
+    # shot too early they come out as an empty field.
+    # Wider than the rest, at the same aspect. The simulator lays its gamepad
+    # panel out from a fixed offset, so in a 1100px window it sits on top of the
+    # robot it is meant to sit beside, and the field is too short to hold the
+    # model. Same picture, more room.
+    ("unit-2-mastery", "/simulator/unit2.mastery.html", "body", 4200, 1.5),
+    ("unit-6-mastery", "/simulator/unit6.mastery.html", "body", 4200, 1.5),
 ]
 
 
@@ -154,9 +163,18 @@ async def main() -> None:
                 f"try {{ localStorage.setItem('theme', '{THEME}') }} catch (e) {{}}"
             )
             page = await context.new_page()
-            for name, url, focus in SHOTS:
+            for shot in SHOTS:
+                name, url, focus = shot[0], shot[1], shot[2]
+                settle = shot[3] if len(shot) > 3 else 1200
+                scale = shot[4] if len(shot) > 4 else 1.0
+                await page.set_viewport_size(
+                    {
+                        "width": round(SIZE["width"] * scale),
+                        "height": round(SIZE["height"] * scale),
+                    }
+                )
                 await page.goto(f"{BASE}{url}", wait_until="networkidle", timeout=60000)
-                await page.wait_for_timeout(1200)
+                await page.wait_for_timeout(settle)
                 title = await page.title()
                 if "Telemark" not in title:
                     raise RuntimeError(

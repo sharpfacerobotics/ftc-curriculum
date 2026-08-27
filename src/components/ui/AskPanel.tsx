@@ -283,7 +283,7 @@ export default function AskPanel(): React.JSX.Element {
             */}
             {message.beyond ? (
               <div className={styles.beyond}>
-                <p className={styles.beyondLabel}>Beyond the curriculum — uncited reasoning</p>
+                <p className={styles.beyondLabel}>Beyond the curriculum: uncited reasoning</p>
                 {readable(message.beyond).split('\n').filter(Boolean).map((line, n) => (
                   <p key={n}>{line}</p>
                 ))}
