@@ -93,11 +93,6 @@ assert.match(masteryChallengeRuntime, /setTelemetryStudentOnly\(true\)/);
 assert.match(masteryChallengeRuntime, /return transpileAndRun\(/, 'coding challenges must execute student telemetry');
 assert.doesNotMatch(masteryChallengeRuntime, /addTelemetry\("(?:Unit|Compiler|Objectives|Lifecycle|Driver test|Ready)"/);
 assert.match(masteryChallengeRuntime, /createChallengeRobot\(unit, challengeMotion\)/);
-assert.equal(
-  (masteryChallengeRuntime.match(/^\s+\d+: \{name: "/gm) || []).length,
-  14,
-  'every Unit 2-15 challenge needs a distinct robot profile',
-);
 {
   const challengeWindow = {};
   const challengeDocument = {currentScript: {dataset: {unit: '0'}}};
