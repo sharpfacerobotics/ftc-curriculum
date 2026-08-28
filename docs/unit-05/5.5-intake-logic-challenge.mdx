@@ -20,31 +20,68 @@ A **"Logic Tree"** is a complex arrangement of decisions that allows the robot t
 
 ## How to Design a Multi-Stage Intake Decision Tree
 
-This lesson uses nested `if`/`else` statements, or a more complex `else if` chain, to manage a hardware subsystem. The goal is to implement a **state-dependent controller**. For example, the intake mechanism should run at 100% if empty, 50% if one item is detected, and 0% (Stop) if the distance sensor indicates the intake is full. By structuring this logic correctly, you minimize the driver's cognitive load and maximize the robot's cycle efficiency.
+This lesson uses an `if` / `else if` / `else` chain to manage a hardware subsystem. The goal is to implement a **state-dependent controller**. The final controller maps the same `DcMotor`, `ColorSensor`, and `DistanceSensor` types used by the coding challenge, reads each sensor once per loop, and sends exactly one motor command on every pass.
+
+The FTC SDK color methods are `red()` and `blue()`. A `DistanceSensor` is read with `getDistance(DistanceUnit.CM)`. Store those readings in variables before making decisions so the logic and telemetry describe the same sensor sample.
 
 ---
 
 ## Annotated Code
 
 ```java
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+@TeleOp(name="Safe_Intake_Decision_Tree")
+public class SafeIntakeDecisionTree extends OpMode {
+
+    private DcMotor intake;
+    private ColorSensor color;
+    private DistanceSensor distance;
+
+    @Override
+    public void init() {
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        color = hardwareMap.get(ColorSensor.class, "intake_color");
+        distance = hardwareMap.get(DistanceSensor.class, "intake_distance");
+        intake.setPower(0.0);
+    }
+
 @Override
 public void loop() {
-    double dist     = board.getDistance(DistanceUnit.CM);
-    int    redValue = board.getAmountRed();
+    double dist = distance.getDistance(DistanceUnit.CM);
+    int redValue = color.red();
+    int blueValue = color.blue();
+
+    boolean driverRequestsIntake = gamepad1.a || gamepad1.right_trigger > 0.10;
+    String state;
 
     if (dist < 5.0) {
-        // Logic Level 1: Intake is full: stop immediately
         intake.setPower(0.0);
-        telemetry.addData("Intake", "FULL - STOPPED");
-    } else if (redValue > 200) {
-        // Logic Level 2: Wrong alliance element detected: eject
+        state = "FULL - STOPPED";
+    } else if (redValue > 200 && redValue > blueValue) {
         intake.setPower(-1.0);
-        telemetry.addData("Intake", "WRONG ELEMENT - EJECTING");
-    } else {
-        // Logic Level 3: Ready to intake: follow driver input
+        state = "WRONG COLOR - EJECTING";
+    } else if (driverRequestsIntake) {
         intake.setPower(gamepad1.right_trigger);
-        telemetry.addData("Intake", "READY");
+        state = "COLLECTING";
+    } else {
+        // Explicit safe fallback prevents an old power command from surviving.
+        intake.setPower(0.0);
+        state = "IDLE";
     }
+
+    telemetry.addData("State", state);
+    telemetry.addData("Distance (cm)", dist);
+    telemetry.addData("Red / Blue", "%d / %d", redValue, blueValue);
+    telemetry.update();
+}
 }
 ```
 
@@ -69,7 +106,7 @@ public void loop() {
 
 ## Simulator Practice
 
-**Robot Scenario:** Create a sorting logic. If the Color Sensor sees Blue (`blue() > 100`), set Servo 1 to `0.0`. If it sees Red (`red() > 100`), set Servo 1 to `1.0`. If it sees neither, set Servo 1 to `0.5`.
+**Robot Scenario:** Finish the safe intake decision tree. Stop when the distance sensor says the intake is full, eject the wrong color, collect only on an intentional driver request, and use an explicit zero-power fallback.
 
 <SimulatorRunGuide />
 
@@ -79,16 +116,9 @@ public void loop() {
 <summary>Show answer</summary>
 
 ```java
-@Override
-public void loop() {
-    if (sensor.blue() > 100) {
-        sorter.setPosition(0.0);
-    } else if (sensor.red() > 100) {
-        sorter.setPosition(1.0);
-    } else {
-        sorter.setPosition(0.5);
-    }
-}
+// Compare your result with the annotated decision tree above. Confirm that it
+// uses ColorSensor.red()/blue(), DistanceSensor.getDistance(), &&, ||, and a
+// final intake.setPower(0.0) branch.
 ```
 
 </details>

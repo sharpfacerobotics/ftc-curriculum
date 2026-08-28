@@ -292,6 +292,33 @@ function testMecanumDrive() {
   assert.notEqual(motion.snapshot().x, 0, 'Unit 12 mecanum strafe should translate sideways');
 }
 
+function testMecanumPhysicsBeginsAfterUnitEightLesson() {
+  const wheelPowers = [
+    ['leftFront', 0.8],
+    ['leftBack', -0.8],
+    ['rightFront', -0.8],
+    ['rightBack', 0.8],
+  ];
+
+  const beforeMecanum = MasteryMotion.create(7);
+  wheelPowers.forEach(([name, power]) => beforeMecanum.setMotorPower(name, power));
+  beforeMecanum.step(0.1);
+  assert.equal(beforeMecanum.snapshot().x, 0, 'pre-mecanum units should retain differential physics');
+
+  for (let unit = 8; unit <= 15; unit += 1) {
+    const motion = MasteryMotion.create(unit);
+    wheelPowers.forEach(([name, power]) => motion.setMotorPower(name, power));
+    motion.step(0.1);
+    assert.notEqual(motion.snapshot().x, 0, `Unit ${unit} should use mecanum strafe physics`);
+  }
+
+  const slideOnly = MasteryMotion.create(8);
+  slideOnly.setMotorPower('slide', 0.9);
+  slideOnly.step(0.1);
+  assert.equal(slideOnly.snapshot().x, 0, 'slide power must not move the mecanum chassis sideways');
+  assert.equal(slideOnly.snapshot().z, 0, 'slide power must not drive the mecanum chassis');
+}
+
 function testChallengeSdkMocks() {
   const visionMotion = MasteryMotion.create(14);
   const sdk = {Range: function NativeDomRange() {}};
@@ -330,5 +357,6 @@ testImportedRobotOutputReadouts();
 testUnit5StudentProgramDrivesIntakeAndTelemetry();
 testServosVisionAndPaths();
 testMecanumDrive();
+testMecanumPhysicsBeginsAfterUnitEightLesson();
 testChallengeSdkMocks();
 console.log('Mastery challenge motion tests passed');

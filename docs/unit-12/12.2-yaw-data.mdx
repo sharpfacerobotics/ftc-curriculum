@@ -30,6 +30,8 @@ The SDK handles normalization automatically. If the robot spins multiple full re
 
 The reason the method exists as a separate call from `getYaw(AngleUnit.DEGREES)` on the angles object -- rather than as a direct call on the `imu` -- is that `getRobotYawPitchRollAngles()` takes one snapshot of all three angles at the same instant. Calling it once and then reading individual axes from the result is slightly more consistent than calling separate methods multiple times, since the second call might capture a slightly different physical orientation than the first.
 
+Drivers also need a way to establish a fresh field reference after placing the robot or after contact rotates it unexpectedly. Calling `imu.resetYaw()` makes the robot's current direction the new zero heading. Put that call behind an intentional gamepad command, such as `gamepad1.a`, and read the angle snapshot after handling the reset so telemetry immediately shows the new reference.
+
 ---
 
 ## Annotated Code
@@ -64,6 +66,10 @@ public class YawDataDemo extends OpMode {
 
     @Override
     public void loop() {
+        if (gamepad1.a) {
+            imu.resetYaw();
+        }
+
         // Take a single snapshot of all three rotation axes
         YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
 
@@ -86,14 +92,16 @@ public class YawDataDemo extends OpMode {
 
 1. The method called on the `IMU` object to retrieve all three rotation axes at once is `imu.__________()`.
 2. To receive the heading as a value normalized between -180 and 180, pass `AngleUnit.__________` to `getYaw()`.
-3. Rotation around the vertical axis, representing the robot turning left or right, is called `__________`.
+3. To make the robot's current direction the new zero when A is pressed, call `imu.__________()`.
+4. Rotation around the vertical axis, representing the robot turning left or right, is called `__________`.
 
 <details>
 <summary>Show answers</summary>
 
 1. **`getRobotYawPitchRollAngles()`**
 2. **`DEGREES`**
-3. **Yaw**
+3. **`resetYaw()`**
+4. **Yaw**
 
 </details>
 

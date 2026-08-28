@@ -93,11 +93,30 @@ assert.match(masteryChallengeRuntime, /setTelemetryStudentOnly\(true\)/);
 assert.match(masteryChallengeRuntime, /return transpileAndRun\(/, 'coding challenges must execute student telemetry');
 assert.doesNotMatch(masteryChallengeRuntime, /addTelemetry\("(?:Unit|Compiler|Objectives|Lifecycle|Driver test|Ready)"/);
 assert.match(masteryChallengeRuntime, /createChallengeRobot\(unit, challengeMotion\)/);
+const robotProfileSource = masteryChallengeRuntime.match(
+  /const ROBOT_PROFILES = Object\.freeze\(\{([\s\S]*?)\n  \}\);/,
+)?.[1] || '';
+assert.equal(
+  (robotProfileSource.match(/^\s+\d+:\s*\{/gm) || []).length,
+  14,
+  'every Unit 2-15 challenge needs a distinct robot profile',
+);
+
 {
   const challengeWindow = {};
   const challengeDocument = {currentScript: {dataset: {unit: '0'}}};
   new Function('window', 'document', masteryChallengeRuntime)(challengeWindow, challengeDocument);
   const challengeApi = challengeWindow.TelemarkMasteryChallenge;
+  const unit4DeadzoneCheck = challengeApi.configs[4].checks.find(([label]) =>
+    label.toLowerCase().includes('deadzone'),
+  );
+  assert.ok(unit4DeadzoneCheck, 'Unit 4 challenge needs a deadzone check');
+  assert.ok(
+    unit4DeadzoneCheck.slice(1).every((pattern) =>
+      pattern.test('if (Math.abs(forward) < DEADZONE) forward = 0;'),
+    ),
+    'Unit 4 deadzone check should accept the named constant taught by the lesson',
+  );
   assert.equal(Object.keys(challengeApi.configs).length, 14);
   assert.equal(Object.keys(challengeApi.robotProfiles).length, 14);
   assert.equal(
@@ -124,6 +143,7 @@ assert.match(masteryChallengeRuntime, /createChallengeRobot\(unit, challengeMoti
 assert.match(masteryChallengeRuntime, /challengeMotion\.connectHardwareMap\(global\.hardwareMap\)/);
 assert.match(masteryChallengeRuntime, /motion\.step\(dt\)/);
 assert.match(masteryMotionRuntime, /function integrateDrive\(dt, mecanum\)/);
+assert.match(masteryMotionRuntime, /integrateDrive\(dt, unit >= 8\)/);
 assert.match(masteryMotionRuntime, /setServoPosition/);
 assert.match(masteryMotionRuntime, /startFollower/);
 

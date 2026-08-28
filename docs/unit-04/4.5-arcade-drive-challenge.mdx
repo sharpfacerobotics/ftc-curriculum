@@ -1,6 +1,6 @@
 ---
 id: arcade-drive-challenge
-title: "Lesson 4.5: Build Full Arcade Drive with Deadzones and Sensitivity Curves"
+title: "Lesson 4.5: Build a Complete Arcade Drive"
 sidebar_label: "4.5 · Arcade Drive"
 sidebar_position: 5
 ---
@@ -8,46 +8,103 @@ sidebar_position: 5
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import Unit4Simulator from '@site/src/components/Unit4Simulator';
 
-# Lesson 4.5: Build Full Arcade Drive with Deadzones and Sensitivity Curves
+# Lesson 4.5: Build a Complete Arcade Drive
 
 ---
 
 ## Technical Context
 
-A **deadzone** prevents robot creep when a joystick does not return to exactly `0.0`. Combining a small deadzone with a sensitivity curve lets the driver make fine adjustments near the center while retaining full output near the edge.
+An **arcade drive** controls a differential drivetrain with one forward command and one turn command. The program mixes those two commands into separate left and right motor powers:
+
+```text
+left power  = forward + turn
+right power = forward - turn
+```
+
+Forward input raises both sides together. Turn input raises one side while lowering the other. Unlike sensitivity shaping, this mixing step is what actually makes the robot steer.
 
 ---
 
 ## How to Build an Arcade Drive That Feels Good
 
-This lesson combines nested logic and method calls. A deadzone can use a comparison such as `if (Math.abs(input) < 0.1) power = 0;`. Passing the filtered value to `squareInputWithSign()` keeps the input math separate from the motor command, which makes later drive-feel adjustments easier to test.
+A competition-ready arcade drive combines every Unit 4 input technique in a deliberate order:
+
+1. Read forward and turn axes.
+2. Apply a deadzone to prevent joystick drift.
+3. Toggle precision mode on the **press edge**, not during every loop that the button remains held.
+4. Shape the inputs when precision mode is active.
+5. Mix forward and turn into left and right power.
+6. Apply the trigger speed limit and clip both results to the legal `-1.0` to `1.0` motor range.
+7. Command the motors and report the final values.
+
+The press edge requires the current and previous button values. `gamepad1.a && !previousA` is true for only the first loop after A is pressed. At the end of the loop, save `gamepad1.a` into `previousA` for the next comparison.
 
 ---
 
 ## Annotated Code
 
 ```java
-@TeleOp(name="Pro_Drive_System", group="Practice")
-public class ProDrive extends OpMode {
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
+
+@TeleOp(name="Arcade_Drive_System", group="Practice")
+public class ArcadeDrive extends OpMode {
+
+    private DcMotor leftDrive;
+    private DcMotor rightDrive;
+    private boolean precisionMode = true;
+    private boolean previousA = false;
+
+    private static final double DEADZONE = 0.10;
 
     @Override
-    public void init() {}
+    public void init() {
+        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        leftDrive.setPower(0.0);
+        rightDrive.setPower(0.0);
+    }
+
+    double squareInputWithSign(double input) {
+        return input * input * Math.signum(input);
+    }
 
     @Override
     public void loop() {
-        double x = gamepad1.left_stick_x;
-        double y = -gamepad1.left_stick_y;
+        double forward = -gamepad1.left_stick_y;
+        double turn = gamepad1.right_stick_x;
 
-        // Implementation of a 10% Deadzone to prevent motor drift
-        if (Math.abs(x) < 0.1) x = 0;
-        if (Math.abs(y) < 0.1) y = 0;
+        if (Math.abs(forward) < DEADZONE) forward = 0.0;
+        if (Math.abs(turn) < DEADZONE) turn = 0.0;
 
-        // Combining deadzone-filtered values with squared sensitivity
-        double finalX = x * x * Math.signum(x); // preserves the sign of x
-        double finalY = y * y * Math.signum(y);
+        // Toggle once per press. Holding A does not keep flipping the mode.
+        if (gamepad1.a && !previousA) {
+            precisionMode = !precisionMode;
+        }
+        previousA = gamepad1.a;
 
-        telemetry.addData("Status",          "Drive System Active");
-        telemetry.addData("Corrected X/Y",   "X:%.2f Y:%.2f", finalX, finalY);
+        if (precisionMode) {
+            forward = squareInputWithSign(forward);
+            turn = squareInputWithSign(turn);
+        }
+
+        // Right trigger progressively limits top speed from 100% to 30%.
+        double speedLimit = 1.0 - (0.70 * gamepad1.right_trigger);
+
+        double leftPower  = Range.clip((forward + turn) * speedLimit, -1.0, 1.0);
+        double rightPower = Range.clip((forward - turn) * speedLimit, -1.0, 1.0);
+
+        leftDrive.setPower(leftPower);
+        rightDrive.setPower(rightPower);
+
+        telemetry.addData("Precision Mode", precisionMode);
+        telemetry.addData("Left Power", leftPower);
+        telemetry.addData("Right Power", rightPower);
+        telemetry.update();
     }
 }
 ```
@@ -56,16 +113,16 @@ public class ProDrive extends OpMode {
 
 ## Fill-in-the-Blank Practice
 
-1. A/An `__________` is a range near the center of the joystick where no robot movement occurs to prevent drift.
-2. The `Math.abs()` method is used to find the `__________` value of a number, which is useful for checking thresholds.
-3. Combining multiple inputs like buttons and squared joysticks is known as creating a custom `__________` scheme.
+1. Arcade drive calculates left power with `forward ______ turn` and right power with `forward ______ turn`.
+2. A button toggle must compare the current button value with the `__________` value so it changes only once per press.
+3. `Range.__________()` keeps calculated motor power between the minimum and maximum legal values.
 
 <details>
 <summary>Show answers</summary>
 
-1. **deadzone**
-2. **absolute**
-3. **control** (or sensitivity / input mapping)
+1. **plus, minus**
+2. **previous**
+3. **`clip`**
 
 </details>
 
@@ -73,7 +130,7 @@ public class ProDrive extends OpMode {
 
 ## Simulator Practice
 
-**Robot Scenario:** Combine everything. Create an OpMode where the `A` button acts as a "Turbo Switch." If `A` is pressed, use the raw joystick values. If `A` is **NOT** pressed, use squared joystick values for precision.
+**Robot Scenario:** Finish the two-motor arcade drive. Apply deadzones, toggle precision mode only on the A-button press edge, mix forward and turn into separate left and right powers, limit both with the right trigger, and send the final values to the motors and telemetry.
 
 <SimulatorRunGuide />
 
@@ -83,19 +140,8 @@ public class ProDrive extends OpMode {
 <summary>Show answer</summary>
 
 ```java
-@Override
-public void loop() {
-    double rawY = -gamepad1.left_stick_y;
-    double finalPower;
-
-    if (gamepad1.a) {
-        finalPower = rawY;
-    } else {
-        finalPower = rawY * rawY * Math.signum(rawY);
-    }
-
-    telemetry.addData("Drive Power", finalPower);
-}
+// Use the complete annotated implementation above to compare each stage:
+// input -> deadzone -> press-edge mode -> curve -> arcade mix -> clip -> motors.
 ```
 
 </details>

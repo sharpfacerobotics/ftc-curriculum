@@ -68,7 +68,7 @@
       checks: [
         ["Map left and right drive motors in init()", /\bvoid\s+init\s*\(\s*\)[\s\S]*?hardwareMap\s*\.\s*get[\s\S]*?hardwareMap\s*\.\s*get/],
         ["Read forward and turn joystick axes", /gamepad1\s*\.\s*left_stick_y/, /gamepad1\s*\.\s*right_stick_x/],
-        ["Apply a joystick deadzone", /Math\s*\.\s*abs\s*\([^)]*stick[^)]*\)\s*[<>]=?\s*0?\.\d+/i],
+        ["Apply a joystick deadzone", /Math\s*\.\s*abs\s*\([^)]*\)\s*[<>]=?\s*(?:0?\.\d+|[A-Z][A-Z0-9_]*)/i],
         ["Use a trigger as an analog speed limit", /gamepad1\s*\.\s*(?:left|right)_trigger/],
         ["Create and call a signed sensitivity-curve method", /\bdouble\s+\w+\s*\(\s*double\s+\w+\s*\)[\s\S]*?(?:Math\s*\.\s*(?:signum|copySign)|\w+\s*\*\s*\w+)/],
         ["Toggle a drive mode only on a button press edge", /gamepad1\s*\.\s*[abxy]/, /(?:previous|last|was|old)\w*/i, /(?:gamepad1\s*\.\s*[abxy]\s*&&\s*!\s*\w+|!\s*\w+\s*&&\s*gamepad1\s*\.\s*[abxy])/],

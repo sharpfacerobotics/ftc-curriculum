@@ -179,42 +179,45 @@ package org.firstinspires.ftc.teamcode.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@TeleOp(name="Sorter_Challenge")
-public class SorterChallenge extends OpMode {
+@TeleOp(name="Safe_Intake_Practice")
+public class SafeIntakePractice extends OpMode {
 
-    private ColorSensor sensor;
-    private Servo       sorter;
+    private DcMotor intake;
+    private ColorSensor color;
+    private DistanceSensor distance;
 
     @Override
     public void init() {
-        sensor = hardwareMap.get(ColorSensor.class, "sensor");
-        sorter = hardwareMap.get(Servo.class, "sorter");
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        color = hardwareMap.get(ColorSensor.class, "intake_color");
+        distance = hardwareMap.get(DistanceSensor.class, "intake_distance");
     }
 
     @Override
     public void loop() {
-        // 1. CHECK IF BLUE VALUE IS > 100
-        // INSERT CODE HERE
-        {
-            sorter.setPosition(0.0);
-        }
-        // 2. ELSE CHECK IF RED VALUE IS > 100
-        // INSERT CODE HERE
-        {
-            sorter.setPosition(1.0);
-        }
-        // 3. ELSE (NEITHER SEEN)
-        // INSERT CODE HERE
-        {
-            sorter.setPosition(0.5);
-        }
+        double dist = distance.getDistance(DistanceUnit.CM);
+        int redValue = color.red();
+        int blueValue = color.blue();
+        boolean collect = gamepad1.a || gamepad1.right_trigger > 0.10;
+
+        // 1. IF dist < 5.0, STOP THE INTAKE
+        // 2. ELSE IF RED IS > 200 AND > BLUE, EJECT AT -1.0
+        // 3. ELSE IF collect, USE right_trigger AS POWER
+        // 4. ELSE, STOP EXPLICITLY AT 0.0
+        // INSERT THE COMPLETE IF / ELSE-IF / ELSE CHAIN
+
+        telemetry.addData("Distance", dist);
+        telemetry.addData("Red", redValue);
+        telemetry.addData("Blue", blueValue);
     }
 }
     `.trim(),
-    showMotorVisual: false,
-    showDistanceSensor: false,
+    showMotorVisual: true,
+    showDistanceSensor: true,
     showColorSensor: true,
   },
 };

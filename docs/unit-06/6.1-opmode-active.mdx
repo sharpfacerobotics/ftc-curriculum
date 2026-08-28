@@ -24,6 +24,8 @@ The `opModeIsActive()` method is a member of the `LinearOpMode` class that retur
 
 This is in contrast to the standard `OpMode` you have used in previous units. A `LinearOpMode` uses a single `runOpMode()` method where you write all your logic sequentially, wrapped in this safety loop.
 
+Never replace the lifecycle guard with `while (true)`. An unbounded loop ignores the Driver Station stop state and fails the unit coding challenge even if its body happens to work in the simulator. Every repeated `LinearOpMode` action must remain conditional on `opModeIsActive()` or another stop-aware SDK condition.
+
 ---
 
 ## Annotated Code

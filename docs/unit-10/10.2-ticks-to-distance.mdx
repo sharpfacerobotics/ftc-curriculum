@@ -29,7 +29,7 @@ rotations  = ticks / ticksPerRevolution
 distance   = rotations * (Math.PI * wheelDiameter)
 ```
 
-The SDK actually stores the motor's resolution for you inside `motor.getMotorType().getTicksPerRev()`. This is worth using because if your team ever swaps the 20:1 gearbox for a 40:1, the constant updates automatically without you having to hunt down a hardcoded number somewhere in your code.
+The SDK stores the configured motor resolution in `motor.getMotorType().getTicksPerRev()`. That is useful when code intentionally follows the Robot Controller motor configuration. For an autonomous distance routine, it is also common to declare a named `TICKS_PER_REV` constant beside the wheel diameter so every conversion input is visible and reviewable. If the motor or gearbox changes, update the Robot Controller configuration and this constant together.
 
 One subtle but important point: `getCurrentPosition()` returns an `int`, but `ticksPerRev` should be stored as a `double`. If you divide an `int` by an `int` in Java, you get integer division -- the remainder gets thrown away, and you lose precision. Storing one of the values as a `double` promotes the entire calculation to floating point automatically.
 
@@ -50,6 +50,7 @@ public class TicksToDistanceDemo extends OpMode {
     private DcMotor driveMotor;
 
     // Wheel diameter in inches -- measure your actual wheel
+    private static final double TICKS_PER_REV = 537.7;
     private static final double WHEEL_DIAMETER_IN = 3.78;
 
     @Override
@@ -62,14 +63,11 @@ public class TicksToDistanceDemo extends OpMode {
     public void loop() {
         driveMotor.setPower(-gamepad1.left_stick_y);
 
-        // Pull the resolution directly from the motor's config object
-        double ticksPerRev = driveMotor.getMotorType().getTicksPerRev();
-
         // Convert raw ticks into rotations, then into inches
-        double rotations = driveMotor.getCurrentPosition() / ticksPerRev;
+        double rotations = driveMotor.getCurrentPosition() / TICKS_PER_REV;
         double distanceIn = rotations * (Math.PI * WHEEL_DIAMETER_IN);
 
-        telemetry.addData("Ticks Per Rev",  ticksPerRev);
+        telemetry.addData("Ticks Per Rev",  TICKS_PER_REV);
         telemetry.addData("Rotations",      "%.2f", rotations);
         telemetry.addData("Distance (in)",  "%.2f", distanceIn);
     }
@@ -81,14 +79,14 @@ public class TicksToDistanceDemo extends OpMode {
 ## Fill-in-the-Blank Practice
 
 1. To find how far a wheel has traveled, you must multiply the number of rotations by the wheel's `__________`.
-2. The SDK method `getMotorType().__________()` provides the ticks-per-revolution value for the configured motor.
+2. A readable autonomous conversion stores motor resolution in a named `__________` constant.
 3. Dividing an `int` by a `double` in Java results in a `__________` data type, preserving the decimal portion of the result.
 
 <details>
 <summary>Show answers</summary>
 
 1. **circumference** (`Math.PI * diameter`)
-2. **`getTicksPerRev()`**
+2. **`TICKS_PER_REV`**
 3. **`double`**
 
 </details>

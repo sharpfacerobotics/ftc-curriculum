@@ -127,27 +127,59 @@ package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Turbo_Logic_Challenge")
-public class TurboChallenge extends OpMode {
+@TeleOp(name="Arcade_Drive_Practice")
+public class ArcadeDrivePractice extends OpMode {
+
+    private DcMotor leftDrive;
+    private DcMotor rightDrive;
+    private boolean precisionMode = true;
+    private boolean previousA = false;
+    private static final double DEADZONE = 0.10;
 
     @Override
-    public void init() {}
+    public void init() {
+        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+    }
+
+    double squareInputWithSign(double input) {
+        return input * input * Math.signum(input);
+    }
 
     @Override
     public void loop() {
-        double rawY = -gamepad1.left_stick_y;
-        double finalPower;
+        double forward = -gamepad1.left_stick_y;
+        double turn = gamepad1.right_stick_x;
 
-        // 1. IF gamepad1.a IS PRESSED, finalPower IS rawY (turbo/raw)
-        // 2. ELSE, finalPower IS rawY * rawY * (SIGN OF rawY) (precision)
+        // 1. APPLY DEADZONE TO BOTH AXES WITH Math.abs(...)
         // INSERT CODE HERE
 
-        telemetry.addData("Drive Power", finalPower);
+        // 2. TOGGLE precisionMode ONLY WHEN A CHANGES FROM RELEASED TO PRESSED
+        // 3. SAVE THE CURRENT A VALUE IN previousA
+        // INSERT CODE HERE
+
+        if (precisionMode) {
+            forward = squareInputWithSign(forward);
+            turn = squareInputWithSign(turn);
+        }
+
+        double speedLimit = 1.0 - (0.70 * gamepad1.right_trigger);
+
+        // 4. MIX forward +/- turn AND Range.clip EACH SIDE AFTER speedLimit
+        // INSERT CODE HERE
+
+        // 5. SEND leftPower AND rightPower TO THEIR MOTORS
+        // INSERT CODE HERE
+
+        telemetry.addData("Left Power", leftPower);
+        telemetry.addData("Right Power", rightPower);
     }
 }
     `.trim(),
-    showMotorVisual: false,
+    showMotorVisual: true,
   },
 };
 
@@ -178,7 +210,7 @@ export default function Unit4Simulator({lesson}: Unit4SimulatorProps): React.JSX
       <Admonition type="info" title={simulatorTitle}>
         <div>Supports buttons, joysticks, triggers, bumpers, and D-pad input.</div>
         <div>Shows live input values, basic telemetry, deadzones, and curve visualization when relevant.</div>
-        <div>Best for simple control logic, variable math, and single-method practice code.</div>
+        <div>Lesson 4.5 also compiles mapped motors and shows the power produced by the arcade-drive mix.</div>
       </Admonition>
     </>
   );

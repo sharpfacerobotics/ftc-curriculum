@@ -616,7 +616,7 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-04/arcade-drive-challenge',
     label: '4.5 · Arcade Drive',
-    title: 'Lesson 4.5: Build Full Arcade Drive with Deadzones and Sensitivity Curves',
+    title: 'Lesson 4.5: Build a Complete Arcade Drive',
     path: '/docs/unit-04/arcade-drive-challenge',
     unitSlug: 'unit-04',
     unitLabel: 'Unit 4',
@@ -804,8 +804,8 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   },
   {
     id: 'unit-08/set-direction',
-    label: '8.2 · setDirection()',
-    title: 'Lesson 8.2: Fixing Reversed Mechanisms with setDirection(REVERSE)',
+    label: '8.2 · Mecanum Direction',
+    title: 'Lesson 8.2: Configure Mecanum Motor Direction and Wheel Mixing',
     path: '/docs/unit-08/set-direction',
     unitSlug: 'unit-08',
     unitLabel: 'Unit 8',

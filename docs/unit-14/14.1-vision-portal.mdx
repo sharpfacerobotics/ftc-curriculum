@@ -40,11 +40,13 @@ Use the FTC SDK Javadocs to confirm current VisionPortal, AprilTagProcessor, and
 
 ---
 
-## Resource Management: Stopping the Stream
+## Resource Management: Stopping or Closing the Portal
 
 A running camera stream consumes a meaningful portion of the Control Hub's CPU budget. Frame capture, color space conversion, and the processing pipelines running on top all compete with the motor control and sensor polling loops that the robot depends on for accurate movement. Running the stream during the driving phase of autonomous -- after the vision decision has already been made -- wastes resources the drivetrain PID controllers could use.
 
-The correct practice is to call `visionPortal.stopStreaming()` once the vision decision is complete and before any driving begins. This releases the camera resources while keeping the portal object alive for later use if needed. The portal can be resumed with `resumeStreaming()` if a later autonomous step requires vision again.
+Call `visionPortal.stopStreaming()` once the vision decision is complete and before driving begins when the same OpMode may need the camera again. This pauses frame delivery while keeping the portal object alive, and `resumeStreaming()` can restart it later.
+
+Call `visionPortal.close()` when camera work is finished for the rest of the OpMode. `close()` releases the portal and camera completely, so it is the required cleanup path when no later state will resume vision. A safe routine may pause the stream before a CPU-intensive drive phase and then close the portal during final cleanup.
 
 :::tip Mentor note: camera bugs are usually lifecycle bugs
 If the Driver Station preview is black, check the configured webcam name, USB connection, and whether the stream was stopped before `waitForStart()`. If autonomous drives inconsistently while streaming, stop the stream after the vision decision and compare CPU load behavior.
@@ -103,6 +105,9 @@ public class VisionPortalDemo extends LinearOpMode {
             // Driving logic follows here...
             sleep(2000);
         }
+
+        // No later state needs the camera, so release it completely.
+        visionPortal.close();
     }
 }
 ```
@@ -113,7 +118,8 @@ public class VisionPortalDemo extends LinearOpMode {
 
 1. The hardware map class used to retrieve a reference to a USB webcam is `__________`.
 2. To create a `VisionPortal` with minimal configuration using a camera and one processor, use the static method `VisionPortal.__________()`.
-3. To release camera CPU resources after a vision decision is made, call `visionPortal.__________()`.
+3. To pause frame delivery while retaining the option to resume it, call `visionPortal.__________()`.
+4. To release the camera completely when vision work is finished, call `visionPortal.__________()`.
 
 <details>
 <summary>Show answers</summary>
@@ -121,6 +127,7 @@ public class VisionPortalDemo extends LinearOpMode {
 1. **`WebcamName`**
 2. **`easyCreateWithDefaults`**
 3. **`stopStreaming()`**
+4. **`close()`**
 
 </details>
 
@@ -151,6 +158,9 @@ visionPortal = new VisionPortal.Builder()
 
 // After waitForStart():
 visionPortal.stopStreaming();
+
+// After all autonomous work that might use the camera:
+visionPortal.close();
 ```
 
 </details>

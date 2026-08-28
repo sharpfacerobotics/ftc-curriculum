@@ -171,6 +171,9 @@ public class SpikeSelectionAuto extends LinearOpMode {
                     break;
             }
         }
+
+        // This autonomous will not use the camera again.
+        visionPortal.close();
     }
 }
 ```

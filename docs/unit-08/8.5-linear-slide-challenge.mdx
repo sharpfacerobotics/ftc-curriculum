@@ -14,7 +14,7 @@ import Unit8Simulator from '@site/src/components/Unit8Simulator';
 
 ## Technical Context
 
-Linear slides are prone to mechanical failure if driven past their physical limits, either bottoming out at the base or over-extending at the top. Using a `DigitalChannel` touch sensor as a **software limiter** prevents the motor from applying power in a direction that would cause hardware damage, protecting the motor from stall current and the mechanism from structural failure.
+Linear slides are prone to mechanical failure if driven past their physical limits, either bottoming out at the base or over-extending at the top. Using upper and lower `DigitalChannel` touch sensors as **software limiters** prevents the motor from applying power in either dangerous direction, protecting the motor from stall current and the mechanism from structural failure.
 
 ---
 
@@ -22,13 +22,15 @@ Linear slides are prone to mechanical failure if driven past their physical limi
 
 This lesson combines concepts from Units 7 and 8. You must:
 
-1. Map both a `DcMotor` and a `DigitalChannel` in `init()`
-2. Read the touch sensor state each loop cycle
-3. Apply conditional logic that **overrides driver input** when the sensor is triggered
+1. Map the slide `DcMotor` and both `DigitalChannel` limits in `init()`.
+2. Configure both digital ports as inputs.
+3. Correct the motor's installed direction and select `BRAKE` behavior.
+4. Read both active-low limit states each loop cycle.
+5. Apply conditional logic that **overrides driver input** only in the blocked direction.
 
-A critical hardware nuance: the REV Touch Sensor uses **active-low** logic. `getState()` returns `true` when the sensor is **not** pressed and `false` when it **is** pressed. This means you must use the logical NOT operator (`!`) to invert the signal for intuitive use: `boolean isPressed = !limitSwitch.getState()`.
+A critical hardware nuance: the REV Touch Sensor uses **active-low** logic. `getState()` returns `true` when the sensor is **not** pressed and `false` when it **is** pressed. This means you must use the logical NOT operator (`!`) to invert each signal for intuitive use: `boolean atUpper = !upperLimit.getState()`.
 
-The limiter logic then becomes: if the driver is commanding the slide downward (negative power) AND the bottom limit is pressed, override the power to `0.0`. Movement upward is still permitted because the limiter only blocks the dangerous direction.
+The limiter logic has two safe motion branches. Positive power is allowed only while the upper limit is clear. Negative power is allowed only while the lower limit is clear. Neutral input, a blocked direction, or contradictory sensor data must all produce an explicit zero-power command.
 
 ---
 
@@ -45,34 +47,42 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 @TeleOp(name="Safe_Slide_Demo")
 public class SafeSlideDemo extends OpMode {
 
-    private DcMotor liftMotor;
-    private DigitalChannel limitSwitch;
+    private DcMotor slideMotor;
+    private DigitalChannel upperLimit;
+    private DigitalChannel lowerLimit;
 
     @Override
     public void init() {
-        liftMotor   = hardwareMap.get(DcMotor.class, "lift_motor");
-        limitSwitch = hardwareMap.get(DigitalChannel.class, "limit_bottom");
+        slideMotor = hardwareMap.get(DcMotor.class, "slide");
+        upperLimit = hardwareMap.get(DigitalChannel.class, "limit_upper");
+        lowerLimit = hardwareMap.get(DigitalChannel.class, "limit_lower");
 
-        limitSwitch.setMode(DigitalChannel.Mode.INPUT);
-        liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        upperLimit.setMode(DigitalChannel.Mode.INPUT);
+        lowerLimit.setMode(DigitalChannel.Mode.INPUT);
+        slideMotor.setDirection(DcMotor.Direction.REVERSE);
+        slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slideMotor.setPower(0.0);
     }
 
     @Override
     public void loop() {
-        double power = -gamepad1.left_stick_y;
+        double requestedPower = -gamepad1.left_stick_y;
+        boolean atUpper = !upperLimit.getState();
+        boolean atLower = !lowerLimit.getState();
+        double appliedPower;
 
-        // Active-low: false = pressed, so invert for intuitive logic
-        boolean isAtBottom = !limitSwitch.getState();
-
-        // Block downward movement if the bottom limit is triggered
-        if (isAtBottom && power < 0) {
-            power = 0.0;
-            telemetry.addData("Safety", "BOTTOM LIMIT REACHED");
+        if (requestedPower > 0.0 && !atUpper) {
+            appliedPower = requestedPower;
+        } else if (requestedPower < 0.0 && !atLower) {
+            appliedPower = requestedPower;
+        } else {
+            appliedPower = 0.0;
         }
 
-        liftMotor.setPower(power);
-        telemetry.addData("Slide Power",   power);
-        telemetry.addData("At Bottom",     isAtBottom);
+        slideMotor.setPower(appliedPower);
+        telemetry.addData("Slide Power", appliedPower);
+        telemetry.addData("At Upper Limit", atUpper);
+        telemetry.addData("At Lower Limit", atLower);
         telemetry.update();
     }
 }
@@ -82,16 +92,16 @@ public class SafeSlideDemo extends OpMode {
 
 ## Fill-in-the-Blank Practice
 
-1. A software limiter uses `__________` operators and sensor data to prevent mechanical binding at the physical end of travel.
+1. Positive slide power must be blocked by the `__________` limit, while negative power must be blocked by the lower limit.
 2. If a touch sensor returns `false` when physically pressed (active-low logic), you must use the `__________` operator in Java to flip the signal for intuitive use.
-3. Preventing a motor from stalling against a physical limit improves robot `__________` by avoiding the sustained high-current draw that burns out motor windings.
+3. Every unsafe or neutral request must result in an explicit `setPower(__________)` command.
 
 <details>
 <summary>Show answers</summary>
 
-1. **conditional** (comparison / logical)
+1. **upper**
 2. **`!`** (the logical NOT operator)
-3. **reliability** (longevity / lifespan)
+3. **`0.0`**
 
 </details>
 
@@ -99,7 +109,7 @@ public class SafeSlideDemo extends OpMode {
 
 ## Simulator Practice
 
-Use the simulator below to practice protecting a lift with an active-low bottom limit switch and lesson-specific starter code.
+Use the simulator below to practice protecting both directions with active-low upper and lower switches and lesson-specific starter code.
 
 <SimulatorRunGuide />
 

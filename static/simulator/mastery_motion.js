@@ -78,11 +78,15 @@
       return looksLikeDrive ? 0 : entries[0][1];
     }
 
-    function drivetrainPowers() {
+    function drivetrainEntries() {
       const mechanismName = /intake|arm|lift|slide|turret|wrist|flywheel|shooter|roller|claw|grip|mechanism/;
-      const all = motorEntries();
-      const drive = all.filter(function (entry) { return !mechanismName.test(normalizedName(entry[0])); });
-      const candidates = drive;
+      return motorEntries().filter(function (entry) {
+        return !mechanismName.test(normalizedName(entry[0]));
+      });
+    }
+
+    function drivetrainPowers() {
+      const candidates = drivetrainEntries();
       let left = candidates.filter(function (entry) {
         const name = normalizedName(entry[0]);
         return name.includes("left") || /^(?:lf|fl)/.test(name);
@@ -127,15 +131,30 @@
     }
 
     function mecanumPowers() {
-      const entries = motorEntries();
+      const entries = drivetrainEntries();
+      const leftEntries = entries.filter(function (entry) {
+        const name = normalizedName(entry[0]);
+        return name.includes("left") || /^(?:lf|fl|lb|bl)/.test(name);
+      });
+      const rightEntries = entries.filter(function (entry) {
+        const name = normalizedName(entry[0]);
+        return name.includes("right") || /^(?:rf|fr|rb|br)/.test(name);
+      });
+      const positional = !leftEntries.length && !rightEntries.length;
+      const leftFallback = leftEntries.length
+        ? average(leftEntries)
+        : (entries[0] ? entries[0][1] : 0);
+      const rightFallback = rightEntries.length
+        ? average(rightEntries)
+        : (entries[1] ? entries[1][1] : leftFallback);
       function named(pattern, fallback) {
         const found = entries.find(function (entry) { return pattern.test(normalizedName(entry[0])); });
-        return found ? found[1] : (entries[fallback] ? entries[fallback][1] : 0);
+        return found ? found[1] : fallback;
       }
-      const fl = named(/leftfront|frontleft|^lf|^fl/, 0);
-      const bl = named(/leftback|backleft|^lb|^bl/, 1);
-      const fr = named(/rightfront|frontright|^rf|^fr/, 2);
-      const br = named(/rightback|backright|^rb|^br/, 3);
+      const fl = named(/leftfront|frontleft|^lf|^fl/, positional && entries.length >= 4 ? entries[0][1] : leftFallback);
+      const bl = named(/leftback|backleft|^lb|^bl/, positional && entries.length >= 4 ? entries[1][1] : leftFallback);
+      const fr = named(/rightfront|frontright|^rf|^fr/, positional && entries.length >= 4 ? entries[2][1] : rightFallback);
+      const br = named(/rightback|backright|^rb|^br/, positional && entries.length >= 4 ? entries[3][1] : rightFallback);
       return {
         left: (fl + bl) / 2,
         right: (fr + br) / 2,
@@ -175,7 +194,10 @@
       state.armPower = armPower;
 
       if (unit === 3) state.primaryAngle += primaryPower * dt * 13;
-      if (unit !== 12) integrateDrive(dt, false);
+      // Unit 8.2 is where students configure and mix a mecanum drivetrain.
+      // Every later coding-challenge robot uses the same four-wheel kinematics
+      // as the mecanum team CAD shown in the simulator.
+      integrateDrive(dt, unit >= 8);
       if (unit === 5 || unit === 7 || unit === 11) state.primaryAngle += primaryPower * dt * 12;
       if (unit === 6 || unit === 13) {
         state.armAngle = clamp(state.armAngle + armPower * dt * 1.4, -0.55, 0.55);
@@ -184,7 +206,6 @@
         state.slidePosition = clamp(state.slidePosition + armPower * dt * 1.05, 0.72, 1.82);
       }
       if (unit === 9) state.primaryAngle += crPower * dt * 12;
-      if (unit === 12) integrateDrive(dt, true);
       if (unit === 14 && state.visionActive) {
         state.cameraAngle = Math.sin(state.elapsed * 1.8) * 0.58;
       }
