@@ -284,6 +284,7 @@ public class PreciseSlider extends LinearOpMode {
         }
 
         // TODO: Stop the motor
+        // TODO: Restore RUN_USING_ENCODER for later drive commands
         // TODO: Display final status and position with telemetry
     }
 }`;
@@ -297,6 +298,7 @@ const requirements = [
     "Use while(opModeIsActive() && slider.isBusy())",
     "Read getCurrentPosition() in wait loop",
     "Set power to 0 after loop",
+    "Restore RUN_USING_ENCODER after the move",
     "Slider reaches 500 ticks"
 ];
 
@@ -319,7 +321,7 @@ const sim = {
 
     step:0,
 
-    requirements:[false,false,false,false,false,false,false,false,false]
+    requirements:[false,false,false,false,false,false,false,false,false,false]
 };
 
 let overlay;
@@ -1062,6 +1064,15 @@ function installHooks(){
                 setStep(1);
             }
 
+            if(
+                sim.mode.includes("RUN_USING_ENCODER") &&
+                sim.currentTicks >= 495 &&
+                sim.power === 0
+            ){
+                sim.requirements[8] = true;
+                setStep(7);
+            }
+
             updateRequirements();
             updatePanel();
         };
@@ -1206,7 +1217,7 @@ function beginMotion(){
 
             sim.busy = false;
 
-            sim.requirements[8] = true;
+            sim.requirements[9] = true;
 
             setStep(5);
 

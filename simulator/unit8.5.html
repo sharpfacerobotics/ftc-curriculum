@@ -141,57 +141,67 @@ code{font-family:"Consolas","Courier New",monospace}
 <div id="left-panel">
   <div class="panel-header">
     <div class="panel-header-title">Telemark Unit 8.5 Simulator</div>
-    <div class="panel-header-sub">Lift with Limit Switch · Hardware protection · Bottom stop</div>
+    <div class="panel-header-sub">Two-way slide · Upper and lower limits · Safe stop</div>
   </div>
 
   <div class="challenge-card">
     <div class="challenge-header open" id="challenge-toggle">
-      <span><i class="fa-solid fa-trophy"></i> 8.5 — Lift Motor with Limit Switch</span>
+      <span><i class="fa-solid fa-trophy"></i> 8.5 — Two-Way Slide with Two Limits</span>
       <i class="fa-solid fa-chevron-right chev"></i>
     </div>
     <div class="challenge-body open" id="challenge-body">
-      <div class="task">Allow the driver to move the lift with gamepad1.left_stick_y, but stop the motor if the stick is commanded downward (negative power after negation) and the limit switch at the bottom is triggered.</div>
+      <div class="task">Control the slide proportionally with gamepad1.left_stick_y. Block positive power at the upper limit, block negative power at the lower limit, and command zero for every neutral or unsafe request.</div>
       
-      <div class="req" id="req-lift"><span class="check"><i class="fa-solid fa-check"></i></span> lift motor mapped in init()</div>
-      <div class="req" id="req-limit"><span class="check"><i class="fa-solid fa-check"></i></span> limit switch mapped in init()</div>
-      <div class="req" id="req-negate"><span class="check"><i class="fa-solid fa-check"></i></span> left_stick_y negated for lift control</div>
-      <div class="req" id="req-block"><span class="check"><i class="fa-solid fa-check"></i></span> Downward movement blocked when limit pressed</div>
-      <div class="req" id="req-up"><span class="check"><i class="fa-solid fa-check"></i></span> Upward movement always allowed</div>
-      <div class="req" id="req-telemetry"><span class="check"><i class="fa-solid fa-check"></i></span> Telemetry shows limit switch state and lift power</div>
+      <div class="req" id="req-lift"><span class="check"><i class="fa-solid fa-check"></i></span> Slide motor mapped in init()</div>
+      <div class="req" id="req-limit"><span class="check"><i class="fa-solid fa-check"></i></span> Upper and lower limits mapped and set to INPUT</div>
+      <div class="req" id="req-negate"><span class="check"><i class="fa-solid fa-check"></i></span> Direction, BRAKE, and proportional joystick power configured</div>
+      <div class="req" id="req-block"><span class="check"><i class="fa-solid fa-check"></i></span> Positive power blocked at upper limit</div>
+      <div class="req" id="req-up"><span class="check"><i class="fa-solid fa-check"></i></span> Negative power blocked at lower limit</div>
+      <div class="req" id="req-telemetry"><span class="check"><i class="fa-solid fa-check"></i></span> Telemetry shows both limits and applied power</div>
       
       <div class="success-banner" id="success-banner">
-        <i class="fa-solid fa-circle-check"></i> Challenge Complete! Your lift is protected by the limit switch.
+        <i class="fa-solid fa-circle-check"></i> Challenge Complete! Both slide directions are protected.
       </div>
     </div>
   </div>
 
   <div class="code-wrapper">
-    <textarea id="code-editor" spellcheck="false" oninput="onCodeChange()" onscroll="syncScroll(this)">@TeleOp(name="Lift_Limit_Switch")
-public class LiftLimitSwitch extends OpMode {
+    <textarea id="code-editor" spellcheck="false" oninput="onCodeChange()" onscroll="syncScroll(this)">@TeleOp(name="Two_Way_Slide")
+public class TwoWaySlide extends OpMode {
 
-    DcMotor lift;
-    DigitalChannel limit;
+    DcMotor slideMotor;
+    DigitalChannel upperLimit;
+    DigitalChannel lowerLimit;
 
     @Override
     public void init() {
-        lift = hardwareMap.get(DcMotor.class, "lift");
-        limit = hardwareMap.get(DigitalChannel.class, "limit");
+        slideMotor = hardwareMap.get(DcMotor.class, "slide");
+        upperLimit = hardwareMap.get(DigitalChannel.class, "limit_upper");
+        lowerLimit = hardwareMap.get(DigitalChannel.class, "limit_lower");
 
-        limit.setMode(DigitalChannel.Mode.INPUT);
-        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        upperLimit.setMode(DigitalChannel.Mode.INPUT);
+        lowerLimit.setMode(DigitalChannel.Mode.INPUT);
+        slideMotor.setDirection(DcMotor.Direction.REVERSE);
+        slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slideMotor.setPower(0.0);
 
         telemetry.addData("Status", "Initialized");
     }
 
     @Override
     public void loop() {
-        double liftPower = -gamepad1.left_stick_y;
-        boolean pressed = !limit.getState();
+        double requestedPower = -gamepad1.left_stick_y;
+        boolean atUpper = !upperLimit.getState();
+        boolean atLower = !lowerLimit.getState();
+        double appliedPower;
 
-        // TODO: Block downward movement when the limit switch is pressed
-        lift.setPower(liftPower);
-        telemetry.addData("Lift Power", liftPower);
-        // TODO: Show the limit switch state with telemetry
+        // TODO: Allow positive only below the upper limit, negative only above
+        // the lower limit, and use 0.0 for every neutral or unsafe request.
+
+        slideMotor.setPower(appliedPower);
+        telemetry.addData("Slide Power", appliedPower);
+        telemetry.addData("At Upper Limit", atUpper);
+        telemetry.addData("At Lower Limit", atLower);
         telemetry.update();
     }
 }</textarea>
@@ -202,7 +212,7 @@ public class LiftLimitSwitch extends OpMode {
     <div class="controls-row">
       <button class="btn-run" id="btn-run" onclick="handleRun()"><i class="fa-solid fa-play"></i> Run</button>
       <button class="btn-stop" onclick="handleStop()"><i class="fa-solid fa-stop"></i> Stop</button>
-      <button class="btn-reset" onclick="resetSimulation()"><i class="fa-solid fa-rotate"></i> Reset Lift</button>
+      <button class="btn-reset" onclick="resetSimulation()"><i class="fa-solid fa-rotate"></i> Reset Slide</button>
     </div>
     <div class="ds-status">
       <span class="ds-state" id="ds-state" style="color:var(--danger)">STOPPED</span>
@@ -217,8 +227,8 @@ public class LiftLimitSwitch extends OpMode {
 
 <div id="right-panel">
   <div class="badge-strip">
-    <div class="hw-badge active"><i class="fa-solid fa-screwdriver-wrench"></i> DcMotor (lift)</div>
-    <div class="hw-badge active"><i class="fa-solid fa-hand-pointer"></i> DigitalChannel (limit)</div>
+    <div class="hw-badge active"><i class="fa-solid fa-screwdriver-wrench"></i> DcMotor (slide)</div>
+    <div class="hw-badge active"><i class="fa-solid fa-hand-pointer"></i> DigitalChannel (upper + lower)</div>
     <div class="hw-badge tel"><i class="fa-solid fa-tower-broadcast"></i> Telemetry</div>
     <div class="hw-badge inactive"><i class="fa-solid fa-gamepad"></i> Gamepad</div>
   </div>
@@ -235,16 +245,22 @@ public class LiftLimitSwitch extends OpMode {
   <div class="status-panel">
     <div style="display:flex;gap:20px;justify-content:center;margin-bottom:12px">
       <div>
-        <div id="sensor-indicator" class="sensor-indicator sensor-not">
+        <div id="lower-sensor-indicator" class="sensor-indicator sensor-not">
           <i class="fa-solid fa-hand-pointer" id="sensor-icon"></i>
         </div>
-        <div style="text-align:center;font-size:0.85rem" id="sensor-text">NOT PRESSED</div>
+        <div style="text-align:center;font-size:0.85rem" id="lower-sensor-text">LOWER CLEAR</div>
+      </div>
+      <div>
+        <div id="upper-sensor-indicator" class="sensor-indicator sensor-not">
+          <i class="fa-solid fa-hand-pointer"></i>
+        </div>
+        <div style="text-align:center;font-size:0.85rem" id="upper-sensor-text">UPPER CLEAR</div>
       </div>
     </div>
 
     <div class="lift-bar-container">
       <div style="flex:1">
-        <div class="power-label"><span>Lift Power </span><span id="lift-power-val">0.00</span></div>
+        <div class="power-label"><span>Slide Power </span><span id="lift-power-val">0.00</span></div>
         <div class="power-bar"><div class="power-fill" id="lift-power-fill" style="width:50%;background:#00cc88"></div></div>
       </div>
       <div style="width:80px">
@@ -300,14 +316,16 @@ public class LiftLimitSwitch extends OpMode {
 </div>
 
 <script>
-// =============== 8.5 — LIFT WITH LIMIT SWITCH ===============
+// =============== 8.5 — TWO-WAY SLIDE WITH TWO LIMITS ===============
 'use strict';
 
-let scene, camera, renderer, robotGroup, liftCarriage, liftRails, limitSensor, limitLight;
+let scene, camera, renderer, robotGroup, liftCarriage, liftRails;
+let lowerLimitSensor, lowerLimitLight, upperLimitSensor, upperLimitLight;
 let liftHeight = 0.35;
 let liftVelocity = 0;
 let currentPower = 0;
-let limitPressed = false;
+let lowerLimitPressed = false;
+let upperLimitPressed = false;
 let running = false;
 let loopInterval = null;
 let timerInterval = null;
@@ -587,13 +605,14 @@ function getMethodBody(code, name) {
 
 function transpile(code) {
   var adapted = code
-    .replace(/lift\s*=\s*hardwareMap\.get\([^;]*\)\s*;?/g, '// lift mapped')
-    .replace(/limit\s*=\s*hardwareMap\.get\([^;]*\)\s*;?/g, '// limit mapped')
-    .replace(/limit\.setMode\s*\(\s*DigitalChannel\.Mode\.INPUT\s*\)\s*;?/g, '// limit input mode set')
-    .replace(/lift\.setZeroPowerBehavior\(DcMotor\.ZeroPowerBehavior\.(BRAKE|FLOAT)\)/g, 'setZeroPowerBehavior("$1")')
-    .replace(/lift\.setPower\s*\(/g, 'setLiftPower(')
-    .replace(/limit\.isPressed\(\)/g, 'isLimitPressed()')
-    .replace(/limit\.getState\(\)/g, 'getLimitState()')
+    .replace(/slideMotor\s*=\s*hardwareMap\.get\([^;]*\)\s*;?/g, '// slide mapped')
+    .replace(/(?:upperLimit|lowerLimit)\s*=\s*hardwareMap\.get\([^;]*\)\s*;?/g, '// limit mapped')
+    .replace(/(?:upperLimit|lowerLimit)\.setMode\s*\(\s*DigitalChannel\.Mode\.INPUT\s*\)\s*;?/g, '// limit input mode set')
+    .replace(/slideMotor\.setDirection\([^;]*\)\s*;?/g, '// direction configured')
+    .replace(/slideMotor\.setZeroPowerBehavior\(DcMotor\.ZeroPowerBehavior\.(BRAKE|FLOAT)\)/g, 'setZeroPowerBehavior("$1")')
+    .replace(/slideMotor\.setPower\s*\(/g, 'setLiftPower(')
+    .replace(/upperLimit\.getState\(\)/g, 'getUpperLimitState()')
+    .replace(/lowerLimit\.getState\(\)/g, 'getLowerLimitState()')
   return window.TelemarkJava
     ? window.TelemarkJava.transpileBody(adapted, {
         gamepad1Name: 'gamepad',
@@ -608,13 +627,8 @@ function setLiftPower(power) {
   currentPower = Math.max(-1, Math.min(1, Number(power) || 0));
 }
 
-function isLimitPressed() {
-  return limitPressed;
-}
-
-function getLimitState() {
-  return !limitPressed;
-}
+function getUpperLimitState() { return !upperLimitPressed; }
+function getLowerLimitState() { return !lowerLimitPressed; }
 
 function addTelemetry(key, value) {
   telemetryBuffer.push('<div class="telemetry-line"><span class="telemetry-key">' + esc(key) + '</span>: ' + esc(value) + '</div>');
@@ -718,20 +732,35 @@ function initScene() {
   liftCarriage.castShadow = true;
   robotGroup.add(liftCarriage);
 
-  // Limit switch sensor at bottom
-  var sensorBase = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32), new THREE.MeshPhongMaterial({color:0x441111}));
-  sensorBase.rotation.x = Math.PI/2;
-  sensorBase.position.set(0, 0.15, 0.4);
-  robotGroup.add(sensorBase);
+  function addLimitVisual(y) {
+    var sensorBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32),
+      new THREE.MeshPhongMaterial({color:0x441111})
+    );
+    sensorBase.rotation.x = Math.PI/2;
+    sensorBase.position.set(0, y, 0.4);
+    robotGroup.add(sensorBase);
 
-  limitSensor = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.06, 32), new THREE.MeshPhongMaterial({color:0xff2222, emissive:0x440000}));
-  limitSensor.rotation.x = Math.PI/2;
-  limitSensor.position.set(0, 0.22, 0.4);
-  robotGroup.add(limitSensor);
+    var sensor = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.12, 0.06, 32),
+      new THREE.MeshPhongMaterial({color:0xff2222, emissive:0x440000})
+    );
+    sensor.rotation.x = Math.PI/2;
+    sensor.position.set(0, y + 0.07, 0.4);
+    robotGroup.add(sensor);
 
-  limitLight = new THREE.PointLight(0x00ff88, 0, 2);
-  limitLight.position.set(0, 0.3, 0.4);
-  robotGroup.add(limitLight);
+    var light = new THREE.PointLight(0x00ff88, 0, 2);
+    light.position.set(0, y + 0.15, 0.4);
+    robotGroup.add(light);
+    return {sensor: sensor, light: light};
+  }
+
+  var lowerVisual = addLimitVisual(0.15);
+  lowerLimitSensor = lowerVisual.sensor;
+  lowerLimitLight = lowerVisual.light;
+  var upperVisual = addLimitVisual(4.0);
+  upperLimitSensor = upperVisual.sensor;
+  upperLimitLight = upperVisual.light;
 
   updateLiftVisuals();
 
@@ -792,28 +821,31 @@ function updateLiftVisuals() {
   const h = Math.max(0, Math.min(1, liftHeight));
   liftCarriage.position.y = 0.4 + h * 3.6;
 
-  // Limit switch at bottom
-  limitPressed = (h < 0.03);
-  if (limitSensor) {
-    limitSensor.material.emissive = new THREE.Color(limitPressed ? 0.0 : 0.6, limitPressed ? 1.0 : 0.1, 0.0);
-    limitLight.intensity = limitPressed ? 3 : 0.3;
-  }
+  lowerLimitPressed = h < 0.03;
+  upperLimitPressed = h > 0.97;
+  [
+    [lowerLimitSensor, lowerLimitLight, lowerLimitPressed],
+    [upperLimitSensor, upperLimitLight, upperLimitPressed],
+  ].forEach(function (entry) {
+    var sensor = entry[0], light = entry[1], pressed = entry[2];
+    if (!sensor) return;
+    sensor.material.emissive = new THREE.Color(pressed ? 0.0 : 0.6, pressed ? 1.0 : 0.1, 0.0);
+    light.intensity = pressed ? 3 : 0.3;
+  });
 
   document.getElementById('lift-height-val').textContent = Math.round(h * 100) + '%';
   document.getElementById('lift-power-val').textContent = currentPower.toFixed(2);
   document.getElementById('height-fill').style.height = (h * 100) + '%';
 
-  const sensorEl = document.getElementById('sensor-indicator');
-  const sensorText = document.getElementById('sensor-text');
-  if (limitPressed) {
-    sensorEl.className = "sensor-indicator sensor-pressed";
-    sensorText.textContent = "PRESSED";
-    sensorText.style.color = "#0f0";
-  } else {
-    sensorEl.className = "sensor-indicator sensor-not";
-    sensorText.textContent = "NOT PRESSED";
-    sensorText.style.color = "#666";
+  function updateSensorStatus(prefix, pressed) {
+    const sensorEl = document.getElementById(prefix + '-sensor-indicator');
+    const sensorText = document.getElementById(prefix + '-sensor-text');
+    sensorEl.className = 'sensor-indicator ' + (pressed ? 'sensor-pressed' : 'sensor-not');
+    sensorText.textContent = prefix.toUpperCase() + (pressed ? ' PRESSED' : ' CLEAR');
+    sensorText.style.color = pressed ? '#0f0' : '#666';
   }
+  updateSensorStatus('lower', lowerLimitPressed);
+  updateSensorStatus('upper', upperLimitPressed);
 }
 
 function simulatePhysics() {
@@ -828,8 +860,9 @@ function simulatePhysics() {
   // Clamp the lift to physical boundaries
   liftHeight = Math.max(0, Math.min(1.0, liftHeight));
 
-  // If the lift hits the physical bottom floor but power is still forcing it down, simulate real hardware grinding/damage!
-  if (liftHeight === 0 && currentPower < -0.1) {
+  // Forcing either hard stop simulates the grinding and stall current of real hardware.
+  if ((liftHeight === 0 && currentPower < -0.1) ||
+      (liftHeight === 1 && currentPower > 0.1)) {
     damageFlash = 2; // Keep it alive while the destructive behavior continues
     document.getElementById('damage-overlay').classList.add('visible');
   } else {
@@ -846,34 +879,41 @@ function validate() {
   const initBody = getMethodBody(code, 'init');
   const loopBody = getMethodBody(code, 'loop');
 
-  const hasLift = /lift\s*=\s*hardwareMap\.get.*"lift"/.test(initBody);
-  const hasLimit = /limit\s*=\s*hardwareMap\.get.*"limit"/.test(initBody);
-  const hasInputMode = /limit\.setMode\s*\(\s*DigitalChannel\.Mode\.INPUT\s*\)/.test(initBody);
+  const safeInit = initBody || '';
+  const safeLoop = loopBody || '';
+  const hasLift = /slideMotor\s*=\s*hardwareMap\.get.*"slide"/.test(safeInit);
+  const hasLimit = /upperLimit\s*=\s*hardwareMap\.get.*"limit_upper"/.test(safeInit) &&
+    /lowerLimit\s*=\s*hardwareMap\.get.*"limit_lower"/.test(safeInit);
+  const hasInputMode = (safeInit.match(/\.setMode\s*\(\s*DigitalChannel\.Mode\.INPUT\s*\)/g) || []).length >= 2;
+  const hasDirection = /slideMotor\.setDirection\s*\([^)]*Direction\.REVERSE/.test(safeInit);
+  const hasBrake = /slideMotor\.setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE/.test(safeInit);
   const hasNegate = /-\s*gamepad1\.left_stick_y|gamepad1\.left_stick_y\s*\*\s*-1/.test(loopBody);
-  const hasBlock =
-    /if\s*\([^)]*(pressed|isAtBottom|atBottom|limitPressed|!limit\.getState\(\)|limit\.isPressed\(\))[^)]*&&[^)]*liftPower\s*<\s*0/.test(loopBody) ||
-    /if\s*\([^)]*liftPower\s*<\s*0[^)]*&&[^)]*(pressed|isAtBottom|atBottom|limitPressed|!limit\.getState\(\)|limit\.isPressed\(\))/.test(loopBody);
-  const hasUpFree = !/if\s*\([^)]*(pressed|isAtBottom|atBottom|limitPressed|!limit\.getState\(\)|limit\.isPressed\(\))[^)]*&&[^)]*liftPower\s*>\s*0/.test(loopBody);
+  const hasBlock = /requestedPower\s*>\s*0(?:\.0+)?[^\n{]*&&[^\n{]*!atUpper|!atUpper[^\n{]*&&[^\n{]*requestedPower\s*>\s*0/.test(safeLoop);
+  const hasUpFree = /requestedPower\s*<\s*0(?:\.0+)?[^\n{]*&&[^\n{]*!atLower|!atLower[^\n{]*&&[^\n{]*requestedPower\s*<\s*0/.test(safeLoop);
+  const hasSafeFallback = /else\s*\{[\s\S]*?appliedPower\s*=\s*0(?:\.0+)?\s*;/.test(safeLoop);
   const hasTelemetry =
-    /telemetry\.addData\s*\([^)]*(Limit|Pressed)/.test(loopBody) &&
-    /telemetry\.addData\s*\([^)]*(Power|Lift Power)/.test(loopBody) &&
-    /telemetry\.update/.test(loopBody);
+    /telemetry\.addData\s*\([^)]*Upper Limit/.test(safeLoop) &&
+    /telemetry\.addData\s*\([^)]*Lower Limit/.test(safeLoop) &&
+    /telemetry\.addData\s*\([^)]*(Power|Slide Power)/.test(safeLoop) &&
+    /telemetry\.update/.test(safeLoop);
 
   document.getElementById('req-lift').querySelector('.check').className = 'check ' + (hasLift ? 'pass' : '');
   document.getElementById('req-limit').querySelector('.check').className = 'check ' + (hasLimit ? 'pass' : '');
-  document.getElementById('req-negate').querySelector('.check').className = 'check ' + (hasNegate ? 'pass' : '');
+  const hasSetup = hasNegate && hasDirection && hasBrake;
+  document.getElementById('req-negate').querySelector('.check').className = 'check ' + (hasSetup ? 'pass' : '');
   document.getElementById('req-block').querySelector('.check').className = 'check ' + (hasBlock ? 'pass' : '');
-  document.getElementById('req-up').querySelector('.check').className = 'check ' + (hasUpFree ? 'pass' : '');
+  document.getElementById('req-up').querySelector('.check').className = 'check ' + (hasUpFree && hasSafeFallback ? 'pass' : '');
   document.getElementById('req-telemetry').querySelector('.check').className = 'check ' + (hasTelemetry ? 'pass' : '');
 
-  const complete = hasLift && hasLimit && hasNegate && hasBlock && hasTelemetry;
+  const complete = hasLift && hasLimit && hasInputMode && hasSetup && hasBlock && hasUpFree && hasSafeFallback && hasTelemetry;
   document.getElementById('success-banner').classList.toggle('visible', complete);
 
   activeHints = [];
-  if (hasLift && !hasBlock) activeHints.push({msg: "Your lift will crash into the bottom — check your limit switch logic", type: "error"});
-  if (hasLimit && !hasInputMode) activeHints.push({msg: "Set the DigitalChannel to INPUT mode in init()", type: "warn"});
+  if (hasLift && (!hasBlock || !hasUpFree)) activeHints.push({msg: "Protect both hard stops: upper blocks positive and lower blocks negative power", type: "error"});
+  if (hasLimit && !hasInputMode) activeHints.push({msg: "Set both DigitalChannels to INPUT mode in init()", type: "warn"});
+  if (!hasDirection || !hasBrake) activeHints.push({msg: "Configure REVERSE direction and BRAKE behavior in init()", type: "warn"});
   if (!hasNegate) activeHints.push({msg: "Remember to negate left_stick_y for intuitive control (pushing up should raise the lift)", type: "warn"});
-  if (!hasTelemetry) activeHints.push({msg: "Call updateTelemetry() and show limit switch state", type: "warn"});
+  if (!hasTelemetry) activeHints.push({msg: "Call telemetry.update() and show both limit states", type: "warn"});
 
   renderHints();
 }
@@ -932,8 +972,8 @@ function handleRun() {
   if (initBody !== null) {
     try {
       const js = transpile(initBody);
-      new Function('setZeroPowerBehavior', 'addTelemetry', 'updateTelemetry', '"use strict";\n' + js)(
-        () => {}, addTelemetry, updateTelemetry
+      new Function('setZeroPowerBehavior', 'setLiftPower', 'addTelemetry', 'updateTelemetry', '"use strict";\n' + js)(
+        () => {}, setLiftPower, addTelemetry, updateTelemetry
       );
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">init() compile/runtime error: ${esc(e.message)}</span>`;
@@ -958,17 +998,21 @@ function handleRun() {
     telemetryBuffer = [];
     try {
       const js = transpile(loopBody);
-      new Function('gamepad', 'setLiftPower', 'isLimitPressed', 'getLimitState', 'addTelemetry', 'updateTelemetry',
-        '"use strict";\n' + js)(gamepadState, setLiftPower, () => limitPressed, () => !limitPressed, addTelemetry, updateTelemetry);
+      new Function('gamepad', 'setLiftPower', 'getUpperLimitState', 'getLowerLimitState', 'addTelemetry', 'updateTelemetry',
+        '"use strict";\n' + js)(
+          gamepadState,
+          setLiftPower,
+          getUpperLimitState,
+          getLowerLimitState,
+          addTelemetry,
+          updateTelemetry
+        );
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">loop() compile/runtime error: ${esc(e.message)}</span>`;
       console.error('Unit 8.5 loop() failed', e);
       handleStop();
       return;
     }
-
-    simulatePhysics();
-    validate();
 
     simulatePhysics();
     validate();
@@ -993,7 +1037,8 @@ function resetSimulation() {
   liftHeight = 0.35;
   liftVelocity = 0;
   currentPower = 0;
-  limitPressed = false;
+  lowerLimitPressed = false;
+  upperLimitPressed = false;
   updateLiftVisuals();
 }
 
