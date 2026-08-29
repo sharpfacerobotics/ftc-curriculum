@@ -1,10 +1,12 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Link from '@docusaurus/Link';
 import {useAuth} from '@site/src/telemark/useAuth';
 import {useProgress} from '@site/src/telemark/useProgress';
 import {getTrack, type TrackId} from '@site/src/telemark/tracks';
 import type {Tier} from '@site/src/telemark/curriculum';
 import Reveal from '@site/src/components/ui/Reveal';
+import {useLearnerProfile} from '@site/src/telemark/useLearnerProfile';
+import {BLOCKS_LESSONS, BLOCKS_UNITS} from '@site/src/telemark/blocksCurriculum';
 import styles from './TrackOverview.module.css';
 
 const MOBILE_UNIT_PREVIEW_COUNT = 5;
@@ -36,7 +38,14 @@ export default function TrackOverview({
   const companion = companionTrackId ? getTrack(companionTrackId) : null;
   const {user} = useAuth();
   const {isComplete} = useProgress(user);
+  const {profile, status: profileStatus} = useLearnerProfile();
   const [showAllMobile, setShowAllMobile] = useState(false);
+  const [blocksOpen, setBlocksOpen] = useState(true);
+
+  useEffect(() => {
+    if (trackId !== 'software' || profileStatus !== 'ready' || !profile) return;
+    setBlocksOpen(profile.blocksPlacement !== 'auto_completed');
+  }, [trackId, profileStatus, profile]);
 
   const noun = trackId === 'mechanical' ? 'Module' : 'Unit';
 
@@ -82,6 +91,46 @@ export default function TrackOverview({
           </Link>
         </div>
       </section>
+
+      {trackId === 'software' && (
+        <section className={styles.foundations}>
+          <button
+            type="button"
+            className={styles.foundationsToggle}
+            aria-expanded={blocksOpen}
+            onClick={() => setBlocksOpen((current) => !current)}
+          >
+            <span aria-hidden="true">{blocksOpen ? '▾' : '▸'}</span>
+            <span className={styles.foundationsText}>
+              <strong>Blocks Foundations</strong>
+              <small>
+                {BLOCKS_LESSONS.filter((lesson) => isComplete(lesson.id)).length}
+                {' / '}{BLOCKS_LESSONS.length} lessons complete
+              </small>
+            </span>
+          </button>
+          {blocksOpen && (
+            <div className={styles.grid}>
+              {BLOCKS_UNITS.map((unit) => {
+                const unitLessons = BLOCKS_LESSONS.filter((lesson) => lesson.unitSlug === unit.slug);
+                const done = unitLessons.filter((lesson) => isComplete(lesson.id)).length;
+                return (
+                  <Link key={unit.id} to={unit.overviewPath} className={styles.card}>
+                    <span className={styles.cardNum}>Blocks {unit.label}</span>
+                    <span className={styles.cardTitle}>{unit.title}</span>
+                    <span className={styles.cardDesc}>{unit.desc}</span>
+                    <span className={styles.cardMeta}>
+                      <span className={`${styles.tag} ${done === unitLessons.length ? styles.tagDone : styles.tagProgress}`}>
+                        {done} of {unitLessons.length} complete
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       <h2 className={styles.sectionTitle}>{noun}s</h2>
 

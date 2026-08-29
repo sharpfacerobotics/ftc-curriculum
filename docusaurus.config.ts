@@ -129,6 +129,17 @@ const config: Config = {
           'https://github.com/sharpfacerobotics/ftc-curriculum/tree/main/',
       },
     ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'blocks',
+        path: 'blocks',
+        routeBasePath: 'blocks',
+        sidebarPath: './sidebarsBlocks.ts',
+        editUrl:
+          'https://github.com/sharpfacerobotics/ftc-curriculum/tree/main/',
+      },
+    ],
   ],
 
   themeConfig: {

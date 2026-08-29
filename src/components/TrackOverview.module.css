@@ -117,6 +117,41 @@
   text-transform: uppercase;
 }
 
+.foundations {
+  margin: 0 0 var(--tm-sp-6);
+}
+
+.foundationsToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--tm-sp-3);
+  width: 100%;
+  margin-bottom: var(--tm-sp-3);
+  padding: var(--tm-sp-4) var(--tm-sp-5);
+  border: 1px solid var(--tm-accent-a35);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.foundationsText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tm-sp-1);
+}
+
+.foundationsText small {
+  color: var(--tm-text-soft);
+}
+
+.foundationsToggle:focus-visible {
+  outline: 3px solid var(--tm-accent-a55);
+  outline-offset: 2px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));

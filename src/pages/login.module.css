@@ -153,6 +153,13 @@
   letter-spacing: 0.05em;
 }
 
+.error {
+  margin: 0 0 1rem;
+  color: var(--tm-danger);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+}
+
 [data-theme='light'] .privacy {
   color: #111820;
 }

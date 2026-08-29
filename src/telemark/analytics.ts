@@ -19,7 +19,12 @@ export type AnalyticsEventName =
   | 'quiz_graded'
   | 'calculator_used'
   | 'cad_checked'
-  | 'ai_question_asked';
+  | 'ai_question_asked'
+  | 'personalization_complete'
+  | 'blocks_placement_complete'
+  | 'blocks_challenge_pass'
+  | 'blocks_challenge_skip'
+  | 'blocks_exit_choice';
 
 type AnalyticsParameters = Record<string, string | number | boolean>;
 

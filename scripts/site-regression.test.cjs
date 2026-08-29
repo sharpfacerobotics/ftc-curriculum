@@ -252,23 +252,26 @@ assert.match(unitOverview, /getAnyUnitBySlug/, 'UnitOverview must resolve units 
 assert.match(unitOverview, /getAnyLessonsForUnit/);
 assert.match(useProgress, /getAnyLessonsForUnit/, 'progress must complete units in either track');
 // Path handling remains track-aware even though both tracks are open.
-assert.match(accessPolicy, /\(unit\|module\)-/);
+assert.match(accessPolicy, /\(blocks-unit\|unit\|module\)-/);
 assert.match(accessPolicy, /export function getUnitSlug/);
 assert.match(docItem, /getUnitSlug/);
 
 // Search indexes both tracks.
 assert.match(searchPlugin, /routeBase: '\/mechanical'/);
-assert.match(searchPlugin, /\(\?:unit\|module\)-/);
+assert.match(searchPlugin, /routeBase: '\/blocks'/);
+assert.match(searchPlugin, /\(\?:blocks-unit\|unit\|module\)-/);
 
 // Discovery surfaces.
 // Asserted as reachability rather than by component name: what matters is that
 // a visitor can get into either track from the homepage, not which component
 // happens to render the link this month.
-assert.match(homepage, /units=\{CURRICULUM_UNITS\}/, 'homepage must list software units');
+assert.match(homepage, /units=\{SOFTWARE_HOME_UNITS\}/, 'homepage must list blocks before Java units');
 assert.match(homepage, /units=\{MECHANICAL_UNITS\}/, 'homepage must list mechanical modules');
 assert.ok(
-  homepage.includes('/docs/unit-00/') && homepage.includes('/mechanical/module-00/'),
-  'homepage must link into the start of both tracks',
+  homepage.includes('/blocks')
+    && homepage.includes('/docs/unit-00/')
+    && homepage.includes('/mechanical/module-00/'),
+  'homepage must link into blocks and both main tracks',
 );
 assert.match(homepage, /MECHANICAL_LESSON_COUNT/);
 assert.match(trackOverview, /companionTrackId/);

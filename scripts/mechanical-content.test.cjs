@@ -139,7 +139,7 @@ assert.match(
 const accessPolicy = fs.readFileSync(path.join(root, 'src/telemark/accessPolicy.ts'), 'utf8');
 assert.match(
   accessPolicy,
-  /\(unit\|module\)-/,
+  /\(blocks-unit\|unit\|module\)-/,
   'accessPolicy must recognize engineering module paths',
 );
 

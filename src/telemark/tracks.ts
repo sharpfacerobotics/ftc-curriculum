@@ -16,6 +16,14 @@ import {
   getMechanicalLessonsForUnit,
   getMechanicalUnitBySlug,
 } from './mechanical';
+import {
+  BLOCKS_LESSONS,
+  BLOCKS_LESSON_COUNT,
+  BLOCKS_UNITS,
+  BLOCKS_UNIT_COUNT,
+  getBlocksLessonsForUnit,
+  getBlocksUnitBySlug,
+} from './blocksCurriculum';
 
 /**
  * Track-aware lookups.
@@ -26,7 +34,8 @@ import {
  * require touching every call site.
  */
 
-export type TrackId = 'software' | 'mechanical';
+export type MainTrackId = 'software' | 'mechanical';
+export type TrackId = MainTrackId | 'blocks';
 
 export interface Track {
   id: TrackId;
@@ -41,7 +50,7 @@ export interface Track {
   lessonCount: number;
 }
 
-export const SOFTWARE_TRACK: Track = {
+export const SOFTWARE_TRACK: Track & {id: 'software'} = {
   id: 'software',
   label: 'Software Track',
   shortLabel: 'Software',
@@ -53,7 +62,7 @@ export const SOFTWARE_TRACK: Track = {
   lessonCount: CURRICULUM_LESSON_COUNT,
 };
 
-export const MECHANICAL_TRACK: Track = {
+export const MECHANICAL_TRACK: Track & {id: 'mechanical'} = {
   id: 'mechanical',
   label: 'Mechanical Track',
   shortLabel: 'Mechanical',
@@ -65,40 +74,61 @@ export const MECHANICAL_TRACK: Track = {
   lessonCount: MECHANICAL_LESSON_COUNT,
 };
 
-export const TRACKS: Track[] = [SOFTWARE_TRACK, MECHANICAL_TRACK];
+export const BLOCKS_TRACK: Track = {
+  id: 'blocks',
+  label: 'Software: Blocks Foundations',
+  shortLabel: 'Blocks',
+  tagline: 'Core programming skills before FTC Java.',
+  indexPath: '/blocks',
+  units: BLOCKS_UNITS,
+  lessons: BLOCKS_LESSONS,
+  unitCount: BLOCKS_UNIT_COUNT,
+  lessonCount: BLOCKS_LESSON_COUNT,
+};
 
-export const TOTAL_UNIT_COUNT = CURRICULUM_UNIT_COUNT + MECHANICAL_UNIT_COUNT;
-export const TOTAL_LESSON_COUNT = CURRICULUM_LESSON_COUNT + MECHANICAL_LESSON_COUNT;
+export const MAIN_TRACKS: Array<typeof SOFTWARE_TRACK | typeof MECHANICAL_TRACK> = [
+  SOFTWARE_TRACK,
+  MECHANICAL_TRACK,
+];
+/** Public top-level choices. Blocks is nested inside Software as its prerequisite. */
+export const TRACKS: Track[] = MAIN_TRACKS;
+
+export const TOTAL_UNIT_COUNT = BLOCKS_UNIT_COUNT + CURRICULUM_UNIT_COUNT + MECHANICAL_UNIT_COUNT;
+export const TOTAL_LESSON_COUNT = BLOCKS_LESSON_COUNT + CURRICULUM_LESSON_COUNT + MECHANICAL_LESSON_COUNT;
 
 /** Engineering slugs are module-NN; everything else belongs to the software track. */
 export function trackForUnitSlug(unitSlug: string): TrackId {
+  if (unitSlug.startsWith('blocks-unit-')) return 'blocks';
   return unitSlug.startsWith('module-') ? 'mechanical' : 'software';
 }
 
 export function getTrack(trackId: TrackId): Track {
+  if (trackId === 'blocks') return BLOCKS_TRACK;
   return trackId === 'mechanical' ? MECHANICAL_TRACK : SOFTWARE_TRACK;
 }
 
 /** Look up a unit in either track. */
 export function getAnyUnitBySlug(unitSlug: string): CurriculumUnit | undefined {
-  return trackForUnitSlug(unitSlug) === 'mechanical'
-    ? getMechanicalUnitBySlug(unitSlug)
-    : getUnitBySlug(unitSlug);
+  const track = trackForUnitSlug(unitSlug);
+  if (track === 'blocks') return getBlocksUnitBySlug(unitSlug);
+  return track === 'mechanical' ? getMechanicalUnitBySlug(unitSlug) : getUnitBySlug(unitSlug);
 }
 
 /** Look up a unit's lessons in either track. */
 export function getAnyLessonsForUnit(unitSlug: string): CurriculumLesson[] {
-  return trackForUnitSlug(unitSlug) === 'mechanical'
+  const track = trackForUnitSlug(unitSlug);
+  if (track === 'blocks') return getBlocksLessonsForUnit(unitSlug);
+  return track === 'mechanical'
     ? getMechanicalLessonsForUnit(unitSlug)
     : getLessonsForUnit(unitSlug);
 }
 
 /** Every lesson across both tracks, used by dashboard and progress summaries. */
 export function getAllLessons(): CurriculumLesson[] {
-  return [...CURRICULUM_LESSONS, ...MECHANICAL_LESSONS];
+  return [...BLOCKS_LESSONS, ...CURRICULUM_LESSONS, ...MECHANICAL_LESSONS];
 }
 
 /** Every unit across both tracks. */
 export function getAllUnits(): CurriculumUnit[] {
-  return [...CURRICULUM_UNITS, ...MECHANICAL_UNITS];
+  return [...BLOCKS_UNITS, ...CURRICULUM_UNITS, ...MECHANICAL_UNITS];
 }

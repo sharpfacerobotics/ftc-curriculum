@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from '@docusaurus/router';
 import Layout from '@theme/Layout';
 import useBaseUrl from '@docusaurus/useBaseUrl';
@@ -6,25 +6,29 @@ import { useAuth } from '../telemark/useAuth';
 import { signInWithGoogle } from '../telemark/googleAuth';
 import styles from './login.module.css';
 import {useBasePath} from '@site/src/telemark/useBasePath';
+import {useLearnerProfile} from '@site/src/telemark/useLearnerProfile';
 
 export default function LoginPage(): React.JSX.Element {
   const { user, loading } = useAuth();
+  const {status: profileStatus} = useLearnerProfile();
+  const [error, setError] = useState<string | null>(null);
   const history           = useHistory();
   const basePath = useBasePath();
 
   // Redirect to dashboard if already signed in
   useEffect(() => {
-    if (!loading && user) {
-      history.push(basePath('/dashboard'));
+    if (!loading && user && ['absent', 'ready', 'error'].includes(profileStatus)) {
+      history.push(basePath(profileStatus === 'absent' ? '/personalize' : '/dashboard'));
     }
-  }, [user, loading, history]);
+  }, [user, loading, profileStatus, history, basePath]);
 
   async function handleSignIn() {
+    setError(null);
     try {
       await signInWithGoogle();
-      history.push(basePath('/dashboard'));
     } catch (e) {
       console.error(e);
+      setError(e instanceof Error ? e.message : 'Could not sign in with Google.');
     }
   }
 
@@ -58,6 +62,8 @@ export default function LoginPage(): React.JSX.Element {
             </svg>
             Continue with Google
           </button>
+
+          {error && <p className={styles.error} role="alert">{error}</p>}
 
           <p className={styles.privacy}>
             Progress already saved in this browser will be merged into your account.

@@ -12,7 +12,7 @@ function walk(directory) {
 }
 
 // Both tracks share the same prose rules.
-const contentRoots = ['docs', 'mechanical']
+const contentRoots = ['docs', 'mechanical', 'blocks']
   .map((name) => path.join(root, name))
   .filter((directory) => fs.existsSync(directory));
 

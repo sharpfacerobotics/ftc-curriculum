@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { auth } from './firebase';
 
 export function useAuth(): { user: User | null; loading: boolean } {
@@ -8,6 +8,12 @@ export function useAuth(): { user: User | null; loading: boolean } {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser && !firebaseUser.emailVerified) {
+        setUser(null);
+        setLoading(false);
+        void signOut(auth);
+        return;
+      }
       setUser(firebaseUser);
       setLoading(false);
     });

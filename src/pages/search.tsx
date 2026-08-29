@@ -9,7 +9,7 @@ interface SearchEntry {
   title: string;
   label: string;
   path: string;
-  track: 'software' | 'mechanical';
+  track: 'blocks' | 'software' | 'mechanical';
   unit: number | null;
   excerpt: string;
 }
@@ -34,7 +34,9 @@ export default function SearchPage(): React.JSX.Element {
   const results = useMemo(() => {
     if (normalized.length < 2) return [];
     return entries
-      .filter((entry) => track === 'all' || entry.track === track)
+      .filter((entry) => track === 'all'
+        || entry.track === track
+        || (track === 'software' && entry.track === 'blocks'))
       .filter((entry) => (
         `${entry.title} ${entry.label} ${entry.excerpt}`.toLowerCase().includes(normalized)
       ))
@@ -48,7 +50,7 @@ export default function SearchPage(): React.JSX.Element {
           <p className={styles.eyebrow}>// curriculum.search</p>
           <h1 className={styles.title}>Find a Telemark lesson</h1>
           <p className={styles.intro}>
-            Search lesson titles and text across both open curriculum tracks.
+            Search lesson titles and text across every open Telemark curriculum.
           </p>
 
           <label htmlFor="telemark-search" className="sr-only">Search lessons</label>
@@ -92,7 +94,9 @@ export default function SearchPage(): React.JSX.Element {
                   <div className={styles.resultHeader}>
                     <h2 className={styles.resultTitle}>{entry.title}</h2>
                     <span className={styles.badge}>
-                      {entry.track === 'mechanical' ? 'Mechanical' : 'Software'}
+                      {entry.track === 'mechanical'
+                        ? 'Mechanical'
+                        : entry.track === 'blocks' ? 'Software · Blocks' : 'Software'}
                     </span>
                   </div>
                   <p className={styles.path}>{entry.path}</p>

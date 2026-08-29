@@ -2,6 +2,8 @@ import React, {type ReactNode} from 'react';
 import ReadingProgress from '@site/src/components/ui/ReadingProgress';
 import AskLauncher from '@site/src/components/ui/AskLauncher';
 import ClickSpark from '@site/src/components/vendor/reactbits/ClickSpark';
+import PersonalizationGate from '@site/src/components/PersonalizationGate';
+import {LearnerProfileProvider} from '@site/src/telemark/useLearnerProfile';
 
 interface RootProps {
   children: ReactNode;
@@ -9,7 +11,8 @@ interface RootProps {
 
 export default function Root({children}: RootProps): React.JSX.Element {
   return (
-    <>
+    <LearnerProfileProvider>
+      <PersonalizationGate>
       <ReadingProgress />
       <AskLauncher />
       {/* Wraps the page rather than sitting beside it: the canvas is sized by
@@ -23,6 +26,7 @@ export default function Root({children}: RootProps): React.JSX.Element {
       >
         {children}
       </ClickSpark>
-    </>
+      </PersonalizationGate>
+    </LearnerProfileProvider>
   );
 }

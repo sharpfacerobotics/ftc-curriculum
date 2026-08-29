@@ -5,15 +5,18 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../telemark/firebase';
 import { useAuth } from '../telemark/useAuth';
 import { useProgress } from '../telemark/useProgress';
-import { getTrack, TRACKS, type TrackId } from '../telemark/tracks';
+import { getTrack, MAIN_TRACKS, type MainTrackId } from '../telemark/tracks';
 import {parseProgressExport, serializeProgress} from '../telemark/progressStore';
 import {trackEvent} from '../telemark/analytics';
+import {useLearnerProfile} from '../telemark/useLearnerProfile';
+import {BLOCKS_LESSONS, BLOCKS_UNITS} from '../telemark/blocksCurriculum';
 import styles from './dashboard.module.css';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage(): React.JSX.Element {
   const { user, loading }          = useAuth();
+  const {profile, status: profileStatus} = useLearnerProfile();
   const {
     progress,
     loading: progressLoading,
@@ -26,7 +29,8 @@ export default function DashboardPage(): React.JSX.Element {
     unmarkMany,
     mergeImportedProgress,
   } = useProgress(user);
-  const [activeTrack, setActiveTrack] = useState<TrackId>('software');
+  const [activeTrack, setActiveTrack] = useState<MainTrackId>('software');
+  const [blocksSectionOpen, setBlocksSectionOpen] = useState(true);
   const [expandedUnits, setExpandedUnits] = useState<Record<string, boolean>>({});
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
   const [savingUnit, setSavingUnit] = useState<string | null>(null);
@@ -35,9 +39,29 @@ export default function DashboardPage(): React.JSX.Element {
   const previousStatusesRef = useRef<Record<string, string>>({});
   const importInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (!user || profileStatus !== 'ready' || !profile) return;
+    const blocksIncomplete = BLOCKS_LESSONS.some((lesson) => !isComplete(lesson.id));
+    if ((profile.blocksPlacement === 'required' && blocksIncomplete)
+      || profile.selectedTracks.includes('software')) {
+      setActiveTrack('software');
+    } else {
+      setActiveTrack('mechanical');
+    }
+  }, [user, profileStatus, profile, isComplete]);
+
+  useEffect(() => {
+    if (!user || profileStatus !== 'ready' || !profile) return;
+    setBlocksSectionOpen(profile.blocksPlacement !== 'auto_completed');
+  }, [user, profileStatus, profile]);
+
   const track = getTrack(activeTrack);
-  const trackLessons = track.lessons;
-  const trackUnits = track.units;
+  const trackLessons = useMemo(() => activeTrack === 'software'
+    ? [...BLOCKS_LESSONS, ...track.lessons]
+    : track.lessons, [activeTrack, track]);
+  const trackUnits = useMemo(() => activeTrack === 'software'
+    ? [...BLOCKS_UNITS, ...track.units]
+    : track.units, [activeTrack, track]);
 
   const handled    = trackLessons.filter((lesson) => isComplete(lesson.id)).length;
   const skipped    = trackLessons.filter((lesson) => isSkipped(lesson.id)).length;
@@ -261,6 +285,11 @@ export default function DashboardPage(): React.JSX.Element {
                   Import
                 </button>
                 {user && (
+                  <Link to="/personalize" className={styles.signOutBtn}>
+                    Edit learning path
+                  </Link>
+                )}
+                {user && (
                   <button type="button" className={styles.signOutBtn} onClick={handleSignOut}>
                     Sign out
                   </button>
@@ -274,8 +303,11 @@ export default function DashboardPage(): React.JSX.Element {
 
           {/* ── Track switcher ── */}
           <div className={styles.trackSwitcher} role="group" aria-label="Choose a track">
-            {TRACKS.map((option) => {
-              const optionHandled = option.lessons.filter((lesson) =>
+            {MAIN_TRACKS.map((option) => {
+              const optionLessons = option.id === 'software'
+                ? [...BLOCKS_LESSONS, ...option.lessons]
+                : option.lessons;
+              const optionHandled = optionLessons.filter((lesson) =>
                 isComplete(lesson.id),
               ).length;
               return (
@@ -290,7 +322,7 @@ export default function DashboardPage(): React.JSX.Element {
                 >
                   <span className={styles.trackTabName}>{option.shortLabel}</span>
                   <span className={styles.trackTabMeta}>
-                    {optionHandled} / {option.lessons.length}
+                    {optionHandled} / {optionLessons.length}
                   </span>
                 </button>
               );
@@ -322,7 +354,7 @@ export default function DashboardPage(): React.JSX.Element {
             <div className={styles.progressHeader}>
               <span className={styles.progressLabel}>
                 {trackUnits.length}{' '}
-                {activeTrack === 'mechanical' ? 'modules' : 'live units'} ·{' '}
+                {activeTrack === 'mechanical' ? 'modules' : 'units'} ·{' '}
                 {total} lessons
               </span>
               <span className={styles.progressPct}>{percentage}%</span>
@@ -339,7 +371,25 @@ export default function DashboardPage(): React.JSX.Element {
           <div className={styles.lessonList}>
             <p className={styles.listLabel}>// progress.byUnit</p>
             {actionError && <p className={styles.actionError} role="alert">{actionError}</p>}
+            {activeTrack === 'software' && (
+              <button
+                type="button"
+                className={styles.blocksSectionToggle}
+                aria-expanded={blocksSectionOpen}
+                onClick={() => setBlocksSectionOpen((current) => !current)}
+              >
+                <span aria-hidden="true">{blocksSectionOpen ? '▾' : '▸'}</span>
+                <span>
+                  <strong>Blocks Foundations</strong>
+                  <small>
+                    {BLOCKS_LESSONS.filter((lesson) => isComplete(lesson.id)).length}
+                    {' / '}{BLOCKS_LESSONS.length} lessons complete
+                  </small>
+                </span>
+              </button>
+            )}
             {units.map((unit) => {
+              if (unit.slug.startsWith('blocks-unit-') && !blocksSectionOpen) return null;
               const isExpanded = expandedUnits[unit.slug]
                 ?? (unit.status === 'in-progress' || unit.status === 'reviewing');
               const statusLabel =

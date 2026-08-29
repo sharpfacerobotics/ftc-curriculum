@@ -299,6 +299,36 @@
   margin-bottom: 0;
 }
 
+.blocksSectionToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--tm-sp-3);
+  width: 100%;
+  padding: var(--tm-sp-4) var(--tm-sp-5);
+  border: 1px solid var(--tm-accent-a35);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-accent-a08);
+  color: var(--tm-text-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.blocksSectionToggle > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tm-sp-1);
+}
+
+.blocksSectionToggle small {
+  color: var(--tm-text-soft);
+}
+
+.blocksSectionToggle:focus-visible {
+  outline: 3px solid var(--tm-accent-a55);
+  outline-offset: 2px;
+}
+
 /* A unit whose menu is open has to outrank the units below it, since they are
    later siblings and would otherwise paint over the popover. */
 .unitGroup:has([role='menu']) {

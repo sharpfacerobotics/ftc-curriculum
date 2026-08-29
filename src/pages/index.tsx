@@ -13,6 +13,7 @@ import {
   CURRICULUM_LESSON_COUNT,
   CURRICULUM_UNIT_COUNT,
   CURRICULUM_UNITS,
+  type CurriculumUnit,
   type Tier,
 } from '../telemark/curriculum';
 import {
@@ -20,7 +21,10 @@ import {
   MECHANICAL_UNITS,
   MECHANICAL_UNIT_COUNT,
 } from '../telemark/mechanical';
-import {TOTAL_LESSON_COUNT} from '../telemark/tracks';
+import {
+  BLOCKS_LESSON_COUNT,
+} from '../telemark/blocksCurriculum';
+import {TOTAL_LESSON_COUNT, TOTAL_UNIT_COUNT} from '../telemark/tracks';
 import CountUp from '@site/src/components/vendor/reactbits/CountUp';
 import SpotlightCard from '@site/src/components/vendor/reactbits/SpotlightCard';
 
@@ -31,6 +35,24 @@ const TIER_CLASS: Record<Tier, string> = {
   Intermediate: 'tagInter',
   Advanced:     'tagAdv',
 };
+
+const BLOCKS_FOUNDATION_CARD: CurriculumUnit = {
+  id: 'BLOCKS_FOUNDATIONS',
+  label: 'Blocks',
+  title: 'Programming Foundations',
+  desc: 'Learn variables, decisions, loops, functions, lists, and debugging before Java.',
+  tier: 'Beginner',
+  slug: 'blocks',
+  overviewPath: '/blocks',
+  startPath: '/blocks/blocks-unit-00/workspace-and-run-controls',
+  nextPath: '/docs/unit-00',
+  nextLabel: 'Java Unit 0',
+  lessonCount: BLOCKS_LESSON_COUNT,
+  overview: 'Six block-coding units that prepare a new programmer for the Java curriculum.',
+  outcomes: [],
+};
+
+const SOFTWARE_HOME_UNITS = [BLOCKS_FOUNDATION_CARD, ...CURRICULUM_UNITS];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -215,7 +237,7 @@ function HeroSection(): React.JSX.Element {
 
 const FIGURES = [
   {value: TOTAL_LESSON_COUNT, label: 'Lessons', count: true},
-  {value: CURRICULUM_UNIT_COUNT + MECHANICAL_UNIT_COUNT, label: 'Units and modules', count: true},
+  {value: TOTAL_UNIT_COUNT, label: 'Units and modules', count: true},
   {value: TOOL_CATALOG.length, label: 'Calculators and checks', count: true},
 ];
 
@@ -257,7 +279,7 @@ function CurriculumSection({
   blurb,
   stat,
 }: {
-  units: typeof CURRICULUM_UNITS;
+  units: CurriculumUnit[];
   label: string;
   id: string;
   heading: string;
@@ -579,12 +601,12 @@ export default function Home(): React.JSX.Element {
 
         <Band>
           <CurriculumSection
-            units={CURRICULUM_UNITS}
+            units={SOFTWARE_HOME_UNITS}
             label="Software track"
             id="curriculum"
-            heading={`${CURRICULUM_UNIT_COUNT} units that grow with your team`}
-            blurb="Start at the beginning or go straight to what your team needs."
-            stat={`${CURRICULUM_UNIT_COUNT} units · ${CURRICULUM_LESSON_COUNT} lessons`}
+            heading={`Blocks foundations and ${CURRICULUM_UNIT_COUNT} Java units`}
+            blurb="Complete beginners can start with Blocks. Experienced programmers can open Java Unit 0 directly."
+            stat={`${BLOCKS_LESSON_COUNT + CURRICULUM_LESSON_COUNT} software lessons`}
           />
         </Band>
 

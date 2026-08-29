@@ -18,6 +18,9 @@ new Function('exports', 'require', 'module', outputText)(
 );
 
 const {
+  addAutomaticCompletions,
+  clearAutomaticCompletions,
+  completeLessonsManually,
   mergeProgress,
   normalizeProgress,
   parseProgressExport,
@@ -34,6 +37,7 @@ assert.deepEqual(
   {
     completedLessons: ['unit-01/a', 'unit-01/b'],
     skippedLessons: ['unit-01/b'],
+    autoCompletedLessons: [],
     reviewingUnits: ['unit-01'],
     lastLesson: 'unit-01/b',
   },
@@ -45,12 +49,46 @@ const merged = mergeProgress(
 );
 assert.deepEqual(merged.completedLessons, ['unit-01/a', 'module-02/b', 'unit-03/c']);
 assert.deepEqual(merged.skippedLessons, ['unit-03/c']);
+assert.deepEqual(merged.autoCompletedLessons, []);
 assert.equal(merged.lastLesson, 'module-02/b');
 
 const exported = serializeProgress(merged);
 assert.match(exported, /"format": "telemark-progress"/);
+assert.match(exported, /"version": 2/);
 assert.deepEqual(parseProgressExport(exported), merged);
 assert.deepEqual(parseProgressExport(JSON.stringify(merged)), merged);
+const versionOne = JSON.stringify({
+  format: 'telemark-progress',
+  version: 1,
+  exportedAt: '2025-01-01T00:00:00.000Z',
+  progress: {completedLessons: ['unit-00/a']},
+});
+assert.deepEqual(parseProgressExport(versionOne).completedLessons, ['unit-00/a']);
+
+const placed = addAutomaticCompletions(
+  {completedLessons: ['blocks-unit-00/manual']},
+  ['blocks-unit-00/manual', 'blocks-unit-00/placed'],
+);
+assert.deepEqual(placed.completedLessons, ['blocks-unit-00/manual', 'blocks-unit-00/placed']);
+assert.deepEqual(placed.autoCompletedLessons, ['blocks-unit-00/placed']);
+
+const manual = completeLessonsManually(placed, ['blocks-unit-00/placed']);
+assert.deepEqual(manual.autoCompletedLessons, []);
+assert.deepEqual(manual.completedLessons, ['blocks-unit-00/manual', 'blocks-unit-00/placed']);
+
+const changedToBeginner = clearAutomaticCompletions(placed, [
+  'blocks-unit-00/manual',
+  'blocks-unit-00/placed',
+]);
+assert.deepEqual(changedToBeginner.completedLessons, ['blocks-unit-00/manual']);
+assert.deepEqual(changedToBeginner.autoCompletedLessons, []);
+
+const cloudAutoAndLocalManual = mergeProgress(
+  addAutomaticCompletions({}, ['blocks-unit-00/placed']),
+  {completedLessons: ['blocks-unit-00/placed']},
+);
+assert.deepEqual(cloudAutoAndLocalManual.autoCompletedLessons, []);
+assert.deepEqual(cloudAutoAndLocalManual.completedLessons, ['blocks-unit-00/placed']);
 assert.throws(() => parseProgressExport('{bad json'), /not valid JSON/);
 assert.throws(() => parseProgressExport('{"format":"something-else"}'), /unsupported format/);
 

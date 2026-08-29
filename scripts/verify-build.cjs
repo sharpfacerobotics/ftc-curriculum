@@ -25,6 +25,7 @@ function loadTelemark(name) {
 
 const software = loadTelemark('curriculum');
 const mechanical = loadTelemark('mechanical');
+const blocks = loadTelemark('blocksCurriculum');
 
 const buildRoot = path.resolve(__dirname, '../build');
 
@@ -52,18 +53,25 @@ const homepage = fs.readFileSync(path.join(buildRoot, 'index.html'), 'utf8');
 // counts, the mechanical module and lesson counts, and the combined total in
 // the stats bar.
 assert.match(homepage, />16</, 'Homepage must render the 16 software units');
-const softwareStat = `${software.CURRICULUM_UNIT_COUNT} units · ${software.CURRICULUM_LESSON_COUNT} lessons`;
+const softwareStat = `${software.CURRICULUM_LESSON_COUNT + blocks.BLOCKS_LESSON_COUNT} software lessons`;
 const mechanicalStat = `${mechanical.MECHANICAL_UNIT_COUNT} modules · ${mechanical.MECHANICAL_LESSON_COUNT} lessons`;
-const combinedLessons = software.CURRICULUM_LESSON_COUNT + mechanical.MECHANICAL_LESSON_COUNT;
+const combinedLessons = software.CURRICULUM_LESSON_COUNT
+  + mechanical.MECHANICAL_LESSON_COUNT
+  + blocks.BLOCKS_LESSON_COUNT;
 assert.ok(homepage.includes(softwareStat), `Homepage must render "${softwareStat}"`);
 assert.ok(homepage.includes(mechanicalStat), `Homepage must render "${mechanicalStat}"`);
 assert.match(homepage, new RegExp(`>${combinedLessons}<`), `Homepage must render the combined lesson count ${combinedLessons}`);
-assert.match(homepage, />2</, 'Homepage stats bar must render the track count');
 assert.match(homepage, /telemark-build-commit/);
 
 findRoute('/curriculum');
 findRoute('/simulator');
 findRoute('/search');
+findRoute('/blocks');
+findRoute('/blocks/blocks-unit-00');
+findRoute('/blocks/blocks-unit-00/workspace-and-run-controls');
+findRoute('/blocks/blocks-unit-05/delivery-controller-challenge');
+findRoute('/blocks/next-step');
+findRoute('/blocks/python-resources');
 findRoute('/docs/unit-00');
 findRoute('/docs/unit-00/classes-and-objects');
 findRoute('/docs/unit-01/prerequisites');
@@ -95,7 +103,7 @@ for (const file of walk(buildRoot).filter((name) => name.endsWith('.html'))) {
   }
 }
 
-const sourceDirs = ['mechanical', 'docs']
+const sourceDirs = ['mechanical', 'docs', 'blocks']
   .map((name) => path.join(repoRoot, name))
   .filter((directory) => fs.existsSync(directory));
 
@@ -104,7 +112,7 @@ let linksChecked = 0;
 
 for (const file of sourceDirs.flatMap(walk).filter((name) => name.endsWith('.mdx'))) {
   const text = fs.readFileSync(file, 'utf8');
-  for (const match of text.matchAll(/\]\((\/(?:mechanical|docs)[^)#\s]*)\)/g)) {
+  for (const match of text.matchAll(/\]\((\/(?:mechanical|docs|blocks)[^)#\s]*)\)/g)) {
     linksChecked += 1;
     const route = match[1].replace(/\/+$/, '');
     if (!builtRoutes.has(route)) {

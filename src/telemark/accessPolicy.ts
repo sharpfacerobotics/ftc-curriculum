@@ -1,5 +1,5 @@
-/** Matches a software unit (unit-NN) or engineering module (module-NN). */
-const TRACK_SEGMENT = /(?:^|\/)(unit|module)-(\d{1,2})(?:\/|$)/i;
+/** Matches a blocks unit, software unit, or engineering module. */
+const TRACK_SEGMENT = /(?:^|\/)(blocks-unit|unit|module)-(\d{1,2})(?:\/|$)/i;
 
 export function getUnitNumber(value: string | null | undefined): number | null {
   if (!value) return null;

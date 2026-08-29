@@ -5,6 +5,9 @@ import {getAnyLessonsForUnit} from './tracks';
 import {saveCloudProgress, syncLocalProgressWithUser} from './progressCloud';
 import {
   PROGRESS_CHANGED_EVENT,
+  addAutomaticCompletions,
+  clearAutomaticCompletions,
+  completeLessonsManually,
   emptyProgress,
   mergeProgress,
   normalizeProgress,
@@ -95,9 +98,10 @@ export function useProgress(user: User | null) {
     const unitLessonIds = getAnyLessonsForUnit(unitSlug).map((lesson) => lesson.id);
     const unitNowComplete = unitLessonIds.length > 0
       && unitLessonIds.every((id) => newCompleted.includes(id));
+    const manual = completeLessonsManually(progress, [lessonId]);
     await saveProgress({
+      ...manual,
       completedLessons: newCompleted,
-      skippedLessons: progress.skippedLessons.filter((id) => id !== lessonId),
       reviewingUnits: unitNowComplete
         ? progress.reviewingUnits.filter((slug) => slug !== unitSlug)
         : progress.reviewingUnits,
@@ -113,9 +117,9 @@ export function useProgress(user: User | null) {
     if (additions.length === 0 && !skippedToComplete) return;
 
     const unitSlug = unitSlugForLessons(lessonIds);
+    const manual = completeLessonsManually(progress, lessonIds);
     await saveProgress({
-      completedLessons: [...progress.completedLessons, ...additions],
-      skippedLessons: progress.skippedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
+      ...manual,
       reviewingUnits: unitSlug
         ? progress.reviewingUnits.filter((slug) => slug !== unitSlug)
         : progress.reviewingUnits,
@@ -137,6 +141,7 @@ export function useProgress(user: User | null) {
     if (lessonIds.length === 0) return;
     const unitSlug = unitSlugForLessons(lessonIds);
     await saveProgress({
+      ...progress,
       completedLessons: [
         ...progress.completedLessons,
         ...lessonIds.filter((lessonId) => !progress.completedLessons.includes(lessonId)),
@@ -145,6 +150,9 @@ export function useProgress(user: User | null) {
         ...progress.skippedLessons,
         ...lessonIds.filter((lessonId) => !progress.skippedLessons.includes(lessonId)),
       ],
+      autoCompletedLessons: progress.autoCompletedLessons.filter(
+        (lessonId) => !lessonIds.includes(lessonId),
+      ),
       reviewingUnits: unitSlug
         ? progress.reviewingUnits.filter((slug) => slug !== unitSlug)
         : progress.reviewingUnits,
@@ -160,8 +168,12 @@ export function useProgress(user: User | null) {
     if (lessonIds.length === 0) return;
     const unitSlug = unitSlugForLessons(lessonIds);
     await saveProgress({
+      ...progress,
       completedLessons: progress.completedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
       skippedLessons: progress.skippedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
+      autoCompletedLessons: progress.autoCompletedLessons.filter(
+        (lessonId) => !lessonIds.includes(lessonId),
+      ),
       reviewingUnits: unitSlug && !progress.reviewingUnits.includes(unitSlug)
         ? [...progress.reviewingUnits, unitSlug]
         : progress.reviewingUnits,
@@ -174,8 +186,12 @@ export function useProgress(user: User | null) {
     if (lessonIds.length === 0) return;
     const unitSlug = unitSlugForLessons(lessonIds);
     await saveProgress({
+      ...progress,
       completedLessons: progress.completedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
       skippedLessons: progress.skippedLessons.filter((lessonId) => !lessonIds.includes(lessonId)),
+      autoCompletedLessons: progress.autoCompletedLessons.filter(
+        (lessonId) => !lessonIds.includes(lessonId),
+      ),
       reviewingUnits: unitSlug
         ? progress.reviewingUnits.filter((slug) => slug !== unitSlug)
         : progress.reviewingUnits,
@@ -192,6 +208,7 @@ export function useProgress(user: User | null) {
         ? progress.completedLessons
         : [...progress.completedLessons, lessonId],
       skippedLessons: [...progress.skippedLessons, lessonId],
+      autoCompletedLessons: progress.autoCompletedLessons.filter((id) => id !== lessonId),
     });
   }, [progress, saveProgress]);
 
@@ -207,12 +224,34 @@ export function useProgress(user: User | null) {
   const unmarkComplete = useCallback(async (lessonId: string) => {
     const unitSlug = lessonId.split('/')[0];
     await saveProgress({
+      ...progress,
       completedLessons: progress.completedLessons.filter((id) => id !== lessonId),
       skippedLessons: progress.skippedLessons.filter((id) => id !== lessonId),
+      autoCompletedLessons: progress.autoCompletedLessons.filter((id) => id !== lessonId),
       reviewingUnits: progress.reviewingUnits.filter((slug) => slug !== unitSlug),
       lastLesson: lessonId,
     });
     trackEvent('lesson_unmark', {lesson_id: lessonId, unit_slug: unitSlug});
+  }, [progress, saveProgress]);
+
+  const markManyAutoComplete = useCallback(async (lessonIds: string[]) => {
+    const additions = lessonIds.filter(
+      (lessonId) => !progress.completedLessons.includes(lessonId),
+    );
+    if (additions.length === 0) return;
+    await saveProgress({
+      ...addAutomaticCompletions(progress, lessonIds),
+      lastLesson: progress.lastLesson,
+    });
+    trackEvent('blocks_placement_complete', {lessons_completed: additions.length});
+  }, [progress, saveProgress]);
+
+  const clearAutoCompleted = useCallback(async (lessonIds: string[]) => {
+    const removals = lessonIds.filter((lessonId) =>
+      progress.autoCompletedLessons.includes(lessonId),
+    );
+    if (removals.length === 0) return;
+    await saveProgress(clearAutomaticCompletions(progress, lessonIds));
   }, [progress, saveProgress]);
 
   const isComplete = useCallback(
@@ -234,6 +273,8 @@ export function useProgress(user: User | null) {
     mergeImportedProgress,
     markComplete,
     markManyComplete,
+    markManyAutoComplete,
+    clearAutoCompleted,
     markManySkipped,
     markSkipped,
     unskip,

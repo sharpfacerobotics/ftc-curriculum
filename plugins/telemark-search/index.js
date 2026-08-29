@@ -14,7 +14,7 @@ function readFrontMatter(source, key) {
 }
 
 function unitNumberFor(file) {
-  const match = file.match(/(?:unit|module)-(\d{2})/);
+  const match = file.match(/(?:blocks-unit|unit|module)-(\d{2})/);
   return match ? Number.parseInt(match[1], 10) : null;
 }
 
@@ -55,9 +55,13 @@ module.exports = function telemarkSearchPlugin(context) {
     name: 'telemark-search',
 
     async loadContent() {
-      // Both tracks are indexed: the software curriculum under /docs and the
-      // engineering track under /engineering.
+      // The two main tracks and the software foundations are indexed.
       const collections = [
+        {
+          track: 'blocks',
+          root: path.resolve(context.siteDir, 'blocks'),
+          routeBase: '/blocks',
+        },
         {
           track: 'software',
           root: path.resolve(context.siteDir, 'docs'),
