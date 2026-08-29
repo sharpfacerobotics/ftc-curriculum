@@ -29,7 +29,9 @@ function loadTelemark(name) {
 }
 
 const software = loadTelemark('curriculum');
+const blocks = loadTelemark('blocksCurriculum');
 const mechanical = loadTelemark('mechanical');
+const tracks = loadTelemark('tracks');
 
 const baseUrl = (process.env.TELEMARK_DEPLOY_URL
   || 'https://sharpfacerobotics.github.io/telemark').replace(/\/$/, '');
@@ -80,9 +82,9 @@ async function main() {
   // Both track cards must render their own counts, and the summary line the
   // combined total. Between them these prove the homepage is showing real
   // curriculum data for both tracks rather than one track and a placeholder.
-  const softwareStat = `${software.CURRICULUM_UNIT_COUNT} units · ${software.CURRICULUM_LESSON_COUNT} lessons`;
+  const softwareStat = `${blocks.BLOCKS_LESSON_COUNT + software.CURRICULUM_LESSON_COUNT} software lessons`;
   const mechanicalStat = `${mechanical.MECHANICAL_UNIT_COUNT} modules · ${mechanical.MECHANICAL_LESSON_COUNT} lessons`;
-  const combined = software.CURRICULUM_LESSON_COUNT + mechanical.MECHANICAL_LESSON_COUNT;
+  const combined = tracks.TOTAL_LESSON_COUNT;
   assert.ok(homepage.includes(softwareStat), `homepage missing "${softwareStat}"`);
   assert.ok(homepage.includes(mechanicalStat), `homepage missing "${mechanicalStat}"`);
   assert.match(homepage, new RegExp(`>${combined}<`), `homepage missing combined count ${combined}`);
