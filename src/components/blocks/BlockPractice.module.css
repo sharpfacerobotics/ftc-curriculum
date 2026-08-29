@@ -116,7 +116,8 @@
 
 .results {
   display: grid;
-  grid-template-columns: minmax(150px, 0.8fr) repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(270px, 1.25fr) repeat(2, minmax(0, 0.9fr));
+  align-items: start;
   gap: var(--tm-sp-3);
   padding: var(--tm-sp-4);
   border-top: 1px solid var(--tm-border);
@@ -125,7 +126,6 @@
 
 .results h3 { margin: 0 0 var(--tm-sp-2); font-size: var(--tm-fs-sm); }
 
-.scene,
 .output {
   min-height: 110px;
   margin: 0;
@@ -135,17 +135,6 @@
   background: var(--tm-surface-3);
 }
 
-.scene {
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: var(--tm-sp-2);
-  color: var(--tm-text-soft);
-  font-size: var(--tm-fs-xs);
-}
-
-.position { color: var(--tm-text); font-family: var(--tm-font-mono); }
-.arrow { color: var(--tm-accent); font-size: var(--tm-fs-2xl); line-height: 1; }
 .output { color: var(--tm-text); white-space: pre-wrap; }
 
 .checks { padding: var(--tm-sp-5); border-top: 1px solid var(--tm-border); }
@@ -167,8 +156,4 @@
   .results { grid-template-columns: 1fr; }
   .workspace :global(.blocklyToolbox),
   .workspace :global(.blocklyToolboxCategoryGroup) { min-width: 128px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .arrow { transition: none; }
 }

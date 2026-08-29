@@ -151,6 +151,24 @@ assert.equal(result.variables.last, 3);
 assert.equal(result.variables.joined, 'A10');
 assert.equal(result.variables.doubled, 20);
 assert.deepEqual(result.scene, {x: 2, y: 1, direction: 1, moves: 3});
+assert.deepEqual(
+  result.playback.filter((frame) => frame.kind === 'move').map((frame) => frame.scene),
+  [
+    {x: 1, y: 0, direction: 0, moves: 1},
+    {x: 2, y: 0, direction: 0, moves: 2},
+    {x: 2, y: 1, direction: 1, moves: 3},
+  ],
+  'movement playback should show one grid position per movement step',
+);
+assert.deepEqual(
+  result.playback.filter((frame) => frame.kind === 'turn').map((frame) => frame.scene.direction),
+  [1],
+  'turn playback should show the new direction',
+);
+assert.ok(
+  result.playback.some((frame) => frame.blockType === 'telemark_print' && frame.output.includes('accept')),
+  'print playback should include newly printed output',
+);
 
 const forever = block('telemark_start');
 forever.next = block('controls_whileUntil', {MODE: 'WHILE'}, {
@@ -159,6 +177,12 @@ forever.next = block('controls_whileUntil', {MODE: 'WHILE'}, {
 });
 const limited = interpreter.runBlockProgram({getTopBlocks: () => [forever]}, {operations: 20});
 assert.match(limited.error, /too many steps/i);
+
+const longMove = block('telemark_start');
+longMove.next = block('telemark_move', {}, {STEPS: num(5000)});
+const limitedMove = interpreter.runBlockProgram({getTopBlocks: () => [longMove]}, {operations: 20});
+assert.match(limitedMove.error, /too many steps/i);
+assert.ok(limitedMove.playback.length <= 20, 'movement playback must respect the operation limit');
 
 const recurse = block('telemark_function', {NAME: 'recurse', PARAM: 'value'}, {
   DO: block('telemark_call', {NAME: 'recurse'}, {ARG: num(1)}),
@@ -169,6 +193,7 @@ const recursive = interpreter.runBlockProgram({getTopBlocks: () => [recurse, rec
 assert.match(recursive.error, /too deeply/i);
 
 const practiceSource = fs.readFileSync(path.join(root, 'src/components/blocks/BlockPractice.tsx'), 'utf8');
+const robotSceneSource = fs.readFileSync(path.join(root, 'src/components/blocks/BlockRobotScene.tsx'), 'utf8');
 for (const requirement of [
   'telemark:blocks:workspace:v1:',
   'window.confirm',
@@ -177,6 +202,15 @@ for (const requirement of [
   'requestFullscreen',
   'aria-live="polite"',
   'Keyboard:',
+  'BlockRobotScene',
+  'PLAYBACK_DELAY_MS',
 ]) assert.ok(practiceSource.includes(requirement), `BlockPractice is missing ${requirement}`);
+for (const requirement of [
+  'Robot field',
+  'Facing',
+  'Position',
+  'Moved',
+  'aria-label={ariaLabel}',
+]) assert.ok(robotSceneSource.includes(requirement), `BlockRobotScene is missing ${requirement}`);
 
 console.log('Blocks curriculum, challenge, interpreter, and workspace checks passed');

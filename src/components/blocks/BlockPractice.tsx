@@ -10,6 +10,7 @@ import {getBlocksLessonsForUnit} from '@site/src/telemark/blocksCurriculum';
 import {useAuth} from '@site/src/telemark/useAuth';
 import {useProgress} from '@site/src/telemark/useProgress';
 import {trackEvent} from '@site/src/telemark/analytics';
+import BlockRobotScene, {describePlaybackFrame} from './BlockRobotScene';
 import styles from './BlockPractice.module.css';
 
 interface BlockPracticeProps {
@@ -24,6 +25,7 @@ interface WorkspaceFile {
 }
 
 const initialized = {blocks: false};
+const PLAYBACK_DELAY_MS = 650;
 
 function storageKey(lessonId: string): string {
   return `telemark:blocks:workspace:v1:${lessonId}`;
@@ -55,6 +57,7 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
   const importRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<BlockRunResult | null>(null);
   const [stepIndex, setStepIndex] = useState(-1);
+  const [playing, setPlaying] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const {user} = useAuth();
@@ -91,6 +94,7 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
       saveWorkspace(lessonId, workspace);
       setResult(null);
       setStepIndex(-1);
+      setPlaying(false);
     };
     workspace.addChangeListener(onChange);
     const resize = () => Blockly.svgResize(workspace);
@@ -103,32 +107,70 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
     };
   }, [config, lessonId]);
 
+  useEffect(() => {
+    if (!playing || !result) return undefined;
+    if (stepIndex >= result.playback.length - 1) {
+      const finishTimer = window.setTimeout(() => {
+        setPlaying(false);
+        setMessage(result.error ?? `Program finished after ${result.operations} steps.`);
+      }, PLAYBACK_DELAY_MS);
+      return () => window.clearTimeout(finishTimer);
+    }
+
+    const nextIndex = stepIndex + 1;
+    const frame = result.playback[nextIndex];
+    const timer = window.setTimeout(() => {
+      setStepIndex(nextIndex);
+      workspaceRef.current?.highlightBlock(frame.blockId);
+      setMessage(describePlaybackFrame(frame, nextIndex + 1, result.playback.length));
+    }, nextIndex === 0 ? 260 : PLAYBACK_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [playing, result, stepIndex]);
+
   function run(): BlockRunResult | null {
     const workspace = workspaceRef.current;
     if (!workspace) return null;
     workspace.highlightBlock(null);
     const next = runBlockProgram(workspace);
     setResult(next);
-    // Run shows the finished program state. Step uses snapshots separately.
-    // Pointing Run at the last pre-operation snapshot hid output produced by
-    // the final print block even though the interpreter had recorded it.
     setStepIndex(-1);
-    const finalStep = next.steps[next.steps.length - 1];
-    if (finalStep) workspace.highlightBlock(finalStep.blockId);
-    setMessage(next.error ?? `Program finished after ${next.operations} steps.`);
+    setPlaying(next.playback.length > 0);
+    setMessage(next.playback.length > 0
+      ? `Running ${next.playback.length} visible steps.`
+      : next.error ?? `Program finished after ${next.operations} steps.`);
     return next;
+  }
+
+  function toggleRun() {
+    if (playing) {
+      setPlaying(false);
+      setMessage(stepIndex >= 0
+        ? `Paused after visible step ${stepIndex + 1}.`
+        : 'Paused before the first step.');
+      return;
+    }
+    if (result && stepIndex < result.playback.length - 1) {
+      setPlaying(true);
+      setMessage('Continuing the program.');
+      return;
+    }
+    run();
   }
 
   function step() {
     const workspace = workspaceRef.current;
     if (!workspace) return;
+    setPlaying(false);
     const next = result ?? runBlockProgram(workspace);
     if (!result) setResult(next);
-    if (!next || next.steps.length === 0) return;
-    const target = result ? Math.min(stepIndex + 1, next.steps.length - 1) : 0;
+    if (next.playback.length === 0) {
+      setMessage(next.error ?? `Program finished after ${next.operations} steps.`);
+      return;
+    }
+    const target = result ? Math.min(stepIndex + 1, next.playback.length - 1) : 0;
     setStepIndex(target);
-    workspaceRef.current?.highlightBlock(next.steps[target].blockId);
-    setMessage(`Showing step ${target + 1} of ${next.steps.length}.`);
+    workspaceRef.current?.highlightBlock(next.playback[target].blockId);
+    setMessage(describePlaybackFrame(next.playback[target], target + 1, next.playback.length));
   }
 
   function reset() {
@@ -140,6 +182,7 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
     saveWorkspace(lessonId, workspace);
     setResult(null);
     setStepIndex(-1);
+    setPlaying(false);
     setMessage('Workspace reset.');
   }
 
@@ -177,6 +220,8 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
       Blockly.serialization.workspaces.load(parsed.workspace, workspaceRef.current);
       saveWorkspace(lessonId, workspaceRef.current);
       setResult(null);
+      setStepIndex(-1);
+      setPlaying(false);
       setMessage(parsed.lessonId === lessonId
         ? 'Workspace imported.'
         : 'Workspace imported from a different lesson. Check each block before running it.');
@@ -209,10 +254,17 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
     }
   }
 
-  const shown = result && stepIndex >= 0 ? result.steps[stepIndex] : null;
-  const displayOutput = shown?.output ?? result?.output ?? [];
-  const displayVariables = shown?.variables ?? result?.variables ?? {};
-  const displayScene = shown?.scene ?? result?.scene ?? {x: 0, y: 0, direction: 0, moves: 0};
+  const shown = result && stepIndex >= 0 ? result.playback[stepIndex] : null;
+  const noPlayback = result !== null && result.playback.length === 0;
+  const displayOutput = shown?.output ?? (noPlayback ? result?.output : []) ?? [];
+  const displayVariables = shown?.variables ?? (noPlayback ? result?.variables : {}) ?? {};
+  const displayScene = shown?.scene ?? (noPlayback ? result?.scene : config.initialScene) ?? config.initialScene;
+  const route = result
+    ? [config.initialScene, ...result.playback.map((frame) => frame.scene)]
+    : [config.initialScene];
+  const trail = result
+    ? [config.initialScene, ...result.playback.slice(0, stepIndex + 1).map((frame) => frame.scene)]
+    : [config.initialScene];
 
   return (
     <section className={styles.practice} aria-label="Block coding practice">
@@ -230,7 +282,9 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
 
       <div className={styles.shell} ref={shellRef}>
         <div className={styles.toolbar}>
-          <button type="button" className={styles.run} onClick={() => run()}>Run</button>
+          <button type="button" className={styles.run} onClick={toggleRun}>
+            {playing ? 'Pause' : result && stepIndex < result.playback.length - 1 ? 'Continue' : 'Run'}
+          </button>
           <button type="button" className={styles.utility} onClick={step}>Step</button>
           <button type="button" className={styles.utility} onClick={() => workspaceRef.current?.highlightBlock(null)}>Clear highlight</button>
           <button type="button" className={styles.utility} onClick={reset}>Reset</button>
@@ -238,14 +292,18 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
           <button type="button" className={styles.utility} onClick={() => importRef.current?.click()}>Import</button>
           <input ref={importRef} type="file" accept="application/json,.json" onChange={(event) => void importWorkspace(event)} hidden />
         </div>
-        <p className={styles.keyboard}>Keyboard: Tab to the workspace, arrow keys to move, T for the toolbox, and Enter or Space to edit.</p>
+        <p className={styles.keyboard}>Keyboard: Tab to the workspace, arrow keys to move, T for the toolbox, and Enter or Space to edit. Step advances one visible command or robot movement.</p>
         <div className={styles.workspace} ref={hostRef} />
         <div className={styles.results}>
-          <div className={styles.scene} role="img" aria-label={`Program position x ${displayScene.x}, y ${displayScene.y}, direction ${displayScene.direction}`}>
-            <span className={styles.position}>x {displayScene.x} · y {displayScene.y}</span>
-            <span className={styles.arrow} style={{transform: `rotate(${displayScene.direction * 90}deg)`}}>→</span>
-            <span>{displayScene.moves} movement steps</span>
-          </div>
+          <BlockRobotScene
+            scene={displayScene}
+            route={route}
+            trail={trail}
+            frame={shown}
+            currentStep={shown ? stepIndex + 1 : 0}
+            totalSteps={result?.playback.length ?? 0}
+            playing={playing}
+          />
           <div>
             <h3>Output</h3>
             <pre className={styles.output}>{displayOutput.length ? displayOutput.join('\n') : 'No output yet.'}</pre>

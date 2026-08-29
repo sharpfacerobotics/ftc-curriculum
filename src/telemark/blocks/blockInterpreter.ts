@@ -28,11 +28,27 @@ export interface BlockStep {
   scene: BlockScene;
 }
 
+export type BlockPlaybackKind =
+  | 'start'
+  | 'command'
+  | 'move'
+  | 'turn'
+  | 'decision'
+  | 'loop'
+  | 'function'
+  | 'return';
+
+export interface BlockPlaybackFrame extends BlockStep {
+  blockType: string;
+  kind: BlockPlaybackKind;
+}
+
 export interface BlockRunResult {
   output: string[];
   variables: Record<string, unknown>;
   scene: BlockScene;
   steps: BlockStep[];
+  playback: BlockPlaybackFrame[];
   error: string | null;
   operations: number;
   executedBlockTypes: string[];
@@ -75,10 +91,18 @@ export function runBlockProgram(
   const scopes: Array<Record<string, unknown>> = [{}];
   const scene: BlockScene = {x: 0, y: 0, direction: 0, moves: 0};
   const steps: BlockStep[] = [];
+  const playback: BlockPlaybackFrame[] = [];
   const functions = new Map<string, FunctionDefinition>();
   const executedBlockTypes = new Set<string>();
   let operations = 0;
   let recursionDepth = 0;
+
+  const countOperation = (): void => {
+    operations += 1;
+    if (operations > maxOperations) {
+      throw new Error('The program ran for too many steps. Check the stopping rule in each loop.');
+    }
+  };
 
   const variableName = (block: BlockNode): string => {
     const id = block.getFieldValue('VAR') ?? '';
@@ -106,12 +130,20 @@ export function runBlockProgram(
 
   const snapshot = (block: BlockNode): void => {
     executedBlockTypes.add(block.type);
-    operations += 1;
-    if (operations > maxOperations) {
-      throw new Error('The program ran for too many steps. Check the stopping rule in each loop.');
-    }
+    countOperation();
     steps.push({
       blockId: block.id,
+      output: [...output],
+      variables: cloneVariables(scopes),
+      scene: {...scene},
+    });
+  };
+
+  const playbackFrame = (block: BlockNode, kind: BlockPlaybackKind): void => {
+    playback.push({
+      blockId: block.id,
+      blockType: block.type,
+      kind,
       output: [...output],
       variables: cloneVariables(scopes),
       scene: {...scene},
@@ -222,43 +254,58 @@ export function runBlockProgram(
     snapshot(block);
     switch (block.type) {
       case 'telemark_start':
+        playbackFrame(block, 'start');
+        return null;
       case 'telemark_function':
+        playbackFrame(block, 'function');
         return null;
       case 'telemark_print':
       case 'text_print':
         output.push(String(valueOf(block.getInputTargetBlock('VALUE') ?? block.getInputTargetBlock('TEXT'))));
+        playbackFrame(block, 'command');
         return null;
       case 'telemark_move': {
         const distance = Math.max(0, Math.floor(number(valueOf(block.getInputTargetBlock('STEPS')))));
         const [dx, dy] = DIRECTIONS[scene.direction];
-        scene.x += dx * distance;
-        scene.y += dy * distance;
-        scene.moves += distance;
+        for (let step = 0; step < distance; step += 1) {
+          countOperation();
+          scene.x += dx;
+          scene.y += dy;
+          scene.moves += 1;
+          playbackFrame(block, 'move');
+        }
+        if (distance === 0) playbackFrame(block, 'move');
         return null;
       }
       case 'telemark_turn_right':
         scene.direction = (scene.direction + 1) % DIRECTIONS.length;
+        playbackFrame(block, 'turn');
         return null;
       case 'variables_set':
         writeVariable(variableName(block), valueOf(block.getInputTargetBlock('VALUE')));
+        playbackFrame(block, 'command');
         return null;
       case 'math_change': {
         const name = variableName(block);
         writeVariable(name, number(readVariable(name)) + number(valueOf(block.getInputTargetBlock('DELTA'))));
+        playbackFrame(block, 'command');
         return null;
       }
       case 'controls_if': {
         let index = 0;
         while (block.getInputTargetBlock(`IF${index}`)) {
           if (truth(valueOf(block.getInputTargetBlock(`IF${index}`)))) {
+            playbackFrame(block, 'decision');
             return executeChain(block.getInputTargetBlock(`DO${index}`));
           }
           index += 1;
         }
+        playbackFrame(block, 'decision');
         return executeChain(block.getInputTargetBlock('ELSE'));
       }
       case 'controls_repeat_ext': {
         const times = Math.max(0, Math.floor(number(valueOf(block.getInputTargetBlock('TIMES')))));
+        playbackFrame(block, 'loop');
         for (let index = 0; index < times; index += 1) {
           const signal = executeChain(block.getInputTargetBlock('DO'));
           if (signal) return signal;
@@ -267,6 +314,7 @@ export function runBlockProgram(
       }
       case 'controls_whileUntil': {
         const until = block.getFieldValue('MODE') === 'UNTIL';
+        playbackFrame(block, 'loop');
         while (until !== truth(valueOf(block.getInputTargetBlock('BOOL')))) {
           const signal = executeChain(block.getInputTargetBlock('DO'));
           if (signal) return signal;
@@ -279,6 +327,7 @@ export function runBlockProgram(
         const to = number(valueOf(block.getInputTargetBlock('TO')));
         const by = Math.abs(number(valueOf(block.getInputTargetBlock('BY')))) || 1;
         const direction = from <= to ? 1 : -1;
+        playbackFrame(block, 'loop');
         for (let current = from; direction > 0 ? current <= to : current >= to; current += by * direction) {
           writeVariable(name, current);
           const signal = executeChain(block.getInputTargetBlock('DO'));
@@ -289,6 +338,7 @@ export function runBlockProgram(
       case 'controls_forEach': {
         const name = variableName(block);
         const list = valueOf(block.getInputTargetBlock('LIST'));
+        playbackFrame(block, 'loop');
         for (const item of Array.isArray(list) ? list : []) {
           writeVariable(name, item);
           const signal = executeChain(block.getInputTargetBlock('DO'));
@@ -297,11 +347,16 @@ export function runBlockProgram(
         return null;
       }
       case 'telemark_call':
+        playbackFrame(block, 'function');
         callFunction(block.getFieldValue('NAME') ?? '', valueOf(block.getInputTargetBlock('ARG')));
         return null;
-      case 'telemark_return':
-        return {returned: true, value: valueOf(block.getInputTargetBlock('VALUE'))};
+      case 'telemark_return': {
+        const value = valueOf(block.getInputTargetBlock('VALUE'));
+        playbackFrame(block, 'return');
+        return {returned: true, value};
+      }
       default:
+        playbackFrame(block, 'command');
         return null;
     }
   };
@@ -334,6 +389,7 @@ export function runBlockProgram(
       variables: cloneVariables(scopes),
       scene,
       steps,
+      playback,
       error: null,
       operations,
       executedBlockTypes: [...executedBlockTypes],
@@ -344,6 +400,7 @@ export function runBlockProgram(
       variables: cloneVariables(scopes),
       scene,
       steps,
+      playback,
       error: reason instanceof Error ? reason.message : 'The program could not run.',
       operations,
       executedBlockTypes: [...executedBlockTypes],
