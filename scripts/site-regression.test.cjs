@@ -252,14 +252,14 @@ assert.match(unitOverview, /getAnyUnitBySlug/, 'UnitOverview must resolve units 
 assert.match(unitOverview, /getAnyLessonsForUnit/);
 assert.match(useProgress, /getAnyLessonsForUnit/, 'progress must complete units in either track');
 // Path handling remains track-aware even though both tracks are open.
-assert.match(accessPolicy, /\(blocks-unit\|unit\|module\)-/);
+assert.match(accessPolicy, /\(blocks-unit\|fll-unit\|unit\|module\)-/);
 assert.match(accessPolicy, /export function getUnitSlug/);
 assert.match(docItem, /getUnitSlug/);
 
 // Search indexes both tracks.
 assert.match(searchPlugin, /routeBase: '\/mechanical'/);
 assert.match(searchPlugin, /routeBase: '\/blocks'/);
-assert.match(searchPlugin, /\(\?:blocks-unit\|unit\|module\)-/);
+assert.match(searchPlugin, /\(\?:blocks-unit\|fll-unit\|unit\|module\)-/);
 
 // Discovery surfaces.
 // Asserted as reachability rather than by component name: what matters is that

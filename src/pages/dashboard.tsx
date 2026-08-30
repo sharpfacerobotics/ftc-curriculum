@@ -10,6 +10,7 @@ import {parseProgressExport, serializeProgress} from '../telemark/progressStore'
 import {trackEvent} from '../telemark/analytics';
 import {useLearnerProfile} from '../telemark/useLearnerProfile';
 import {BLOCKS_LESSONS, BLOCKS_UNITS} from '../telemark/blocksCurriculum';
+import {FLL_LESSONS, FLL_UNITS} from '../telemark/fllCurriculum';
 import styles from './dashboard.module.css';
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -552,6 +553,26 @@ export default function DashboardPage(): React.JSX.Element {
                 </section>
               );
             })}
+            {activeTrack === 'software' && (
+              <section className={styles.unitGroup}>
+                <div className={styles.unitHeader}>
+                  <div className={styles.unitHeaderInfo}>
+                    <span className={styles.unitHeaderTitle}>Optional: FLL Challenge Extension</span>
+                    <span className={styles.unitHeaderMeta}>
+                      {FLL_LESSONS.filter((lesson) => isComplete(lesson.id)).length}/{FLL_LESSONS.length} complete · excluded from Software percentage
+                    </span>
+                  </div>
+                  <div className={styles.unitHeaderActions}><Link to="/blocks/fll" className={styles.unitHeaderLink}>Overview</Link></div>
+                </div>
+                <div className={styles.unitLessonRows}>
+                  {FLL_UNITS.map((unit) => {
+                    const lessons = FLL_LESSONS.filter((lesson) => lesson.unitSlug === unit.slug);
+                    const done = lessons.filter((lesson) => isComplete(lesson.id)).length;
+                    return <Link key={unit.id} to={unit.overviewPath} className={styles.lessonRow}><div className={styles.lessonCheck} aria-hidden="true">{done === lessons.length ? '✓' : '○'}</div><div className={styles.lessonInfo}><span className={styles.lessonLabel}>{unit.label}: {unit.title}</span><span className={styles.lessonUnit}>{done} of {lessons.length} complete</span></div><span className={styles.lessonStatus}>Open</span></Link>;
+                  })}
+                </div>
+              </section>
+            )}
           </div>
 
         </div>

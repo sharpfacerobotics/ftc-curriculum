@@ -48,6 +48,7 @@ for (const [level, placement, destination] of [
 
 assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'python'}).postBlocksChoice, 'python');
 assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'java'}).postBlocksChoice, 'java');
+assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'fll'}).postBlocksChoice, 'fll');
 assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'invalid'}).postBlocksChoice, undefined);
 
 const authSource = fs.readFileSync(path.join(root, 'src/telemark/googleAuth.ts'), 'utf8');

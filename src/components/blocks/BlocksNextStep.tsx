@@ -14,11 +14,11 @@ export default function BlocksNextStep(): React.JSX.Element {
   const {isComplete} = useProgress(user);
   const history = useHistory();
   const basePath = useBasePath();
-  const [saving, setSaving] = useState<'python' | 'java' | null>(null);
+  const [saving, setSaving] = useState<'python' | 'java' | 'fll' | null>(null);
   const firstJavaLesson = CURRICULUM_LESSONS.find((lesson) => !isComplete(lesson.id))
     ?? CURRICULUM_LESSONS[0];
 
-  async function choose(choice: 'python' | 'java') {
+  async function choose(choice: 'python' | 'java' | 'fll') {
     if (saving) return;
     setSaving(choice);
     try {
@@ -30,12 +30,20 @@ export default function BlocksNextStep(): React.JSX.Element {
       setSaving(null);
       history.push(basePath(choice === 'java'
         ? firstJavaLesson.path
-        : '/blocks/python-resources'));
+        : choice === 'fll' ? '/blocks/fll' : '/blocks/python-resources'));
     }
   }
 
   return (
     <div className={styles.choices}>
+      <section className={styles.choice}>
+        <p className={styles.label}>Robotics extension</p>
+        <h2>Program an FLL robot</h2>
+        <p>Apply these blocks to SPIKE Prime movement, sensors, attachments, and autonomous missions in a 3D practice field.</p>
+        <button className={styles.secondary} type="button" disabled={saving !== null} onClick={() => void choose('fll')}>
+          {saving === 'fll' ? 'Saving...' : 'Open FLL Challenge'}
+        </button>
+      </section>
       <section className={styles.choice}>
         <p className={styles.label}>Telemark path</p>
         <h2>Start FTC Java</h2>

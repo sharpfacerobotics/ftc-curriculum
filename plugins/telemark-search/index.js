@@ -14,7 +14,7 @@ function readFrontMatter(source, key) {
 }
 
 function unitNumberFor(file) {
-  const match = file.match(/(?:blocks-unit|unit|module)-(\d{2})/);
+  const match = file.match(/(?:blocks-unit|fll-unit|unit|module)-(\d{2})/);
   return match ? Number.parseInt(match[1], 10) : null;
 }
 

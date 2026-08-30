@@ -17,7 +17,7 @@
     "functions:test": "npm --prefix functions test",
     "test:simulator": "node scripts/telemark-java.test.cjs && node scripts/telemark-editor.test.cjs && node scripts/gamepad-controls.test.cjs && node scripts/simulator-base-runtime.test.cjs && node scripts/mastery-motion.test.cjs && node scripts/cad-assets.test.cjs && node scripts/unit2-runtime.test.cjs && node scripts/unit3-runtime.test.cjs && node scripts/unit6-unit7-runtime.test.cjs",
     "test:simulator:audit": "node scripts/audit-simulators.cjs",
-    "test:site": "node scripts/site-regression.test.cjs && node scripts/curriculum-coverage.test.cjs && node scripts/progress-store.test.cjs && node scripts/profile-routing.test.cjs && node scripts/blocks-foundations.test.cjs && node scripts/design-tokens.test.cjs && node scripts/design-bans.test.cjs && node scripts/track-parity.test.cjs && node scripts/mechanical-content.test.cjs && node scripts/mechanical-math.test.cjs && node scripts/mechanical-render.test.cjs && node scripts/cad-check.test.cjs && node scripts/chat-store.test.cjs && node scripts/ask-stream.test.cjs",
+    "test:site": "node scripts/site-regression.test.cjs && node scripts/curriculum-coverage.test.cjs && node scripts/progress-store.test.cjs && node scripts/profile-routing.test.cjs && node scripts/blocks-foundations.test.cjs && node scripts/fll-extension.test.cjs && node scripts/design-tokens.test.cjs && node scripts/design-bans.test.cjs && node scripts/track-parity.test.cjs && node scripts/mechanical-content.test.cjs && node scripts/mechanical-math.test.cjs && node scripts/mechanical-render.test.cjs && node scripts/cad-check.test.cjs && node scripts/chat-store.test.cjs && node scripts/ask-stream.test.cjs",
     "check:content": "node scripts/check-content.cjs",
     "verify:build": "node scripts/verify-build.cjs",
     "smoke:deployed": "node scripts/smoke-deployed.cjs",
@@ -45,7 +45,8 @@
     "motion": "^13.1.1",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "three": "^0.179.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.2",

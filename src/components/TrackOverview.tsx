@@ -7,6 +7,7 @@ import type {Tier} from '@site/src/telemark/curriculum';
 import Reveal from '@site/src/components/ui/Reveal';
 import {useLearnerProfile} from '@site/src/telemark/useLearnerProfile';
 import {BLOCKS_LESSONS, BLOCKS_UNITS} from '@site/src/telemark/blocksCurriculum';
+import {FLL_LESSONS, FLL_UNITS} from '@site/src/telemark/fllCurriculum';
 import styles from './TrackOverview.module.css';
 
 const MOBILE_UNIT_PREVIEW_COUNT = 5;
@@ -206,6 +207,33 @@ export default function TrackOverview({
             ? `Show fewer ${noun.toLowerCase()}s`
             : `Show all ${track.unitCount} ${noun.toLowerCase()}s`}
         </button>
+      )}
+
+      {trackId === 'blocks' && (
+        <section className={styles.foundations}>
+          <div className={styles.foundationsText}>
+            <strong>FLL Challenge Extension</strong>
+            <small>
+              {FLL_LESSONS.filter((lesson) => isComplete(lesson.id)).length}
+              {' / '}{FLL_LESSONS.length} optional lessons complete
+            </small>
+          </div>
+          <div className={styles.grid}>
+            {FLL_UNITS.map((unit) => {
+              const lessons = FLL_LESSONS.filter((lesson) => lesson.unitSlug === unit.slug);
+              const done = lessons.filter((lesson) => isComplete(lesson.id)).length;
+              return (
+                <Link key={unit.id} to={unit.overviewPath} className={styles.card}>
+                  <span className={styles.cardNum}>{unit.label}</span>
+                  <span className={styles.cardTitle}>{unit.title}</span>
+                  <span className={styles.cardDesc}>{unit.desc}</span>
+                  <span className={styles.cardMeta}><span className={`${styles.tag} ${done === lessons.length ? styles.tagDone : styles.tagProgress}`}>{done} of {lessons.length} complete</span></span>
+                </Link>
+              );
+            })}
+          </div>
+          <div className={styles.actions}><Link to="/blocks/fll" className={styles.secondaryAction}>Open FLL Challenge extension</Link></div>
+        </section>
       )}
 
       {companion && (

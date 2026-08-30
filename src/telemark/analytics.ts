@@ -24,6 +24,8 @@ export type AnalyticsEventName =
   | 'blocks_placement_complete'
   | 'blocks_challenge_pass'
   | 'blocks_challenge_skip'
+  | 'fll_simulator_launch'
+  | 'fll_challenge_pass'
   | 'blocks_exit_choice';
 
 type AnalyticsParameters = Record<string, string | number | boolean>;

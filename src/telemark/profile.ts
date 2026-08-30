@@ -13,7 +13,7 @@ export interface LearnerProfile {
   selectedTracks: MainTrackId[];
   softwareLevel?: SoftwareLevel;
   blocksPlacement?: 'required' | 'auto_completed';
-  postBlocksChoice?: 'python' | 'java';
+  postBlocksChoice?: 'python' | 'java' | 'fll';
   onboardingComplete: true;
 }
 
@@ -43,7 +43,9 @@ export function normalizeLearnerProfile(value: unknown): LearnerProfile | null {
   const blocksPlacement = softwareSelected
     ? softwareLevel === 'complete_beginner' ? 'required' : 'auto_completed'
     : undefined;
-  const postBlocksChoice = value.postBlocksChoice === 'python' || value.postBlocksChoice === 'java'
+  const postBlocksChoice = value.postBlocksChoice === 'python'
+    || value.postBlocksChoice === 'java'
+    || value.postBlocksChoice === 'fll'
     ? value.postBlocksChoice
     : undefined;
 

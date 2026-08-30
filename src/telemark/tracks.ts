@@ -24,6 +24,12 @@ import {
   getBlocksLessonsForUnit,
   getBlocksUnitBySlug,
 } from './blocksCurriculum';
+import {
+  FLL_LESSONS,
+  FLL_UNITS,
+  getFllLessonsForUnit,
+  getFllUnitBySlug,
+} from './fllCurriculum';
 
 /**
  * Track-aware lookups.
@@ -98,7 +104,7 @@ export const TOTAL_LESSON_COUNT = BLOCKS_LESSON_COUNT + CURRICULUM_LESSON_COUNT 
 
 /** Engineering slugs are module-NN; everything else belongs to the software track. */
 export function trackForUnitSlug(unitSlug: string): TrackId {
-  if (unitSlug.startsWith('blocks-unit-')) return 'blocks';
+  if (unitSlug.startsWith('blocks-unit-') || unitSlug.startsWith('fll-unit-')) return 'blocks';
   return unitSlug.startsWith('module-') ? 'mechanical' : 'software';
 }
 
@@ -109,6 +115,7 @@ export function getTrack(trackId: TrackId): Track {
 
 /** Look up a unit in either track. */
 export function getAnyUnitBySlug(unitSlug: string): CurriculumUnit | undefined {
+  if (unitSlug.startsWith('fll-unit-')) return getFllUnitBySlug(unitSlug);
   const track = trackForUnitSlug(unitSlug);
   if (track === 'blocks') return getBlocksUnitBySlug(unitSlug);
   return track === 'mechanical' ? getMechanicalUnitBySlug(unitSlug) : getUnitBySlug(unitSlug);
@@ -116,6 +123,7 @@ export function getAnyUnitBySlug(unitSlug: string): CurriculumUnit | undefined {
 
 /** Look up a unit's lessons in either track. */
 export function getAnyLessonsForUnit(unitSlug: string): CurriculumLesson[] {
+  if (unitSlug.startsWith('fll-unit-')) return getFllLessonsForUnit(unitSlug);
   const track = trackForUnitSlug(unitSlug);
   if (track === 'blocks') return getBlocksLessonsForUnit(unitSlug);
   return track === 'mechanical'
@@ -125,10 +133,10 @@ export function getAnyLessonsForUnit(unitSlug: string): CurriculumLesson[] {
 
 /** Every lesson across both tracks, used by dashboard and progress summaries. */
 export function getAllLessons(): CurriculumLesson[] {
-  return [...BLOCKS_LESSONS, ...CURRICULUM_LESSONS, ...MECHANICAL_LESSONS];
+  return [...BLOCKS_LESSONS, ...FLL_LESSONS, ...CURRICULUM_LESSONS, ...MECHANICAL_LESSONS];
 }
 
 /** Every unit across both tracks. */
 export function getAllUnits(): CurriculumUnit[] {
-  return [...BLOCKS_UNITS, ...CURRICULUM_UNITS, ...MECHANICAL_UNITS];
+  return [...BLOCKS_UNITS, ...FLL_UNITS, ...CURRICULUM_UNITS, ...MECHANICAL_UNITS];
 }
