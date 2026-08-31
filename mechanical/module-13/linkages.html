@@ -17,8 +17,8 @@
 
 
 <script>window.dataLayer=window.dataLayer||[],"function"!=typeof window.gtag&&(window.gtag=function(){window.dataLayer.push(arguments)})</script><link rel="stylesheet" href="/telemark/assets/css/styles.243bef76.css">
-<script src="/telemark/assets/js/runtime~main.1c0f5757.js" defer="defer"></script>
-<script src="/telemark/assets/js/main.1c2a0990.js" defer="defer"></script>
+<script src="/telemark/assets/js/runtime~main.384a3fe8.js" defer="defer"></script>
+<script src="/telemark/assets/js/main.880289bc.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -28,13 +28,13 @@
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="technical-context">Technical Context<a href="#technical-context" class="hash-link" aria-label="Direct link to Technical Context" title="Direct link to Technical Context" translate="no">​</a></h2>
 <p>Put a claw on the end of an arm and swing the arm up. The claw tips over as it goes, because it is rigidly attached to a rotating member. Whatever it was holding is now at an angle, and if the arm swings far enough the element falls out.</p>
-<p>The obvious fix is a second motor to rotate the claw back as the arm rises. It works, it costs a motor, a controller port, and a control problem, and it is almost never necessary. Geometry solves this for free.</p>
+<p>A second motor can rotate the claw as the arm rises, but it adds mass, wiring, a controller port, and another control loop. A linkage can produce the required orientation mechanically when its motion matches the task.</p>
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-parallelogram-result">The parallelogram result<a href="#the-parallelogram-result" class="hash-link" aria-label="Direct link to The parallelogram result" title="Direct link to The parallelogram result" translate="no">​</a></h2>
 <p>A four-bar linkage is four members and four pivots. The case that matters here is the <strong>parallelogram</strong> four-bar: opposite members equal in length and parallel.</p>
 <p>The result worth memorising: <strong>in a parallelogram linkage, the far member stays parallel to the fixed member through the entire range of motion.</strong> Not approximately. Exactly, as long as the lengths are equal and the linkage does not pass through a singular position where all four pivots line up.</p>
 <p>So if the fixed member is bolted level to the chassis, the end effector mounted on the opposite member stays level. At every angle. With no sensor, no second motor, and no code.</p>
-<p>This is why four-bars appear in FTC every single season. It is not tradition. It is that a parallelogram is a mechanical guarantee of orientation, and guarantees are rare.</p>
+<p>A parallelogram four-bar keeps the coupler orientation fixed relative to the frame throughout its motion. Teams use it when the end effector must remain level without a second actuator.</p>
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-a-four-bar-costs">What a four-bar costs<a href="#what-a-four-bar-costs" class="hash-link" aria-label="Direct link to What a four-bar costs" title="Direct link to What a four-bar costs" translate="no">​</a></h2>
 <p>It is not free, it is just cheap:</p>

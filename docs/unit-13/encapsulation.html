@@ -17,8 +17,8 @@
 
 
 <script>window.dataLayer=window.dataLayer||[],"function"!=typeof window.gtag&&(window.gtag=function(){window.dataLayer.push(arguments)})</script><link rel="stylesheet" href="/telemark/assets/css/styles.243bef76.css">
-<script src="/telemark/assets/js/runtime~main.1c0f5757.js" defer="defer"></script>
-<script src="/telemark/assets/js/main.1c2a0990.js" defer="defer"></script>
+<script src="/telemark/assets/js/runtime~main.384a3fe8.js" defer="defer"></script>
+<script src="/telemark/assets/js/main.880289bc.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -28,7 +28,7 @@
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-problem-with-a-single-file-robot">The Problem with a Single-File Robot<a href="#the-problem-with-a-single-file-robot" class="hash-link" aria-label="Direct link to The Problem with a Single-File Robot" title="Direct link to The Problem with a Single-File Robot" translate="no">​</a></h2>
 <p>At the end of Unit 9 you likely had all of your motors, servos, and sensors declared in one OpMode file, with all of their configuration constants and control logic written inline inside <code>loop()</code>. For a robot with two or three mechanisms this is tolerable. For a competition robot with a drivetrain, a lift, an intake, a claw, and an arm, this approach produces a file that is hundreds of lines long with no clear boundaries between subsystems.</p>
-<p>The deeper problem is code reuse. You will write at least two OpModes -- one for TeleOp and one for Autonomous. If the lift&#x27;s control logic lives directly inside <code>TeleOpMain.java</code>, you have to duplicate it in <code>AutonomousRed.java</code> and <code>AutonomousBlue.java</code>. Every time the lift mechanism changes, you update three files instead of one, and the risk of introducing an inconsistency between them grows with every change.</p>
+<p>The deeper problem is code reuse. You will write at least two OpModes, one for TeleOp and one for Autonomous. If the lift&#x27;s control logic lives directly inside <code>TeleOpMain.java</code>, you have to duplicate it in <code>AutonomousRed.java</code> and <code>AutonomousBlue.java</code>. Every time the lift mechanism changes, you update three files instead of one, and the risk of introducing an inconsistency between them grows with every change.</p>
 <p>Encapsulation solves both problems by moving each subsystem into its own dedicated class. The class owns the hardware objects for that mechanism, exposes clean methods that describe what the mechanism does rather than how the hardware is wired, and hides every implementation detail from the OpMode.</p>
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-encapsulation-means-in-practice">What Encapsulation Means in Practice<a href="#what-encapsulation-means-in-practice" class="hash-link" aria-label="Direct link to What Encapsulation Means in Practice" title="Direct link to What Encapsulation Means in Practice" translate="no">​</a></h2>

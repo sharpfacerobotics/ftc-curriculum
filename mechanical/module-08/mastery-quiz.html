@@ -17,8 +17,8 @@
 
 
 <script>window.dataLayer=window.dataLayer||[],"function"!=typeof window.gtag&&(window.gtag=function(){window.dataLayer.push(arguments)})</script><link rel="stylesheet" href="/telemark/assets/css/styles.243bef76.css">
-<script src="/telemark/assets/js/runtime~main.1c0f5757.js" defer="defer"></script>
-<script src="/telemark/assets/js/main.1c2a0990.js" defer="defer"></script>
+<script src="/telemark/assets/js/runtime~main.384a3fe8.js" defer="defer"></script>
+<script src="/telemark/assets/js/main.880289bc.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -28,7 +28,7 @@
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="i-conceptual-questions">I. Conceptual Questions<a href="#i-conceptual-questions" class="hash-link" aria-label="Direct link to I. Conceptual Questions" title="Direct link to I. Conceptual Questions" translate="no">​</a></h2>
 <p><strong>1. Reliability Over Speed:</strong> Explain why an intake that fails one attempt in five is worse than an intake that is half a second slower per cycle.</p>
-<details class="details_lb9f alert alert--info details_b_Ee" data-collapsed="true"><summary>Show answer</summary><div><div class="collapsibleContent_i85q"><p>A failed acquisition does not cost the acquisition time; it costs a full retry, which includes repositioning the robot, reapproaching, and trying again, often several seconds. At a 20% failure rate, one cycle in five carries that penalty, which averages out to a much larger cost per cycle than half a second.</p><p>Failures also cost more than time. They disrupt the driver&#x27;s rhythm, they sometimes leave the element in a worse position, and they occasionally result in the robot being out of position when a partner needs the space. Reliability is the design target, and speed is optimized after reliability is established.</p></div></div></details>
+<details class="details_lb9f alert alert--info details_b_Ee" data-collapsed="true"><summary>Show answer</summary><div><div class="collapsibleContent_i85q"><p>A failed acquisition costs a full retry, including time to reposition, approach, and try again. At a 20% failure rate, one cycle in five carries that penalty, which adds more average cycle time than a half-second change to the mechanism.</p><p>Failures also cost more than time. They disrupt the driver&#x27;s rhythm, they sometimes leave the element in a worse position, and they occasionally result in the robot being out of position when a partner needs the space. Reliability is the design target, and speed is optimized after reliability is established.</p></div></div></details>
 <hr>
 <p><strong>2. Cascade Trade:</strong> A three stage cascading slide is chosen for its extension speed. What happens to the available lifting force, and what mistake does this cause?</p>
 <details class="details_lb9f alert alert--info details_b_Ee" data-collapsed="true"><summary>Show answer</summary><div><div class="collapsibleContent_i85q"><p>With three moving stages, the top stage moves three times as fast as the string is taken up, and the force available at the load is divided by three. Speed and force trade exactly.</p><p>The mistake is sizing the motor and spool for the required extension speed, confirming that number, and never checking the force side. The result is a slide that extends quickly with no load on the bench and cannot lift the actual payload, which is usually discovered after the slide is built. The fix is to check both quantities before building: use the calculator to confirm the lifting force exceeds the load with real margin, and adjust the spool diameter or reduction if it does not.</p></div></div></details>

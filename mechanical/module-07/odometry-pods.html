@@ -17,8 +17,8 @@
 
 
 <script>window.dataLayer=window.dataLayer||[],"function"!=typeof window.gtag&&(window.gtag=function(){window.dataLayer.push(arguments)})</script><link rel="stylesheet" href="/telemark/assets/css/styles.243bef76.css">
-<script src="/telemark/assets/js/runtime~main.1c0f5757.js" defer="defer"></script>
-<script src="/telemark/assets/js/main.1c2a0990.js" defer="defer"></script>
+<script src="/telemark/assets/js/runtime~main.384a3fe8.js" defer="defer"></script>
+<script src="/telemark/assets/js/main.880289bc.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -28,7 +28,7 @@
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="technical-context">Technical Context<a href="#technical-context" class="hash-link" aria-label="Direct link to Technical Context" title="Direct link to Technical Context" translate="no">​</a></h2>
 <p>Odometry pods are unpowered wheels with encoders that measure how far the robot has actually travelled, rather than how far the drive wheels turned. They exist because drive wheels slip, and a drive encoder counts the slip as distance.</p>
-<p>This is the lesson where mechanical work most directly determines whether the software team&#x27;s autonomous routines are repeatable. When a programmer says the robot&#x27;s position drifts, the cause is usually in this lesson.</p>
+<p>Pod preload, wheel contact, alignment, and encoder mounting all affect the position data used by autonomous code. Check those mechanical conditions when odometry drifts or becomes inconsistent.</p>
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="why-dead-wheels-beat-drive-encoders">Why Dead Wheels Beat Drive Encoders<a href="#why-dead-wheels-beat-drive-encoders" class="hash-link" aria-label="Direct link to Why Dead Wheels Beat Drive Encoders" title="Direct link to Why Dead Wheels Beat Drive Encoders" translate="no">​</a></h2>
 <p>A drive wheel under load slips, scrubs during turns, and compresses, so its effective rolling diameter changes with load. Each of those introduces error, and the errors accumulate over an autonomous routine.</p>
