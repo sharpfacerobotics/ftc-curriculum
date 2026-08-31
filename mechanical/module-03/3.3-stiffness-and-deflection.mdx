@@ -16,9 +16,9 @@ import DeflectionCalculator from '@site/src/components/mechanical/DeflectionCalc
 
 ## Technical Context
 
-When a mechanism stops working after a hit, teams look for a broken part. Usually nothing is broken. Something bent slightly, and the geometry that the mechanism depended on is no longer true.
+A mechanism can stop working even when no part has fractured. A rail, plate, or shaft may deflect enough under load to move bearings out of alignment or change the geometry at a handoff.
 
-Controlling deflection is therefore a design activity, not a repair activity, and it is governed by one relationship that is worth understanding properly.
+Check deflection during design so the mechanism keeps its required alignment under load. One relationship explains which dimensions matter most.
 
 ---
 
@@ -60,7 +60,7 @@ For a rectangular section, the area moment of inertia is:
 I = (b * h^3) / 12
 ```
 
-Where `b` is the width and `h` is the height in the load direction. Height is cubed; width is not.
+Where `b` is the width and `h` is the height in the load direction. The equation cubes the height but not the width.
 
 Take a 1/2 in by 1 1/2 in bar. Loaded on edge, with the 1.5 in dimension along the load, it is `(0.5 * 1.5^3)/12`. Loaded flat, it is `(1.5 * 0.5^3)/12`. The ratio is 9 to 1: the same bar is nine times more flexible lying flat.
 

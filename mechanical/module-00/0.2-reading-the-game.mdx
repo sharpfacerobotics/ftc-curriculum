@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-The game manual is a specification document. It is written in legal language because it has to survive protests, which makes it dense, but everything your robot must do is in there. Teams that skim it build robots that score well in practice and get penalized in matches.
+Treat the game manual as the specification for your robot. Its formal wording can be dense, but it defines the scoring rules, penalties, and physical limits that shape the design. A robot can work well in practice and still be a poor competition design if the team missed one of those details.
 
 Reading it as an engineer means extracting three separate things: what earns points, what costs points, and what the robot is physically allowed to be.
 
@@ -30,7 +30,7 @@ Go through the scoring section and build a table. Nothing else, just this table.
 | Example: element in high goal | 8 | Autonomous | n/a |
 | Example: end game park | 10 | Last 30 s, once | 3 s |
 
-The last column is the one teams forget, and it is the one that decides your strategy. A six point action that takes nine seconds is worth 0.67 points per second. A two point action that takes four seconds is worth 0.5 points per second. Those are closer than they look, and if your high goal cycle is actually twelve seconds because of alignment time, the low goal wins.
+Cycle time belongs in the comparison because point value alone does not determine a good strategy. A six point action that takes nine seconds is worth 0.67 points per second. A two point action that takes four seconds is worth 0.5 points per second. If alignment pushes the high-goal cycle to twelve seconds, both actions return 0.5 points per second.
 
 :::tip Points per second is the real currency
 A two minute match has a fixed number of seconds. Ranking every scoring action by points per second tells you what the robot must be good at. Everything else is optional.
@@ -71,7 +71,7 @@ Write these on a whiteboard where the build team can see them, in units, with th
 
 ## Team Updates Change Everything
 
-FIRST publishes updates to the manual through the season. They change scoring, clarify ambiguous rules, and occasionally invalidate a strategy that an entire region was building toward.
+FIRST publishes manual updates throughout the season. An update may change scoring, clarify an ambiguous rule, or affect whether your current strategy is legal.
 
 Assign one person to read every update the day it is released and report anything that touches your design. This is a real job and it takes about fifteen minutes per update.
 
@@ -100,7 +100,7 @@ Assign one person to read every update the day it is released and report anythin
 
 ## Exercise: Build the Scoring Table
 
-Using this season's manual, fill in the scoring table above with real actions and real point values. Leave the cycle time column blank for now. You will fill it in during Module 10 after you have measured a prototype, and the difference between your guess and the measurement is usually instructive.
+Using this season's manual, fill in the scoring table above with real actions and point values. Leave the cycle time column blank until you measure a prototype in Module 10. Then compare the measurement with your original estimate and update the strategy if needed.
 
 <MarkComplete
   lessonId="module-00/reading-the-game"

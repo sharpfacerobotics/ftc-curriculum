@@ -90,12 +90,12 @@ const SHOWCASE = [
 ];
 
 const HOME_TOOLS = [
-  {name: 'CAD file check', path: '/simulator#cad-check', desc: 'Drop in a STEP or STL export and see which of the exercise\u2019s numbers your model actually hit.'},
-  {name: 'Arm gravity torque', path: '/simulator#arm-torque', desc: 'Work the torque an arm needs at its worst angle, then the reduction that delivers it.'},
-  {name: 'Linear slide sizing', path: '/simulator#slide', desc: 'Extension, spool diameter, and the force the cable really carries.'},
-  {name: 'Arm simulator', path: '/simulator#arm-sim', desc: 'Run a time-stepped arm against your own numbers and watch it fail or hold.'},
-  {name: 'Tap drill and clearance', path: '/simulator#tap-drill', desc: 'The hole sizes that stop a screw binding, straight from the standards.'},
-  {name: 'Weight budget', path: '/simulator#weight', desc: 'Spend the robot\u2019s mass on purpose instead of discovering it at inspection.'},
+  {name: 'CAD file check', path: '/simulator#cad-check', desc: 'Upload a STEP or STL export and compare its measured geometry with the exercise requirements.'},
+  {name: 'Arm gravity torque', path: '/simulator#arm-torque', desc: 'Calculate the torque at the arm\u2019s worst angle and the reduction needed to supply it.'},
+  {name: 'Linear slide sizing', path: '/simulator#slide', desc: 'Check extension, spool diameter, and cable force for a proposed slide.'},
+  {name: 'Arm simulator', path: '/simulator#arm-sim', desc: 'Run a time-stepped arm with your measurements and inspect its motion and load.'},
+  {name: 'Tap drill and clearance', path: '/simulator#tap-drill', desc: 'Look up standard tap-drill and clearance-hole sizes.'},
+  {name: 'Weight budget', path: '/simulator#weight', desc: 'Assign and track the robot\u2019s mass by subsystem.'},
 ];
 
 const HERO_SHOTS = [
@@ -211,9 +211,8 @@ function HeroSection(): React.JSX.Element {
       </h1>
 
       <p className={styles.heroSub}>
-        Two tracks, one robot. Learn to program an FTC robot and run your code
-        in the browser, or learn to design one and check your numbers before you
-        build.
+        Learn to program an FTC robot and run your code in the browser, or learn
+        to design one and check your numbers before you build.
       </p>
 
 
@@ -264,8 +263,8 @@ function StatsBar(): React.JSX.Element {
       ))}
       </div>
       <p className={styles.figuresNote}>
-        Written in Java against the FTC SDK, with simulators on one side and
-        design calculators on the other.
+        Practice FTC Java in browser simulators and check mechanical designs
+        with focused calculators.
       </p>
     </div>
   );
@@ -384,9 +383,9 @@ function SimulatorSection(): React.JSX.Element {
           <p className={styles.sectionLabel}>Browser simulator</p>
           <h2 className={styles.sectionTitle}>Run Java in the browser</h2>
           <p className={styles.sectionDesc}>
-            Write the code for a lesson, run it, and see what the robot does.
-            You get telemetry, checks against what the lesson asked for, and
-            simulated hardware to test against.
+            Write and run each lesson's code against simulated hardware. Use
+            telemetry and requirement checks to find mistakes before testing
+            on the robot.
           </p>
         </div>
         <FeatureShot
@@ -401,8 +400,8 @@ function SimulatorSection(): React.JSX.Element {
         taskClassName={styles.simulatorTasks}
       />
       <p className={styles.simulatorLimit}>
-        The browser can test code and simulated behavior. A physical robot is
-        recommended to verify wiring, motor direction, friction, and tuning.
+        Use a physical robot to verify wiring, motor direction, friction, and
+        final tuning that the browser cannot model.
       </p>
       <AuthenticatedSimulatorNavigator
         simulatorId="homepage_navigator"
@@ -435,9 +434,9 @@ function ToolsSection(): React.JSX.Element {
           <p className={styles.sectionLabel}>Design tools</p>
           <h2 className={styles.sectionTitle}>Check the design before you cut</h2>
           <p className={styles.sectionDesc}>
-            {TOOL_CATALOG.length} calculators for the numbers that decide
-            whether a mechanism will work, and a check that reads your exported
-            CAD file and measures it.
+            Use {TOOL_CATALOG.length} calculators to check mechanism dimensions
+            and loads. The CAD check measures an exported model against the
+            exercise requirements.
           </p>
         </div>
         <FeatureShot
@@ -463,8 +462,8 @@ function ToolsSection(): React.JSX.Element {
       </div>
 
       <p className={styles.toolLimit}>
-        A calculator checks the arithmetic behind a design. Whether the
-        mechanism grips the game element is what a prototype is for.
+        Calculators check the design arithmetic. Test grip, friction, and game
+        element behavior with a physical prototype.
       </p>
 
       <div className={styles.heroActions}>
@@ -490,10 +489,10 @@ function ShowcaseSection(): React.JSX.Element {
   return (
     <section className={styles.section} id="showcase">
       <p className={styles.sectionLabel}>Inside</p>
-      <h2 className={styles.sectionTitle}>What you actually get</h2>
+      <h2 className={styles.sectionTitle}>See the curriculum and tools</h2>
       <p className={styles.sectionDesc}>
-        Screenshots of the running site, not mockups. Every one of them opens
-        the thing it shows.
+        Open any screenshot to use the lesson, simulator, calculator, or CAD
+        exercise shown.
       </p>
 
       <div className={styles.gallery}>
@@ -605,7 +604,7 @@ export default function Home(): React.JSX.Element {
             label="Software track"
             id="curriculum"
             heading={`Blocks foundations and ${CURRICULUM_UNIT_COUNT} Java units`}
-            blurb="Complete beginners can start with Blocks. Experienced programmers can open Java Unit 0 directly."
+            blurb="Start with Blocks if you are new to programming. If you already know variables, conditions, and loops, begin with Java Unit 0."
             stat={`${BLOCKS_LESSON_COUNT + CURRICULUM_LESSON_COUNT} software lessons`}
           />
         </Band>
@@ -616,7 +615,7 @@ export default function Home(): React.JSX.Element {
             label="Mechanical track"
             id="mechanical"
             heading={`${MECHANICAL_UNIT_COUNT} modules from first sketch to competition`}
-            blurb="How to design a robot: the process, CAD, materials, gears and belts, and the standards that keep it together."
+            blurb="Learn the design process, CAD, materials, power transmission, fabrication, testing, and competition maintenance."
             stat={`${MECHANICAL_UNIT_COUNT} modules · ${MECHANICAL_LESSON_COUNT} lessons`}
           />
         </Band>

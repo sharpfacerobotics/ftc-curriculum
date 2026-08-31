@@ -20,7 +20,7 @@ import {MASTERY_QUESTIONS} from '@site/src/telemark/mechanicalQuizzes';
 <details>
 <summary>Show answer</summary>
 
-Both want a record of decisions and the reasoning behind them. The team needs it because people forget why a spool diameter or a gear ratio was chosen, and rediscovering that reasoning through testing is expensive. Judges need it because it is the only evidence that the robot was engineered rather than assembled. A notebook written for judges alone drifts toward narrative and polish, which makes it less useful to the team and, because judges recognize retroactive writing, less convincing to judges as well.
+Both want a record of decisions and the reasoning behind them. The team uses it to recover calculations, test results, and design choices without repeating old work. Judges use the same record to follow how the team developed the robot. A notebook written only for judging tends to summarize the season after the fact and leaves out the detail both audiences need.
 
 </details>
 
@@ -31,7 +31,7 @@ Both want a record of decisions and the reasoning behind them. The team needs it
 <details>
 <summary>Show answer</summary>
 
-A notebook containing only successes reads as fiction, because real engineering produces failures at a predictable rate. The failure entry is also the highest-information entry in the book: it contains a measurement, a diagnosis, and a change, which is the complete design loop in one page. Judges specifically look for documented failure and iteration, and the failure entry is the one they are most likely to ask about, because it is the hardest to fabricate after the fact.
+A failed test does not make the team look bad. Recording the conditions, measurement, diagnosis, and next change shows how the team responded to evidence. It also preserves information that a list of successful demonstrations would omit. Judges look for this kind of documented iteration when they evaluate the team's process.
 
 </details>
 
@@ -53,7 +53,7 @@ Mechanisms fail intermittently, and an intermittent failure is invisible in a si
 <details>
 <summary>Show answer</summary>
 
-If the options are scored first, the team can see which weights would produce which winner. Weight adjustment then stops being an expression of strategy and becomes a way to justify a conclusion already held, usually without anyone consciously deciding to do that. The resulting matrix documents a bias while appearing to document analysis, which is worse than no matrix at all: it gives false confidence and it misleads anyone who reads the notebook later, including the team itself.
+If the options are scored first, the team can see which weights favor a preferred concept. That makes it easy to adjust the weights around the desired result, even unintentionally. Setting them first ties the matrix to the strategy and makes later changes visible.
 
 </details>
 
@@ -64,7 +64,7 @@ If the options are scored first, the team can see which weights would produce wh
 <details>
 <summary>Show answer</summary>
 
-The matrix succeeded. It reported that the two concepts are close enough that the difference is smaller than the noise in how people assign 1 to 5 scores. That is a genuine and useful finding: it means the decision cannot be made reliably on paper. The correct response is to build rough prototypes of both and let measured data break the tie. Declaring A the winner over a 2 point margin would be treating estimate noise as evidence.
+The two concepts are effectively tied because a 2 point gap is smaller than the uncertainty in subjective 1 to 5 scores. Build rough prototypes of both and use measured results to compare them. The matrix has narrowed the choice, but it does not support declaring A the winner.
 
 </details>
 
@@ -87,11 +87,11 @@ reliable when we ran it. We will keep working on it next time.
 <summary>Show answers</summary>
 
 **Problem 1 - No stated problem and no reproducible description of the change.**
-"We tried a few things" cannot be reproduced, compared, or learned from. A reader cannot tell what was changed, so they cannot tell what caused the improvement, and if the slide regresses later nobody can revert to a known state.
+"We tried a few things" does not identify the change. A reader cannot reproduce the version, connect it to the result, or restore it later if another revision performs worse.
 
 ```text
 PROBLEM
-Slide took 3.1 s to reach full extension; the cycle time
+Slide took 3.1 s to reach full extension. The cycle time
 requirement allows 2.0 s.
 
 WHAT WE TRIED
@@ -110,7 +110,7 @@ binding briefly near the top of travel.
 
 NEXT
 Still 0.2 s over the requirement. Check whether the bind at the
-top of travel is costing time; inspect third stage alignment
+top of travel is costing time. Inspect third stage alignment
 before changing the spool again.
 ```
 

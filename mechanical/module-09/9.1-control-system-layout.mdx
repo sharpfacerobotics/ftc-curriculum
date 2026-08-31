@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-The control system is the boundary between the mechanical and software halves of the team, and it is where miscommunication becomes a mid-match failure. A motor plugged into a port that the code does not expect looks like a software bug and is not one.
+The control system connects the physical robot to the software configuration. A motor plugged into a different port than the code expects can look like a software defect, so both groups need one shared port map.
 
 This lesson covers the physical layout. The software track covers how code addresses it.
 
@@ -38,7 +38,7 @@ Driver Station phone or device
   -> wireless link           -> Control Hub
 ```
 
-When something does not respond, walk the chain from the battery outward. The failure is almost always at a connection rather than inside a component.
+When something does not respond, walk the chain from the battery outward. Check power, connectors, ports, and configuration before replacing a component.
 
 ---
 
@@ -62,7 +62,7 @@ Legal components, allowed motor and servo counts, wiring requirements, and batte
 
 ## Label Everything
 
-The single highest value habit in FTC wiring: label every wire at both ends with the name the software uses.
+Label every wire at both ends with the name used in the software configuration.
 
 ```text
 Motor port 0   "left_front"
@@ -71,13 +71,13 @@ Motor port 2   "right_front"
 Motor port 3   "right_back"
 ```
 
-Two reasons this matters more than it seems.
+The labels support configuration and diagnosis.
 
 **Configuration and code must agree.** The Robot Controller configuration maps a port to a name, and the code asks for that name. If the wire moves and the configuration does not, the robot drives sideways and the cause is invisible from the code.
 
 **Diagnosis under time pressure.** Between matches, with five minutes and a robot that will not move, tracing an unlabeled bundle is where the time goes.
 
-Use a label maker or write on heat shrink. Do the labeling when the wire is installed, not later, because later does not happen.
+Use a label maker or write on heat shrink. Add the labels when you install the wire so both ends are identified before they enter a bundle.
 
 ---
 
@@ -93,13 +93,13 @@ Keep one document that lists every port, what is plugged into it, and the config
 | Servo 0 | Claw | claw | Range limited in code |
 | I2C 0 | Distance sensor | dist_front | Address default |
 
-When the software team asks "which port is the slide on," the answer should be a document, not a person's memory.
+Use the document as the source for configuration changes and pit diagnosis instead of relying on one person's memory.
 
 ---
 
 ## Physical Placement
 
-**Keep the Control Hub accessible.** Ports must be reachable without disassembling the robot, and the status lights must be visible. A hub buried under a mechanism is a hub nobody can diagnose at competition.
+**Keep the Control Hub accessible.** Ports must be reachable without disassembling the robot, and the status lights must remain visible for diagnosis.
 
 **Protect it from impact and from the mechanism.** Mount it where an extending slide cannot strike it and where an opponent cannot reach it.
 

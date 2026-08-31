@@ -17,7 +17,7 @@ import {PathFollowingDiagram} from '@site/src/components/DocDiagrams';
 
 Every encoder-based autonomous routine in this curriculum so far has followed the same pattern: command a motor to a tick target, wait for `isBusy()` to return false, then proceed to the next step. This works well for straight lines and simple turns on a clean practice floor. At competition, the combination of wheel slip on textured field tiles, variation in battery voltage between matches, and incidental contact with game elements introduces cumulative positioning errors. Each step in a multi-step autonomous sequence starts slightly off from where the previous step ended, and those offsets compound until the robot misses its final scoring target.
 
-Pedro Pathing addresses this by maintaining a continuous estimate of the robot's position on the field using a high-frequency odometry system -- typically three dead-wheel encoders that are independent of the drivetrain. Because the dead wheels do not transmit drive torque, they do not slip when the drive motors do. The Follower reads this position estimate many times per second, compares it to the commanded path, and adjusts motor power to correct for any deviation. The robot follows the intended geometric trajectory regardless of what the drivetrain wheels are doing.
+Pedro Pathing addresses this by maintaining a continuous estimate of the robot's position on the field using a high-frequency odometry system, typically three dead-wheel encoders that are independent of the drivetrain. Because the dead wheels do not transmit drive torque, they do not slip when the drive motors do. The Follower reads this position estimate many times per second, compares it to the commanded path, and adjusts motor power to correct for any deviation. The robot follows the intended geometric trajectory regardless of what the drivetrain wheels are doing.
 
 ---
 
@@ -25,9 +25,9 @@ Pedro Pathing addresses this by maintaining a continuous estimate of the robot's
 
 The central object in Pedro Pathing is the `Follower`. It manages the odometry localizer, the path execution, and the motor power calculations. Its entire public interface is built around three responsibilities:
 
-- **Initialization** -- `new Follower(hardwareMap)` wires the Follower to your hardware. `setStartingPose(new Pose(x, y, heading))` tells it where on the field the robot begins, measured in inches from the field origin with heading in radians.
-- **Path execution** -- `followPath(path)` commands the Follower to begin tracking a `Path` or `PathChain` object. The Follower takes over motor control for the duration of the path.
-- **Status polling** -- `isBusy()` returns `true` while the Follower is actively tracking a path. `update()` must be called every loop iteration to process the latest odometry readings and recompute motor outputs.
+- **Initialization**: `new Follower(hardwareMap)` wires the Follower to your hardware. `setStartingPose(new Pose(x, y, heading))` tells it where on the field the robot begins, measured in inches from the field origin with heading in radians.
+- **Path execution**: `followPath(path)` commands the Follower to begin tracking a `Path` or `PathChain` object. The Follower takes over motor control for the duration of the path.
+- **Status polling**: `isBusy()` returns `true` while the Follower is actively tracking a path. `update()` must be called every loop iteration to process the latest odometry readings and recompute motor outputs.
 
 The `update()` call is not optional and not occasional. It is a contract. Every iteration of your main loop must call `follower.update()`. If `update()` is not called for even a single cycle, the Follower's position estimate drifts, the path tracking correction falls behind, and the robot will deviate from the intended trajectory. Placing `follower.update()` as the first statement inside your main loop, before any other logic, ensures it is never skipped.
 
@@ -79,7 +79,7 @@ public class PedroIntroDemo extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        // Initialize the Follower -- it maps its own hardware internally
+        // Initialize the Follower. It maps its own hardware internally.
         follower = new Follower(hardwareMap);
 
         // Declare where the robot starts on the field
@@ -98,7 +98,7 @@ public class PedroIntroDemo extends LinearOpMode {
         // Hand the path to the Follower to execute
         follower.followPath(straightPath);
 
-        // Main execution loop -- update() must be called every iteration
+        // Main execution loop. update() must be called every iteration.
         while (opModeIsActive() && follower.isBusy()) {
             follower.update();
 
@@ -108,7 +108,7 @@ public class PedroIntroDemo extends LinearOpMode {
             telemetry.update();
         }
 
-        // Path complete -- Follower has stopped the motors
+        // Path complete. The Follower has stopped the motors.
         telemetry.addData("Status", "Path complete");
         telemetry.update();
         sleep(500);
@@ -137,7 +137,7 @@ public class PedroIntroDemo extends LinearOpMode {
 
 ## Simulator Challenge
 
-Write the initialization and status-check logic for an autonomous program that uses Pedro Pathing. Before `waitForStart()`, create the `Follower` and set the robot's starting pose to (8, 60) with a heading of 0 radians. After start, write a loop that calls `follower.update()` and reports the robot's current X, Y, and heading to telemetry while the Follower is busy. Do not worry about building a path yet -- just demonstrate the correct Follower lifecycle.
+Write the initialization and status-check logic for an autonomous program that uses Pedro Pathing. Before `waitForStart()`, create the `Follower` and set the robot's starting pose to (8, 60) with a heading of 0 radians. After start, write a loop that calls `follower.update()` and reports the robot's current X, Y, and heading to telemetry while the Follower is busy. Do not worry about building a path yet. Just demonstrate the correct Follower lifecycle.
 
 :::note
 This is an autonomous program. No gamepad input is used.

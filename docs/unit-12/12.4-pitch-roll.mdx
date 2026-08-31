@@ -89,7 +89,7 @@ public class TipDetectionDemo extends OpMode {
         double pitch = angles.getPitch(AngleUnit.DEGREES);
         double roll  = angles.getRoll(AngleUnit.DEGREES);
 
-        // Check both axes simultaneously -- tipping in any direction is dangerous
+        // Check both axes simultaneously. Tipping in any direction is dangerous.
         boolean isTipping = Math.abs(pitch) > TIP_THRESHOLD_DEG
                          || Math.abs(roll)  > TIP_THRESHOLD_DEG;
 
@@ -97,7 +97,7 @@ public class TipDetectionDemo extends OpMode {
             // Emergency stop: cut all drive power immediately
             leftDrive.setPower(0.0);
             rightDrive.setPower(0.0);
-            telemetry.addData("WARNING", "TIP DETECTED -- MOTORS STOPPED");
+            telemetry.addData("WARNING", "TIP DETECTED: MOTORS STOPPED");
         } else {
             leftDrive.setPower(-gamepad1.left_stick_y);
             rightDrive.setPower(-gamepad1.right_stick_y);

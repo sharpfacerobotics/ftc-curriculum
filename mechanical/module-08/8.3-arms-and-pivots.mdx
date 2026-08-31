@@ -16,7 +16,7 @@ import ArmSimulator from '@site/src/components/mechanical/sims/ArmSimulator';
 
 ## Technical Context
 
-An arm is a lever, and gravity pulls on it at every point along its length. The torque required to hold it is not a fixed number: it depends on the angle, and it is largest exactly where teams tend not to check.
+An arm is a lever, and the torque required to hold it changes with angle. Calculate the worst-case horizontal position as well as the stowed and scoring positions.
 
 ---
 
@@ -90,7 +90,7 @@ motor only has to supply the difference.
 ## Choosing the Reduction
 
 1. Compute the worst case torque, at horizontal, with the payload included.
-2. Apply a safety factor of at least 2. Static torque is only what holds the arm still; accelerating it, catching it after a bump, and resisting a defensive robot all demand more.
+2. Apply a safety factor of at least 2. Static torque only holds the arm still. Acceleration, impacts, and contact with another robot demand more.
 3. Divide by the motor's stall torque and the transmission efficiency to get the minimum ratio.
 4. **Check the resulting speed against the cycle time requirement.** This is the step teams skip, and it is where an over-safe reduction produces an arm that takes six seconds to raise.
 

@@ -22,7 +22,7 @@ The math only requires two pieces of information: how many ticks your motor prod
 
 ## The Conversion Formula Explained
 
-Here is how the chain works. Once the shaft completes one full revolution, a wheel of diameter `d` travels a distance equal to its circumference -- `Math.PI * d`. So if you know how many ticks equal one revolution, you can calculate distance like this:
+Here is how the chain works. Once the shaft completes one full revolution, a wheel of diameter `d` travels a distance equal to its circumference, or `Math.PI * d`. So if you know how many ticks equal one revolution, you can calculate distance like this:
 
 ```
 rotations  = ticks / ticksPerRevolution
@@ -31,7 +31,7 @@ distance   = rotations * (Math.PI * wheelDiameter)
 
 The SDK stores the configured motor resolution in `motor.getMotorType().getTicksPerRev()`. That is useful when code intentionally follows the Robot Controller motor configuration. For an autonomous distance routine, it is also common to declare a named `TICKS_PER_REV` constant beside the wheel diameter so every conversion input is visible and reviewable. If the motor or gearbox changes, update the Robot Controller configuration and this constant together.
 
-One subtle but important point: `getCurrentPosition()` returns an `int`, but `ticksPerRev` should be stored as a `double`. If you divide an `int` by an `int` in Java, you get integer division -- the remainder gets thrown away, and you lose precision. Storing one of the values as a `double` promotes the entire calculation to floating point automatically.
+One subtle but important point: `getCurrentPosition()` returns an `int`, but `ticksPerRev` should be stored as a `double`. If you divide an `int` by an `int` in Java, you get integer division. Java discards the remainder, and you lose precision. Storing one of the values as a `double` promotes the entire calculation to floating point automatically.
 
 ---
 
@@ -49,7 +49,7 @@ public class TicksToDistanceDemo extends OpMode {
 
     private DcMotor driveMotor;
 
-    // Wheel diameter in inches -- measure your actual wheel
+    // Wheel diameter in inches. Measure your actual wheel.
     private static final double TICKS_PER_REV = 537.7;
     private static final double WHEEL_DIAMETER_IN = 3.78;
 

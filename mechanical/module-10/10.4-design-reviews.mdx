@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-A design review is a scheduled point where people who did not do the work examine it before it becomes expensive to change. Done well, it catches problems for the cost of a meeting. Done badly, it is a presentation where everyone agrees and nothing is found.
+A design review brings in people who did not do the original work before the next commitment of parts or time. Its purpose is to find specific problems, assign follow-up work, and decide whether the design is ready to advance.
 
 ---
 
@@ -25,7 +25,7 @@ Reviews are most valuable at the transitions where cost jumps:
 - **Prototype to fabrication.** Before cutting good material, confirm the prototype answered its question and the design reflects what was learned.
 - **Fabrication to competition.** Before the event, confirm the robot passes inspection, is serviceable, and has spares.
 
-A review after a subsystem is finished is a status report, not a review. The point is to find problems while changing them is still cheap.
+Hold the review before the subsystem is finished, while the team can still act on what it finds without major rework.
 
 ---
 
@@ -52,14 +52,14 @@ Generic review questions produce generic answers. These are specific enough to b
 **Electrical.** Where do the cables run, and do they stay slack through the full range of motion? (Module 9)
 
 :::tip Assign the skeptic role
-Name one person whose explicit job in the review is to find problems. Rotate it. Giving someone the role makes criticism a duty rather than an act of social risk, which is what otherwise keeps people quiet.
+Name one person whose job is to question assumptions and look for failure modes. Rotate the role so criticism is expected and does not fall to the same person every time.
 :::
 
 ---
 
 ## Reviewing the Physical Robot, Not Only the Drawing
 
-The most productive part of a review is usually spent with hands on the mechanism.
+Include a physical check of the mechanism when one is available.
 
 - Move it through its full range and watch for interference and cable tension
 - Push on it and find what flexes
@@ -67,13 +67,13 @@ The most productive part of a review is usually spent with hands on the mechanis
 - Turn the transmission by hand with the motor disconnected and feel for bind
 - Check the fasteners you marked in Lesson 4.2
 
-Each of these takes a minute and each finds a class of problem that no drawing shows.
+These checks expose motion, stiffness, access, and alignment problems that may not appear in a drawing.
 
 ---
 
 ## Output: A List With Owners
 
-A review that produces discussion and no list has produced nothing. The output is a written list, and every item has three fields:
+End the review with a written action list. Give every item three fields:
 
 ```text
 ITEM                                    OWNER    BY
@@ -85,15 +85,15 @@ Arm holds at stall for ~60 s/match      Priya    Fri
 
 Review the list at the start of the next review. An item that reappears three times unaddressed is telling you something about capacity or priority that is worth discussing directly.
 
-:::warning Do not defend, record
-The natural response to criticism of your subsystem is to explain why it is fine. In a review, the useful response is to write the concern down and check it afterward. If the concern turns out to be unfounded, that takes ten minutes to establish and the review cost nothing. If it was valid, defending it in the meeting cost the team a season.
+:::warning Record concerns before debating them
+Write down each concern and decide how the team will check it. A short inspection or test can close an unfounded item. A valid item needs an owner and a date, even if the group cannot solve it during the meeting.
 :::
 
 ---
 
 ## Reviews as Notebook Evidence
 
-Photograph or transcribe the review list into the notebook, along with what happened to each item. This does two things: it makes the iteration visible, which is what judges look for, and it gives the team a record of which concerns turned out to matter, which improves the next review.
+Photograph or transcribe the review list into the notebook, then record how each item was closed. The team can use that history to improve later reviews, and judges can follow how the design changed.
 
 ---
 

@@ -78,7 +78,7 @@ public class DistanceSensorDemo extends LinearOpMode {
 
             // Validate the reading before using it to make a safety decision
             if (distCm < 200.0 && distCm < 15.0 && power > 0) {
-                // Robot is within 15 cm of an obstacle -- block forward movement
+                // Robot is within 15 cm of an obstacle. Block forward movement.
                 power = 0.0;
                 telemetry.addData("Warning", "OBSTACLE DETECTED");
             }

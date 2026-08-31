@@ -14,7 +14,7 @@ import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
 ## Configuration Drift: A Real Competition Problem
 
-Imagine a robot with three OpMode files -- `TeleOpMain.java`, `AutonomousRed.java`, and `AutonomousBlue.java`. Each one maps the drivetrain motors using the strings `"left_front"`, `"right_front"`, `"left_back"`, and `"right_back"`. The drive team re-ports the right rear motor to a different hub slot before a match and updates the configuration name in the Robot Controller app to `"right_back_2"`. Now that string needs to change in three different Java files. One of them gets missed. The autonomous program works. The TeleOp crashes on the second match.
+Imagine a robot with three OpMode files: `TeleOpMain.java`, `AutonomousRed.java`, and `AutonomousBlue.java`. Each one maps the drivetrain motors using the strings `"left_front"`, `"right_front"`, `"left_back"`, and `"right_back"`. The drive team re-ports the right rear motor to a different hub slot before a match and updates the configuration name in the Robot Controller app to `"right_back_2"`. Now that string needs to change in three different Java files. One of them gets missed. The autonomous program works. The TeleOp crashes on the second match.
 
 This scenario is called configuration drift, and it is one of the most common sources of last-minute failures at competition. The fix is to store every configuration name and every tunable constant in exactly one location. Any code that needs the value reads it from that single location. When the value needs to change, it changes in one place and every file is automatically updated.
 

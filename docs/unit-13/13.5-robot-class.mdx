@@ -22,7 +22,7 @@ The benefit is visible immediately at the OpMode level. Instead of declaring six
 
 ## Composition: The "Has-A" Relationship
 
-The robot class uses composition, not inheritance. The `CompetitionRobot` does not extend `Drivetrain` -- it has a `Drivetrain`. This is the correct choice when the relationship is one of ownership rather than specialization. The robot owns a drivetrain, owns an intake, and owns a lift. Each of those subsystems is a member variable of type equal to its mechanism class.
+The robot class uses composition, not inheritance. The `CompetitionRobot` does not extend `Drivetrain`. It has a `Drivetrain`. This is the correct choice when the relationship is one of ownership rather than specialization. The robot owns a drivetrain, owns an intake, and owns a lift. Each of those subsystems is a member variable of type equal to its mechanism class.
 
 Because the subsystem objects are declared as `public` members of the robot class, OpMode code can access them with dot notation: `robot.lift.extend()`, `robot.intake.collect()`, `robot.drive.setWeights(...)`. Alternatively, the robot class can expose wrapper methods that delegate to its subsystems, which keeps the OpMode even cleaner at the cost of slightly more code in the robot class.
 
@@ -55,7 +55,7 @@ import org.firstinspires.ftc.teamcode.RobotConfig;
  */
 public class CompetitionRobot {
 
-    // Subsystem objects -- public so OpModes can call their methods directly
+    // Subsystem objects are public so OpModes can call their methods directly
     public MecanumDrivetrain drive  = new MecanumDrivetrain();
     public LiftMechanism     lift   = new LiftMechanism();
     public IntakeMechanism   intake = new IntakeMechanism();

@@ -8,10 +8,10 @@ sidebar_position: -1
 
 # Mechanical Paths and Time Estimates
 
-The mechanical track is written as a full sequence, but almost nobody needs all twelve modules in order in their first season. Use these paths to decide what to study first based on the job you actually have on the team.
+The mechanical track is arranged as a full sequence, but you don't need to complete every module in order. Choose the path that matches your current role, then return to the other modules when your work requires them.
 
 :::info Time estimate assumptions
-The estimates assume a student reads the lesson, works the calculator with their own robot's numbers, and completes the exercise at the end. They do not include the build time for the mechanism itself. A team with shop access and a mentor moves faster; a team learning the tools at the same time should expect more.
+The estimates assume a student reads the lesson, works the calculator with their own robot's numbers, and completes the exercise at the end. They do not include build time for the mechanism itself. A team with shop access and a mentor may move faster. A team learning the tools at the same time should allow more time.
 :::
 
 ## New Member Path
@@ -25,7 +25,7 @@ The estimates assume a student reads the lesson, works the calculator with their
 **Checkpoint:** you can work safely on every tool your team owns, read a caliper to a thousandth, tap a hole without snapping the tap, and write a notebook entry that another student can act on.
 
 :::tip Mentor note
-Do not hand a new member a drill before Lesson 2.1. The single most common FTC shop injury is a part grabbed by a bit because it was held by hand, and it is entirely preventable by one conversation.
+Have new members complete Lesson 2.1 before they use a drill. In particular, make sure they know why every workpiece must be clamped instead of held by hand.
 :::
 
 ## Drivetrain Path
@@ -39,7 +39,7 @@ Do not hand a new member a drill before Lesson 2.1. The single most common FTC s
 **Checkpoint:** you can state whether your drivetrain is motor limited or traction limited, prove it with both a calculation and a wall-push test, and explain why the two agree or do not.
 
 :::warning Real-world failure to watch for
-A drivetrain that feels strong on blocks and loses every pushing match is usually motor limited. The wheels grip, the motors stall, and the current draw cooks them over a tournament day. Lesson 7.3 has the calculation, and the test takes thirty seconds.
+If a drivetrain feels strong on blocks but stalls while pushing on the field, check whether it is motor limited. Lesson 7.3 covers the calculation and a short wall-push test you can use to confirm it.
 :::
 
 ## Mechanism Designer Path
@@ -53,7 +53,7 @@ A drivetrain that feels strong on blocks and loses every pushing match is usuall
 **Checkpoint:** you can compute the worst case load on your mechanism, choose a reduction with real margin, and produce a measured reliability figure from at least 25 trials.
 
 :::tip Mentor note
-Mechanism leads should be able to answer "what is the worst case angle and what does it demand?" without opening a laptop. If the answer is a shrug, the mechanism has not been designed, it has been assembled.
+Ask mechanism leads to identify the worst-case angle and the load at that position. They should know those figures well enough to explain how the motor and reduction were selected.
 :::
 
 ## CAD Path
@@ -77,7 +77,7 @@ Mechanism leads should be able to answer "what is the worst case angle and what 
 **Checkpoint:** you can size a wire for a given current and run length, explain why the drop calculation uses twice the length, and walk the robot through the electrical section of the inspection checklist without an inspector present.
 
 :::warning Late-match failures are usually electrical
-A mechanism that works in match one and fails in match five is often a battery and connection problem rather than a mechanical one. Lesson 9.2 covers why, and the fix is usually a crimp.
+When a mechanism becomes unreliable later in the day, check the battery, connectors, and crimps as well as the mechanism itself. Lesson 9.2 explains how voltage drop develops under load.
 :::
 
 ## Fabrication Path
@@ -101,7 +101,7 @@ A mechanism that works in match one and fails in match five is often a battery a
 **Checkpoint:** you can run a design review that produces a list with owners, and you can look at any subsystem on your robot and ask the question that finds the problem.
 
 :::tip Mentor note
-The design lead does not need to be the best builder. They need to be the person who asks "what is the worst case load?" and "how many trials?" until those become the questions everyone asks themselves.
+The design lead doesn't have to be the team's best builder. They do need to ask for load calculations and trial counts, and make those checks part of the team's routine.
 :::
 
 ## Suggested Weekly Rhythm
@@ -114,7 +114,7 @@ A workable meeting shape for a team running both tracks:
 | Mid week | Implement on the robot | Build or prototype | Test the mechanism with its code |
 | Late week | Debug from telemetry | Failure analysis on what broke | Notebook entries, everyone |
 
-The point is not to finish pages quickly. It is that each student can explain what their subsystem does, what load it carries, what they would check first when it fails, and why it was designed the way it was.
+Move at a pace that lets each student explain the subsystem they work on: what it does, what load it carries, why it was designed that way, and what they would check first after a failure.
 
 ## If You Only Have One Weekend
 

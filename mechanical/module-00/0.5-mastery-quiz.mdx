@@ -20,7 +20,7 @@ import {MASTERY_QUESTIONS} from '@site/src/telemark/mechanicalQuizzes';
 <details>
 <summary>Show answer</summary>
 
-The loop does not exist to correct incompetence. It exists to remove uncertainty that cannot be removed by thinking. A design has assumptions in it, such as how a game element behaves when it is off center, how much friction the field tile provides, or how long an alignment takes in practice. Those assumptions can only be checked against a physical thing. A team that runs three cycles has tested three generations of assumptions; a team that runs one has tested none, and discovers all of them at once with no schedule left to respond.
+Every design contains assumptions about the game element, field friction, alignment time, and other conditions. Planning can identify some of them, but a prototype is needed to test them. Each cycle checks a set of assumptions and gives the team time to respond to the result before the design is finished.
 
 </details>
 
@@ -51,7 +51,7 @@ A is worth 0.67 points per second and B is worth 0.5, so A is better on that met
 
 (c) is neither: it is a preference stated as though it were a constraint. It is a solution, and putting it in the constraint list eliminates tank and swerve drivetrains before anyone compares them.
 
-The classification matters because it determines what happens when the design fails to satisfy the statement. Constraints kill designs; requirements can be renegotiated; preferences should be questioned.
+The classification determines what the team can change. A constraint rules out a design that violates it. A requirement can be revised with the strategy, and a preference should remain open to comparison.
 
 </details>
 
@@ -62,7 +62,7 @@ The classification matters because it determines what happens when the design fa
 <details>
 <summary>Show answer</summary>
 
-When judging happens during generation, the second or third idea gets criticized publicly, and people stop offering ideas rather than risk the same treatment. The group converges on whatever was proposed first by whoever has the most standing, which is not an engineering process. Separating them lets quantity build first. Bad ideas are still valuable during generation: they define the edges of the solution space, and they frequently contain one component that improves a different concept.
+Immediate criticism narrows the discussion before the group has produced enough alternatives. Separating the phases gives everyone time to propose and develop ideas. The team can then evaluate the full set against the same requirements and keep useful parts of concepts that do not survive as a whole.
 
 </details>
 
@@ -119,7 +119,7 @@ Week 2  Rough prototype, measure real cycle time,
         compare against the 8 s requirement.
 ```
 
-**On the week 8 decision:** keeping the mechanism because of the work already invested is the sunk cost trap. The hours spent are gone either way; the only question is which robot scores more in the remaining weeks. That question should be answered on its merits, not on the investment.
+**On the week 8 decision:** keeping the mechanism only because of the work already invested is the sunk cost trap. Compare the available options using the remaining schedule and expected scoring performance. Past build hours do not make the current mechanism more effective.
 
 </details>
 

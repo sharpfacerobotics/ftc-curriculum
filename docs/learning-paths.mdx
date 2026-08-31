@@ -9,7 +9,7 @@ import {MeetingRhythmDiagram} from '@site/src/components/DocDiagrams';
 
 # Learning Paths and Time Estimates
 
-Telemark is written as a full start-to-finish curriculum, but most students do not need every unit in order on day one. Use these paths to decide what to study first based on your robot role.
+Telemark is arranged as a full sequence, but you do not need every unit before you begin contributing. Choose the path that matches your current role, then return to other units when the work requires them.
 
 :::info Time estimate assumptions
 The estimates below assume a student reads the lesson, completes the simulator challenge, and asks at least one debugging question. A fast reader may move quicker; a team building and testing on real hardware should expect extra time for wiring, configuration, and mechanical fixes.
@@ -26,7 +26,7 @@ The estimates below assume a student reads the lesson, completes the simulator c
 **Checkpoint:** you can write a TeleOp that maps motors, reads gamepad input, sends telemetry, and stops safely.
 
 :::tip Mentor note
-Do not rush rookies into autonomous pathing before they can explain `init()`, `loop()`, `hardwareMap.get()`, and why motor power must be set back to zero.
+Before new programmers move into autonomous pathing, ask them to explain `init()`, `loop()`, `hardwareMap.get()`, and why motor power must be set back to zero.
 :::
 
 ## Drive-Base Path
@@ -54,7 +54,7 @@ If the robot drives perfectly on blocks but poorly on the field, suspect wheel t
 **Checkpoint:** you can write nonblocking routines, isolate subsystem classes, reset sensors deliberately, and build a state machine that can be debugged from telemetry.
 
 :::tip Mentor note
-Autonomous leads should keep a "known good" simple routine in the repo. When the fancy routine breaks at competition, the simple routine protects the team from scoring zero.
+Keep a tested, simple autonomous routine in the repository. If the more complex routine becomes unreliable at an event, the team can switch to the simpler option instead of running unverified changes.
 :::
 
 ## Vision and Pathing Path
@@ -78,4 +78,4 @@ Autonomous leads should keep a "known good" simple routine in the repo. When the
 
 <MeetingRhythmDiagram />
 
-The important part is not finishing pages quickly. The important part is that each student can explain what the robot is doing, why the code is structured that way, and what they would check first when it fails.
+Move at a pace that lets each student explain what the robot is doing, why the code is structured that way, and what they would check first when it fails.

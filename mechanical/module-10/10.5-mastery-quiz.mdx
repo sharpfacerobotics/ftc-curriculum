@@ -61,7 +61,7 @@ Having the driver run the trials, ideally someone who did not watch the build, m
 
 "The motor stalled" is a symptom, not a cause. A motor stalls because the load exceeded what it could deliver, and the interesting question is why the load was that high. Replacing the motor restores function and leaves the cause in place, so the new motor will stall too.
 
-Continue the why chain: the motor stalled because the slide was binding; the slide was binding because the rails were not parallel under load; the rails were not parallel because the mounting plate flexed; the plate flexed because it is thin polycarbonate spanning an unsupported distance. That last answer is a design decision the team controls, and stiffening or supporting the plate is the fix that actually removes the failure.
+Continue the why chain. The motor stalled because the slide was binding. The slide bound because the rails were not parallel under load. The rails moved out of parallel because the thin polycarbonate mounting plate flexed across an unsupported span. Supporting or stiffening that plate addresses the cause.
 
 </details>
 
@@ -72,7 +72,7 @@ Continue the why chain: the motor stalled because the slide was binding; the sli
 <details>
 <summary>Show answer</summary>
 
-A design failure means the part was never adequate for the loads it sees; the fix is recalculation and a different design. A build failure means the design was adequate but the part was made or assembled wrong, such as a missing spacer or an untightened fastener; the fix is a process change like a checklist or a recorded stack-up. A wear failure means the part is adequate and has a finite life, such as tubing, chain, or compliant wheels; the fix is a replacement schedule and spares.
+A design failure means the part was not adequate for its loads, so the team must recalculate and revise it. A build failure means an adequate design was made or assembled incorrectly, such as with a missing spacer or loose fastener. Address that with a process change, such as a checklist or recorded stack-up. A wear failure occurs when an adequate part reaches the end of its finite life. Handle normal wear with a replacement schedule and spares.
 
 Misclassifying wastes effort in both directions. Redesigning a wear item spends engineering hours on something already working as intended. Putting a wear schedule on a design failure means replacing the same part indefinitely without ever fixing it. Treating a design failure as a build failure adds a checklist item that cannot help, because careful assembly of an inadequate part still fails.
 

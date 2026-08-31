@@ -22,7 +22,7 @@ The key insight that makes color detection robust is that you rarely need to mat
 
 ## ColorSensor in the SDK
 
-The `ColorSensor` class provides three primary methods for reading individual color channels: `red()`, `green()`, and `blue()`. Each returns an `int` in the range of 0 to 255 -- larger values mean more of that color wavelength is being reflected back to the sensor.
+The `ColorSensor` class provides three primary methods for reading individual color channels: `red()`, `green()`, and `blue()`. Each returns an `int` in the range of 0 to 255. Larger values mean more of that color wavelength is being reflected back to the sensor.
 
 The sensor operates using an internal white LED that illuminates the target surface. The photodetector then measures how much of each wavelength the surface reflects back. This means the proximity of the sensor to the object matters for consistent readings. The REV Color Sensor works best when held a few millimeters to a few centimeters from the target. Mounting it at a fixed, known distance from the scoring area or intake opening produces far more repeatable results than a sensor that can wobble or shift position.
 
@@ -63,10 +63,10 @@ public class ColorSensorDemo extends OpMode {
         String detectedAlliance;
         if (r > b && r > g) {
             detectedAlliance = "RED";
-            intakeMotor.setPower(1.0); // Correct alliance -- collect it
+            intakeMotor.setPower(1.0); // Correct alliance. Collect it.
         } else if (b > r && b > g) {
             detectedAlliance = "BLUE";
-            intakeMotor.setPower(-1.0); // Wrong alliance -- eject it
+            intakeMotor.setPower(-1.0); // Wrong alliance. Eject it.
         } else {
             detectedAlliance = "UNKNOWN";
             intakeMotor.setPower(0.0);

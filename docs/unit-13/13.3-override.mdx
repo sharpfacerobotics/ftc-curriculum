@@ -14,15 +14,15 @@ import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
 ## Why the Same Method Name Needs Different Behavior
 
-Inheritance establishes that child classes are specialized versions of their parent. Sometimes that specialization means doing the same thing slightly differently. A `BaseMotorMechanism` parent might have a `stop()` method that calls `motor.setPower(0)`. For most mechanisms, that is sufficient. For a high-reach scoring lift that holds a heavy game element, a bare `setPower(0)` is not safe -- it allows gravity to drop the element the instant the driver releases the joystick. That specific mechanism needs a `stop()` that also configures `BRAKE` behavior before cutting power.
+Inheritance establishes that child classes are specialized versions of their parent. Sometimes that specialization means doing the same thing slightly differently. A `BaseMotorMechanism` parent might have a `stop()` method that calls `motor.setPower(0)`. For most mechanisms, that is sufficient. For a high-reach scoring lift that holds a heavy game element, a bare `setPower(0)` is not safe because it allows gravity to drop the element the instant the driver releases the joystick. That specific mechanism needs a `stop()` that also configures `BRAKE` behavior before cutting power.
 
-The mechanism still needs to be called `stop()` -- it would be confusing to name it anything else, and external code that calls `stop()` on any mechanism should not need to know which specific mechanism it is talking to. The solution is method overriding: the child class redefines the method with the same name and signature, replacing the parent's implementation with its own.
+The mechanism still needs to be called `stop()` because any other name would be confusing. External code that calls `stop()` on any mechanism should not need to know which specific mechanism it is talking to. The solution is method overriding: the child class redefines the method with the same name and signature, replacing the parent's implementation with its own.
 
 ---
 
 ## The @Override Annotation
 
-The `@Override` annotation is placed on the line immediately above a method in a child class to signal that the method is intentionally replacing a version inherited from the parent. Technically the annotation is optional -- the override will happen whether or not it is present. In practice, omitting it is an engineering mistake.
+The `@Override` annotation is placed on the line immediately above a method in a child class to signal that the method is intentionally replacing a version inherited from the parent. Technically the annotation is optional. The override will happen whether or not it is present. In practice, omitting it is an engineering mistake.
 
 The annotation serves two purposes. First, it tells the compiler to verify that the parent class actually has a method with that exact name and parameter types. If you misspell the method name or get the parameter types wrong, the compiler will catch it and report an error. Without `@Override`, the misspelled method would silently compile as a brand new method rather than an override, and the parent's original version would continue to run.
 
@@ -107,7 +107,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  */
 public abstract class BaseShooter {
 
-    /** Every shooter must implement this -- no default behavior is possible. */
+    /** Every shooter must implement this because no default behavior is possible. */
     public abstract void fire();
 
     /** Common behavior that all shooters share can still be defined here. */

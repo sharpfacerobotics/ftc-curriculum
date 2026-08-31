@@ -26,25 +26,25 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
       prompt: 'Why should the generating and judging phases of a brainstorm be separated?',
       options: ['To make the meeting shorter', 'Because judging during generation makes people stop proposing ideas', 'Because bad ideas should never be written down', 'So the team lead can decide alone'],
       answer: 1,
-      explain: 'After an idea gets criticized publicly, people stop offering them, and the group converges on whatever was said first by whoever has the most standing.',
+      explain: 'Immediate criticism narrows the discussion before the team has generated enough alternatives. Separate the phases so each idea can be developed before the group compares it against the requirements.',
     },
     {
       prompt: 'A prototype takes two weeks to build. What is the main problem with that?',
       options: ['It costs too much material', 'It answers the question too late to act on, and becomes too expensive to throw away', 'Prototypes should always be made from metal', 'Nothing, thorough prototypes are better'],
       answer: 1,
-      explain: 'A prototype earns its value by producing an answer early. Two weeks of investment also triggers the sunk cost trap, turning an experiment into a commitment.',
+      explain: 'A prototype needs to answer its question early enough for the team to change direction. A two-week build delays that result and makes the team less willing to discard a weak concept.',
     },
     {
       prompt: 'Your team rejected three intake concepts. Why write down the reasons?',
       options: ['Only to satisfy judges', 'Because the chosen concept may fail later and half the analysis is already done', 'To prove the team works hard', 'There is no reason to record rejected ideas'],
       answer: 1,
-      explain: 'Judges do ask, but the practical value is recovery speed: when the chosen concept fails in week seven, the annotated list is the fastest path to a replacement.',
+      explain: 'The notes explain the original decision and give the team a starting point if the chosen concept later fails. Recheck the alternatives using what the tests have since shown.',
     },
   ],
   'module-01': [
     {
       prompt: 'Which notebook entry is most useful to a judge and to your team?',
-      options: ['"Worked on the intake today, made good progress"', '"Intake acquired 7 of 12 elements at 2 in offset; failures all rode up the funnel wall; next: increase funnel angle to 35 degrees"', '"The intake is done and works great"', 'A photograph of the intake with no caption'],
+      options: ['"Worked on the intake today, made good progress"', '"Intake acquired 7 of 12 elements at 2 in offset. Each failure rode up the funnel wall. Next: increase funnel angle to 35 degrees."', '"The intake is done and works great"', 'A photograph of the intake with no caption'],
       answer: 1,
       explain: 'It states the measurement, the trial count, the observed failure mode, and the next step. The others are opinions or undated activity logs.',
     },
@@ -58,19 +58,19 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
       prompt: 'In a weighted decision matrix, when must the criteria be weighted?',
       options: ['After scoring, so the weights reflect the results', 'Before the options are scored', 'It does not matter', 'Only if the team disagrees'],
       answer: 1,
-      explain: 'Weighting after scoring lets the team tune weights until the favorite wins, producing a matrix that documents a bias while looking like analysis.',
+      explain: 'Weighting after scoring lets the team adjust the criteria around a preferred result. Set the weights first so they represent the strategy instead of the current favorite.',
     },
     {
       prompt: 'Concept A scores 61 and concept B scores 59 in your matrix. What should you do?',
       options: ['Build A, it won', 'Rerun the matrix with different weights until one clearly wins', 'Prototype both, because the gap is smaller than the scoring noise', 'Pick whichever is cheaper'],
       answer: 2,
-      explain: 'A 2 point margin is inside the noise of how people assign 1 to 5 scores. The matrix correctly reported that this cannot be decided on paper.',
+      explain: 'A 2 point margin is smaller than the uncertainty in subjective 1 to 5 scores. Treat the concepts as tied and compare rough prototypes with measured results.',
     },
     {
       prompt: 'A trial fails because someone bumped the robot. What should the notebook say?',
       options: ['Nothing, discard it', 'Record it as a bumped trial with the reason', 'Count it as a normal failure', 'Restart the whole test from zero'],
       answer: 1,
-      explain: 'Discarding inconvenient data produces a notebook showing better reliability than the robot has. Record what happened and why you are treating it separately.',
+      explain: 'Record the trial, identify the bump, and state whether it was excluded from the reliability calculation. Another reader can then reproduce how the result was calculated.',
     },
   ],
   'module-02': [
@@ -110,7 +110,7 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
       prompt: 'A frame rail bends 0.2 in under a hit and springs back undamaged. Why is this still a problem?',
       options: ['It is not a problem, nothing broke', 'Mechanisms depend on geometry, so the intake moves 0.2 in and stops working during the hit', 'The rail will eventually fatigue', 'It makes the robot heavier'],
       answer: 1,
-      explain: 'Strength was adequate; stiffness was not. Because nothing breaks, the symptom looks intermittent and gets misdiagnosed as software or driver error.',
+      explain: 'The rail was strong enough but not stiff enough. Because nothing breaks, the symptom looks intermittent and can be misdiagnosed as software or driver error.',
     },
     {
       prompt: 'A 16 in rail deflects too much. Which change helps most for the least weight?',
@@ -142,7 +142,7 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
       prompt: 'A bolted joint is snug but not properly tightened. What happens under load?',
       options: ['Nothing, the screw is strong enough', 'The parts shift within the clearance hole because there is little clamping force', 'The screw stretches permanently', 'The threads strip immediately'],
       answer: 1,
-      explain: 'A tightened screw stretches and clamps; friction between the faces carries the load. Without clamping the load goes into the screw in shear and the parts move, which you feel as slop.',
+      explain: 'A tightened screw stretches and clamps the faces together. Friction between those faces carries the load. Without clamping, the load goes into the screw in shear and the parts move, which you feel as slop.',
     },
     {
       prompt: 'One screw keeps backing out even after blue threadlocker. What is the likely cause?',
@@ -160,7 +160,7 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
       prompt: 'A sprocket is cantilevered 3 in beyond two bearings that are 1 in apart. What is the first fix?',
       options: ['Use a stronger shaft', 'Increase the bearing spacing', 'Add threadlocker', 'Use a larger sprocket'],
       answer: 1,
-      explain: 'Reaction forces scale with cantilever length over bearing spacing. Widening the spacing is the cheapest lever; shortening the cantilever is next.',
+      explain: 'Reaction forces scale with cantilever length over bearing spacing. Widen the bearing spacing first, then shorten the cantilever if needed.',
     },
     {
       prompt: 'Why should washers not be used as spacers in a stack-up?',
@@ -212,7 +212,7 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
       prompt: 'Where does a DC motor deliver peak mechanical power?',
       options: ['At free speed', 'At stall', 'At half free speed and half stall torque', 'Just below stall'],
       answer: 2,
-      explain: 'Power is torque times speed; since torque falls linearly with speed, the product peaks in the middle at stall torque times free speed over four.',
+      explain: 'Power is torque multiplied by speed. Since torque falls linearly as speed rises, their product peaks at the midpoint of the motor curve.',
     },
     {
       prompt: 'Three stages of 4:1, 3:1, and 5:1 give what overall reduction?',
@@ -338,7 +338,7 @@ export const MASTERY_QUESTIONS: Record<string, QuizQuestion[]> = {
     },
     {
       prompt: 'A mechanism goes from 8/10 to 9/10 after a change. Did the change help?',
-      options: ['Yes, clearly', 'You cannot tell; that difference is within normal random variation', 'No, it got worse', 'Yes, by exactly 10%'],
+      options: ['Yes, clearly', 'You cannot tell because that difference is within normal random variation', 'No, it got worse', 'Yes, by exactly 10%'],
       answer: 1,
       explain: 'Detecting a real difference needs enough trials that the change exceeds the noise, which for FTC purposes means 25 or more before and after.',
     },

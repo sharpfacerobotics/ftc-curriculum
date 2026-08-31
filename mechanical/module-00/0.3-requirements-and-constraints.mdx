@@ -15,7 +15,7 @@ import RequirementsTable from '@site/src/components/mechanical/RequirementsTable
 
 ## Technical Context
 
-"The intake should be fast" is not a requirement. It cannot be tested, it cannot be designed against, and two people reading it will picture different mechanisms. A requirement that cannot fail a test is not a requirement, it is a wish.
+"The intake should be fast" gives the team nothing to test. Two people can agree with it while expecting very different cycle times. A useful requirement states an outcome clearly enough that a test can pass or fail it.
 
 This lesson covers how to turn strategy into statements that a mechanism either satisfies or does not.
 
@@ -44,16 +44,16 @@ Notice that every requirement on the right implies a specific test.
 
 ## Requirements Versus Constraints
 
-These get confused constantly, and the confusion is expensive.
+Keep requirements and constraints separate because you respond to them differently.
 
 A **constraint** is a limit you did not choose and cannot negotiate. The starting size limit is a constraint. The list of legal motors is a constraint. The height of a field barrier is a constraint.
 
 A **requirement** is something you decided the robot must do, derived from your strategy. Scoring in the high goal is a requirement, and it is one you could choose to drop.
 
-The practical difference: when a design fails to meet a requirement, changing the requirement is on the table. When a design violates a constraint, the design is dead.
+When a design misses a requirement, the team can revise the design, the requirement, or the strategy behind it. When a design violates a constraint, it cannot be used as proposed.
 
-:::warning A constraint you invented is the most dangerous kind
-Teams routinely treat their own preferences as constraints. "We have to use mecanum" is not a constraint, it is a preference someone stopped questioning. Write the actual source next to every constraint: a rule number, a physical measurement, or a budget figure. If you cannot cite a source, it is a requirement in disguise, and requirements can be changed.
+:::warning Check the source of every constraint
+Teams sometimes record a preference as though it were fixed. "We have to use mecanum" is a design choice unless a real requirement forces it. Write a source next to every constraint, such as a rule number, field measurement, or budget figure. If you cannot identify the source, review the statement with the team before it limits the design.
 :::
 
 ---
@@ -64,7 +64,7 @@ Work backward from the points per second table you built in Lesson 0.2.
 
 Suppose the table says the high goal is worth 6 points and you estimate a 9 second cycle. In a 120 second TeleOp with 20 seconds reserved for endgame, you have 100 seconds of scoring time, which is about 11 cycles, which is 66 points.
 
-Now the requirements write themselves:
+Turn that estimate into timed requirements for each part of the cycle:
 
 - The robot must acquire an element from the floor in 2 s or less
 - The robot must travel from the acquisition zone to the scoring zone in 3 s or less
@@ -73,24 +73,23 @@ Now the requirements write themselves:
 
 If any one of these cannot be met, the 9 second cycle estimate was wrong, and the whole strategy needs rechecking. That is the loop from Lesson 0.1 doing its job before anything was built.
 
-:::tip Requirements make arguments productive
-Two students disagreeing about intake designs is unproductive until someone asks "which one acquires an element in under 2 seconds?" Then it is a question with an answer, and the answer comes from a prototype rather than from whoever argues longest.
+:::tip Use requirements to compare concepts
+If two students prefer different intake designs, compare both against the same requirement. "Which concept acquires an element in under 2 seconds?" can be answered with a prototype and a stopwatch.
 :::
 
 ---
 
 ## Four Things Every Requirement Needs
 
-A statement alone is not enough. A requirement that the team can actually work
-from carries four things, and a row missing any one of them will cause an
-argument later.
+A requirement needs enough context for the team to use and verify it. Record
+these four fields with every statement.
 
 | Field | Why it exists |
 | --- | --- |
 | **An id** | So a notebook entry, a design review, and a test result can all cite the same thing. "R2 failed" is precise; "the drive requirement" is not. |
 | **A number and a unit** | Without one, nothing can pass or fail. |
 | **A verification method** | How you will know. Test means run it repeatedly and count. Measure means one instrument reading. Inspect means check against a list. Demonstrate means show it once, end to end. |
-| **An owner** | A subsystem that answers for it. A requirement everyone owns is one everyone assumes someone else has. |
+| **An owner** | The subsystem responsible for meeting and verifying it. |
 
 Plus a source, so a rule can be told from a preference.
 
@@ -103,12 +102,10 @@ Plus a source, so a rule can be told from a preference.
   <RequirementsTable />
 </LessonTool>
 
-:::tip The id is what makes the rest work
-Once R2 exists, a mechanism can be described as "satisfies R2", a test result
-can be recorded against R2, and a design review can ask to see R2 rather than
-asking whether the drivetrain feels fast enough. That thread from a decision to
-the evidence for it is what separates a team that can explain its robot from a
-team that built one.
+:::tip Use the id everywhere
+Once R2 exists, a mechanism can be described as "satisfies R2," a test result
+can be recorded against R2, and a design review can ask for evidence tied to R2.
+The shared id keeps the decision, design, and test record connected.
 :::
 
 ---

@@ -14,9 +14,9 @@ import {DesignCycleDiagram} from '@site/src/components/mechanical/EngineeringDia
 
 ## Technical Context
 
-Rookie teams tend to treat robot design as a straight line: read the game, decide what to build, build it, compete. That line has no place to put the discovery, made in week six, that the intake cannot reach the game element when the robot is against the wall. Teams that follow a line either ignore the discovery or panic.
+A linear season plan has four steps: read the game, choose a design, build it, and compete. It leaves no scheduled response when testing exposes a bad assumption. If the intake cannot reach an element against the wall, the team needs time to revise and retest it.
 
-The engineering design cycle is the same set of activities arranged as a loop, so that discovery has somewhere to go.
+The engineering design cycle repeats those activities. What you learn in a test becomes an input to the next version.
 
 ---
 
@@ -41,7 +41,7 @@ Refine feeds straight back into Define, because a real test usually reveals that
 
 ## Why the Loop Is the Point
 
-A team that runs the loop three times on a mechanism will beat a team that runs it once, even when the second team is more skilled. The reason is not effort. It is that each pass removes uncertainty that no amount of planning would have removed.
+Each pass through the loop answers questions that planning alone cannot settle. Repeating the loop gives you more chances to catch weak assumptions while they are still cheap to fix.
 
 Consider an intake for a ball-shaped game element:
 
@@ -49,26 +49,26 @@ Consider an intake for a ball-shaped game element:
 - **Pass two** answers "how do we handle balls that are not centered?" It adds funnel walls. Answer: works, but the funnel now sticks out past the frame.
 - **Pass three** answers "how do we get the funnel inside the size limit at start?" It adds a deploying funnel on a spring hinge.
 
-None of those three problems were visible from a whiteboard. The team that built the finished intake straight from CAD discovers all three in week eight, with no time left.
+None of those problems was obvious on a whiteboard. A team that goes straight from CAD to a finished intake may not find them until the schedule leaves little room for another version.
 
 :::tip Mentor note
-When a student says "I already know it will work," the correct response is "then the test will be quick." Prototypes are cheap. Being wrong in week eight is not.
+When a student says "I already know it will work," ask them to define a quick test. A short prototype either confirms the idea or finds a problem while there is still time to revise it.
 :::
 
 ---
 
 ## Where FTC Teams Break the Cycle
 
-Three failure patterns account for most of the damage.
+Watch for three common shortcuts.
 
-**Skipping Ideate.** The team generates one concept, usually the one the loudest member described first, and goes straight to building it. There is nothing to compare it against, so no one can tell whether it is good.
+**Skipping Ideate.** The team builds the first plausible concept without comparing it with alternatives. That makes it hard to tell whether the choice is strong or simply familiar.
 
-**Building the competition version first.** A prototype made of wood, zip ties, and scrap answers the question in two hours. The same mechanism built from machined aluminum answers the same question in two weeks, and now nobody wants to change it because of how long it took.
+**Building the competition version first.** A rough prototype can answer a question in a few hours. A machined version may take weeks, and that investment makes the design harder to abandon when the result is poor.
 
 **Testing once.** A mechanism that works on the first try has not been tested. It has been demonstrated. Reliability is a number, and you cannot get a number from one trial.
 
 :::warning The sunk cost trap
-The more time a team spends building something, the less willing it becomes to throw it away. This is why the cycle insists you build rough first. A prototype you spent two hours on is easy to abandon when the test says it does not work.
+Time spent on a design can make the team reluctant to replace it. Build the first version quickly and cheaply so a failed test can lead to a new concept without derailing the schedule.
 :::
 
 ---
@@ -111,9 +111,9 @@ Pick one mechanism on your current or most recent robot. Write down, honestly:
 
 - How many distinct concepts were considered before the one you built?
 - How many times was it rebuilt after testing?
-- What did the first test reveal that nobody predicted?
+- Which assumption did the first test disprove?
 
-If the answers are "one," "zero," and "we did not test it," you have found the highest-value change your team can make this season, and it costs nothing.
+If the answers are "one," "zero," and "we did not test it," start by changing how your team generates concepts and schedules tests. You can improve that process before buying any new parts.
 
 <MarkComplete
   lessonId="module-00/design-cycle"

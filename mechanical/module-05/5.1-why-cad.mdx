@@ -13,9 +13,9 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-CAD is not drawing. It is a way of finding out whether a design works before spending parts and hours on it.
+CAD lets you check dimensions, motion, and fit before committing material and fabrication time.
 
-Teams that skip CAD do not skip the work of resolving interference and reach problems. They just do that work at the workbench, in metal, one problem at a time.
+Without that check, the team still has to resolve interference and reach problems, but it finds them during assembly when changes cost more.
 
 ---
 
@@ -25,14 +25,14 @@ Teams that skip CAD do not skip the work of resolving interference and reach pro
 
 **Reach.** Whether the end effector can get to the scoring position with the robot in a legal position on the field. This requires modeling the field element too, at least roughly, and it is worth the twenty minutes.
 
-**Packaging.** Whether the whole robot fits the starting envelope with every mechanism retracted. Every season, teams discover in week seven that the robot is 1 in over in one dimension.
+**Packaging.** Whether the whole robot fits the starting envelope with every mechanism retracted. Check the full assembly throughout the design, including wiring and guards.
 
 **Stack-ups.** The dimension chain from Lesson 4.4 falls out of an assembly automatically once parts are mated.
 
 **Mass and center of gravity.** With materials assigned, CAD reports both. The center of gravity location predicts tipping, which is otherwise discovered by tipping.
 
 :::tip Model the field, not just the robot
-A robot model alone answers "does the robot fit together." A robot model plus the relevant field geometry answers "does the robot work," which is the question you actually have.
+A robot model can check internal fit. Add the relevant field geometry to check reach, approach angles, and clearance in the positions where the robot will score.
 :::
 
 ---
@@ -66,7 +66,7 @@ A model will tell you the intake fits and will not tell you whether it picks up 
 
 ## Version History and Not Losing Work
 
-The single most valuable habit in CAD is naming versions at meaningful points: "intake v2, funnel at 35 deg" rather than an unbroken stream of edits. When a change makes things worse, a named version is a two click recovery.
+Name versions at meaningful points, such as "intake v2, funnel at 35 deg," instead of relying on an unbroken edit history. A named version gives the team a known state to restore when a later change does not work.
 
 Equally important: decide who owns which part of the model. Two students editing the same part simultaneously in different directions produces a merge problem that neither wants to resolve.
 

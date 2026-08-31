@@ -29,9 +29,9 @@ A Bézier curve is a parametric curve defined by a set of control points. The pa
 
 The most common forms are:
 
-- **Linear (2 points)** -- simply a straight line from start to end. Equivalent to `BezierLine`.
-- **Quadratic (3 points)** -- a single intermediate control point that bends the path into a smooth arc.
-- **Cubic (4 points)** -- two intermediate control points that can define an S-curve or a sharper bend.
+- **Linear (2 points)**: simply a straight line from start to end. Equivalent to `BezierLine`.
+- **Quadratic (3 points)**: a single intermediate control point that bends the path into a smooth arc.
+- **Cubic (4 points)**: two intermediate control points that can define an S-curve or a sharper bend.
 
 In Pedro Pathing, all curves are constructed using the `BezierCurve` class. You pass `Point` objects to the constructor: the first is the start, the last is the end, and any points in between are control points that shape the curvature.
 
@@ -108,7 +108,7 @@ public class BezierPathDemo extends LinearOpMode {
         Path driveToPickup = new Path(
             new BezierCurve(
                 SCORE_POINT,
-                CONTROL_PT,   // intermediate control point -- bends the arc
+                CONTROL_PT,   // intermediate control point that bends the arc
                 PICKUP_POINT
             )
         );
@@ -121,7 +121,7 @@ public class BezierPathDemo extends LinearOpMode {
 
         waitForStart();
 
-        // Execute the full chain -- robot does not stop between segments
+        // Execute the full chain. The robot does not stop between segments.
         follower.followPath(fullRoutine);
 
         while (opModeIsActive() && follower.isBusy()) {

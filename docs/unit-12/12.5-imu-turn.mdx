@@ -58,10 +58,10 @@ public class ImuTurnPractice extends LinearOpMode {
     private DcMotor leftDrive, rightDrive;
     private IMU     imu;
 
-    // Tuning constants -- adjust kP and tolerance during practice
+    // Tuning constants. Adjust kP and tolerance during practice.
     private static final double kP          = 0.012; // proportional gain
     private static final double MAX_POWER   = 0.5;   // never exceed this during a turn
-    private static final double TOLERANCE   = 1.5;   // degrees -- acceptable error at stop
+    private static final double TOLERANCE   = 1.5;   // degrees. Acceptable error at stop.
 
     @Override
     public void runOpMode() {

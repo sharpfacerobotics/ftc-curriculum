@@ -14,9 +14,9 @@ import {IntakeGeometryDiagram} from '@site/src/components/mechanical/Engineering
 
 ## Technical Context
 
-The intake is where the robot meets the game, and it is where cycle time is usually won or lost. A scoring mechanism that is 0.5 seconds faster saves 0.5 seconds. An intake that fails one attempt in five costs a full retry cycle every fifth try, which is far more.
+Intake reliability has a direct effect on cycle time. A scoring mechanism that becomes 0.5 seconds faster saves 0.5 seconds per cycle, while a missed acquisition can require the driver to reposition and repeat the whole attempt.
 
-Reliability is the design target, not speed.
+Measure acquisition reliability alongside raw intake speed.
 
 ---
 
@@ -57,7 +57,7 @@ Test with the element off center, rotated, against a wall, and partly under anot
 
 Three geometric relationships determine whether an intake works.
 
-**Height relative to the element.** The intake must contact the element in a place that pulls it in rather than pushing it away. Contacting a round element above its center pushes it away; contacting below the center rolls it in. This single relationship explains most intake failures.
+**Height relative to the element.** The intake must contact the element in a place that pulls it in rather than pushing it away. Contacting a round element above its center pushes it away. Contacting below the center rolls it in.
 
 <IntakeGeometryDiagram />
 

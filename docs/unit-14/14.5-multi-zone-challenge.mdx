@@ -148,7 +148,7 @@ public class SpikeSelectionAuto extends LinearOpMode {
         // Capture the final result the instant Start is pressed
         SpikeLocation spikeSolution = spikeProcessor.detectedLocation;
 
-        // Stop streaming -- the decision is made, no more camera needed
+        // Stop streaming. The decision is made, so the camera is no longer needed.
         visionPortal.stopStreaming();
 
         if (opModeIsActive()) {

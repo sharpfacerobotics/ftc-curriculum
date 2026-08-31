@@ -174,8 +174,7 @@ export default function AskPanel(): React.JSX.Element {
       <section className={styles.panel}>
         <p className={styles.title}>Ask about this lesson</p>
         <p className={styles.blurb}>
-          Sign in first. It can see which lesson you have open and which part
-          you are reading, so you can ask about what is in front of you.
+          Sign in to ask Sharp AI about the lesson and section you’re reading.
         </p>
         <button type="button" className={styles.signIn} onClick={() => signInWithGoogle()}>
           Sign in to ask

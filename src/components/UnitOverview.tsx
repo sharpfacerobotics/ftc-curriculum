@@ -125,8 +125,8 @@ export default function UnitOverview({
           </div>
 
           <div className={styles.coachNote}>
-            Use this page to review the sequence, pick up where you left off,
-            or get clear on the unit goals before moving ahead.
+            Review the sequence and goals here, then resume at your first
+            incomplete lesson.
           </div>
         </div>
       </section>

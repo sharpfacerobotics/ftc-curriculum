@@ -15,9 +15,9 @@ import DecisionMatrix from '@site/src/components/mechanical/DecisionMatrix';
 
 ## Technical Context
 
-Design arguments inside a team are usually won by whoever is most persistent, most senior, or most willing to keep talking. None of those correlate with being right.
+An unstructured design discussion can drift toward personal preference or seniority. The team needs a way to compare concepts against the same priorities.
 
-A weighted decision matrix does not remove judgment. It makes the judgment explicit, so the team is arguing about criteria and weights, which is a productive argument, rather than about conclusions, which is not.
+A weighted decision matrix makes that judgment visible. The team can discuss the criteria, weights, and evidence behind a score instead of debating unsupported conclusions.
 
 ---
 
@@ -48,7 +48,7 @@ Criteria that tend to be genuinely independent for FTC mechanisms:
 | Packaging | Whether it fits the size envelope and clears other subsystems |
 | Cost | Parts you have to buy |
 
-Pick four to six. More than six and the weighted totals converge, because everything ends up mattering a little.
+Pick four to six criteria. A longer list is harder to score consistently and can dilute the priorities that should drive the decision.
 
 :::tip Weight from strategy, not from habit
 If your strategy is high cycle count, cycle time gets a 5 and weight might get a 2. If your strategy depends on a heavy arm reaching far, weight gets a 5. The weights are where your strategy enters the mechanical decision, and they should differ between teams with different strategies.
@@ -75,21 +75,21 @@ The matrix below is pre-filled with three intake concepts. Change the criteria, 
 
 A matrix output is not a verdict. Read it in three steps.
 
-**If one option wins by a wide margin,** that is a real signal. Record it and move on.
+**If one option wins by a wide margin,** check which criteria created the gap. If the weights and scores still make sense, record the result.
 
-**If the top two are within a few points,** the matrix has told you something useful: these options are close, and the scoring noise is larger than the difference. Prototype both. This is the correct outcome, not a failure of the method.
+**If the top two are within a few points,** treat them as effectively tied. The estimates are not precise enough to justify the ranking, so prototype both.
 
-**If the winner surprises everyone,** do not immediately adjust the weights. First check whether the surprise comes from a criterion that was weighted higher than the team actually believes. If the weights were honest, the surprise is information.
+**If the result differs from the team's expectation,** do not immediately adjust the weights. Check which criteria created the difference and whether their weights still match the strategy. If they do, investigate the result instead of tuning it away.
 
 :::warning A matrix cannot score what you have not measured
-Scoring "reliability" for a concept nobody has built is a guess wearing a number. That is acceptable for an initial screen, but it is not evidence. After prototyping, re-score the matrix with measured values and see whether the ranking survives. In Module 10 you will collect the data that makes those scores real.
+Before a concept has been built, its reliability score is still an estimate. That is acceptable for an initial screen, but label it accordingly. After prototyping, score it again with measured values and check whether the ranking changes. Module 10 covers how to collect that data.
 :::
 
 ---
 
 ## What Goes In the Notebook
 
-Photograph or redraw the completed matrix, and add one sentence per rejected option explaining what specifically lost it. "The claw scored lowest because its 4 second alignment time made the cycle 40 percent slower than the requirement allowed" is the sentence judges ask about.
+Photograph or redraw the completed matrix. For each rejected option, add a specific reason tied to a requirement, such as: "The claw's 4 second alignment time made the cycle 40 percent slower than the requirement allowed."
 
 ---
 

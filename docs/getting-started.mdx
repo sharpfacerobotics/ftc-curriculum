@@ -9,7 +9,7 @@ sidebar_position: -1
 
 This track teaches FTC Java: how the SDK is structured, how the robot's hardware is addressed from code, and how an autonomous routine is built up from parts you can test. It runs from Java fundamentals through vision and path following.
 
-You do not need to have finished the mechanical track to start here, and you do not need to finish this one before touching the robot. The two tracks describe the same machine from two directions, and a team is strongest when the people on each side understand enough of the other to have a useful argument.
+You can start this track before finishing the mechanical track, and you can work on the robot before finishing this one. The tracks cover the same machine from different roles. Each group should understand enough of the other's work to discuss requirements and diagnose problems together.
 
 ## Who each unit is for
 
@@ -27,12 +27,12 @@ Full sequences with time estimates and checkpoints are in [Learning Paths and Ti
 
 ## What is different about this track
 
-Mechanical work is checked by building the thing. Code is checked by running it, which is why nearly every lesson here carries a **browser simulator**: you write the lesson's Java, run the FTC lifecycle against simulated hardware, and read the telemetry back.
+You check code by running it, so nearly every lesson includes a **browser simulator**. Write the lesson's Java, run the FTC lifecycle against simulated hardware, and inspect the telemetry.
 
-The mechanical track uses **calculators** in the same role, because a mechanism's behaviour is decided by numbers you can compute before anything is cut.
+The mechanical track uses focused **calculators** to check design values before the team cuts a part.
 
 :::tip Run the code, do not just read it
-A lesson you read and agreed with is not a lesson you can use. The simulator is there so you can be wrong quickly and cheaply, which is the same reason the mechanical track prototypes in cardboard.
+Run each example and change it. The simulator gives you a quick way to find mistakes before the same code is connected to real hardware.
 :::
 
 ## How to work through a unit
@@ -41,7 +41,7 @@ A lesson you read and agreed with is not a lesson you can use. The simulator is 
 2. Work the lessons in order. Each ends with fill-in-the-blank practice.
 3. Complete the unit-wide coding challenge from the supplied FTC SDK class shell. Its checks cover every unit objective, so passing it demonstrates full mastery and lets you continue directly to the next unit.
 4. If you already know the material, take the coding challenge first and use any failed checks to choose which lessons to review.
-5. Put what you learned onto the actual robot as soon as you can, because hardware disagrees with simulation in ways worth meeting early.
+5. Test what you learned on the actual robot as soon as you can. Real wiring, mechanisms, timing, and field conditions add behavior the simulator does not model.
 
 Every official rule, SDK, and vendor source is collected in [Official FTC Documentation](/docs/official-docs).
 
@@ -55,6 +55,6 @@ This track teaches practice, not rules. Before any decision that touches legalit
 
 ## A warning about copying
 
-Sample OpModes and other teams' repositories are legitimate research, and reading working code is one of the fastest ways to learn. The rule is the same as on the build side: if you copy something, you must be able to explain why each part is there before you rely on it.
+Sample OpModes and other teams' repositories are useful references. Before relying on copied code, make sure you can explain what each part does, what hardware names and assumptions it uses, and how you will test it.
 
-When the copied autonomous drifts at your second tournament, and it will, you need to know what it was doing in order to fix it.
+That understanding is what lets you diagnose the code when the autonomous routine behaves differently on your robot or field.

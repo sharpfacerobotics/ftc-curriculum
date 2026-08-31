@@ -15,9 +15,9 @@ import WeightBudgetCalculator from '@site/src/components/mechanical/WeightBudget
 
 ## Technical Context
 
-FTC does not impose a weight limit, which leads teams to conclude that weight does not matter. It matters constantly, just indirectly.
+FTC may not impose a robot weight limit, but mass still affects the design.
 
-Weight costs acceleration, raises the torque every lifting mechanism must produce, increases the load on every joint, drains the battery faster, and raises the center of gravity if it lands high. A robot that grew ten pounds without anyone deciding to add them is a robot with worse cycle times and a shorter battery life for no gained capability.
+Added mass reduces acceleration, raises the torque required by lifting mechanisms, increases joint loads, and uses more battery energy. Mass placed high on the robot also raises the center of gravity. Track it by subsystem so small additions do not accumulate without review.
 
 ---
 
@@ -27,9 +27,9 @@ Weight costs acceleration, raises the torque every lifting mechanism must produc
 
 **Mechanism loads.** Every pound added to an arm at 18 in from the pivot adds directly to the torque the arm motor must produce, at every angle, for the whole match.
 
-**Battery life.** More mass means more current for the same motion. A robot that browns out in the last thirty seconds of the fourth match of the day usually has a weight problem as well as a battery problem.
+**Battery demand.** More mass requires more force for the same acceleration, which increases motor current during repeated starts and direction changes.
 
-**Tipping.** Weight added high raises the center of gravity. Weight added low is nearly free, and is occasionally worth adding deliberately for stability.
+**Tipping.** Weight added high raises the center of gravity. Weight added low has less effect on stability, though it still affects acceleration and mechanism loads.
 
 :::tip Not all pounds are equal
 A pound at the bottom of the drivetrain is close to free. A pound at the end of an extended arm is expensive in torque, in tipping, and in the structure needed to carry it. When cutting weight, start at the top and at the ends.
@@ -44,10 +44,10 @@ The budget is a team decision, derived from strategy. A reasonable process:
 1. Estimate the weight of the drivetrain and frame from a previous robot or a rough CAD estimate.
 2. Decide what the scoring mechanisms need to do, and estimate them generously.
 3. Add the fixed items: battery, Control Hub, wiring, fasteners.
-4. Add roughly 10% for the things nobody predicts, because there always are some.
+4. Reserve roughly 10% for fasteners, wiring, guards, and later revisions that are not yet in the estimate.
 5. Write the total down and post it where the build team can see it.
 
-Then assign each subsystem a share, and give the subsystem lead responsibility for staying inside it. A number that belongs to somebody gets defended; a number that belongs to everybody gets ignored.
+Then assign each subsystem a share and have its lead update the estimate as the design changes. Review any subsystem that exceeds its allocation before the extra mass becomes part of the full assembly.
 
 ---
 
@@ -64,19 +64,19 @@ Then assign each subsystem a share, and give the subsystem lead responsibility f
 
 Replace the default rows with your robot's actual subsystems, and replace the estimates with measured weights as parts get built. A kitchen scale is entirely adequate and costs less than a single motor.
 
-:::warning Estimates drift upward, never downward
-Every subsystem comes in heavier than estimated, because estimates forget fasteners, wiring, brackets, and the second version of the part that was needed after the first one flexed. Budget for that with the 10% margin rather than discovering it in week eight.
+:::warning Include what the early estimate omits
+Early estimates often leave out fasteners, wiring, brackets, guards, and later revisions. Keep the 10% reserve intact until those items have been measured.
 :::
 
 ---
 
 ## Where the Weight Actually Is
 
-When teams weigh their robot subsystem by subsystem for the first time, the surprises are consistent:
+When you weigh the robot by subsystem, check these common sources of untracked mass:
 
-- **Fasteners and hardware** are heavier in total than anyone guesses. A robot can carry a pound or more of screws, nuts, spacers, and standoffs.
+- **Fasteners and hardware** add up across the robot. Weigh screws, nuts, spacers, and standoffs as part of each subsystem.
 - **Wiring** is heavier than it looks, especially heavy gauge power wire and the connectors on it.
-- **Over-built brackets** account for a lot. A bracket sized for a load nobody calculated is usually two to three times heavier than it needs to be.
+- **Over-built brackets** add mass without a measured stiffness requirement. Calculate or test the load before removing material.
 - **Redundant structure** happens when two subsystems each add their own support for the same load.
 
 The remedy for all four is the same: measure, then look at the largest number first. A 10% cut on the heaviest subsystem saves more than removing a small part entirely.

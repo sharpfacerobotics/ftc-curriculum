@@ -15,9 +15,9 @@ import MotorCurveExplorer from '@site/src/components/mechanical/MotorCurveExplor
 
 ## Technical Context
 
-A motor spec sheet gives two headline numbers: free speed and stall torque. Teams read the free speed, assume the mechanism runs at that speed, and design a cycle time around it.
+A motor specification lists free speed and stall torque, but neither value describes normal operation. A mechanism under load runs below free speed and above zero torque.
 
-The motor never runs at free speed while doing work. Understanding where it actually runs is the difference between a predicted cycle time and a real one.
+Estimate the motor's operating point under the expected load before using its speed to predict a cycle time.
 
 ---
 

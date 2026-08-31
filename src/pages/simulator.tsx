@@ -19,9 +19,9 @@ type Bench = 'software' | 'mechanical';
 
 const MECHANICAL_STEPS = [
   ['1', 'Bring real numbers', 'Weigh the arm, measure the wheel, read the motor spec page.'],
-  ['2', 'Enter the design', 'Type what you intend to build, not what you wish were true.'],
-  ['3', 'Read the verdict', 'The drawing and the safety factor say whether it works.'],
-  ['4', 'Change one thing', 'Adjust a ratio, a length, or a spool, and watch what moves.'],
+  ['2', 'Enter the design', 'Enter the dimensions and parts you plan to use.'],
+  ['3', 'Read the result', 'Check the drawing, calculated load, and safety factor.'],
+  ['4', 'Change one thing', 'Adjust one ratio, length, or spool size and compare the result.'],
 ] as const;
 
 function MechanicalWorkflow(): React.JSX.Element {
@@ -73,8 +73,8 @@ export default function SimulatorPage(): React.JSX.Element {
           <p className={pageStyles.sectionLabel}>// tools.live[]</p>
           <h1 className={pageStyles.sectionTitle}>Telemark Tools</h1>
           <p className={pageStyles.sectionDesc}>
-            The Java simulator for code you can run, and {TOOL_CATALOG.length}{' '}
-            design calculators for the numbers you need before anything is cut.
+            Run lesson code in the Java simulator, or use {TOOL_CATALOG.length}{' '}
+            calculators to check a mechanical design before fabrication.
           </p>
 
           <div className={pageStyles.benchTabs} role="tablist" aria-label="Choose a bench">
@@ -131,9 +131,9 @@ export default function SimulatorPage(): React.JSX.Element {
               <ToolWorkbench />
 
               <p className={pageStyles.simulatorLimit}>
-                A calculator checks the arithmetic behind a design. It cannot
-                tell you whether the mechanism grips the game element, which is
-                what a prototype is for.
+                Calculators check dimensions, loads, and safety factors. Use a
+                physical prototype to test grip, friction, and game element
+                behavior.
               </p>
 
               <div className={pageStyles.heroActions}>

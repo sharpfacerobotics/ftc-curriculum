@@ -50,7 +50,7 @@ while (opModeIsActive()) {
 }
 ```
 
-The state transitions only when the completion condition for the current state is satisfied -- the path is finished, the mechanism has reached its position, or a sensor confirms the action is complete. Until then, `follower.update()` continues to run and the drivetrain continues to track its path.
+The state transitions only when the completion condition for the current state is satisfied: the path is finished, the mechanism has reached its position, or a sensor confirms the action is complete. Until then, `follower.update()` continues to run and the drivetrain continues to track its path.
 
 ---
 
@@ -157,7 +157,7 @@ public class FullAutonomousPractice extends LinearOpMode {
         driveToSpikeCenter = new Path(new BezierLine(startPt, spikeCPt));
         driveToSpikeRight  = new Path(new BezierLine(startPt, spikeRPt));
 
-        // Curved return path to the backdrop -- same regardless of spike location
+        // Curved return path to the backdrop. It is the same for every spike location.
         driveToBackdrop = follower.pathBuilder()
             .addPath(new Path(new BezierCurve(spikeLPt, backdropCtrl, backdropPt)))
             .build();
@@ -170,7 +170,7 @@ public class FullAutonomousPractice extends LinearOpMode {
         }
 
         SpikeLocation spike = spikeProcessor.detectedLocation;
-        visionPortal.stopStreaming(); // Camera decision made -- free CPU
+        visionPortal.stopStreaming(); // Camera decision made. Free the CPU.
 
         // ── Select and start the correct first path ────────────────────
         switch (spike) {
@@ -223,7 +223,7 @@ public class FullAutonomousPractice extends LinearOpMode {
                     break;
 
                 case DONE:
-                    // All actions complete -- robot holds position
+                    // All actions complete. The robot holds position.
                     break;
             }
 

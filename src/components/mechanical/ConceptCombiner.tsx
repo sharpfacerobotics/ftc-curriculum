@@ -222,9 +222,9 @@ export default function ConceptCombiner(): React.JSX.Element {
 
       <Verdict level={totalCombinations > 20 ? 'good' : 'warn'}>
         These {rows.length} functions generate <strong>{totalCombinations}</strong> possible
-        combinations. Your team probably discussed three.{' '}
+        combinations.{' '}
         {saved.length > 1
-          ? 'Rank by benefit per cost, then prototype the top two. A combination that wins on benefit alone may be one nobody has time to build.'
+          ? 'Rank them by benefit per cost, then prototype the top two. Check that each option fits the team\'s build-hour budget.'
           : 'Score at least two combinations before deciding anything.'}
       </Verdict>
     </CalcShell>

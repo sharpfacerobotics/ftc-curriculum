@@ -15,24 +15,24 @@ import ConceptCombiner from '@site/src/components/mechanical/ConceptCombiner';
 
 ## Technical Context
 
-The quality of your final design is limited by the best idea you considered. If the team only ever generated one concept, the final robot is that concept, whether or not it was any good.
+You cannot choose a strong design if the team considers only one concept. Generate several plausible approaches before committing parts and build time.
 
-Generating alternatives feels wasteful when everyone already agrees. It is exactly then that it matters most, because agreement early in a season usually means nobody has thought about it independently yet.
+Early agreement may simply mean everyone started from the same familiar idea. A short concept session gives each person time to consider alternatives independently.
 
 ---
 
 ## Separate Generating From Judging
 
-The single most common failure in a brainstorm is that someone proposes an idea and someone else immediately explains why it will not work. After that happens twice, people stop proposing.
+Brainstorms stall when each idea is judged as soon as it is proposed. Separate generation from evaluation so people can finish developing an idea before the group critiques it.
 
 Run the two activities in separate blocks:
 
-**Block one, generate.** Fifteen minutes. Every idea gets written down. No evaluation, no "that will never fit," no "we tried that last year." Quantity is the goal. Bad ideas are useful because they mark the edges of the solution space and often contain one good element.
+**Block one, generate.** Set aside fifteen minutes and write down every idea without evaluating it. Aim for variety. Even an impractical concept may contain a feature worth combining with another approach.
 
 **Block two, judge.** Now criticize freely, but criticize against the requirements from Lesson 0.3, not against taste.
 
-:::tip Sketch, do not describe
-Ideas described out loud are understood differently by everyone in the room. Ideas sketched on paper are understood the same way. A bad sketch beats a good description. Module 1.3 covers how to sketch mechanisms so they communicate.
+:::tip Sketch each concept
+A quick sketch gives the group a common reference for geometry, motion, and scale. It does not need to look polished. Module 1.3 covers the details that make a mechanism sketch clear.
 :::
 
 ---
@@ -51,17 +51,16 @@ Ideas described out loud are understood differently by everyone in the room. Ide
 
 ## Combining Instead of Choosing
 
-Most teams generate whole mechanisms and then pick one. That produces three or
-four ideas, each of which is somebody's favourite, and the argument becomes
-about people rather than about the robot.
+If the team generates only complete mechanisms, each concept tends to bundle
+several unrelated decisions. Comparing them becomes harder because one concept
+may have the better intake but the worse lift.
 
-There is a better move. Break the problem into the **functions** it has to
-perform, list ways to satisfy each function separately, then combine one from
-each column.
+Break the problem into the **functions** it must perform. List several ways to
+satisfy each function, then combine one option from each column.
 
 The arithmetic is the point. Four functions with three options each is not
-seven ideas, it is **81 combinations**, and most of them are ones nobody would
-have proposed out loud. Combining also separates decisions that were never
+seven ideas, it is **81 combinations**, including many that the team would not
+have proposed as complete mechanisms. Combining also separates decisions that were never
 related: how you grab the element has nothing to do with how you lift it, and
 treating them as one choice throws away good halves of rejected ideas.
 
@@ -83,8 +82,8 @@ are actually making.
 Keep two axes:
 
 **Cost** is everything the combination consumes: build hours, money, weight,
-complexity, and the risk that it does not work. Build hours are usually the
-binding one, and teams consistently underestimate them.
+complexity, and the risk that it does not work. Build hours often set the
+tightest limit, so estimate and track them explicitly.
 
 **Benefit** is what it delivers against the requirements you wrote in Lesson
 0.3, cited by id.
@@ -94,11 +93,10 @@ and highest on cost is often the wrong answer, because the season has a fixed
 number of build hours and spending them all on one mechanism leaves the rest of
 the robot unbuilt.
 
-:::warning The cheapest useful version usually wins the season
-A mechanism that delivers 80% of the benefit for 40% of the cost frees the
-hours that make everything else reliable. The best robot at an event is rarely
-the one with the most ambitious mechanism; it is the one where every mechanism
-had time to be tested.
+:::warning Prefer the simplest concept that meets the requirements
+A mechanism that delivers 80% of the benefit for 40% of the cost leaves more
+time to build and test the rest of the robot. Treat build hours as a fixed
+budget, not as an abstract score in the matrix.
 :::
 
 ---
@@ -114,7 +112,7 @@ Once you have eight concepts, you cannot prototype all of them. Narrow in two st
 The output of narrowing is not one concept. It is usually the top two, both of which get a rough prototype, because a matrix is a structured opinion and a prototype is evidence.
 
 :::warning Do not narrow to one on paper
-Every season, some team picks a concept from a matrix, spends five weeks building it, and discovers a problem that a two hour prototype would have exposed in week one. If the top two concepts are close, build both roughly. It costs a weekend and it can save the season.
+A decision matrix is still based on estimates. If the top two concepts are close, build rough versions of both and compare measured results before committing to the final design.
 :::
 
 ---
@@ -125,7 +123,7 @@ Write down every concept you rejected and one sentence on why. This matters for 
 
 First, judges ask. "Why did you choose this intake?" is a standard question, and "it was the only one we thought of" is a poor answer.
 
-Second, you will need them. When the chosen concept fails in week seven, the list of rejected concepts with reasons is the fastest path to a replacement, because half the thinking is already done.
+Second, the list gives you a useful starting point if the chosen concept later fails. Recheck the rejected options against what the team has learned instead of restarting the search from memory.
 
 :::info Official references
 - Award criteria that reward documented design decisions: [FIRST Tech Challenge Game and Season Info](https://www.firstinspires.org/resource-library/ftc/game-and-season-info)

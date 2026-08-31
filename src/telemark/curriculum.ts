@@ -52,7 +52,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     id: 'UNIT_01',
     label: 'Unit 1',
     title: 'Environment Setup',
-    desc: 'Start in the built-in simulator; Android Studio is only an optional head start for an advanced team workflow.',
+    desc: 'Start in the built-in simulator. Use Android Studio later if your team needs to deploy code to a physical robot.',
     tier: 'Beginner',
     slug: 'unit-01',
     overviewPath: '/docs/unit-01',
@@ -61,7 +61,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 2: OpMode Structure',
     lessonCount: 10,
     overview:
-      'In this unit, we separate browser-based learning from the optional tools used to build and deploy code to a physical robot. If local setup becomes a serious blocker, continue in Telemark\'s built-in simulator and return to it later with your team.',
+      'Learn in the browser without installing development tools. Use Android Studio when your team is ready to build and deploy code to a physical robot, and return to the simulator if local setup blocks your progress.',
     outcomes: [
       'Use Telemark lessons and simulators without installing local development software.',
       'Treat Android Studio as an optional head start for joining an advanced team, not a requirement for learning Java.',
@@ -82,7 +82,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 3: Java Variables',
     lessonCount: 7,
     overview:
-      'In this unit, we map out the FTC OpMode lifecycle so it is clear where setup, repeated control logic, and one-time transitions belong.',
+      'Map the FTC OpMode lifecycle so you know where setup, repeated control logic, and one-time transitions belong.',
     outcomes: [
       'Choose the right annotation so programs appear correctly on the Driver Station.',
       'Separate setup work from repeated loop logic and one-time start/stop transitions.',
@@ -102,7 +102,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 4: Gamepad Input',
     lessonCount: 6,
     overview:
-      'In this unit, we focus on the Java data types that show up constantly in FTC code, from hardware mapping to sensor reads and control calculations.',
+      'Use the Java data types that appear throughout FTC code, including hardware names, sensor readings, control values, and counters.',
     outcomes: [
       'Choose the correct datatype for names, numeric precision, binary state, and whole-number counts.',
       'Avoid common FTC bugs caused by integer truncation or mismatched hardware identifiers.',
@@ -122,7 +122,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 5: Logic & Decisions',
     lessonCount: 6,
     overview:
-      'In this unit, we turn driver input into deliberate robot behavior, from simple button toggles to analog control shaping.',
+      'Turn driver input into predictable robot behavior with button toggles, joystick scaling, trigger controls, and sensitivity curves.',
     outcomes: [
       'Use buttons, joysticks, and triggers appropriately based on whether the mechanism needs digital or analog control.',
       'Implement deadzones and sensitivity shaping so the robot feels stable and intuitive to drive.',
@@ -142,7 +142,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 6: Loops & Iteration',
     lessonCount: 6,
     overview:
-      'In this unit, we build the decision-making layer of robot code, from basic button checks to multi-sensor logic that safely automates mechanism behavior.',
+      'Use conditions and comparisons to handle button checks, mechanism limits, and multi-sensor automation safely.',
     outcomes: [
       'Use if/else if/else chains to guarantee a single unambiguous command reaches hardware each loop cycle.',
       'Implement comparison operators to create soft-limit safety zones that prevent motors from exceeding physical bounds.',
@@ -162,7 +162,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 7: Hardware Mapping',
     lessonCount: 6,
     overview:
-      'In this unit, we move from one-shot commands into repeated execution, timing control, and scalable iteration patterns for real FTC robots.',
+      'Write repeated actions, timed behavior, and multi-device commands without blocking the rest of the robot.',
     outcomes: [
       'Use loop-based control structures safely so code stops when the OpMode stops.',
       'Automate repeated actions and multi-device commands with for loops and array iteration.',
@@ -182,7 +182,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 8: DC Motor Control',
     lessonCount: 6,
     overview:
-      'In this unit, we connect FTC configuration names to Java objects so motors, sensors, and reusable mechanisms can be instantiated safely and consistently.',
+      'Connect FTC configuration names to Java objects, then organize motors, sensors, and mechanisms so every OpMode uses them consistently.',
     outcomes: [
       'Use the hardwareMap registry to retrieve configured devices with the correct Java class and exact robot configuration name.',
       'Map motors and sensors consistently while diagnosing name mismatches and configuration overlay problems quickly.',
@@ -202,7 +202,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 9: Servo Control',
     lessonCount: 6,
     overview:
-      'In this unit, we turn mapped motors into predictable mechanisms by covering power control, direction reversal, braking behavior, and safety-limited motion.',
+      'Control mapped motors with intentional power, direction, braking, and software limits so mechanisms move and stop as expected.',
     outcomes: [
       'Apply motor power intentionally with setPower() so mechanisms move at the right speed and stop when expected.',
       'Correct mechanical orientation issues with setDirection() and choose between coasting and braking behavior deliberately.',
@@ -222,7 +222,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 10: Encoders & Precision',
     lessonCount: 6,
     overview:
-      'In this unit, we extend mechanism control beyond DC motors by working through both positional and continuous-rotation servos in a safe, predictable way.',
+      'Control positional and continuous-rotation servos without overdriving linkages or confusing their different command models.',
     outcomes: [
       'Use setPosition() and scaleRange() to command positional servos without overdriving physical linkages.',
       'Configure mirrored mechanisms cleanly with servo direction settings instead of duplicating inversion math across OpModes.',
@@ -242,7 +242,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 11: Digital & Analog Sensors',
     lessonCount: 6,
     overview:
-      'In this unit, we use encoders as real feedback so autonomous movement becomes measurable and repeatable instead of guesswork.',
+      'Use encoder feedback to measure autonomous movement, convert ticks to distance, and choose the correct motor run mode.',
     outcomes: [
       'Read encoder tick counts and understand how they relate to real motor rotation.',
       'Convert ticks into meaningful distances using ticks-per-revolution data and wheel geometry.',
@@ -262,7 +262,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 12: IMU & Rotation',
     lessonCount: 6,
     overview:
-      'In this unit, we read, scale, and respond to the main sensor categories used in FTC: digital, analog, and I2C-based color and distance sensors.',
+      'Read, scale, and respond to digital, analog, color, and distance sensors used on FTC robots.',
     outcomes: [
       'Read digital touch sensors correctly, accounting for active-low hardware logic, and use them as reliable software limit switches.',
       'Convert raw potentiometer voltage into engineering units using Range.scale() for absolute positional feedback without a homing sequence.',
@@ -282,7 +282,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 13: OOP & Inheritance',
     lessonCount: 6,
     overview:
-      'In this unit, we use the REV Hub IMU for heading data, field-relative control, tilt monitoring, and closed-loop autonomous turning.',
+      'Use the REV Hub IMU for heading, field-centric control, tilt monitoring, and closed-loop autonomous turns.',
     outcomes: [
       'Initialize the IMU correctly for any physical Hub mounting orientation using RevHubOrientationOnRobot.',
       'Read and normalize Yaw, Pitch, and Roll data using the AngleUnit class for reliable heading and tilt feedback.',
@@ -302,7 +302,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 14: Computer Vision',
     lessonCount: 6,
     overview:
-      'In this unit, we structure a competition robot codebase with object-oriented design so it stays maintainable, reusable, and resilient to last-minute hardware changes.',
+      'Structure competition code with encapsulation, inheritance, and composition so mechanisms can be reused and hardware changes stay contained.',
     outcomes: [
       'Encapsulate mechanism hardware and logic into private-member classes with clean public interfaces, eliminating duplicated code across OpModes.',
       'Apply inheritance and @Override to build a family of specialized mechanisms from a shared parent, with the compiler enforcing correct implementation.',
@@ -322,7 +322,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Unit 15: Advanced Integration',
     lessonCount: 6,
     overview:
-      'In this unit, we give the robot visual awareness of the field using the FTC Vision SDK, building from camera setup to a reliable autonomous scoring selector.',
+      'Use the FTC Vision SDK to configure a camera, read AprilTags, and classify scoring locations with OpenCV zones.',
     outcomes: [
       'Configure a VisionPortal, attach processors, and manage the camera stream lifecycle to preserve CPU resources during the driving phase.',
       'Detect and iterate over AprilTag detections safely, extracting pose data to implement closed-loop vision-based robot alignment.',
@@ -342,7 +342,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     nextLabel: 'Dashboard',
     lessonCount: 6,
     overview:
-      'In this unit, we bring the advanced systems together into competition-ready autonomous routines, combining vision, localization, path following, and state-machine control.',
+      'Combine vision, localization, path following, and state-machine control into a complete autonomous routine.',
     outcomes: [
       'Use the Limelight 3A to run dedicated vision pipelines and retrieve validated targeting data from robot code.',
       'Build smooth autonomous trajectories with Pedro Pathing, including PathChains and Bezier-based motion planning.',

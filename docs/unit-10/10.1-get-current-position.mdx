@@ -15,7 +15,7 @@ import {EncoderFlowDiagram} from '@site/src/components/DocDiagrams';
 
 ## Why Encoders Beat Timers
 
-If you have ever written code like "run the motor for 2 seconds then stop," you have already run into the core problem: the robot goes a different distance every single run. Battery charge, carpet friction, wheel slippage -- they all change how far the robot actually travels in that 2 seconds. Encoders solve this by measuring real physical rotation instead of guessing from time.
+If you have ever written code like "run the motor for 2 seconds then stop," you have already run into the core problem: the robot goes a different distance every single run. Battery charge, carpet friction, and wheel slippage all change how far the robot actually travels in that 2 seconds. Encoders solve this by measuring real physical rotation instead of guessing from time.
 
 Every motor shaft has a small magnetic or optical sensor inside it that generates pulses as the shaft turns. The Control Hub counts those pulses and stores the total as an integer called the **tick count**. When you call `getCurrentPosition()`, you get that count back. Because it measures rotation rather than elapsed time, it is usually more repeatable than timing alone, but it still cannot see wheel slip, backlash, loose couplers, or a mechanism that stalls before the motor shaft moves as expected.
 
@@ -33,7 +33,7 @@ That usually means the motor shaft is rotating while the real mechanism is disco
 
 ## How the Tick Count Actually Works
 
-Think of the encoder like an odometer that never resets on its own. Every time the motor shaft spins forward, the number goes up. Every time it spins backward, the number goes down. That direction is tied directly to whatever you set with `setDirection()` -- reversing the motor also flips which way the encoder counts.
+Think of the encoder like an odometer that never resets on its own. Every time the motor shaft spins forward, the number goes up. Every time it spins backward, the number goes down. That direction is tied directly to whatever you set with `setDirection()`. Reversing the motor also flips which way the encoder counts.
 
 The number itself is fairly meaningless without knowing your motor's **resolution**, which is how many ticks happen per full revolution of the output shaft. A REV HD Hex Motor at a 20:1 gear ratio has a resolution of 537.7 ticks per revolution. A 40:1 version has 1120. You will use that number in the next lesson to convert ticks into real distances.
 
@@ -59,7 +59,7 @@ public class EncoderMonitorDemo extends OpMode {
     public void init() {
         arm = hardwareMap.get(DcMotor.class, "arm_motor");
 
-        // RUN_WITHOUT_ENCODER still reads ticks -- it just does not use them
+        // RUN_WITHOUT_ENCODER still reads ticks but does not use them
         // for closed-loop speed control. Good for raw monitoring.
         arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 

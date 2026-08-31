@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-When a part breaks, the fast response is to replace it. That gets the robot running and guarantees the same failure again, because the thing that broke it is still there.
+Replacing a broken part may get the robot running, but it does not explain the failure. If the load, geometry, or assembly error remains, the replacement faces the same risk.
 
 Root cause analysis is the discipline of finding out why the part was carrying a load it could not survive.
 
@@ -41,7 +41,7 @@ Photograph the broken part before doing anything else. It goes in the notebook, 
 
 ## Ask Why Repeatedly
 
-The technique is simple and it works: ask why until the answer is something you can change.
+Ask why repeatedly until the chain reaches a cause the team can change.
 
 ```text
 The slide stopped moving.
@@ -53,7 +53,7 @@ The slide stopped moving.
        unsupported.
 ```
 
-The first answer, "the motor stalled," leads to replacing the motor. The last answer leads to a stiffer plate, which actually fixes it. Stopping too early is the most common error.
+The first answer, "the motor stalled," describes the symptom. The final answer identifies the flexible plate that allowed the slide to bind and points to a relevant design change.
 
 :::tip Stop when you reach something you control
 The chain ends when you reach a design decision you can change: a material, a dimension, a support, a fastener count. If the last answer is "because the robot got hit," keep going, since being hit is a normal condition and the design should survive it.
@@ -69,7 +69,7 @@ The chain ends when you reach a design decision you can change: a material, a di
 
 **Wear failure.** The part was adequate but has a finite life: compliant wheels, surgical tubing, chain, bearings. The fix is a replacement schedule and spares in the pit, not a redesign.
 
-Misclassifying these wastes time. Redesigning a wear item is effort spent on something that was working as intended, and putting a wear schedule on a design failure means replacing the part repeatedly forever.
+Classify the failure before choosing a response. Redesigning a normal wear item may add unnecessary work, while treating a design failure as routine wear leaves the cause in place.
 
 ---
 
@@ -85,13 +85,13 @@ Once the root cause is identified, check that the proposed fix actually removes 
 | Joint loose, hole elongating | Second fastener, tighten properly | Larger screw in the same loose joint |
 | Motor overheats holding a load | Counterbalance or brake | Replace the motor |
 
-The right column contains fixes teams actually apply, and each one delays the same failure rather than removing it.
+The fixes in the right column address the symptom without removing the listed cause.
 
 ---
 
 ## Record It
 
-A failure analysis entry is among the most valuable pages in the notebook. It should contain the symptom, the evidence including a photograph, the why chain, the identified root cause, the fix, and the verification that the fix worked.
+A failure analysis entry should contain the symptom, evidence including a photograph, the why chain, the identified root cause, the fix, and verification that the fix worked.
 
 That last part matters: after the fix, re-run the test from Lesson 10.2 and record the new number. A fix that was never verified is a hypothesis.
 

@@ -15,7 +15,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 Odometry pods are unpowered wheels with encoders that measure how far the robot has actually travelled, rather than how far the drive wheels turned. They exist because drive wheels slip, and a drive encoder counts the slip as distance.
 
-This is the lesson where mechanical work most directly determines whether the software team's autonomous routines are repeatable. When a programmer says the robot's position drifts, the cause is usually in this lesson.
+Pod preload, wheel contact, alignment, and encoder mounting all affect the position data used by autonomous code. Check those mechanical conditions when odometry drifts or becomes inconsistent.
 
 ---
 

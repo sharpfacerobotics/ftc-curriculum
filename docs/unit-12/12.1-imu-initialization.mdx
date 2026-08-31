@@ -15,7 +15,7 @@ import {ImuAxesDiagram} from '@site/src/components/DocDiagrams';
 
 ## Why Orientation Configuration Matters
 
-The IMU inside the REV Control Hub is a physical chip soldered to the Hub's circuit board. It measures acceleration and rotation along three axes -- X, Y, and Z -- based on its own internal frame of reference. Those internal axes are fixed to the chip, not to the robot. When the Hub is mounted flat on a robot with its logo facing up, the chip's Z-axis happens to point straight up, which aligns with how FTC defines the "turning" axis. But teams frequently mount the Control Hub on a side panel, at an angle, or upside down to fit their robot's geometry. In every one of those cases, the chip's internal axes no longer align with the field's axes, and without correction, every heading value the IMU reports will be mathematically wrong.
+The IMU inside the REV Control Hub is a physical chip soldered to the Hub's circuit board. It measures acceleration and rotation along its X, Y, and Z axes using its own internal frame of reference. Those internal axes are fixed to the chip, not to the robot. When the Hub is mounted flat on a robot with its logo facing up, the chip's Z-axis happens to point straight up, which aligns with how FTC defines the "turning" axis. But teams frequently mount the Control Hub on a side panel, at an angle, or upside down to fit their robot's geometry. In every one of those cases, the chip's internal axes no longer align with the field's axes, and without correction, every heading value the IMU reports will be mathematically wrong.
 
 The SDK's solution is to ask you to declare exactly how the Hub is physically mounted. It then performs the coordinate transformation internally, so that regardless of how the Hub is oriented on the robot, the Yaw value you read always represents rotation around the field's vertical axis. You never have to implement that trigonometry yourself.
 
@@ -25,8 +25,8 @@ The SDK's solution is to ask you to declare exactly how the Hub is physically mo
 
 Starting with FTC SDK version 8.1, physical mounting is declared using the `RevHubOrientationOnRobot` class. Its constructor takes two enum values:
 
-- `LogoFacingDirection` -- which direction the REV logo on the face of the Hub is pointing.
-- `UsbFacingDirection` -- which direction the USB ports on the Hub are facing.
+- `LogoFacingDirection`: which direction the REV logo on the face of the Hub is pointing.
+- `UsbFacingDirection`: which direction the USB ports on the Hub are facing.
 
 Together, these two values completely specify the Hub's orientation in three-dimensional space. You then wrap this orientation object inside an `IMU.Parameters` object and pass it into `imu.initialize()`. This chain is not optional. Calling `initialize()` without parameters, or skipping the call entirely, leaves the IMU unconfigured and will cause all subsequent angle reads to return incorrect data.
 

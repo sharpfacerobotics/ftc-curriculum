@@ -13,7 +13,7 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-Lesson 5.2 covered sketches. This lesson covers the container those sketches live in, the ordered list that turns them into geometry, and the datums everything is measured from. Get these three right and the rest of the module is detail.
+Lesson 5.2 covered sketches. This lesson covers the Part Studio that contains them, the feature list that turns them into geometry, and the datums used as stable references.
 
 ---
 
@@ -78,7 +78,7 @@ An **axis** is a line used as a reference rather than as geometry. Revolve needs
 Create axes from the intersection of two planes, from a cylindrical face, or through two points.
 
 :::warning Sketch on planes, not faces
-This is the single highest-value habit in the module. A sketch attached to a model face dies when that face is filleted, shelled, or removed. A sketch on a datum plane survives every one of those edits. The cost is one extra plane; the saving is not rebuilding the part in February.
+Use datum planes for sketches that should remain stable through later edits. A sketch attached to a model face can lose its reference when that face is filleted, shelled, or removed. Creating one extra plane can prevent downstream features from failing after those changes.
 :::
 
 ---

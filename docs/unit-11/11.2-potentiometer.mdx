@@ -62,7 +62,7 @@ public class PotentiometerDemo extends OpMode {
 
     @Override
     public void init() {
-        // Analog sensors are functional immediately upon mapping -- no mode call needed
+        // Analog sensors are functional immediately upon mapping. No mode call is needed.
         armPot   = hardwareMap.get(AnalogInput.class, "arm_pot");
         armMotor = hardwareMap.get(DcMotor.class,     "arm_motor");
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

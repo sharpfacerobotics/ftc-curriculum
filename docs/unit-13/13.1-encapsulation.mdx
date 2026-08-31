@@ -16,7 +16,7 @@ import Unit13Simulator from '@site/src/components/Unit13Simulator';
 
 At the end of Unit 9 you likely had all of your motors, servos, and sensors declared in one OpMode file, with all of their configuration constants and control logic written inline inside `loop()`. For a robot with two or three mechanisms this is tolerable. For a competition robot with a drivetrain, a lift, an intake, a claw, and an arm, this approach produces a file that is hundreds of lines long with no clear boundaries between subsystems.
 
-The deeper problem is code reuse. You will write at least two OpModes -- one for TeleOp and one for Autonomous. If the lift's control logic lives directly inside `TeleOpMain.java`, you have to duplicate it in `AutonomousRed.java` and `AutonomousBlue.java`. Every time the lift mechanism changes, you update three files instead of one, and the risk of introducing an inconsistency between them grows with every change.
+The deeper problem is code reuse. You will write at least two OpModes, one for TeleOp and one for Autonomous. If the lift's control logic lives directly inside `TeleOpMain.java`, you have to duplicate it in `AutonomousRed.java` and `AutonomousBlue.java`. Every time the lift mechanism changes, you update three files instead of one, and the risk of introducing an inconsistency between them grows with every change.
 
 Encapsulation solves both problems by moving each subsystem into its own dedicated class. The class owns the hardware objects for that mechanism, exposes clean methods that describe what the mechanism does rather than how the hardware is wired, and hides every implementation detail from the OpMode.
 

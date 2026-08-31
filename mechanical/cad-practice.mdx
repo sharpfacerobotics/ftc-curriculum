@@ -10,12 +10,12 @@ import CadChecker from '@site/src/components/mechanical/CadChecker';
 
 # CAD Practice Exercises
 
-Reading Module 5 will not make you good at CAD. Modelling things will. These exercises are ordered so each one introduces exactly one new difficulty, and every one has hard numbers so you can tell whether you succeeded without asking a mentor.
+Use these exercises to practice the skills introduced in Module 5. Each one adds a new constraint and includes measurements you can check without waiting for a mentor to review the file.
 
 They are tool agnostic. The wording assumes Onshape because it is free for FTC teams and runs in a browser, but every exercise works in Fusion, SolidWorks, or Inventor.
 
 :::info Before you start
-Work through [Lesson 5.2](/mechanical/module-05/sketches-and-constraints) first. Every exercise below assumes you know what a fully defined sketch is, and the first one will be miserable if you do not.
+Work through [Lesson 5.2](/mechanical/module-05/sketches-and-constraints) first. The exercises assume you can create and recognize a fully defined sketch.
 :::
 
 ## Check your file before you ask anyone to look at it
@@ -26,14 +26,14 @@ Two formats, two different answers. **STEP** carries exact geometry, so hole dia
 
 <CadChecker />
 
-The check is arithmetic on your geometry, not a grade. It can prove a plate is 80 mm long and its holes are the right size. It cannot tell you the plate belongs on the robot. Both matter, and only one of them is checkable by a file.
+The check measures the submitted geometry. It can confirm that a plate is 80 mm long and that its holes have the required diameter, but it cannot decide whether the plate is appropriate for your robot. Review function and fit separately.
 
 :::info Official references
 - Community design guides for the mechanisms these exercises are drawn from: [Game Manual 0: Design Skills](https://gm0.org/en/latest/docs/design-skills/index.html)
 :::
 
 :::tip Use real hardware numbers
-Where an exercise names a fastener or a bearing, look up the real part on the vendor's page and use its actual dimensions. Modelling against invented numbers teaches the software but not the engineering, and the whole point is that your model has to match parts you can buy.
+When an exercise names a fastener or bearing, use dimensions from the vendor's current drawing. The model should match the part the team can buy and measure.
 :::
 
 ---
@@ -58,7 +58,7 @@ Where an exercise names a fastener or a bearing, look up the real part on the ve
     'Changing the width does not move the 8 mm bore off center.',
     'The feature tree has named features, not Extrude 1 and Extrude 2.',
   ]}
-  trap="Most people place the corner holes with four pairs of dimensions from one edge. That works once. Then the width changes and the holes on the far side are in the wrong place, because the dimensions encoded positions rather than the actual intent, which is symmetry. Use symmetry and equal constraints, and the model survives the edit."
+  trap="Four separate hole positions can produce the correct first version but fail when the plate width changes. Use symmetry and equal constraints so the sketch records the intended relationship and keeps the holes aligned after an edit."
 />
 
 <CadExercise
@@ -79,7 +79,7 @@ Where an exercise names a fastener or a bearing, look up the real part on the ve
     'No hole breaks through into another, and the minimum material between any two holes is at least 3 mm.',
     'You can state, out loud, which hole is your reference and why.',
   ]}
-  trap="The slot. Teams routinely design adapter plates with all round holes, discover during assembly that the accumulated tolerance puts the part 1 mm out, and then file the hole out with a rotary tool. Designing the adjustment in costs nothing and is the difference between a part that fits and a part that fights."
+  trap="Use the slot to provide intentional adjustment. Two fixed hole patterns can be difficult to align when part and assembly tolerances accumulate, while a short slot lets you set the final position without modifying the finished plate."
 />
 
 ---
@@ -104,7 +104,7 @@ Where an exercise names a fastener or a bearing, look up the real part on the ve
     'Dragging the wheel along the axle direction does nothing, because axial movement is constrained.',
     'You can list the stack-up from the inside face of one plate to the inside face of the other.',
   ]}
-  trap="The stack-up. Almost everyone gets the wheel spinning and then discovers the spacers do not add up, so the assembly either has a visible gap or the parts interfere. Write the stack out on paper before you place a single mate, exactly as in Lesson 4.4, and the assembly falls together."
+  trap="Calculate the spacer stack before adding mates. If its total does not match the plate spacing, the assembly will contain either a gap or interference even when the wheel has the correct revolute mate."
 />
 
 <CadExercise
@@ -125,7 +125,7 @@ Where an exercise names a fastener or a bearing, look up the real part on the ve
     'You have recorded the angle at which the first collision occurs, or confirmed there is none.',
     'The model is checked at 0 degrees, which is the worst case for both reach and gravity torque.',
   ]}
-  trap="Checking only the endpoints. An arm frequently clears at 0 degrees and at 120 degrees and strikes the chassis somewhere around 40. If you drag the arm smoothly and watch, you will see it; if you only jump between the two extremes, you will find it with aluminum instead."
+  trap="Do not check only the endpoints. An arm can clear at 0 and 120 degrees but strike the chassis at an intermediate angle. Step through the range and run interference checks at several positions."
 />
 
 <CadExercise
@@ -170,7 +170,7 @@ Where an exercise names a fastener or a bearing, look up the real part on the ve
     'The spacer stack still adds up, or you have identified exactly which spacer must change and by how much.',
     'Total edit time was under ten minutes.',
   ]}
-  trap="This exercise grades the model you built last time, not the edits you make now. If it takes an hour, the original model encoded positions instead of relationships. That is the single most valuable lesson in CAD and it can only be learned by feeling it."
+  trap="This exercise tests how the earlier model responds to change. If the edit requires extensive repair, inspect where the model recorded fixed positions instead of relationships and revise those features."
 />
 
 <CadExercise
@@ -198,7 +198,7 @@ Where an exercise names a fastener or a bearing, look up the real part on the ve
 
 ## Where to go next
 
-Once you can finish Stage 3 comfortably, model your team's actual robot. Start with the drivetrain, add each mechanism as it is designed, and keep the master assembly current. Module 5.3 covers checking the starting envelope, which is the check most worth having before week seven.
+Once you can finish Stage 3 comfortably, model your team's actual robot. Start with the drivetrain, add each mechanism as it is designed, and keep the master assembly current. Module 5.3 covers checking the starting envelope before parts are fabricated.
 
 :::info Related lessons
 - [Lesson 5.2: Fully Defined Sketches](/mechanical/module-05/sketches-and-constraints)

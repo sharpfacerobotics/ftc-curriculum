@@ -13,9 +13,9 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-The drivetrain is the one subsystem every robot has, and it is the hardest to change once the season is underway. It is worth spending real time on the choice.
+Every robot needs a drivetrain, and replacing one after the rest of the robot has been built is difficult. Choose it from the game strategy and the team's available build time.
 
-The most common mistake is choosing mecanum because last year's winning robot had it, without noticing that the winning robot's strategy required strafing and yours does not.
+Do not choose mecanum only because a successful robot used it. First check whether sideways motion improves your own scoring cycles enough to justify the trade-offs.
 
 ---
 
@@ -43,7 +43,7 @@ The most common mistake is choosing mecanum because last year's winning robot ha
 | Failure modes | Few | Roller wear | Many |
 | Odometry friendliness | Good | Moderate | Good |
 
-Mecanum's weakness is not obvious from a demo video. The angled rollers mean only part of each wheel's contact force acts in the direction of travel, so effective traction is meaningfully lower than an equivalent tank drive, and a mecanum robot loses pushing matches to a tank robot of the same weight. The rollers also wear, and a worn roller changes the robot's behavior gradually enough that drivers compensate without noticing until it is bad.
+Mecanum's trade-offs may not appear in a short demonstration. Its angled rollers direct only part of the contact force along the direction of travel, so an equivalent tank drive can produce more pushing force. The rollers also wear. Because the change is gradual, ask drivers about handling and inspect the wheels throughout the season.
 
 :::tip Strafing is a capability, not a virtue
 Ask what your robot would do with sideways motion that it could not do by turning. If the honest answer is "align at the scoring position slightly faster," weigh that against the pushing force and reliability you give up. Sometimes it is worth it. Often it is not.
@@ -55,14 +55,14 @@ Ask what your robot would do with sideways motion that it could not do by turnin
 
 Work from the requirements written in Module 0.
 
-**Choose tank when** the strategy involves defense, pushing, or repeatedly driving a fixed path. It is also the right choice for a rookie team, because it works and the team's limited hours are better spent on a scoring mechanism.
+**Choose tank when** the strategy involves defense, pushing, or repeatedly driving a fixed path. It is also a practical choice for a new team that wants to keep drivetrain build and programming time low.
 
 **Choose mecanum when** alignment is a large part of your cycle time and the field is congested, so that turning to align is genuinely slower. It suits robots that approach scoring positions from varying angles.
 
-**Choose swerve when** the team has surplus engineering capacity, a previous season of solid results, and a strategy that genuinely needs both maneuverability and traction. Swerve consumes an enormous share of a season's engineering hours, and a swerve robot with a mediocre scoring mechanism loses to a tank robot with a good one.
+**Choose swerve when** your strategy needs both sideways motion and strong traction, and the team can support the added mechanical and programming work. Budget that work before committing. If swerve would delay the scoring mechanisms or leave too little time for testing, use a simpler drivetrain.
 
-:::warning Copying a winning robot's drivetrain copies the answer, not the question
-The winning robot's drivetrain suited its strategy. Your strategy is different. Run the choice from your own requirements, and record the reasoning in the notebook.
+:::warning Start with your own requirements
+A successful robot's drivetrain was chosen for that team's strategy and constraints. Compare the options against your requirements and record the reasoning in the notebook.
 :::
 
 ---

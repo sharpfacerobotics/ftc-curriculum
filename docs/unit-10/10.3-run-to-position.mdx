@@ -15,7 +15,7 @@ import {RunToPositionDiagram} from '@site/src/components/DocDiagrams';
 
 ## Why You Should Let the Hub Handle the Stopping
 
-A common beginner approach to encoder-based movement looks like this: set a target, run the motor, and write a `while` loop that keeps checking `getCurrentPosition()` until it gets close enough, then set power to zero. This works, but it has a real problem -- by the time your code reads the position, evaluates the condition, and sends the stop command, the motor has already traveled past the target. At high speeds this overshoot can be significant.
+A common beginner approach to encoder-based movement looks like this: set a target, run the motor, and write a `while` loop that keeps checking `getCurrentPosition()` until it gets close enough, then set power to zero. This works, but it has a real problem. By the time your code reads the position, evaluates the condition, and sends the stop command, the motor has already traveled past the target. At high speeds this overshoot can be significant.
 
 `RUN_TO_POSITION` improves this by moving the stopping logic off of your code and onto the Hub's motor-control layer. The Hub updates its control loop faster than your OpMode loop, so it can react more smoothly than a hand-written "poll position, then stop" loop. It is still not magic: overshoot and settling error can happen if the mechanism is heavy, underpowered, loose, poorly geared, or commanded with too much power.
 
@@ -23,13 +23,13 @@ A common beginner approach to encoder-based movement looks like this: set a targ
 
 ## The Three-Step Setup You Must Follow in Order
 
-This mode requires three commands in a specific sequence -- getting them out of order is one of the most common bugs in FTC encoder code.
+This mode requires three commands in a specific sequence. Putting them in the wrong order is one of the most common bugs in FTC encoder code.
 
 **Step 1: Set the target.** Call `setTargetPosition(int ticks)` first. This tells the Hub where you want to go. The parameter is an absolute tick value, not a relative offset from the current position.
 
 **Step 2: Switch the run mode.** Call `setMode(DcMotor.RunMode.RUN_TO_POSITION)`. This activates the Hub's internal PID controller. If you try to set the target after switching modes, the behavior can be unpredictable.
 
-**Step 3: Apply power.** Call `setPower()` with a non-zero value. In this mode, power acts as a speed limit rather than a voltage command -- the Hub will not exceed that fraction of full speed as it drives toward the target. The motor will not move at all if power is still at zero after the mode switch.
+**Step 3: Apply power.** Call `setPower()` with a non-zero value. In this mode, power acts as a speed limit rather than a voltage command. The Hub will not exceed that fraction of full speed as it drives toward the target. The motor will not move at all if power is still at zero after the mode switch.
 
 Once the motor reaches the target, the Hub may apply holding current to resist external force pushing the shaft away from the target position. How well it holds depends on the motor, gearing, load, battery state, and mechanical friction.
 
@@ -70,7 +70,7 @@ public class RunToPositionDemo extends LinearOpMode {
         // Step 2: Activate the Hub's internal PID controller
         liftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        // Step 3: Set a speed limit -- motor starts moving now
+        // Step 3: Set a speed limit. The motor starts moving now.
         liftMotor.setPower(0.6);
 
         // Wait here while the Hub drives to the target

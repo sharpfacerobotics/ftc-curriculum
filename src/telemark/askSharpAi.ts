@@ -25,7 +25,7 @@ export interface AskEvents {
    * The assistant has finished what the sources support and is about to reason
    * past them. Telemark used to drop this event and every token after it, so a
    * student saw only the cited half of an answer and never the part that
-   * actually applied it to their robot — with no sign anything was missing.
+   * actually applied it to their robot, with no sign anything was missing.
    */
   onBeyondStart?: () => void;
   onBeyond?: (text: string) => void;

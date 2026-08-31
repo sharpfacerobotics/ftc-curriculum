@@ -50,7 +50,7 @@ export default function RequirementsTable(): React.JSX.Element {
     <CalcShell
       title="Requirements Table"
       subtitle="A number, a way to check it, and somebody who answers for it."
-      footnote="Ids beginning with R are requirements you chose and could drop; ids beginning with C are constraints you cannot negotiate, and their source should be a rule number or a physical measurement. Verification is how you will know: Test means run it repeatedly and count, Measure means one instrument reading, Inspect means look at it against a checklist, Demonstrate means show it once end to end."
+      footnote="Ids beginning with R are requirements you chose and could drop. Ids beginning with C are constraints you cannot negotiate, and their source should be a rule number or physical measurement. Verification describes how you will check the row. Test means run it repeatedly and count. Measure means take one instrument reading. Inspect means compare it with a checklist. Demonstrate means show it once from start to finish."
     >
       {/* One record per requirement rather than six table columns: the
           statement is the part people actually read, and a sentence squeezed
@@ -135,15 +135,14 @@ export default function RequirementsTable(): React.JSX.Element {
 
       {clean ? (
         <Verdict level="good">
-          Every row has a number, a way to check it, an owner, and a source. That
-          is the point where a design review can ask "show me R2" and get an
-          answer rather than an opinion.
+          Every row has a number, verification method, owner, and source. A
+          design review can now ask for the evidence tied to a specific id.
         </Verdict>
       ) : (
         <Verdict level="warn">
           {unmeasured > 0 && <>{unmeasured} row(s) have no number, so nothing can pass or fail them. </>}
-          {unverifiable > 0 && <>{unverifiable} row(s) have no verification method, so nobody knows how you would check. </>}
-          {unowned > 0 && <>{unowned} row(s) have no owner, which means everyone assumes someone else has it. </>}
+          {unverifiable > 0 && <>{unverifiable} row(s) have no verification method. </>}
+          {unowned > 0 && <>{unowned} row(s) have no assigned owner. </>}
           {unsourced > 0 && <>{unsourced} row(s) have no source, so you cannot tell a rule from a preference. </>}
         </Verdict>
       )}

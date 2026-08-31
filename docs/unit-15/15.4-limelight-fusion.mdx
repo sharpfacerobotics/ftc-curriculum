@@ -14,7 +14,7 @@ import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 ## Why Odometry Alone Is Not Enough for a Two-Minute Match
 
-Dead-wheel odometry is highly accurate in the short term. Over 5 to 10 seconds and a few feet of travel, the position estimate from three dead-wheel encoders is typically within a centimeter of the robot's true position. Over two minutes and the full scoring cycle of a competitive autonomous routine -- driving from the starting tile, scoring, navigating to the sample area, picking up, returning, and repeating -- small errors integrate into position drift that can accumulate to several inches or more.
+Dead-wheel odometry is highly accurate in the short term. Over 5 to 10 seconds and a few feet of travel, the position estimate from three dead-wheel encoders is typically within a centimeter of the robot's true position. Over two minutes and the full scoring cycle of a competitive autonomous routine, including driving from the starting tile, scoring, navigating to the sample area, picking up, returning, and repeating, small errors integrate into position drift that can accumulate to several inches or more.
 
 For a robot that needs to align with a centimeter-scale target like a specific basket or a backdrop slot, a 3-inch drift at the end of the autonomous period is the difference between scoring and missing. The fix is to periodically correct the odometry estimate using an absolute reference rather than allowing the error to compound uninterrupted.
 
@@ -35,7 +35,7 @@ Crucially, this position is global. It does not drift. No matter how many times 
 
 ## Extracting Position from Pose3D
 
-The `Pose3D` object returned by `getBotpose()` has two sub-objects: `getPosition()` and `getOrientation()`. Position returns an `Position3D` with `x`, `y`, and `z` in meters (not inches). Orientation returns angle data in the `YawPitchRollAngles` format introduced in Unit 12. When feeding this data to Pedro Pathing -- which uses inches -- unit conversion is required.
+The `Pose3D` object returned by `getBotpose()` has two sub-objects: `getPosition()` and `getOrientation()`. Position returns an `Position3D` with `x`, `y`, and `z` in meters (not inches). Orientation returns angle data in the `YawPitchRollAngles` format introduced in Unit 12. Pedro Pathing uses inches, so you must convert the units before feeding it this data.
 
 ```java
 Pose3D botPose = result.getBotpose();

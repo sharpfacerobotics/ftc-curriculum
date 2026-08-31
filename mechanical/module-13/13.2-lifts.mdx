@@ -15,9 +15,9 @@ import SlideCalculator from '@site/src/components/mechanical/SlideCalculator';
 
 ## Technical Context
 
-Almost every FTC game rewards putting something higher than the robot is tall. The starting envelope says 18 inches. The scoring element usually needs to go well past that.
+Many FTC games require the robot to place an element above its starting height, so the scoring mechanism needs additional vertical reach.
 
-So teams build lifts, and they build the same two or three arrangements every year. The difference between them is not really the hardware. It is how the stages are tied together, and that decision sets the speed, the load, and what happens when one stage binds.
+Several common lift arrangements use similar rails and bearings. The rigging that connects their stages determines extension speed, cable load, and how the mechanism responds when a stage binds.
 
 ---
 
@@ -47,7 +47,7 @@ A cascading lift is a mechanical advantage trade, run backwards. Pulling one cab
 
 This is the same trade as gearing for speed. Nothing is free: **a lift that extends three times as fast for each spool rotation pulls three times as hard on the cable, the spool, and the motor.**
 
-That is why cascading lifts fail at the spool and at the cable termination rather than in the slides. The slides are usually fine. The 2 mm cable and the point where it is tied are carrying triple the load a naive calculation suggests.
+In a cascading lift, inspect the spool, cable, and cable termination for the multiplied load. With three moving stages, those parts carry three times the directly lifted load before friction is included.
 
 ---
 
@@ -55,7 +55,7 @@ That is why cascading lifts fail at the spool and at the cable termination rathe
 
 Work out the force at the spool, not the weight of the payload:
 
-1. **Total lifted mass.** Payload plus every stage above the first, plus the end effector. Teams routinely forget the mechanism weighs more than what it carries.
+1. **Total lifted mass.** Include the payload, end effector, and every moving stage above the first.
 2. **Multiply by the stage count** if cascading.
 3. **Add friction.** Slides bind under side load. A 30 to 50 percent allowance is normal, more if the lift is cantilevered.
 4. **Convert to torque** at the spool radius, then divide by the gear ratio.
@@ -82,7 +82,7 @@ Two habits prevent most of it:
 - **Keep wrap on every pulley.** The same 120 degree rule from [Lesson 12.3](/mechanical/module-12/rotating-standards) applies: below that, a slack cable walks off the pulley.
 
 :::warning The failure that ends matches
-Cable jumping its pulley under slack is the single most common lift failure in FTC. It is not a strength problem and adding a bigger motor does not fix it. It is a tension problem.
+A slack cable can jump its pulley and stop the lift even when every part is strong enough for the load. Maintain tension throughout the full travel instead of treating this as a motor-sizing problem.
 :::
 
 ---

@@ -351,7 +351,7 @@ public class ZoneDefinitions extends OpMode {
     const coordBadge = document.createElement("div");
     coordBadge.id = "u144-coord-badge";
     coordBadge.className = "u144-coord-badge";
-    coordBadge.innerHTML = '<i class="fa-solid fa-crosshairs"></i> x: -- y: --';
+    coordBadge.innerHTML = '<i class="fa-solid fa-crosshairs"></i> x: n/a y: n/a';
     sceneContainer.appendChild(coordBadge);
 
     const panel = document.createElement("div");
@@ -745,7 +745,7 @@ public class ZoneDefinitions extends OpMode {
     if (coords) {
       coords.innerHTML = state.hover
         ? '<i class="fa-solid fa-crosshairs"></i> x: ' + state.hover.x + " y: " + state.hover.y
-        : '<i class="fa-solid fa-crosshairs"></i> x: -- y: --';
+        : '<i class="fa-solid fa-crosshairs"></i> x: n/a y: n/a';
     }
 
     const badge = el("u144-scene-badge");

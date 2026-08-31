@@ -13,11 +13,11 @@ import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 
 ## Technical Context
 
-Rookie teams almost always design a gripper first. It is the intuitive answer: the robot needs to hold a thing, so build a hand that closes on the thing.
+A rigid gripper is an easy concept to picture: close two surfaces around the game element and hold it between them.
 
-Then they discover the game element is never where the gripper expects it. It is rotated. It is against the wall. It is on top of another one. The gripper needs the element within a millimetre or two of a specific pose, and the field never provides that.
+The difficult part is presenting the element in exactly the pose that the gripper expects. During a match, it may be rotated, against a wall, or resting on another element. A design that accepts only a narrow position makes the driver correct each of those variations.
 
-The mechanisms that survive solve the problem the other way around. They do not locate the element precisely. They make precision unnecessary.
+Compliant mechanisms accept a wider range of positions by deforming around the element and guiding it into the robot.
 
 ---
 
@@ -27,13 +27,13 @@ Compliance means the mechanism deforms to fit what it is holding instead of requ
 
 A rigid gripper has one correct position. Anything else is a miss. A compliant intake has a **range** of positions that all work, because the mechanism absorbs the difference. Surgical tubing stretches. A compliant wheel squashes. A flexible flap bends out of the way and springs back.
 
-This is why the same few intake designs reappear every season regardless of what the game element is:
+The following intake arrangements handle different kinds of variation:
 
 | Arrangement | What it absorbs | Where it struggles |
 | --- | --- | --- |
 | Compliant wheels on a fixed axle | Element height, rotation, and approach angle | Elements that must arrive in a known orientation |
 | Surgical tubing flaps on a spinning hub | Wide size range, delicate elements | Wear, and tubing that takes a set over a season |
-| Counter rotating rollers | Element alignment; centers automatically | Elements taller than the gap between rollers |
+| Counter rotating rollers | Element alignment and automatic centering | Elements taller than the gap between rollers |
 | Rigid claw | Nothing. Position must be exact | Everywhere the field is not a fixture |
 
 None of this makes the claw wrong. A claw is the right answer when the element arrives in a known pose, most often because your own robot placed it there.
@@ -46,7 +46,7 @@ A gripper works by friction, and friction needs normal force. The available grip
 
 **F = μN**
 
-where μ is the friction coefficient and N is the force pressing the surfaces together. A rigid gripper produces N only when it is closed to exactly the right width. Squeeze harder and you crush or slip; open slightly and N falls to zero.
+where μ is the friction coefficient and N is the force pressing the surfaces together. A rigid gripper produces N only when it is closed to the right width. Too much force can crush or eject the element. Too little compression drops N toward zero.
 
 A compliant element replaces that knife edge with a spring. Once the material deforms, N is set by **how far it deformed**, not by whether you hit an exact dimension:
 
@@ -54,7 +54,7 @@ A compliant element replaces that knife edge with a spring. Once the material de
 
 where k is the stiffness of the compliant element and x is the compression. Now a 3 mm error in element position changes the grip force a little, instead of changing it from "gripped" to "dropped".
 
-That single substitution is the whole idea. **You traded a requirement for exact position for a requirement for approximate position, and approximate is what a robot on a field can deliver.**
+The practical benefit is a wider acquisition window. The driver only needs to place the mechanism near the element instead of aligning it to one exact pose.
 
 A compliant wheel also grows its contact patch as it compresses. More area does not directly increase friction in the classic model, but it does spread the load, reduce local crushing of a soft element, and give the surface irregularities more places to interlock, which is why real compliant wheels grip better than the model alone predicts.
 
@@ -64,9 +64,9 @@ A compliant wheel also grows its contact patch as it compresses. More area does 
 
 Too little compression and the wheel skips over the element. Too much and the intake stalls, the element deforms, or the wheels wear flat.
 
-The usual working range is **3 to 6 mm of compression** on a typical compliant wheel, set by the gap between the wheel and the floor or the opposing surface. Set it by geometry, not by hope: place the wheel so that its uncompressed outer diameter overlaps the element by that amount, and it will compress by exactly that when the element passes.
+The usual working range is **3 to 6 mm of compression** on a typical compliant wheel, set by the gap between the wheel and the floor or opposing surface. Position the wheel so its uncompressed outer diameter overlaps the element by the target amount, then confirm the result with the real element.
 
-This is where a mounting slot earns its place. Compression is the one intake number that always needs tuning after the first test, and a team that bolted the intake to a fixed hole pattern has to drill new holes to change it.
+Use a mounting slot so you can tune compression after the first test. A fixed hole pattern forces the team to drill new holes or remake the mount for each adjustment.
 
 :::tip Design for the adjustment you know you will make
 Every intake gets its height changed. Give it 8 to 10 mm of slotted travel on the first version and you will tune it in five minutes instead of remaking a plate.

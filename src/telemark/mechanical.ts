@@ -38,7 +38,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Turn a game manual into requirements, constraints, and concepts before anyone cuts metal.',
     tier: 'Beginner',
     overview:
-      'Every competitive robot starts as a pile of requirements hidden inside a rulebook. This module covers how engineering teams read the game, write down what the robot must do, and generate concepts worth prototyping.',
+      'Read the game manual for scoring opportunities and constraints, turn the strategy into testable requirements, and generate several concepts before you build.',
     outcomes: [
       'Describe the engineering design cycle and explain why it loops instead of ending.',
       'Pull scoring actions, cycle times, and penalties out of a game manual and restate them as robot requirements.',
@@ -58,7 +58,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Document design decisions so judges, and your own team next month, can follow the reasoning.',
     tier: 'Beginner',
     overview:
-      'The notebook is not paperwork added at the end of the season. It is the record of how the robot became what it is, and it is the primary evidence judges use when awarding the Design and Think awards.',
+      'Document decisions, sketches, tests, failures, and revisions as the work happens. Your team can recover the reasoning later, and judges can follow the same record when evaluating Design and Think awards.',
     outcomes: [
       'Explain what judges actually look for in an engineering notebook.',
       'Write a dated entry that captures the problem, what was tried, the result, and the next step.',
@@ -78,7 +78,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Work safely and measure accurately before touching the robot.',
     tier: 'Beginner',
     overview:
-      'Mechanical work starts with not getting hurt and not scrapping parts. This module covers shop safety, the measuring tools every FTC team needs, and the cutting and threading operations used on almost every robot.',
+      'Work safely, choose a measuring tool that matches the required tolerance, and practice the cutting, drilling, and threading operations used on an FTC robot.',
     outcomes: [
       'Follow shop safety rules and identify the required protective equipment for each operation.',
       'Read a caliper to a thousandth of an inch and choose the right tool for a given measurement.',
@@ -118,7 +118,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Assemble joints that survive a full season of impacts and vibration.',
     tier: 'Intermediate',
     overview:
-      'Most robot failures at competition are not broken parts. They are loose screws, worn bearings, and shafts that walked out of position. This module covers the hardware that holds everything together.',
+      'Loose fasteners, worn bearings, unsupported shafts, and incorrect spacer stacks can stop a subsystem without breaking a major part. Learn how to choose and assemble the hardware that keeps each joint aligned.',
     outcomes: [
       'Read a metric fastener callout and choose the correct length, head style, and drive.',
       'Prevent fasteners from backing out under vibration without making the robot impossible to service.',
@@ -138,7 +138,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Design the robot in CAD so mistakes cost minutes instead of parts.',
     tier: 'Intermediate',
     overview:
-      'CAD is where a team finds interference, checks reach, and settles arguments before spending money. Onshape runs in a browser and is free for FTC teams, which makes it the practical default.',
+      'Use CAD to find interference, check reach, and compare geometry before fabricating parts. The lessons use Onshape because it runs in a browser and offers an education plan for FTC teams.',
     outcomes: [
       'Explain what CAD catches that a sketch on paper cannot.',
       'Build fully defined sketches and turn them into parts with the core feature set.',
@@ -207,7 +207,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Design the intakes, slides, and arms that actually score game elements.',
     tier: 'Advanced',
     overview:
-      'Scoring mechanisms are where a season is won. This module covers the mechanism families FTC teams build every year and the load math that keeps them from stalling, sagging, or tearing themselves apart.',
+      'Design intakes, linear slides, arms, and counterbalances around the game element and expected load. Check the numbers before choosing motors, reductions, and structural dimensions.',
     outcomes: [
       'Select an intake style that matches the game element and the approach geometry.',
       'Size a linear slide stage count, spool diameter, and motor for a required extension and speed.',
@@ -227,7 +227,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Wire the control system so it passes inspection and survives the match.',
     tier: 'Intermediate',
     overview:
-      'Wiring is where mechanical and software meet, and it is the most common source of mysterious mid-match failures. This module covers the FTC control system layout and the wiring practices that keep it reliable.',
+      'Build one shared map between the control system, physical wiring, and software configuration. Then size, route, label, and strain-relieve each wire for its current and motion.',
     outcomes: [
       'Lay out the FTC control system and explain what each port and cable does.',
       'Choose wire gauge for a given current and length, and estimate voltage drop.',
@@ -247,7 +247,7 @@ const MODULE_SEEDS: ModuleSeed[] = [
     desc: 'Prove a mechanism works with data before committing it to the competition robot.',
     tier: 'Advanced',
     overview:
-      'The gap between a mechanism that works once and a mechanism that works ninety times out of a hundred is closed by testing. This module covers how to prototype fast, measure honestly, and act on what the data shows.',
+      'Prototype one question at a time, write the test conditions before running trials, and use the results to revise the design or investigate a failure.',
     outcomes: [
       'Build a rough prototype quickly to answer one specific question.',
       'Write a test plan with a measurable success criterion and run enough trials to trust it.',
@@ -284,15 +284,15 @@ const MODULE_SEEDS: ModuleSeed[] = [
   {
     number: '12',
     title: 'Shop Standards and Non-Negotiables',
-    desc: 'The numbers that are not up for debate, and the reasoning that makes them stick.',
+    desc: 'Standardize recurring hole, joint, shaft, and design-margin decisions.',
     tier: 'Beginner',
     overview:
-      'Most of this track teaches you how to decide. This module is the part that is already decided. These are the values a team argues about once, gets wrong once, and then writes on the wall. Reference it from day one and return to it whenever a number is in question.',
+      'Use one documented set of standards for recurring design decisions. Post these values in the shop and apply them in CAD, fabrication, assembly, and inspection.',
     outcomes: [
       'Apply the standard hole clearances without re-deriving them, and know why 0.15 mm per side is the floor.',
       'Meet the minimum thread engagement, fastener count, and retention standard on every joint.',
       'Support every rotating assembly to the same standard, whatever the mechanism.',
-      'Hold the design margins that separate a robot that works in the pit from one that works in match five.',
+      'Apply design margins for load, speed, weight, and battery condition before competition.',
     ],
     lessons: [
       {slug: 'hole-standards', label: 'Hole Standards', title: 'Lesson 12.1: Clearance, Tap Drills, and the 0.15 mm Rule'},
@@ -304,10 +304,10 @@ const MODULE_SEEDS: ModuleSeed[] = [
   {
     number: '13',
     title: 'Proven Mechanisms and Why They Work',
-    desc: 'The mechanisms FTC teams keep returning to, and the theory that explains why they keep winning.',
+    desc: 'Study common FTC mechanisms and the physical problems each one solves.',
     tier: 'Advanced',
     overview:
-      'Every season looks new and almost none of the mechanisms are. The same handful of arrangements keep appearing because each one solves a specific physical problem well. This module works through those arrangements as theory rather than as recipes, so you can tell when one fits your game and, more usefully, when it does not.',
+      'Study compliant intakes, staged lifts, four-bar linkages, and drivetrains by function instead of copying a past robot. Use the underlying geometry and forces to decide whether an arrangement fits the current game.',
     outcomes: [
       'Explain why compliant intakes grip a range of objects that rigid grippers cannot.',
       'Choose between cascading and continuous lifts from the extension and load you need, not from what you saw last season.',

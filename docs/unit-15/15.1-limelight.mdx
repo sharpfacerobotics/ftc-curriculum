@@ -14,9 +14,9 @@ import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 ## Why a Dedicated Vision Coprocessor Changes the Architecture
 
-In Unit 14, vision processing ran on the Control Hub itself. The `VisionPortal` delivered frames from the webcam to pipeline code running on the Hub's CPU alongside all of your drivetrain and mechanism logic. This works well for simple tasks like reading an AprilTag ID or comparing zone saturation values. It begins to strain the system when the pipeline is computationally heavy -- for example, running a neural network classifier to detect game piece orientation -- because every CPU cycle the camera pipeline consumes is a cycle the motor PID controllers cannot use.
+In Unit 14, vision processing ran on the Control Hub itself. The `VisionPortal` delivered frames from the webcam to pipeline code running on the Hub's CPU alongside all of your drivetrain and mechanism logic. This works well for simple tasks like reading an AprilTag ID or comparing zone saturation values. It begins to strain the system when the pipeline is computationally heavy, such as when it runs a neural network classifier to detect game piece orientation, because every CPU cycle the camera pipeline consumes is a cycle the motor PID controllers cannot use.
 
-The Limelight 3A solves this by moving vision processing entirely off the Control Hub. The Limelight is a self-contained smart camera with its own processor, its own memory, and its own pipeline execution environment. It communicates with the Control Hub over I2C. The Control Hub never touches a camera frame. It only reads the structured results -- target coordinates, classification labels, AprilTag poses -- that the Limelight has already computed. Vision and motion control are completely decoupled at the hardware level.
+The Limelight 3A solves this by moving vision processing entirely off the Control Hub. The Limelight is a self-contained smart camera with its own processor, its own memory, and its own pipeline execution environment. It communicates with the Control Hub over I2C. The Control Hub never touches a camera frame. It only reads the structured results, including target coordinates, classification labels, and AprilTag poses, that the Limelight has already computed. Vision and motion control are completely decoupled at the hardware level.
 
 ---
 
@@ -24,7 +24,7 @@ The Limelight 3A solves this by moving vision processing entirely off the Contro
 
 The Limelight can store up to ten vision pipelines simultaneously, numbered 0 through 9. Each pipeline is configured in the Limelight web interface and saved to a numbered slot. A pipeline might use the Limelight's built-in AprilTag detection, a color detection filter, or a neural network model trained on your game piece.
 
-From Java code, you activate a pipeline by calling `limelight.pipelineSwitch(int index)` with the slot number of the pipeline you want. Calling this method in `init()` or in a state transition -- never repeatedly in every loop iteration -- ensures the Limelight is running the correct pipeline without the overhead of reloading it constantly. If the Limelight is already on the requested pipeline, the call is a no-op.
+From Java code, you activate a pipeline by calling `limelight.pipelineSwitch(int index)` with the slot number of the pipeline you want. Call this method in `init()` or during a state transition, not repeatedly in every loop iteration. This keeps the correct pipeline running without the overhead of reloading it constantly. If the Limelight is already on the requested pipeline, the call is a no-op.
 
 :::info Official references
 - Limelight FTC programming guide: [FTC Java and Blockly Programming Guide](https://docs.limelightvision.io/docs/docs-limelight/apis/ftc-programming)
@@ -43,9 +43,9 @@ Look for lighting changes, wrong pipeline slots, target exposure problems, and c
 
 The three primary target fields are:
 
-- **`getTx()`** -- horizontal offset of the target from the Limelight's crosshair in degrees. Negative means the target is to the left, positive means right.
-- **`getTy()`** -- vertical offset of the target from the crosshair in degrees.
-- **`getTa()`** -- area of the target as a percentage of the total frame. Larger values mean the target is closer.
+- **`getTx()`**: horizontal offset of the target from the Limelight's crosshair in degrees. Negative means the target is to the left, positive means right.
+- **`getTy()`**: vertical offset of the target from the crosshair in degrees.
+- **`getTa()`**: area of the target as a percentage of the total frame. Larger values mean the target is closer.
 
 ---
 
@@ -107,7 +107,7 @@ public class LimelightDemo extends OpMode {
             telemetry.addData("Target Area (%)",  "%.2f", ta);
             telemetry.addData("Steer Power",      "%.3f", steerPower);
         } else {
-            // No valid target -- driver controls only, no assist
+            // No valid target. Use driver controls only, with no assist.
             leftDrive.setPower(-gamepad1.left_stick_y);
             rightDrive.setPower(-gamepad1.left_stick_y);
             telemetry.addData("Limelight", "No target visible");
