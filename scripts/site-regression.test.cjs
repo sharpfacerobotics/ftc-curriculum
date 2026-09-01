@@ -54,13 +54,20 @@ assert.ok(
   fs.existsSync(path.join(root, 'static/video/telemark-hero.mp4')),
   'homepage hero video must live in the static video directory',
 );
+assert.ok(
+  fs.existsSync(path.join(root, 'static/video/telemark-hero-light.mp4')),
+  'homepage light-mode hero video must live in the static video directory',
+);
 assert.match(heroVideo, /\bautoPlay\b/, 'homepage hero video must autoplay');
 assert.match(heroVideo, /\bmuted\b/, 'homepage hero video must default to muted');
 assert.match(heroVideo, /\bloop\b/, 'homepage hero video must loop');
 assert.match(heroVideo, /\bplaysInline\b/, 'homepage hero video must play inline on mobile');
 assert.doesNotMatch(heroVideo, /\scontrols(?:=|\s|>)/, 'homepage hero video must hide native controls');
 assert.match(homepage, /useBaseUrl\('\/video\/telemark-hero\.mp4'\)/);
+assert.match(homepage, /useBaseUrl\('\/video\/telemark-hero-light\.mp4'\)/);
+assert.match(homepage, /colorMode === 'light' \? lightSrc : darkSrc/);
 assert.match(heroVideo, /<source src=\{src\} type="video\/mp4"/);
+assert.match(homepage, /video\.play\(\)/, 'homepage must retry hero playback after hydration');
 
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);

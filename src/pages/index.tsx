@@ -3,6 +3,7 @@ import Link from '@docusaurus/Link';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {useColorMode} from '@docusaurus/theme-common';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
@@ -98,19 +99,55 @@ const HOME_TOOLS = [
   {name: 'Weight budget', path: '/simulator#weight', desc: 'Assign and track the robot\u2019s mass by subsystem.'},
 ];
 
-/** The product reel sits below the copy, like Chrome's wide hero demo. */
+/** The product reel sits beside the copy, like Chrome's wide hero demo. */
 function HeroVideo(): React.JSX.Element {
-  const src = useBaseUrl('/video/telemark-hero.mp4');
+  const darkSrc = useBaseUrl('/video/telemark-hero.mp4');
+  const lightSrc = useBaseUrl('/video/telemark-hero-light.mp4');
+  const {colorMode} = useColorMode();
+  const src = colorMode === 'light' ? lightSrc : darkSrc;
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const playbackPositionRef = React.useRef(0);
+  const playbackSourceRef = React.useRef('');
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const resumeAt = playbackPositionRef.current;
+
+    const resumePlayback = () => {
+      video.muted = true;
+      if (resumeAt > 0 && Number.isFinite(video.duration)) {
+        video.currentTime = Math.min(resumeAt, Math.max(0, video.duration - 0.1));
+      }
+      playbackSourceRef.current = video.currentSrc;
+      void video.play().catch(() => {
+        // The autoplay attribute remains the fallback if a browser delays play.
+      });
+    };
+
+    video.addEventListener('loadedmetadata', resumePlayback, {once: true});
+    video.load();
+    return () => video.removeEventListener('loadedmetadata', resumePlayback);
+  }, [src]);
+
+  const rememberPlaybackPosition = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = event.currentTarget;
+    if (video.currentSrc === playbackSourceRef.current) {
+      playbackPositionRef.current = video.currentTime;
+    }
+  };
 
   return (
     <div className={styles.heroVideoFrame}>
       <video
+        ref={videoRef}
         className={styles.heroVideo}
         autoPlay
         muted
         loop
         playsInline
         preload="metadata"
+        onTimeUpdate={rememberPlaybackPosition}
         aria-label="Telemark curriculum and robot simulator preview"
       >
         <source src={src} type="video/mp4" />
