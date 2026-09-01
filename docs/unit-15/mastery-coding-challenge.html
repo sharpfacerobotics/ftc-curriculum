@@ -17,8 +17,8 @@
 
 
 <script>window.dataLayer=window.dataLayer||[],"function"!=typeof window.gtag&&(window.gtag=function(){window.dataLayer.push(arguments)})</script><link rel="stylesheet" href="/telemark/assets/css/styles.2a4630dc.css">
-<script src="/telemark/assets/js/runtime~main.ce468707.js" defer="defer"></script>
-<script src="/telemark/assets/js/main.20ae1919.js" defer="defer"></script>
+<script src="/telemark/assets/js/runtime~main.d98ac8b5.js" defer="defer"></script>
+<script src="/telemark/assets/js/main.c5ccaf4b.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -28,13 +28,13 @@
 <p>The editor provides the FTC SDK imports, autonomous registration, and an empty <code>LinearOpMode</code> class, like Android Studio would. Write the complete routine yourself. Passing every requirement demonstrates full mastery of Unit 15 and completes the software track.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="your-task">Your Task<a href="#your-task" class="hash-link" aria-label="Direct link to Your Task" title="Direct link to Your Task" translate="no">​</a></h2>
 <ol>
-<li class="">Map, select a pipeline for, and start the Limelight 3A.</li>
+<li class="">Map Limelight 3A as <code>&quot;limelight&quot;</code>, select its pipeline, and start it.</li>
 <li class="">Create a Pedro Pathing <code>Follower</code> and establish a starting <code>Pose</code>.</li>
 <li class="">Build a <code>PathChain</code> that uses both a <code>BezierLine</code> and a <code>BezierCurve</code>.</li>
 <li class="">Create a named <code>enum</code> state machine for path and mechanism phases.</li>
 <li class="">Call <code>follower.update()</code> on every active loop before state logic.</li>
 <li class="">Validate each <code>LLResult</code> before using it, then fuse a valid global pose back into the Follower.</li>
-<li class="">Coordinate a servo action with a <code>getRuntime()</code> deadline instead of <code>sleep()</code>.</li>
+<li class="">Map scoring servo <code>&quot;scoringArm&quot;</code> and coordinate its action with a <code>getRuntime()</code> deadline instead of <code>sleep()</code>.</li>
 <li class="">Report path, state, and vision status, then stop the Limelight during cleanup.</li>
 </ol>
 <p>No state may block the loop. Vision loss and a busy follower must both be handled as expected operating conditions.</p>
