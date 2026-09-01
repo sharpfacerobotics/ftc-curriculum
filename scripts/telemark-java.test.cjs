@@ -156,6 +156,7 @@ function testClassFieldInitializersPersistAcrossLoops() {
       double scale = Math.max(0.25, 0.5);
       double scaledCurve = curve * scale;
       CurveSettings settings = new CurveSettings();
+      static final Rect zone = new Rect(45, 250, 60, 60);
       DcMotor motor;
 
       public void loop() {
@@ -172,6 +173,11 @@ function testClassFieldInitializersPersistAcrossLoops() {
   assert.equal(program.scope.scale, 0.5, 'Math expressions must work in field initializers');
   assert.equal(program.scope.scaledCurve, -0.5, 'field initializers must run in source order');
   assert.equal(program.scope.settings.exponent, 2, 'supporting classes must be constructible in fields');
+  assert.deepEqual(
+    {...program.scope.zone},
+    {x: 45, y: 250, width: 60, height: 60},
+    'SDK value objects must be constructible in field initializers without page globals',
+  );
   assert.equal(program.scope.motor, null, 'uninitialized object fields must use the Java default');
 
   program.methods.loop();

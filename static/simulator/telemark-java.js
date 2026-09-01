@@ -675,7 +675,7 @@
           i += 4;
           continue;
         }
-        output += "new " + typeName + " ";
+        output += "new " + (typeName === "Rect" ? "__telemarkRect" : typeName) + " ";
         i += 1;
         continue;
       }
@@ -906,7 +906,7 @@
           i = close;
           continue;
         }
-        output.push("new", typeName);
+        output.push("new", typeName === "Rect" ? "__telemarkRect" : typeName);
         i += 1;
         continue;
       }
@@ -1304,6 +1304,7 @@ const waitForStart=runtime.waitForStart||(()=>Promise.resolve());
 const sleep=runtime.sleep||((ms)=>new Promise((resolve)=>setTimeout(resolve,Math.max(0,Number(ms)||0))));
 const linearTick=runtime.linearTick||(()=>sleep(0));
 const __telemarkCaptureVariable=runtime.captureVariable||(()=>{});
+const __telemarkRect=runtime.Rect||(typeof globalThis!=="undefined"&&globalThis.Rect)||class{constructor(x,y,width,height){Object.assign(this,{x,y,width,height});}};
 ${options.classPrelude || ""}
 with(scope){${js}}`
       );
