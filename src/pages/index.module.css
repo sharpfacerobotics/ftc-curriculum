@@ -140,20 +140,31 @@
 /* Soft, solid-color shapes give the hero motion without bringing gradients back. */
 .hero {
   isolation: isolate;
-  display: flex;
-  min-height: 96vh;
-  width: min(1120px, 100%);
+  display: grid;
+  min-height: 100vh;
+  width: min(1640px, 100%);
   margin: 0 auto;
-  /* Top padding was tuned for a hero that ended at the buttons. The figures
-     below them need that space back, or the pair sits entirely under the fold. */
-  padding: 5rem 2rem 4rem;
+  padding: 5.5rem clamp(2.5rem, 4vw, 4.5rem) 4.5rem;
   overflow: hidden;
   align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(2.5rem, 4vw, 4.75rem);
+  text-align: left;
 }
 
+.heroCopy {
+  min-width: 0;
+}
+
+.heroCopy .heroActions {
+  justify-content: flex-start;
+}
+
+.heroCopy .btnPrimary,
+.heroCopy .btnTrackAlt {
+  padding: 16px 38px;
+  font-size: var(--tm-fs-md);
+}
 
 .heroBadge {
   display: inline-flex;
@@ -166,7 +177,7 @@
   background: none;
   color: var(--home-aqua);
   font-family: var(--telemark-font-label);
-  font-size: var(--tm-fs-2xs);
+  font-size: var(--tm-fs-xs);
   letter-spacing: 0;
   text-transform: none;
   animation: fadeInDown 600ms ease both;
@@ -185,7 +196,7 @@
   margin: 0 0 1.5rem;
   color: var(--home-text);
   font-family: var(--telemark-font-display);
-  font-size: clamp(44px, 7.5vw, 84px);
+  font-size: clamp(52px, 6.25vw, 92px);
   font-weight: var(--tm-weight-display);
   letter-spacing: -0.04em;
   line-height: 0.98;
@@ -209,7 +220,7 @@
   max-width: 640px;
   margin: 0 0 2rem;
   color: var(--home-muted);
-  font-size: var(--tm-fs-md);
+  font-size: var(--tm-fs-lg);
   font-weight: 400;
   line-height: 1.65;
   animation: fadeInUp 750ms ease both 160ms;
@@ -1279,89 +1290,49 @@
   }
 }
 
-/* The accordion that opens the page. Its own stylesheet drops to a stacked
-   column below 520px with height:auto, which is right for a gallery and wrong
-   for a hero that has to finish above the fold, so the narrow case renders the
-   plain grid instead and never reaches that rule. */
-.heroAccordion {
-  width: min(1120px, 100%);
-  height: clamp(178px, 32vh, 340px);
-  margin: clamp(1.25rem, 3vh, 2.25rem) auto 0;
-}
-
-/* The screenshots are dark and so is the page behind them in dark mode, where
-   the component's drop shadow does nothing. Without an edge the panels bleed
-   into the background and the gallery stops looking like separate things. */
-.heroAccordion :global(.ag-panel) {
-  border: 1px solid var(--tm-border);
-}
-
-.heroAccordion :global(.ag-panel__text) {
-  font-family: var(--tm-font-label);
-  font-size: var(--tm-fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-@media (max-height: 820px) {
-  .hero .heroAccordion {
-    margin-top: 1rem;
-  }
-}
-
-/* The three screenshots under the hero copy. The whole band has to finish
-   above the fold, which is the point of it, so it is sized from the space the
-   copy leaves rather than from the pictures. */
-.heroShots {
-  display: grid;
-  width: 100%;
-  max-width: 940px;
-  margin: clamp(1.75rem, 4vh, 2.75rem) auto 0;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(0.75rem, 2vw, 1.25rem);
-}
-
-.heroShot {
+/* Wide, self-playing product reel beside the hero copy. The border and inset
+   edge keep dark frames distinct from the page background. */
+.heroVideoFrame {
   position: relative;
-  display: block;
+  width: 100%;
+  margin: 0;
   overflow: hidden;
   border: 1px solid var(--tm-border);
-  border-radius: var(--tm-r-md);
+  border-radius: var(--tm-r-lg);
   background: var(--tm-surface-1);
-  box-shadow: 0 16px 40px -26px rgba(15, 23, 42, 0.5);
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow:
+    0 28px 70px -34px rgba(0, 0, 0, 0.75),
+    inset 0 0 0 1px var(--tm-border);
 }
 
-.heroShot:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 22px 50px -24px rgba(15, 23, 42, 0.55);
-}
-
-.heroShot:focus-visible {
-  outline: 2px solid var(--tm-accent);
-  outline-offset: 3px;
-}
-
-.heroShot img {
+.heroVideo {
   display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
 }
 
-.heroShotLabel {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  padding: 1.5rem 0.7rem 0.5rem;
-  background: linear-gradient(to top, rgba(9, 14, 26, 0.8), rgba(9, 14, 26, 0));
-  color: #fff;
-  font-family: var(--tm-font-label);
-  font-size: 10px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+@media (max-width: 900px) {
+  .hero {
+    width: min(720px, 100%);
+    grid-template-columns: 1fr;
+    gap: 0;
+    text-align: center;
+  }
+
+  .heroSub {
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .heroCopy .heroActions {
+    justify-content: center;
+  }
+
+  .heroVideoFrame {
+    margin: clamp(1.75rem, 4vh, 2.75rem) auto 0;
+  }
 }
 
 /* A laptop is short before it is narrow. At 720px tall the hero was still
@@ -1392,7 +1363,13 @@
     margin-bottom: 1.25rem;
   }
 
-  .hero .heroShots {
+  .hero .heroVideoFrame {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 820px) {
+  .hero .heroVideoFrame {
     max-width: 660px;
     margin-top: 1rem;
   }
@@ -1427,16 +1404,10 @@
   }
 }
 
-/* Three across a phone leaves each one 110px wide, which is a smudge. Two,
-   and the third steps out. */
 @media (max-width: 620px) {
-  .heroShots {
-    max-width: 26rem;
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .heroShots > *:nth-child(3) {
-    display: none;
+  .heroVideoFrame {
+    width: calc(100% + 1rem);
+    border-radius: var(--tm-r-md);
   }
 }
 

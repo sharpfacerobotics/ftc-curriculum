@@ -98,138 +98,57 @@ const HOME_TOOLS = [
   {name: 'Weight budget', path: '/simulator#weight', desc: 'Assign and track the robot\u2019s mass by subsystem.'},
 ];
 
-const HERO_SHOTS = [
-  {image: 'img/showcase/arm-simulator.jpg', url: '/simulator#arm-sim',
-   alt: 'The arm simulator running, with telemetry beside the simulated arm.', label: 'Simulator'},
-  {image: 'img/showcase/cad-check.jpg', url: '/simulator#cad-check',
-   alt: 'The CAD check measuring an uploaded STEP file against an exercise.', label: 'CAD check'},
-  {image: 'img/showcase/lesson.jpg', url: '/docs/unit-00/classes-and-objects',
-   alt: 'A lesson page, with the explanation beside a worked example.', label: 'A lesson'},
-  {image: 'img/showcase/slide-calculator.jpg', url: '/simulator#slide',
-   alt: 'The linear slide calculator, with extension and cable force worked out.', label: 'Calculators'},
-  {image: 'img/showcase/cad-practice.jpg', url: '/mechanical/module-00/design-cycle',
-   alt: 'A CAD exercise stating the dimensions a submitted model has to hit.', label: 'CAD practice'},
-];
+/** The product reel sits below the copy, like Chrome's wide hero demo. */
+function HeroVideo(): React.JSX.Element {
+  const src = useBaseUrl('/video/telemark-hero.mp4');
 
-/**
- * True once the viewport matches, false on the server and on first paint.
- *
- * The accordion needs room to be an accordion: below its own breakpoint it
- * stacks its panels into a column, which on a phone is taller than the screen
- * the hero has to fit inside.
- */
-function useWide(query: string): boolean {
-  const [wide, setWide] = React.useState(false);
-  React.useEffect(() => {
-    const mq = window.matchMedia(query);
-    const update = () => setWide(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, [query]);
-  return wide;
-}
-
-/**
- * The three screenshots that open the page.
- *
- * They render as ordinary images in the served HTML and are animated after,
- * so the pictures are there whether or not the script arrives.
- */
-function HeroShots(): React.JSX.Element {
-  const base = useBaseUrl('/').replace(/\/$/, '');
-  // A hook, at the top of the component. This lived inside the BrowserOnly
-  // render prop, which runs as part of BrowserOnly's own render: the hook count
-  // changed between the hydration pass and the one after it, and the panels
-  // came out inert, with a click following the anchor instead of running the
-  // handler that should have caught it.
-  const wide = useWide('(min-width: 700px)');
-
-  const grid = (
-    <div className={styles.heroShots}>
-      {HERO_SHOTS.slice(0, 3).map((shot) => (
-        <HeroShot key={shot.image} base={base} shot={shot} />
-      ))}
+  return (
+    <div className={styles.heroVideoFrame}>
+      <video
+        className={styles.heroVideo}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label="Telemark curriculum and robot simulator preview"
+      >
+        <source src={src} type="video/mp4" />
+      </video>
     </div>
-  );
-
-  if (!wide) return grid;
-
-  return (
-    <BrowserOnly fallback={grid}>
-      {() => {
-        const AccordionGallery =
-          require('@site/src/components/vendor/reactbits/AccordionGallery').default;
-        return (
-          <div className={styles.heroAccordion}>
-            <AccordionGallery
-              items={HERO_SHOTS.map((shot, i) => ({
-                image: `${base}/${shot.image}`,
-                link: shot.url,
-                label: shot.label,
-                alt: shot.alt,
-                eager: i < 2,
-              }))}
-              LinkComponent={Link}
-              defaultIndex={0}
-              height={null}
-              gap={8}
-              radius={12}
-              tilt={5}
-              expandRatio={0.46}
-              grayscale={false}
-              accentColor="var(--tm-accent)"
-              overlayColor="#050a14"
-            />
-          </div>
-        );
-      }}
-    </BrowserOnly>
-  );
-}
-
-function HeroShot({base, shot}: {base: string; shot: (typeof HERO_SHOTS)[number]}): React.JSX.Element {
-  return (
-    <Link to={shot.url} className={styles.heroShot}>
-      <img src={`${base}/${shot.image}`} alt={shot.alt} width={1100} height={726} />
-      <span className={styles.heroShotLabel}>{shot.label}</span>
-    </Link>
   );
 }
 
 function HeroSection(): React.JSX.Element {
   return (
     <section className={styles.hero}>
-      <div className={styles.heroBadge}>
-        <span className={styles.badgeDot} aria-hidden="true" />
-        <span>Student-built FTC software and mechanical curriculum</span>
+      <div className={styles.heroCopy}>
+        <div className={styles.heroBadge}>
+          <span className={styles.badgeDot} aria-hidden="true" />
+          <span>Student-built FTC software and mechanical curriculum</span>
+        </div>
+
+        <h1 className={styles.heroTitle}>
+          <span className={styles.titleLine1}>Master FTC</span>
+          <span className={styles.titleLine2}>Robotics</span>
+        </h1>
+
+        <p className={styles.heroSub}>
+          Learn to program an FTC robot and run your code in the browser, or learn
+          to design one and check your numbers before you build.
+        </p>
+
+        <div className={styles.heroActions}>
+          <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
+            Begin Software
+          </Link>
+          <Link to="/mechanical/module-00/design-cycle" className={styles.btnTrackAlt}>
+            Begin Mechanical
+          </Link>
+        </div>
       </div>
 
-      <h1 className={styles.heroTitle}>
-        <span className={styles.titleLine1}>Master FTC</span>
-        <span className={styles.titleLine2}>Robotics</span>
-      </h1>
-
-      <p className={styles.heroSub}>
-        Learn to program an FTC robot and run your code in the browser, or learn
-        to design one and check your numbers before you build.
-      </p>
-
-
-      <div className={styles.heroActions}>
-        <Link to="/docs/unit-00/classes-and-objects" className={styles.btnPrimary}>
-          Begin Software
-        </Link>
-        <Link to="/mechanical/module-00/design-cycle" className={styles.btnTrackAlt}>
-          Begin Mechanical
-        </Link>
-      </div>
-
-      {/* The screenshots were all below the fold, so the page opened on type
-          and a pair of buttons and the reader had to take on faith that
-          anything ran. These three are the first thing on the page: one from
-          each of the two tracks and one lesson, arriving in turn. */}
-      <HeroShots />
+      <HeroVideo />
     </section>
   );
 }

@@ -49,6 +49,19 @@ const masteryChallengeRuntime = read('static/simulator/mastery_challenge.js');
 const masteryMotionRuntime = read('static/simulator/mastery_motion.js');
 const curriculum = read('src/telemark/curriculum.ts');
 
+const heroVideo = homepage.match(/<video\b[\s\S]*?<\/video>/)?.[0] ?? '';
+assert.ok(
+  fs.existsSync(path.join(root, 'static/video/telemark-hero.mp4')),
+  'homepage hero video must live in the static video directory',
+);
+assert.match(heroVideo, /\bautoPlay\b/, 'homepage hero video must autoplay');
+assert.match(heroVideo, /\bmuted\b/, 'homepage hero video must default to muted');
+assert.match(heroVideo, /\bloop\b/, 'homepage hero video must loop');
+assert.match(heroVideo, /\bplaysInline\b/, 'homepage hero video must play inline on mobile');
+assert.doesNotMatch(heroVideo, /\scontrols(?:=|\s|>)/, 'homepage hero video must hide native controls');
+assert.match(homepage, /useBaseUrl\('\/video\/telemark-hero\.mp4'\)/);
+assert.match(heroVideo, /<source src=\{src\} type="video\/mp4"/);
+
 for (let unit = 2; unit <= 15; unit += 1) {
   const simulatorComponent = read(`src/components/Unit${unit}Simulator.tsx`);
   assert.match(
