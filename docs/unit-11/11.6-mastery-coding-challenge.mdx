@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 11 Comprehensive Coding Challenge: Multi-Sensor Intake"
+title: "Unit 11 Comprehensive Coding Challenge: Safe Red Sample Sorter"
 sidebar_label: "Unit 11 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -14,15 +14,25 @@ The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMod
 
 ## Your Task
 
-1. Map an intake motor, digital touch input, potentiometer, color sensor, and distance sensor.
-2. Configure the digital channel correctly and read its active state.
-3. Scale potentiometer voltage into a useful mechanism angle with `Range.scale()`.
-4. Compare red and blue readings to classify the detected game element.
-5. Read distance in an explicit `DistanceUnit`.
-6. Combine sensor conditions to authorize intake power, with a zero-power fallback.
-7. Report raw readings and your interpreted state through telemetry.
+Program a red-alliance sorter with four safety inputs. Use these Robot Controller configuration names:
 
-Read each sensor once per loop where practical so the decision and telemetry describe the same instant.
+- Intake motor: `"intake"`
+- Active-low storage switch: `"storage_full"`
+- Arm potentiometer: `"arm_pot"`
+- Color sensor: `"intake_color"`
+- Distance sensor: `"intake_range"`
+
+Configure `storage_full` as a digital input. Its `getState()` value is `false` when storage is full. Scale the potentiometer from 0 to 3.3 V into 0 to 180 degrees with `Range.scale()`.
+
+Read every sensor once per loop. Then apply these rules:
+
+1. Set intake power to `0.8` only when storage is not full, the arm angle is from 20 through 160 degrees, the sample is closer than 10 cm, and `red > blue`.
+2. Otherwise, set intake power to `-0.5` when the same storage, angle, and distance checks pass and `blue > red`.
+3. Otherwise, set intake power to `0.0`.
+
+Report storage state, arm voltage or angle, distance in centimeters, red, blue, and the selected sorter state.
+
+Use the sample and safety controls above the robot view to test red collection, blue ejection, no sample, and a blocked mechanism.
 
 ## Coding Challenge Simulator
 

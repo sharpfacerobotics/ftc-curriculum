@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const repoRoot = path.resolve(__dirname, '..');
 const chassisModels = [
@@ -209,6 +210,13 @@ for (const model of chassisModels) {
     const mechanismNode = gltfJson.nodes.find((node) => node.name === 'telemark-cad-mechanism');
     assert.ok(mechanismNode, `${model} must expose actual CAD mechanism geometry`);
     assert.equal(mechanismNode.extras?.telemarkCadMechanism, true);
+    if (model === 'ftc17438-inputoutput-telemark.glb') {
+      assert.equal(
+        mechanismNode.extras?.label,
+        'FTC 17438 front intake assembly',
+        'Team 17438 must rig the front intake rather than the rear scoring linkage',
+      );
+    }
     const mechanismTriangles = gltfJson.meshes[mechanismNode.mesh].primitives.reduce(
       (sum, primitive) => sum + gltfJson.accessors[primitive.indices].count / 3,
       0,
@@ -227,6 +235,12 @@ assert.doesNotMatch(
   'Imported CAD robots must not receive fabricated teaching mechanisms',
 );
 assert.match(challengeSource, /getObjectByName\("telemark-cad-mechanism"\)/);
+assert.match(challengeSource, /rigCadTranslation\(model\)/);
+assert.doesNotMatch(
+  challengeSource,
+  /Math\.sin\(motion\.state\.primaryAngle/,
+  'A steady mechanism command must not reverse through a sine animation',
+);
 assert.match(challengeSource, /getObjectByName\("telemark-cad-wheel-" \+ name\)/);
 assert.match(challengeSource, /importedCadCenter\(THREE, part\)/);
 assert.match(challengeSource, /importedCadBounds\(THREE, wheel\)/);
@@ -240,6 +254,117 @@ assert.match(
 assert.match(challengeSource, /2 \+ \(\(numericUnit - 2\) % 5\)/);
 assert.match(challengeSource, /loadCadRobotForUnit\(cadSourceUnit/);
 assert.match(challengeSource, /createHardwareMap\(unit\)/);
+assert.match(challengeSource, /data-sorter-sample=\\"red\\"/);
+assert.match(challengeSource, /distanceSensor\._setDistance\(7 \/ 2\.54\)/);
+assert.match(challengeSource, /Safety: blocked/);
+for (const hardwareName of [
+  'intake_color',
+  'intake_distance',
+  'storage_full',
+  'arm_pot',
+  'intake_range',
+  'mechanism_limit',
+  'mechanism_pot',
+  'limit_upper',
+  'limit_lower',
+]) {
+  assert.match(
+    challengeSource,
+    new RegExp(`name:\\s*"${hardwareName}"`),
+    `${hardwareName} must be visible in the mastery hardware configuration strip`,
+  );
+}
 assert.doesNotMatch(challengeSource, /Unit objective coverage/);
+
+const challengeWindow = {};
+vm.runInNewContext(challengeSource, {
+  window: challengeWindow,
+  document: {currentScript: {dataset: {}}},
+  console,
+});
+const challengeApi = challengeWindow.TelemarkMasteryChallenge;
+for (const unit of [7, 9, 11, 13]) {
+  assert.equal(
+    challengeApi.cadSourceUnitFor(unit),
+    null,
+    `Unit ${unit} must use its independently articulated mechanism model`,
+  );
+}
+for (const unit of [2, 3, 4, 5, 6, 8, 10, 12, 14, 15]) {
+  assert.equal(
+    challengeApi.cadSourceUnitFor(unit),
+    2 + ((unit - 2) % 5),
+    `Unit ${unit} must retain its imported competition CAD`,
+  );
+}
+
+const unit5Solution = `
+  import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+  import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+  @TeleOp(name="Unit_5_Mastery")
+  public class Unit5Mastery extends OpMode {
+    DcMotor intake; ColorSensor color; DistanceSensor distance;
+    public void init() {
+      intake = hardwareMap.get(DcMotor.class, "intake");
+      color = hardwareMap.get(ColorSensor.class, "intake_color");
+      distance = hardwareMap.get(DistanceSensor.class, "intake_distance");
+    }
+    public void loop() {
+      double distanceCm = distance.getDistance(DistanceUnit.CM);
+      int red = color.red();
+      int blue = color.blue();
+      String state;
+      if (distanceCm < 10.0 && red > blue) { intake.setPower(0.8); state = "COLLECT RED"; }
+      else if (distanceCm < 10.0 && blue > red) { intake.setPower(-0.5); state = "EJECT BLUE"; }
+      else { intake.setPower(0.0); state = "STOP"; }
+      telemetry.addData("Distance cm", distanceCm);
+      telemetry.addData("Red / Blue", red + blue);
+      telemetry.addData("State", state);
+    }
+  }
+`;
+assert.ok(challengeApi.evaluate(5, unit5Solution).every(Boolean), 'the specified Unit 5 solution must pass every check');
+assert.equal(
+  challengeApi.evaluate(5, unit5Solution.replace('"intake_distance"', '"distance"'))[3],
+  false,
+  'Unit 5 must reject the wrong distance sensor configuration name',
+);
+
+const unit11Solution = `
+  import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+  import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+  @TeleOp(name="Unit_11_Mastery")
+  public class Unit11Mastery extends OpMode {
+    DcMotor intake; DigitalChannel fullSwitch; AnalogInput armPot;
+    ColorSensor color; DistanceSensor range;
+    public void init() {
+      intake = hardwareMap.get(DcMotor.class, "intake");
+      fullSwitch = hardwareMap.get(DigitalChannel.class, "storage_full");
+      armPot = hardwareMap.get(AnalogInput.class, "arm_pot");
+      color = hardwareMap.get(ColorSensor.class, "intake_color");
+      range = hardwareMap.get(DistanceSensor.class, "intake_range");
+      fullSwitch.setMode(DigitalChannel.Mode.INPUT);
+    }
+    public void loop() {
+      boolean storageFull = !fullSwitch.getState();
+      double voltage = armPot.getVoltage();
+      double angle = Range.scale(voltage, 0, 3.3, 0, 180);
+      int red = color.red(); int blue = color.blue();
+      double distanceCm = range.getDistance(DistanceUnit.CM);
+      String state;
+      if (!storageFull && angle >= 20 && angle <= 160 && distanceCm < 10 && red > blue) {
+        intake.setPower(0.8); state = "COLLECT RED";
+      } else if (!storageFull && angle >= 20 && angle <= 160 && distanceCm < 10 && blue > red) {
+        intake.setPower(-0.5); state = "EJECT BLUE";
+      } else { intake.setPower(0); state = "STOP"; }
+      telemetry.addData("Storage", storageFull);
+      telemetry.addData("Angle", angle);
+      telemetry.addData("Distance", distanceCm);
+      telemetry.addData("Red / Blue", red + blue);
+      telemetry.addData("State", state);
+    }
+  }
+`;
+assert.ok(challengeApi.evaluate(11, unit11Solution).every(Boolean), 'the specified Unit 11 solution must pass every check');
 
 console.log('Imported CAD asset tests passed');

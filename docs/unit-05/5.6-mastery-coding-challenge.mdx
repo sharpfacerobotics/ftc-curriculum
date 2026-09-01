@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 5 Comprehensive Coding Challenge: Safe Intake Decision Tree"
+title: "Unit 5 Comprehensive Coding Challenge: Red Alliance Sample Sorter"
 sidebar_label: "Unit 5 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -14,17 +14,21 @@ The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMod
 
 ## Your Task
 
-Create a sensor-aware intake controller:
+Program a red-alliance sample sorter. Use these Robot Controller configuration names:
 
-1. Map an intake motor, a color sensor, and a distance sensor.
-2. Read the sensors once per loop and store their values clearly.
-3. Use an `if` / `else if` / `else` chain so only one power command wins each cycle.
-4. Use comparison operators to establish safe sensor thresholds.
-5. Use both `&&` and `||` where combined conditions are appropriate.
-6. Allow deliberate driver input to run or reverse the intake when it is safe.
-7. Include an explicit `setPower(0)` fallback and report the selected state through telemetry.
+- Intake motor: `"intake"`
+- Color sensor: `"intake_color"`
+- Distance sensor: `"intake_distance"`
 
-Your result should fail safely when no branch authorizes movement.
+Read distance in centimeters and read both color channels once per loop. Then apply this decision order:
+
+1. If the sample is closer than 10 cm and `red > blue`, set intake power to `0.8` and report `COLLECT RED`.
+2. Otherwise, if the sample is closer than 10 cm and `blue > red`, set intake power to `-0.5` and report `EJECT BLUE`.
+3. Otherwise, set intake power to `0.0` and report `STOP`. This branch covers color ties and samples that are 10 cm away or farther.
+
+Use one `if` / `else if` / `else` chain. Report distance, red, blue, and the selected state through telemetry.
+
+Use the Red, Blue, and No sample controls above the robot view to test every branch after you run your code.
 
 ## Coding Challenge Simulator
 

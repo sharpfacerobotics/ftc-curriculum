@@ -20,9 +20,9 @@ const jobs = [
   },
   {
     file: 'static/simulator/models/ftc17438-inputoutput-telemark.glb',
-    label: 'FTC 17438 front arm assembly',
+    label: 'FTC 17438 front intake assembly',
     select(component) {
-      return component.center[1] < -0.55;
+      return component.center[1] > 0.55;
     },
   },
 ];
@@ -42,19 +42,20 @@ function parseGlb(file) {
   return {bytes, json, bin: Buffer.from(bytes.subarray(binStart, binStart + binLength))};
 }
 
-function createComponentMap(bytes, json, binStart, primitive) {
+function createComponentMap(bytes, json, binStart, inputPrimitives) {
+  const primitives = Array.isArray(inputPrimitives) ? inputPrimitives : [inputPrimitives];
+  const primitive = primitives[0];
   const positionAccessor = json.accessors[primitive.attributes.POSITION];
   const positionView = json.bufferViews[positionAccessor.bufferView];
-  const indexAccessor = json.accessors[primitive.indices];
-  const indexView = json.bufferViews[indexAccessor.bufferView];
-  if (positionAccessor.componentType !== 5122 || indexAccessor.componentType !== 5125) {
+  const firstIndexAccessor = json.accessors[primitive.indices];
+  const firstIndexView = json.bufferViews[firstIndexAccessor.bufferView];
+  if (positionAccessor.componentType !== 5122 || primitives.some((entry) => json.accessors[entry.indices].componentType !== 5125)) {
     throw new Error('The CAD splitter expects quantized INT16 positions and UINT32 indices');
   }
 
   const vertexCount = positionAccessor.count;
   const stride = positionView.byteStride || 6;
   const positionStart = binStart + (positionView.byteOffset || 0) + (positionAccessor.byteOffset || 0);
-  const indexStart = binStart + (indexView.byteOffset || 0) + (indexAccessor.byteOffset || 0);
   const parent = new Int32Array(vertexCount);
   const rank = new Uint8Array(vertexCount);
   const coordinates = new Int16Array(vertexCount * 3);
@@ -98,10 +99,16 @@ function createComponentMap(bytes, json, binStart, primitive) {
     else union(index, match);
   }
 
-  const indices = new Uint32Array(indexAccessor.count);
-  for (let index = 0; index < indexAccessor.count; index++) {
-    indices[index] = bytes.readUInt32LE(indexStart + index * 4);
+  const indexValues = [];
+  for (const entry of primitives) {
+    const accessor = json.accessors[entry.indices];
+    const view = json.bufferViews[accessor.bufferView];
+    const start = binStart + (view.byteOffset || 0) + (accessor.byteOffset || 0);
+    for (let index = 0; index < accessor.count; index++) {
+      indexValues.push(bytes.readUInt32LE(start + index * 4));
+    }
   }
+  const indices = Uint32Array.from(indexValues);
   for (let index = 0; index < indices.length; index += 3) {
     union(indices[index], indices[index + 1]);
     union(indices[index], indices[index + 2]);
@@ -133,7 +140,7 @@ function createComponentMap(bytes, json, binStart, primitive) {
     component.center = component.min.map((value, axis) => (value + component.max[axis]) / 2);
   }
 
-  return {find, components, indices, indexAccessor, indexView};
+  return {find, components, indices, indexAccessor: firstIndexAccessor, indexView: firstIndexView};
 }
 
 function uint32Buffer(values) {
@@ -162,23 +169,38 @@ function encodeGlb(json, bin) {
   return output;
 }
 
-function splitJob(job) {
+function splitJob(job, inspectOnly) {
   const file = path.join(repoRoot, job.file);
   const {bytes, json, bin} = parseGlb(file);
-  if (json.extras?.telemarkCadMechanism) {
-    console.log(`${job.file}: already split`);
-    return;
-  }
-  if (json.meshes.length !== 1 || json.meshes[0].primitives.length !== 1) {
+  const existingMechanismNode = json.nodes.find((node) => node.name === 'telemark-cad-mechanism');
+  const existingChassisNode = json.nodes.find((node) => node.name === 'telemark-cad-chassis');
+  const alreadySplit = Boolean(existingMechanismNode && existingChassisNode);
+  const chassisNode = existingChassisNode || json.nodes.find((node) => node.mesh === 0);
+  if (!alreadySplit && (json.meshes.length !== 1 || json.meshes[0].primitives.length !== 1)) {
     throw new Error(`${job.file} must contain one flattened mesh primitive`);
   }
   const jsonLength = bytes.readUInt32LE(12);
   const binStart = 20 + jsonLength + 8;
-  const primitive = json.meshes[0].primitives[0];
-  const graph = createComponentMap(bytes, json, binStart, primitive);
+  const chassisPrimitive = json.meshes[chassisNode ? chassisNode.mesh : 0].primitives[0];
+  const mechanismPrimitive = alreadySplit ? json.meshes[existingMechanismNode.mesh].primitives[0] : null;
+  const primitive = chassisPrimitive;
+  const graph = createComponentMap(
+    bytes,
+    json,
+    binStart,
+    alreadySplit ? [chassisPrimitive, mechanismPrimitive] : chassisPrimitive,
+  );
   const movingRoots = new Set(
     [...graph.components.values()].filter(job.select).map((component) => component.root),
   );
+  if (inspectOnly) {
+    [...graph.components.values()]
+      .filter(job.select)
+      .sort((left, right) => right.triangles - left.triangles)
+      .slice(0, 120)
+      .forEach((component) => console.log(JSON.stringify(component)));
+    return;
+  }
   const chassisIndices = [];
   const mechanismIndices = [];
   for (let index = 0; index < graph.indices.length; index += 3) {
@@ -191,22 +213,50 @@ function splitJob(job) {
 
   const chassisBuffer = uint32Buffer(chassisIndices);
   const mechanismBuffer = uint32Buffer(mechanismIndices);
-  const originalIndexOffset = graph.indexView.byteOffset || 0;
-  chassisBuffer.copy(bin, originalIndexOffset);
-  graph.indexView.byteLength = chassisBuffer.length;
-  graph.indexAccessor.count = chassisIndices.length;
-
-  const mechanismOffset = align4(bin.length);
-  const outputBin = Buffer.alloc(mechanismOffset + mechanismBuffer.length);
-  bin.copy(outputBin);
-  mechanismBuffer.copy(outputBin, mechanismOffset);
+  let outputBin;
+  let chassisAccessorIndex;
+  let mechanismAccessorIndex;
+  if (alreadySplit) {
+    const chassisOffset = align4(bin.length);
+    const mechanismOffset = align4(chassisOffset + chassisBuffer.length);
+    outputBin = Buffer.alloc(mechanismOffset + mechanismBuffer.length);
+    bin.copy(outputBin);
+    chassisBuffer.copy(outputBin, chassisOffset);
+    mechanismBuffer.copy(outputBin, mechanismOffset);
+    const chassisViewIndex = json.bufferViews.push({
+      buffer: 0,
+      byteOffset: chassisOffset,
+      byteLength: chassisBuffer.length,
+      target: graph.indexView.target,
+    }) - 1;
+    chassisAccessorIndex = json.accessors.push({
+      type: 'SCALAR',
+      componentType: 5125,
+      count: chassisIndices.length,
+      bufferView: chassisViewIndex,
+      byteOffset: 0,
+    }) - 1;
+    chassisPrimitive.indices = chassisAccessorIndex;
+  } else {
+    const originalIndexOffset = graph.indexView.byteOffset || 0;
+    chassisBuffer.copy(bin, originalIndexOffset);
+    graph.indexView.byteLength = chassisBuffer.length;
+    graph.indexAccessor.count = chassisIndices.length;
+    const mechanismOffset = align4(bin.length);
+    outputBin = Buffer.alloc(mechanismOffset + mechanismBuffer.length);
+    bin.copy(outputBin);
+    mechanismBuffer.copy(outputBin, mechanismOffset);
+  }
+  const mechanismOffset = alreadySplit
+    ? align4(align4(bin.length) + chassisBuffer.length)
+    : align4(bin.length);
   const mechanismViewIndex = json.bufferViews.push({
     buffer: 0,
     byteOffset: mechanismOffset,
     byteLength: mechanismBuffer.length,
     target: graph.indexView.target,
   }) - 1;
-  const mechanismAccessorIndex = json.accessors.push({
+  mechanismAccessorIndex = json.accessors.push({
     type: 'SCALAR',
     componentType: 5125,
     count: mechanismIndices.length,
@@ -214,23 +264,27 @@ function splitJob(job) {
     byteOffset: 0,
   }) - 1;
 
-  const chassisNode = json.nodes.find((node) => node.mesh === 0);
-  chassisNode.name = 'telemark-cad-chassis';
-  json.meshes[0].name = 'telemark-cad-chassis';
-  const mechanismMeshIndex = json.meshes.push({
-    name: 'telemark-cad-mechanism',
-    primitives: [{...primitive, indices: mechanismAccessorIndex}],
-  }) - 1;
-  const mechanismNodeIndex = json.nodes.push({
-    name: 'telemark-cad-mechanism',
-    translation: chassisNode.translation,
-    rotation: chassisNode.rotation,
-    scale: chassisNode.scale,
-    matrix: chassisNode.matrix,
-    mesh: mechanismMeshIndex,
-    extras: {telemarkCadMechanism: true, label: job.label},
-  }) - 1;
-  for (const scene of json.scenes) scene.nodes.push(mechanismNodeIndex);
+  if (alreadySplit) {
+    mechanismPrimitive.indices = mechanismAccessorIndex;
+    existingMechanismNode.extras = {telemarkCadMechanism: true, label: job.label};
+  } else {
+    chassisNode.name = 'telemark-cad-chassis';
+    json.meshes[0].name = 'telemark-cad-chassis';
+    const mechanismMeshIndex = json.meshes.push({
+      name: 'telemark-cad-mechanism',
+      primitives: [{...primitive, indices: mechanismAccessorIndex}],
+    }) - 1;
+    const mechanismNodeIndex = json.nodes.push({
+      name: 'telemark-cad-mechanism',
+      translation: chassisNode.translation,
+      rotation: chassisNode.rotation,
+      scale: chassisNode.scale,
+      matrix: chassisNode.matrix,
+      mesh: mechanismMeshIndex,
+      extras: {telemarkCadMechanism: true, label: job.label},
+    }) - 1;
+    for (const scene of json.scenes) scene.nodes.push(mechanismNodeIndex);
+  }
   json.buffers[0].byteLength = outputBin.length;
   json.extras = {
     ...(json.extras || {}),
@@ -246,4 +300,9 @@ function splitJob(job) {
   );
 }
 
-for (const job of jobs) splitJob(job);
+const inspectOnly = process.argv.includes('--inspect');
+const requested = new Set(process.argv.slice(2).filter((argument) => argument !== '--inspect'));
+for (const job of jobs) {
+  const basename = path.basename(job.file);
+  if (!requested.size || requested.has(basename) || requested.has(job.file)) splitJob(job, inspectOnly);
+}

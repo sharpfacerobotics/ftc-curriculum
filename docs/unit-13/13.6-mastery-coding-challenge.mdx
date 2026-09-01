@@ -17,7 +17,7 @@ The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMod
 1. Create a reusable parent mechanism class with encapsulated hardware state.
 2. Create at least one child subsystem with `extends` and specialized behavior.
 3. Use `@Override` for behavior that differs from the parent implementation.
-4. Centralize hardware names and calibration values as `static final` constants.
+4. Centralize `"arm"`, `"claw"`, and the calibration values as `static final` constants.
 5. Create a Robot class that composes multiple subsystem objects.
 6. Give the Robot class one `init(HardwareMap)` entry point.
 7. Instantiate the Robot in the OpMode, initialize it in `init()`, and control it from `loop()`.

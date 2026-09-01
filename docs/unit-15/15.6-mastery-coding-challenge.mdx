@@ -14,13 +14,13 @@ The editor provides the FTC SDK imports, autonomous registration, and an empty `
 
 ## Your Task
 
-1. Map, select a pipeline for, and start the Limelight 3A.
+1. Map Limelight 3A as `"limelight"`, select its pipeline, and start it.
 2. Create a Pedro Pathing `Follower` and establish a starting `Pose`.
 3. Build a `PathChain` that uses both a `BezierLine` and a `BezierCurve`.
 4. Create a named `enum` state machine for path and mechanism phases.
 5. Call `follower.update()` on every active loop before state logic.
 6. Validate each `LLResult` before using it, then fuse a valid global pose back into the Follower.
-7. Coordinate a servo action with a `getRuntime()` deadline instead of `sleep()`.
+7. Map scoring servo `"scoringArm"` and coordinate its action with a `getRuntime()` deadline instead of `sleep()`.
 8. Report path, state, and vision status, then stop the Limelight during cleanup.
 
 No state may block the loop. Vision loss and a busy follower must both be handled as expected operating conditions.

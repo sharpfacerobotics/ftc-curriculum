@@ -78,8 +78,8 @@
       ]
     },
     5: {
-      title: "Unit 5 Coding Challenge: Safe Intake Decision Tree",
-      scenario: "Build one unambiguous intake controller that combines driver commands, comparison-based limits, and multiple sensor conditions, with an explicit safe output on every loop.",
+      title: "Unit 5 Coding Challenge: Red Alliance Sample Sorter",
+      scenario: "Program a red-alliance intake. Collect a red sample at 0.8 only when it is closer than 10 cm. Eject a blue sample at -0.5 when it is closer than 10 cm. Stop for ties and anything 10 cm away or farther.",
       starter: shell([
         "import com.qualcomm.robotcore.eventloop.opmode.OpMode;",
         "import com.qualcomm.robotcore.eventloop.opmode.TeleOp;",
@@ -88,16 +88,17 @@
         "import com.qualcomm.robotcore.hardware.DistanceSensor;",
         "import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;"
       ], "@TeleOp(name=\"Unit_5_Mastery\")", "Unit5Mastery", "OpMode"),
-      inputs: ["a", "b", "right_trigger"],
+      inputs: [],
       checks: [
-        ["Map the intake and both sensors", /hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class/, /hardwareMap\s*\.\s*get\s*\(\s*ColorSensor\.class/, /hardwareMap\s*\.\s*get\s*\(\s*DistanceSensor\.class/],
-        ["Read distance and color values", /getDistance\s*\(\s*DistanceUnit\./, /\.\s*(?:red|blue)\s*\(\s*\)/],
+        ["Map DcMotor \"intake\"", /hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class\s*,\s*"intake"\s*\)/],
+        ["Map ColorSensor \"intake_color\"", /hardwareMap\s*\.\s*get\s*\(\s*ColorSensor\.class\s*,\s*"intake_color"\s*\)/],
+        ["Map DistanceSensor \"intake_distance\"", /hardwareMap\s*\.\s*get\s*\(\s*DistanceSensor\.class\s*,\s*"intake_distance"\s*\)/],
+        ["Store one CM distance, red, and blue reading per loop", /\bdouble\s+\w+\s*=\s*\w+\.getDistance\s*\(\s*DistanceUnit\.CM\s*\)/, /\bint\s+\w+\s*=\s*\w+\.red\s*\(\s*\)/, /\bint\s+\w+\s*=\s*\w+\.blue\s*\(\s*\)/],
         ["Use an if / else-if / else decision chain", /\bif\s*\(/, /\belse\s+if\s*\(/, /\belse\b/],
-        ["Use comparison operators for thresholds", /(?:<=|>=|<|>)\s*\w*\d|(?:<=|>=|<|>)\s*\d/],
-        ["Combine conditions with AND and OR", /&&/, /\|\|/],
-        ["Use gamepad input in the decision tree", /gamepad1\s*\./],
-        ["Include an explicit safe setPower(0) fallback", /\.\s*setPower\s*\(\s*0(?:\.0+)?\s*\)/],
-        ["Report the chosen state through telemetry", /telemetry\s*\.\s*addData\s*\(/]
+        ["Require distance below 10 cm and compare red with blue", /<\s*10(?:\.0+)?/, /&&/, />/],
+        ["Collect red at 0.8 and eject blue at -0.5", /\.\s*setPower\s*\(\s*0\.8(?:0*)?\s*\)/, /\.\s*setPower\s*\(\s*-0\.5(?:0*)?\s*\)/],
+        ["Stop explicitly for a tie or out-of-range sample", /\belse\b[\s\S]*?\.\s*setPower\s*\(\s*0(?:\.0+)?\s*\)/],
+        ["Report distance, color readings, and sorter state", /telemetry\s*\.\s*addData\s*\([^)]*(?:distance|cm)/i, /telemetry\s*\.\s*addData\s*\([^)]*(?:red|blue|color)/i, /telemetry\s*\.\s*addData\s*\([^)]*state/i]
       ]
     },
     6: {
@@ -210,8 +211,8 @@
       ]
     },
     11: {
-      title: "Unit 11 Coding Challenge: Multi-Sensor Intake",
-      scenario: "Build a sensor-gated intake that combines a digital limit, scaled potentiometer angle, color classification, and distance threshold while continuously reporting raw and interpreted values.",
+      title: "Unit 11 Coding Challenge: Safe Red Sample Sorter",
+      scenario: "Run the red-alliance intake at 0.8 only for a red sample closer than 10 cm while storage is not full and the arm is between 20 and 160 degrees. Eject a close blue sample at -0.5 under the same safety limits. Stop in every other case.",
       starter: shell([
         "import com.qualcomm.robotcore.eventloop.opmode.OpMode;",
         "import com.qualcomm.robotcore.eventloop.opmode.TeleOp;",
@@ -223,16 +224,18 @@
         "import com.qualcomm.robotcore.util.Range;",
         "import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;"
       ], "@TeleOp(name=\"Unit_11_Mastery\")", "Unit11Mastery", "OpMode"),
-      inputs: ["right_trigger"],
+      inputs: [],
       checks: [
-        ["Map the motor and all four sensor types", /hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class/, /DigitalChannel\.class/, /AnalogInput\.class/, /ColorSensor\.class/, /DistanceSensor\.class/],
-        ["Configure and read the digital touch input", /DigitalChannel\.Mode\.INPUT/, /getState\s*\(/],
-        ["Scale potentiometer voltage into an angle", /getVoltage\s*\(/, /Range\s*\.\s*scale\s*\(/],
+        ["Map DcMotor \"intake\"", /hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class\s*,\s*"intake"\s*\)/],
+        ["Map \"storage_full\", \"arm_pot\", \"intake_color\", and \"intake_range\"", /DigitalChannel\.class\s*,\s*"storage_full"/, /AnalogInput\.class\s*,\s*"arm_pot"/, /ColorSensor\.class\s*,\s*"intake_color"/, /DistanceSensor\.class\s*,\s*"intake_range"/],
+        ["Configure the active-low storage switch as an input", /DigitalChannel\.Mode\.INPUT/, /!\s*\w+\.getState\s*\(\s*\)/],
+        ["Scale 0 to 3.3 V into 0 to 180 degrees", /getVoltage\s*\(/, /Range\s*\.\s*scale\s*\([^;]*0(?:\.0+)?\s*,\s*3\.3\s*,\s*0(?:\.0+)?\s*,\s*180(?:\.0+)?\s*\)/],
         ["Compare red and blue color channels", /\.\s*red\s*\(\s*\)/, /\.\s*blue\s*\(\s*\)/, /[<>]/],
-        ["Read distance in a named unit", /getDistance\s*\(\s*DistanceUnit\./],
-        ["Gate intake power with combined sensor conditions", /(?:&&|\|\|)/, /setPower\s*\(/],
-        ["Stop the intake when the gate is closed", /setPower\s*\(\s*0(?:\.0+)?\s*\)/],
-        ["Report raw readings and interpreted state", /telemetry\s*\.\s*addData\s*\([^)]*\)[\s\S]*?telemetry\s*\.\s*addData\s*\(/]
+        ["Read distance in centimeters and compare it with 10", /getDistance\s*\(\s*DistanceUnit\.CM\s*\)/, /<\s*10(?:\.0+)?/],
+        ["Gate movement with storage, angle, distance, and color conditions", /&&[\s\S]*?&&[\s\S]*?&&/, /(?:20(?:\.0+)?\s*[<=>]|[<=>]\s*20(?:\.0+)?)/, /(?:160(?:\.0+)?\s*[<=>]|[<=>]\s*160(?:\.0+)?)/],
+        ["Collect red at 0.8 and eject blue at -0.5", /setPower\s*\(\s*0\.8(?:0*)?\s*\)/, /setPower\s*\(\s*-0\.5(?:0*)?\s*\)/],
+        ["Stop the intake in the final fallback", /\belse\b[\s\S]*?setPower\s*\(\s*0(?:\.0+)?\s*\)/],
+        ["Report all five readings and the sorter state", /telemetry\s*\.\s*addData\s*\([^)]*\)[\s\S]*?telemetry\s*\.\s*addData\s*\([^)]*\)[\s\S]*?telemetry\s*\.\s*addData\s*\([^)]*\)[\s\S]*?telemetry\s*\.\s*addData\s*\([^)]*\)[\s\S]*?telemetry\s*\.\s*addData\s*\(/]
       ]
     },
     12: {
@@ -386,9 +389,15 @@
     15: {name: "Sensor-fused autonomous robot", detail: "Limelight, path follower, and timed scoring arm on one platform", accent: 0x06b6d4}
   });
 
+  const GENERATED_MECHANISM_UNITS = Object.freeze([7, 9, 11, 13]);
+
   function cadSourceUnitFor(unit) {
     const numericUnit = Number(unit);
     if (numericUnit < 2 || numericUnit > 15) return null;
+    // These challenges need several independently controlled parts that the
+    // flattened imported CAD cannot articulate faithfully. Their dedicated
+    // models preserve the exact motor, sensor, and servo behavior being coded.
+    if (GENERATED_MECHANISM_UNITS.indexOf(numericUnit) >= 0) return null;
     return 2 + ((numericUnit - 2) % 5);
   }
 
@@ -403,24 +412,45 @@
     {label: "RB", name: "rightBack"}
   ]);
   const HARDWARE_PROFILES = Object.freeze({
-    2: DRIVE_HARDWARE,
-    3: DRIVE_HARDWARE.concat([{label: "Front mechanism", name: "mechanism"}]),
+    2: [],
+    3: [{label: "Front slide motor", name: "intake_slide"}],
     4: DRIVE_HARDWARE,
-    5: DRIVE_HARDWARE.concat([{label: "Intake", name: "intake"}]),
+    5: [
+      {label: "Intake motor", name: "intake"},
+      {label: "Color sensor", name: "intake_color"},
+      {label: "Distance sensor", name: "intake_distance"}
+    ],
     6: DRIVE_HARDWARE.concat([{label: "Arm", name: "arm"}]),
-    7: DRIVE_HARDWARE.concat([{label: "Mechanism", name: "mechanism"}]),
-    8: DRIVE_HARDWARE.concat([{label: "Slide", name: "slide"}]),
-    9: DRIVE_HARDWARE.concat([
-      {label: "Left grip servo", name: "leftGrip"},
-      {label: "Right grip servo", name: "rightGrip"},
-      {label: "Intake CRServo", name: "intake"}
-    ]),
-    10: DRIVE_HARDWARE,
-    11: DRIVE_HARDWARE.concat([{label: "Intake", name: "intake"}]),
+    7: [
+      {label: "Mechanism motor", name: "mechanism"},
+      {label: "Limit switch", name: "mechanism_limit"},
+      {label: "Potentiometer", name: "mechanism_pot"}
+    ],
+    8: [
+      {label: "Slide motor", name: "slide"},
+      {label: "Upper limit", name: "limit_upper"},
+      {label: "Lower limit", name: "limit_lower"}
+    ],
+    9: [
+      {label: "Left claw servo", name: "left_claw"},
+      {label: "Right claw servo", name: "right_claw"},
+      {label: "Intake CRServo", name: "intake_servo"}
+    ],
+    10: [
+      {label: "Left drive", name: "left_drive"},
+      {label: "Right drive", name: "right_drive"}
+    ],
+    11: [
+      {label: "Intake motor", name: "intake"},
+      {label: "Storage switch", name: "storage_full"},
+      {label: "Arm potentiometer", name: "arm_pot"},
+      {label: "Color sensor", name: "intake_color"},
+      {label: "Distance sensor", name: "intake_range"}
+    ],
     12: DRIVE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
-    13: DRIVE_HARDWARE.concat([{label: "Arm", name: "arm"}, {label: "Claw servo", name: "claw"}]),
-    14: DRIVE_HARDWARE.concat([{label: "Camera", name: "Webcam 1"}]),
-    15: DRIVE_HARDWARE.concat([{label: "Scoring servo", name: "scoringArm"}, {label: "Vision", name: "limelight"}])
+    13: [{label: "Arm motor", name: "arm"}, {label: "Claw servo", name: "claw"}],
+    14: [{label: "Camera", name: "Webcam 1"}],
+    15: [{label: "Scoring servo", name: "scoringArm"}, {label: "Vision", name: "limelight"}]
   });
 
   const CAD_WHEEL_ORDER = Object.freeze(["left-front", "left-back", "right-front", "right-back"]);
@@ -731,6 +761,20 @@
       return pivot;
     }
 
+    function rigCadTranslation(model) {
+      const part = model.getObjectByName && model.getObjectByName("telemark-cad-mechanism");
+      if (!part) {
+        setImportedRobotStatus("The optimized CAD is missing its movable mechanism node.");
+        return null;
+      }
+      const travel = new THREE.Group();
+      travel.name = "telemark-cad-mechanism-travel";
+      robot.add(travel);
+      robot.updateMatrixWorld(true);
+      travel.attach(part);
+      return travel;
+    }
+
     function rigCadChassis(model) {
       const rigged = [];
       CAD_WHEEL_ORDER.forEach(function (name) {
@@ -800,21 +844,32 @@
       let cadMechanism = null;
       loadCadRobotForUnit(cadSourceUnit, THREE, robot, function (model) {
         rigCadChassis(model);
-        const pivotEdge = cadSourceUnit === 3 ? "min-x" : cadSourceUnit === 5 ? "min-y" : "min-z";
         if (model.getObjectByName && model.getObjectByName("telemark-cad-mechanism")) {
-          cadMechanism = rigCadMechanism(model, pivotEdge);
+          if (cadSourceUnit === 3 || cadSourceUnit === 6) cadMechanism = rigCadTranslation(model);
+          else cadMechanism = rigCadMechanism(model, cadSourceUnit === 5 ? "min-y" : "max-z");
         }
       });
       animation = function () {
         applyDriveState();
         if (!cadMechanism) return;
-        const axis = cadSourceUnit === 6 ? "x" : "z";
-        let angle = Math.sin(motion.state.primaryAngle * 0.3) * 0.42;
-        if (unit === 6 || unit === 13) angle = motion.state.armAngle;
-        else if (unit === 8) angle = (motion.state.slidePosition - 1.25) * 0.55;
-        else if (unit === 9 || unit === 15) angle = ((motion.servoValues()[0] || 0) - 0.5) * 0.7;
-        else if (unit === 14) angle = motion.state.cameraAngle;
-        cadMechanism.rotation[axis] = angle;
+        if (cadSourceUnit === 3) {
+          let extension = motion.state.primaryPosition;
+          if (unit === 8) extension = motion.state.slidePosition - 1.25;
+          if (unit === 13) extension = motion.state.armAngle;
+          cadMechanism.position.x = extension * 0.62;
+          return;
+        }
+        if (cadSourceUnit === 5) {
+          let deployment = 0;
+          if (unit === 5) deployment = motion.state.primaryPosition;
+          if (unit === 15) deployment = motion.servoValues()[0] || 0;
+          cadMechanism.rotation.z = deployment * 1.08;
+          return;
+        }
+        if (cadSourceUnit === 6) {
+          const deployment = unit === 6 ? motion.state.armAngle : motion.state.primaryPosition;
+          cadMechanism.position.z = -deployment * 0.62;
+        }
       };
     } else if (unit === 7) {
       box([0.48, 0.58, 0.48], [-0.45, 0.92, 0.12], accentMat);
@@ -1079,6 +1134,9 @@
       + ".mastery-hardware-item{display:inline-flex;align-items:center;gap:4px;color:var(--text-secondary);font-size:.69rem}"
       + ".mastery-hardware-item+ .mastery-hardware-item:before{content:'·';margin-right:2px;color:var(--border)}"
       + ".mastery-hardware-item code{padding:1px 4px;border:1px solid var(--border);border-radius:4px;background:var(--code-bg);color:var(--active);font:.68rem/1.35 var(--font-code)}"
+      + ".mastery-sensor-tests{display:flex;align-items:center;gap:4px;margin-left:auto;padding-left:8px;border-left:1px solid var(--border)}"
+      + ".mastery-sensor-tests button{padding:3px 7px;border:1px solid var(--border);border-radius:5px;background:var(--code-bg);color:var(--text-secondary);font:600 .65rem/1.25 var(--font-ui);cursor:pointer}"
+      + ".mastery-sensor-tests button[aria-pressed='true']{border-color:var(--active);color:var(--active)}"
       + ".mastery-robot-label{position:absolute;left:12px;bottom:12px;z-index:3;max-width:calc(100% - 24px);padding:7px 10px;border:1px solid rgba(34,211,238,.35);border-radius:7px;background:rgba(5,8,13,.82);color:#effbff;font:600 .72rem/1.3 var(--font-code);letter-spacing:.03em;pointer-events:none;backdrop-filter:blur(7px)}"
       + ".mastery-robot-label span{display:block;margin-top:2px;color:rgba(221,241,249,.68);font-family:var(--font-ui);font-weight:400;letter-spacing:0}"
       + ".mastery-robot-label .mastery-robot-motion{color:#fbbf24;font-family:var(--font-code);font-weight:600}"
@@ -1107,6 +1165,62 @@
       }).join("")
       + "</span>";
     rightPanel.insertBefore(panel, scene);
+
+    if (unit === 5 || unit === 11) {
+      const colorName = "intake_color";
+      const distanceName = unit === 5 ? "intake_distance" : "intake_range";
+      const colorSensor = global.hardwareMap.get("ColorSensor", colorName);
+      const distanceSensor = global.hardwareMap.get("DistanceSensor", distanceName);
+      const testControls = document.createElement("span");
+      testControls.className = "mastery-sensor-tests";
+      testControls.setAttribute("aria-label", "Simulated sorter inputs");
+      testControls.innerHTML = ""
+        + "<button type=\"button\" data-sorter-sample=\"red\">Red · 7 cm</button>"
+        + "<button type=\"button\" data-sorter-sample=\"blue\">Blue · 7 cm</button>"
+        + "<button type=\"button\" data-sorter-sample=\"clear\">No sample</button>";
+      panel.appendChild(testControls);
+
+      function selectSample(sample) {
+        if (sample === "red") {
+          colorSensor._setColor(240, 25, 35, 255);
+          distanceSensor._setDistance(7 / 2.54);
+        } else if (sample === "blue") {
+          colorSensor._setColor(25, 35, 240, 255);
+          distanceSensor._setDistance(7 / 2.54);
+        } else {
+          colorSensor._setColor(0, 0, 0, 0);
+          distanceSensor._setDistance(30 / 2.54);
+        }
+        testControls.querySelectorAll("[data-sorter-sample]").forEach(function (button) {
+          button.setAttribute("aria-pressed", String(button.dataset.sorterSample === sample));
+        });
+      }
+
+      testControls.addEventListener("click", function (event) {
+        const button = event.target.closest && event.target.closest("[data-sorter-sample]");
+        if (button) selectSample(button.dataset.sorterSample);
+      });
+      selectSample("red");
+
+      if (unit === 11) {
+        const storage = global.hardwareMap.get("DigitalChannel", "storage_full");
+        const armPot = global.hardwareMap.get("AnalogInput", "arm_pot");
+        storage._setState(true);
+        armPot._setVoltage(1.65);
+        const safetyButton = document.createElement("button");
+        safetyButton.type = "button";
+        safetyButton.textContent = "Safety: ready";
+        safetyButton.setAttribute("aria-pressed", "true");
+        safetyButton.addEventListener("click", function () {
+          const ready = safetyButton.getAttribute("aria-pressed") !== "true";
+          storage._setState(ready);
+          armPot._setVoltage(ready ? 1.65 : 3.3);
+          safetyButton.setAttribute("aria-pressed", String(ready));
+          safetyButton.textContent = ready ? "Safety: ready" : "Safety: blocked";
+        });
+        testControls.appendChild(safetyButton);
+      }
+    }
   }
 
   function install(unit) {

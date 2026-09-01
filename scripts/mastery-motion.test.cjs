@@ -185,12 +185,20 @@ function testProvidedArcadeDriveProgramEndToEnd() {
 }
 
 function testMotorDrivenMechanisms() {
-  for (const unit of [3, 5, 7, 11]) {
+  for (const unit of [3, 5]) {
     const motion = MasteryMotion.create(unit);
-    const before = motion.snapshot().primaryAngle;
-    motion.setMotorPower(unit === 3 ? 'flywheel' : 'intake', 0.7);
+    const before = motion.snapshot().primaryPosition;
+    motion.setMotorPower('intake', 0.7);
     motion.step(0.1);
-    assert.notEqual(motion.snapshot().primaryAngle, before, `Unit ${unit} mechanism should move`);
+    assert.notEqual(motion.snapshot().primaryPosition, before, `Unit ${unit} bounded mechanism should move`);
+  }
+
+  for (const unit of [7, 11]) {
+    const roller = MasteryMotion.create(unit);
+    const rollerBefore = roller.snapshot().primaryAngle;
+    roller.setMotorPower(unit === 7 ? 'mechanism' : 'intake', 0.7);
+    roller.step(0.1);
+    assert.notEqual(roller.snapshot().primaryAngle, rollerBefore, `Unit ${unit} roller should rotate`);
   }
 
   for (const unit of [6, 13]) {
@@ -255,10 +263,55 @@ function testUnit5StudentProgramDrivesIntakeAndTelemetry() {
   assert.equal(compiled.ok, true, compiled.diagnostics?.[0]?.message);
   compiled.methods.init();
   compiled.methods.loop();
-  const before = motion.snapshot().primaryAngle;
   motion.step(0.1);
-  assert.notEqual(motion.snapshot().primaryAngle, before, 'Unit 5 student motor code should rotate the intake rig');
+  assert.notEqual(motion.snapshot().primaryPosition, 0, 'Unit 5 student motor code should deploy the intake rig');
   assert.deepEqual(telemetry, [['Intake', 0.8]], 'Unit 5 student telemetry should reach the runtime');
+}
+
+function testMechanismsHoldAndReverse() {
+  for (const unit of [3, 5]) {
+    const motion = MasteryMotion.create(unit);
+    motion.setMotorPower('intake', 0.75);
+    const positions = [];
+    for (let step = 0; step < 30; step++) {
+      motion.step(0.1);
+      positions.push(motion.snapshot().primaryPosition);
+    }
+    positions.slice(1).forEach((position, index) => {
+      assert.ok(position >= positions[index], `Unit ${unit} must not oscillate while power remains positive`);
+    });
+
+    motion.setMotorPower('intake', 0);
+    const held = motion.snapshot().primaryPosition;
+    motion.step(0.1);
+    assert.equal(motion.snapshot().primaryPosition, held, `Unit ${unit} must hold after power returns to zero`);
+
+    motion.setMotorPower('intake', -0.75);
+    motion.step(0.1);
+    assert.ok(motion.snapshot().primaryPosition < held, `Unit ${unit} must reverse only after negative power`);
+  }
+
+  for (const unit of [7, 11]) {
+    const motion = MasteryMotion.create(unit);
+    motion.setMotorPower(unit === 7 ? 'mechanism' : 'intake', 0.75);
+    const angles = [];
+    for (let step = 0; step < 30; step++) {
+      motion.step(0.1);
+      angles.push(motion.snapshot().primaryAngle);
+    }
+    angles.slice(1).forEach((angle, index) => {
+      assert.ok(angle > angles[index], `Unit ${unit} roller must keep rotating in the commanded direction`);
+    });
+
+    motion.setMotorPower(unit === 7 ? 'mechanism' : 'intake', 0);
+    const held = motion.snapshot().primaryAngle;
+    motion.step(0.1);
+    assert.equal(motion.snapshot().primaryAngle, held, `Unit ${unit} roller must stop without snapping backward`);
+
+    motion.setMotorPower(unit === 7 ? 'mechanism' : 'intake', -0.75);
+    motion.step(0.1);
+    assert.ok(motion.snapshot().primaryAngle < held, `Unit ${unit} roller must reverse after negative power`);
+  }
 }
 
 function testServosVisionAndPaths() {
@@ -355,6 +408,7 @@ testProvidedArcadeDriveProgramEndToEnd();
 testMotorDrivenMechanisms();
 testImportedRobotOutputReadouts();
 testUnit5StudentProgramDrivesIntakeAndTelemetry();
+testMechanismsHoldAndReverse();
 testServosVisionAndPaths();
 testMecanumDrive();
 testMecanumPhysicsBeginsAfterUnitEightLesson();

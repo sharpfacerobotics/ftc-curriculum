@@ -14,15 +14,15 @@ The editor provides the FTC SDK imports, registration annotation, and an empty O
 
 ## Your Task
 
-Create a two-motor arcade-drive TeleOp that includes every input technique from this unit:
+Create a four-motor arcade-drive TeleOp that includes every input technique from this unit:
 
-1. Map left and right drive motors during `init()`.
+1. Map `"leftFront"`, `"leftBack"`, `"rightFront"`, and `"rightBack"` during `init()`.
 2. Read forward and turning joystick axes and apply a deadzone to both.
 3. Write and call a method that applies a signed sensitivity curve.
 4. Use a trigger as an analog speed limit.
 5. Toggle between precision and full-speed behavior only on the button's press edge, so holding the button does not flip modes every loop.
 6. Mix forward and turn values into left and right power, then clip or normalize the results.
-7. Command both motors and publish the final powers to telemetry.
+7. Command all four motors and publish the final left and right powers to telemetry.
 
 The controls should remain predictable when several inputs are active at once.
 

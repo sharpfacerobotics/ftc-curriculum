@@ -16,7 +16,7 @@ The editor provides the FTC SDK imports, autonomous registration, and an empty `
 
 Create an autonomous program that manages several motors without blocking:
 
-1. Implement `runOpMode()` and map a `DcMotor[]` array.
+1. Implement `runOpMode()` and map a `DcMotor[]` array with `"leftFront"`, `"leftBack"`, `"rightFront"`, `"rightBack"`, and `"arm"`.
 2. Use a counted `for` loop for a fixed repeated setup or action.
 3. Use a for-each loop to configure every motor in the array consistently.
 4. Call `waitForStart()` before motion.

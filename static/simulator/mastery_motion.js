@@ -30,6 +30,7 @@
       heading: 0,
       wheelAngles: [0, 0, 0, 0],
       primaryAngle: 0,
+      primaryPosition: 0,
       slidePosition: 1.25,
       armAngle: 0,
       cameraAngle: 0,
@@ -193,12 +194,17 @@
       state.primaryPower = primaryPower || crPower;
       state.armPower = armPower;
 
-      if (unit === 3) state.primaryAngle += primaryPower * dt * 13;
+      if (unit === 3) {
+        state.primaryPosition = clamp(state.primaryPosition + primaryPower * dt * 0.9, -0.72, 0.72);
+      }
       // Unit 8.2 is where students configure and mix a mecanum drivetrain.
       // Every later coding-challenge robot uses the same four-wheel kinematics
       // as the mecanum team CAD shown in the simulator.
       integrateDrive(dt, unit >= 8);
-      if (unit === 5 || unit === 7 || unit === 11) state.primaryAngle += primaryPower * dt * 12;
+      if (unit === 5) {
+        state.primaryPosition = clamp(state.primaryPosition + primaryPower * dt * 1.25, -1, 1);
+      }
+      if (unit === 7 || unit === 11) state.primaryAngle += primaryPower * dt * 12;
       if (unit === 6 || unit === 13) {
         state.armAngle = clamp(state.armAngle + armPower * dt * 1.4, -0.55, 0.55);
       }

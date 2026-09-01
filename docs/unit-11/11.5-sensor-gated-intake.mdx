@@ -37,6 +37,52 @@ if (dist < 10.0 && !isFull) {
 }
 ```
 
+## Prepare the Five-Sensor Sorter
+
+The mastery challenge combines every sensor from this unit. Use these exact configuration names:
+
+- Intake motor: `"intake"`
+- Storage switch: `"storage_full"`
+- Arm potentiometer: `"arm_pot"`
+- Color sensor: `"intake_color"`
+- Distance sensor: `"intake_range"`
+
+Your red-alliance sorter has one exact job. First, configure `storage_full` as a digital input. Treat `false` as full. Convert 0 to 3.3 V into 0 to 180 degrees. Then apply these rules:
+
+- If storage is not full, the arm angle is from 20 to 160 degrees, the sample is closer than 10 cm, and red is greater than blue, set intake power to `0.8`.
+- Under the same safety limits, if blue is greater than red, set intake power to `-0.5`.
+- In every other case, set intake power to `0.0`.
+
+This is the core decision:
+
+```java
+double armAngle = Range.scale(armPot.getVoltage(), 0, 3.3, 0, 180);
+double dist = range.getDistance(DistanceUnit.CM);
+int redValue = color.red();
+int blueValue = color.blue();
+boolean isFull = !fullStop.getState();
+String sorterState;
+
+boolean safe = !isFull && armAngle >= 20.0 && armAngle <= 160.0;
+
+if (safe && dist < 10.0 && redValue > blueValue) {
+    intake.setPower(0.8);
+    sorterState = "COLLECT RED";
+} else if (safe && dist < 10.0 && blueValue > redValue) {
+    intake.setPower(-0.5);
+    sorterState = "EJECT BLUE";
+} else {
+    intake.setPower(0.0);
+    sorterState = "STOP";
+}
+
+telemetry.addData("Storage Full", isFull);
+telemetry.addData("Arm Angle", armAngle);
+telemetry.addData("Distance (cm)", dist);
+telemetry.addData("Red / Blue", "%d / %d", redValue, blueValue);
+telemetry.addData("Sorter State", sorterState);
+```
+
 ---
 
 ## Hysteresis: Preventing Motor Chatter at the Threshold

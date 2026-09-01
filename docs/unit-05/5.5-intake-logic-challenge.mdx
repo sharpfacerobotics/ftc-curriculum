@@ -59,22 +59,18 @@ public void loop() {
     int redValue = color.red();
     int blueValue = color.blue();
 
-    boolean driverRequestsIntake = gamepad1.a || gamepad1.right_trigger > 0.10;
     String state;
 
-    if (dist < 5.0) {
-        intake.setPower(0.0);
-        state = "FULL - STOPPED";
-    } else if (redValue > 200 && redValue > blueValue) {
-        intake.setPower(-1.0);
-        state = "WRONG COLOR - EJECTING";
-    } else if (driverRequestsIntake) {
-        intake.setPower(gamepad1.right_trigger);
-        state = "COLLECTING";
+    if (dist < 10.0 && redValue > blueValue) {
+        intake.setPower(0.8);
+        state = "COLLECT RED";
+    } else if (dist < 10.0 && blueValue > redValue) {
+        intake.setPower(-0.5);
+        state = "EJECT BLUE";
     } else {
         // Explicit safe fallback prevents an old power command from surviving.
         intake.setPower(0.0);
-        state = "IDLE";
+        state = "STOP";
     }
 
     telemetry.addData("State", state);
@@ -106,7 +102,7 @@ public void loop() {
 
 ## Simulator Practice
 
-**Robot Scenario:** Finish the safe intake decision tree. Stop when the distance sensor says the intake is full, eject the wrong color, collect only on an intentional driver request, and use an explicit zero-power fallback.
+**Robot Scenario:** Finish the red-alliance sorter. Collect red inside 10 cm, eject blue inside 10 cm, and stop for a tie or any sample outside that range.
 
 <SimulatorRunGuide />
 
@@ -117,7 +113,7 @@ public void loop() {
 
 ```java
 // Compare your result with the annotated decision tree above. Confirm that it
-// uses ColorSensor.red()/blue(), DistanceSensor.getDistance(), &&, ||, and a
+// uses ColorSensor.red()/blue(), DistanceSensor.getDistance(), &&, and a
 // final intake.setPower(0.0) branch.
 ```
 
