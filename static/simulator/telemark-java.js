@@ -254,6 +254,35 @@
     return -1;
   }
 
+  function sourceLocation(source, index) {
+    let line = 1;
+    let column = 1;
+    const end = Math.max(0, Math.min(Number(index) || 0, source.length));
+    for (let cursor = 0; cursor < end; cursor += 1) {
+      if (source[cursor] === "\n") {
+        line += 1;
+        column = 1;
+      } else {
+        column += 1;
+      }
+    }
+    return {line, column};
+  }
+
+  function positionTokens(source, tokens, offset) {
+    return tokens.map((token) => {
+      const start = token.start + offset;
+      const location = sourceLocation(source, start);
+      return {
+        ...token,
+        start,
+        end: token.end + offset,
+        line: location.line,
+        column: location.column,
+      };
+    });
+  }
+
   function extractClasses(source, allTokens) {
     const tokens = significant(allTokens);
     const classes = [];
@@ -282,15 +311,16 @@
         bodyStart,
         bodyEnd,
         methods: extractMethods(source, bodyStart, bodyEnd),
-        fields: extractFields(source.slice(bodyStart, bodyEnd)),
+        fields: extractFields(source, bodyStart, bodyEnd),
       });
       i = close;
     }
     return classes;
   }
 
-  function extractFields(classBody) {
-    const tokens = significant(tokenize(classBody));
+  function extractFields(source, bodyStart, bodyEnd) {
+    const classBody = source.slice(bodyStart, bodyEnd);
+    const tokens = positionTokens(source, significant(tokenize(classBody)), bodyStart);
     const fields = [];
     let depth = 0;
     let statement = [];
@@ -313,7 +343,9 @@
       const isStatic = statement.some((part) => part.value === "static");
       const useful = statement.filter((part) => !MODIFIERS.has(part.value));
       statement = [];
-      if (useful.some((part) => part.value === "(")) continue;
+      const assignment = useful.findIndex((part) => part.value === "=");
+      const declarationHead = useful.slice(0, assignment < 0 ? useful.length : assignment);
+      if (declarationHead.some((part) => part.value === "(")) continue;
       if (!isDeclarationType(useful, 0)) continue;
 
       let cursor = 1;
@@ -325,17 +357,32 @@
         const initializer = [];
         if (useful[cursor]?.value === "=") {
           cursor += 1;
-          while (cursor < useful.length && ![",", ";"].includes(useful[cursor].value)) {
-            initializer.push(useful[cursor]);
+          let initializerDepth = 0;
+          while (cursor < useful.length) {
+            const part = useful[cursor];
+            if (
+              initializerDepth === 0
+              && [",", ";"].includes(part.value)
+            ) break;
+            if (["(", "[", "{"].includes(part.value)) initializerDepth += 1;
+            if ([")", "]", "}"].includes(part.value)) initializerDepth -= 1;
+            initializer.push(part);
             cursor += 1;
           }
         }
+        const initializerSource = initializer.length
+          ? source.slice(initializer[0].start, initializer[initializer.length - 1].end)
+          : "";
         fields.push({
           name: nameToken.value,
           type: useful[0]?.value || "Object",
           static: isStatic,
           initialValue: literalValue(initializer),
-          initializer: initializer.map((part) => part.value).join(" "),
+          initializer: initializerSource,
+          line: nameToken.line,
+          column: nameToken.column,
+          initializerLine: initializer[0]?.line ?? nameToken.line,
+          initializerColumn: initializer[0]?.column ?? nameToken.column,
         });
         if (useful[cursor]?.value === ",") cursor += 1;
         else break;
@@ -372,11 +419,11 @@
   }
 
   function extractMethods(source, bodyStart, bodyEnd) {
-    const tokens = significant(tokenize(source.slice(bodyStart, bodyEnd))).map((token) => ({
-      ...token,
-      start: token.start + bodyStart,
-      end: token.end + bodyStart,
-    }));
+    const tokens = positionTokens(
+      source,
+      significant(tokenize(source.slice(bodyStart, bodyEnd))),
+      bodyStart,
+    );
     const methods = [];
     let depth = 0;
     for (let i = 0; i < tokens.length; i += 1) {
@@ -399,6 +446,9 @@
         name: nameToken.value,
         params: parseParameters(tokens.slice(i + 1, paramsEnd)),
         body: source.slice(tokens[bodyOpen].end, tokens[bodyClose].start),
+        bodyStart: tokens[bodyOpen].end,
+        bodyLine: sourceLocation(source, tokens[bodyOpen].end).line,
+        bodyColumn: sourceLocation(source, tokens[bodyOpen].end).column,
         line: nameToken.line,
         column: nameToken.column,
       });
@@ -1110,8 +1160,128 @@
     };
   }
 
+  function methodBodyLocation(method, token) {
+    if (!token || !method.bodyLine) {
+      return {line: method.line || 1, column: method.column || 1};
+    }
+    return {
+      line: method.bodyLine + token.line - 1,
+      column: token.line === 1
+        ? method.bodyColumn + token.column - 1
+        : token.column,
+    };
+  }
+
+  function syntaxHintToken(error, tokens) {
+    const message = String(error?.message || "");
+    const quoted = message.match(/Unexpected (?:token|identifier|string)\s+['"`](.*?)['"`]/i);
+    if (quoted) {
+      const value = quoted[1];
+      const matches = tokens.filter((token) => token.value === value);
+      if (matches.length) return value === ";" ? matches[matches.length - 1] : matches[0];
+      if (value === "let") {
+        const declarations = tokens.filter((token, index) => isDeclarationType(tokens, index));
+        if (declarations.length) return declarations[Math.min(1, declarations.length - 1)];
+      }
+    }
+    if (/Unexpected end|Unexpected token ['"`]?[)}\]]/i.test(message)) return tokens[tokens.length - 1];
+    if (/left-hand side|assignment/i.test(message)) {
+      return tokens.find((token) => ["=", "+=", "-=", "*=", "/=", "%="].includes(token.value));
+    }
+    return tokens[0];
+  }
+
+  function fragmentHasSyntaxError(tokens, method, options) {
+    if (!tokens.length) return null;
+    let candidateTokens = tokens;
+    if (["case", "default"].includes(candidateTokens[0]?.value)) {
+      const colon = candidateTokens.findIndex((token) => token.value === ":");
+      if (colon >= 0) candidateTokens = candidateTokens.slice(colon + 1);
+    }
+    if (!candidateTokens.length || ["break", "continue", "super"].includes(candidateTokens[0]?.value)) {
+      return null;
+    }
+
+    const start = candidateTokens[0].start;
+    const end = candidateTokens[candidateTokens.length - 1].end;
+    let java = method.body.slice(start, end);
+    if (candidateTokens[0].value === "else") java = "if(false){} " + java;
+    try {
+      const js = transpileBody(java, options);
+      const FunctionConstructor = options.async
+        ? Object.getPrototypeOf(async function () {}).constructor
+        : Function;
+      new FunctionConstructor(`while(false){${js}}`);
+      return null;
+    } catch (error) {
+      if (error?.name !== "SyntaxError" && !(error instanceof TelemarkJavaError)) return null;
+      return {error, tokens: candidateTokens};
+    }
+  }
+
+  function locateGeneratedSyntaxError(method, error, options) {
+    const tokens = significant(tokenize(method.body));
+    const candidates = [];
+    let start = 0;
+    let parenthesisDepth = 0;
+    let bracketDepth = 0;
+
+    for (let index = 0; index < tokens.length; index += 1) {
+      const token = tokens[index];
+      if (token.value === "(") parenthesisDepth += 1;
+      if (token.value === ")") parenthesisDepth -= 1;
+      if (token.value === "[") bracketDepth += 1;
+      if (token.value === "]") bracketDepth -= 1;
+
+      if (parenthesisDepth === 0 && bracketDepth === 0 && token.value === ";") {
+        candidates.push(tokens.slice(start, index + 1));
+        start = index + 1;
+      } else if (parenthesisDepth === 0 && bracketDepth === 0 && ["{", "}"].includes(token.value)) {
+        start = index + 1;
+      }
+    }
+
+    for (const candidate of candidates) {
+      const failure = fragmentHasSyntaxError(candidate, method, options);
+      if (!failure) continue;
+      return methodBodyLocation(method, syntaxHintToken(failure.error, failure.tokens));
+    }
+
+    // Conditions end at an opening brace rather than a semicolon. Validate
+    // those expressions separately so an error in `if (...)` points at the
+    // condition instead of the method declaration.
+    for (let index = 0; index < tokens.length; index += 1) {
+      if (!["if", "for", "while", "switch"].includes(tokens[index].value)) continue;
+      if (tokens[index + 1]?.value !== "(") continue;
+      const close = matchingToken(tokens, index + 1);
+      if (close < 0) continue;
+      const header = tokens.slice(index, close + 1);
+      try {
+        const java = method.body.slice(header[0].start, header[header.length - 1].end) + " {}";
+        const js = transpileBody(java, options);
+        const FunctionConstructor = options.async
+          ? Object.getPrototypeOf(async function () {}).constructor
+          : Function;
+        new FunctionConstructor(`while(false){${js}}`);
+      } catch (conditionError) {
+        return methodBodyLocation(method, syntaxHintToken(conditionError, header));
+      }
+    }
+
+    return {line: method.line || 1, column: method.column || 1};
+  }
+
   function compileMethod(method, options = {}) {
-    const js = transpileBody(method.body, options);
+    let js;
+    try {
+      js = transpileBody(method.body, options);
+    } catch (error) {
+      if (error instanceof TelemarkJavaError) {
+        const location = methodBodyLocation(method, error);
+        throw new TelemarkJavaError(error.message, location, error.code);
+      }
+      throw error;
+    }
     try {
       const FunctionConstructor = options.async
         ? Object.getPrototypeOf(async function () {}).constructor
@@ -1139,9 +1309,12 @@ with(scope){${js}}`
       );
       return (...args) => fn(options.runtime || {}, options.scope || {}, ...args);
     } catch (error) {
+      const location = error?.name === "SyntaxError"
+        ? locateGeneratedSyntaxError(method, error, options)
+        : {line: method.line, column: method.column};
       throw new TelemarkJavaError(
         `${method.name}() compile error: ${error.message}`,
-        {line: method.line, column: method.column},
+        location,
         "JAVASCRIPT_GENERATION_ERROR",
       );
     }
@@ -1152,6 +1325,13 @@ with(scope){${js}}`
     if (field.type === "boolean") return "false";
     if (["byte", "double", "float", "int", "long", "short"].includes(field.type)) return "0";
     return "null";
+  }
+
+  function fieldDefaultValue(field) {
+    if (field.type === "boolean") return false;
+    if (["byte", "double", "float", "int", "long", "short"].includes(field.type)) return 0;
+    if (field.type === "char") return "\0";
+    return null;
   }
 
   function buildClassPrelude(ast, mainClass, options = {}) {
@@ -1216,7 +1396,7 @@ with(scope){${js}}`
       ) || ast.classes[0];
       if (!classNode) throw new TelemarkJavaError("No Java class was found");
       const scope = Object.fromEntries(
-        (classNode.fields || []).map((field) => [field.name, field.initialValue]),
+        (classNode.fields || []).map((field) => [field.name, fieldDefaultValue(field)]),
       );
       const locals = {};
       let methodRuntime = runtime;
@@ -1244,6 +1424,38 @@ with(scope){${js}}`
       for (const [name, method] of Object.entries(methods)) {
         if (!["init", "init_loop", "start", "loop", "stop", "runOpMode"].includes(name)) {
           scope[name] = method;
+        }
+      }
+      // Java initializes instance fields once, in source order, before the
+      // OpMode lifecycle begins. Execute those expressions in the same shared
+      // scope instead of reducing them to literals; unary values, Math calls,
+      // references to earlier fields, enums, and helper-class construction all
+      // remain live across init(), start(), and loop().
+      for (const field of classNode.fields || []) {
+        if (!field.initializer) continue;
+        const prefix = `${field.name} = `;
+        const initializer = compileMethod({
+          name: `${field.name} field initializer`,
+          params: [],
+          body: `${prefix}${field.initializer};`,
+          line: field.initializerLine,
+          column: field.initializerColumn,
+          bodyLine: field.initializerLine,
+          bodyColumn: Math.max(1, field.initializerColumn - prefix.length),
+        }, {
+          ...options,
+          runtime: methodRuntime,
+          scope,
+          classPrelude,
+        });
+        try {
+          initializer();
+        } catch (error) {
+          throw new TelemarkJavaError(
+            `${field.name} field initializer runtime error: ${error.message}`,
+            {line: field.initializerLine, column: field.initializerColumn},
+            "FIELD_INITIALIZER_ERROR",
+          );
         }
       }
       return {

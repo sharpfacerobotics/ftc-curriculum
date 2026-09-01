@@ -144,6 +144,72 @@ function testJavaMathHelpers() {
   assert.equal(program.scope.result, 0.5);
 }
 
+function testClassFieldInitializersPersistAcrossLoops() {
+  const gamepad = {a: false};
+  const program = compile(`
+    class CurveSettings {
+      double exponent = 2.0;
+    }
+    public class Unit4FieldState extends OpMode {
+      boolean prevA;
+      double curve = -1;
+      double scale = Math.max(0.25, 0.5);
+      double scaledCurve = curve * scale;
+      CurveSettings settings = new CurveSettings();
+      DcMotor motor;
+
+      public void loop() {
+        if (gamepad1.a && !prevA) {
+          curve *= -1;
+        }
+        prevA = gamepad1.a;
+      }
+    }
+  `, TelemarkJava.createRuntime({gamepad}));
+
+  assert.equal(program.scope.prevA, false, 'uninitialized booleans must use the Java default');
+  assert.equal(program.scope.curve, -1, 'signed numeric field initializers must be evaluated');
+  assert.equal(program.scope.scale, 0.5, 'Math expressions must work in field initializers');
+  assert.equal(program.scope.scaledCurve, -0.5, 'field initializers must run in source order');
+  assert.equal(program.scope.settings.exponent, 2, 'supporting classes must be constructible in fields');
+  assert.equal(program.scope.motor, null, 'uninitialized object fields must use the Java default');
+
+  program.methods.loop();
+  assert.equal(program.scope.curve, -1);
+  gamepad.a = true;
+  program.methods.loop();
+  assert.equal(program.scope.curve, 1);
+  program.methods.loop();
+  assert.equal(program.scope.curve, 1, 'holding A must not retrigger the edge toggle');
+  gamepad.a = false;
+  program.methods.loop();
+  gamepad.a = true;
+  program.methods.loop();
+  assert.equal(program.scope.curve, -1, 'field state must persist across loop calls');
+}
+
+function testGeneratedSyntaxDiagnosticUsesStatementLocation() {
+  const source = [
+    'import com.qualcomm.robotcore.eventloop.opmode.OpMode;',
+    'public class LocatedError extends OpMode {',
+    '  public void loop() {',
+    '    double validPower = 0.0;',
+    '    double brokenPower = ;',
+    '  }',
+    '}',
+  ].join('\n');
+  const result = TelemarkJava.compile(source);
+  const diagnostic = result.diagnostics[0];
+
+  assert.equal(result.ok, false);
+  assert.equal(diagnostic.line, 5, 'generated syntax errors must retain the Java source line');
+  assert.equal(
+    diagnostic.column,
+    source.split('\n')[4].indexOf(';') + 1,
+    'generated syntax errors must point at the failing Java token',
+  );
+}
+
 function testMethodLocalVariableTracking() {
   const gamepad = {a: false, left_bumper: false, left_stick_y: -0.8};
   const runtime = TelemarkJava.createRuntime({gamepad});
@@ -585,6 +651,8 @@ async function main() {
   testEnumsAndSwitch();
   testHardwareAndTelemetry();
   testJavaMathHelpers();
+  testClassFieldInitializersPersistAcrossLoops();
+  testGeneratedSyntaxDiagnosticUsesStatementLocation();
   testMethodLocalVariableTracking();
   testTelemetryFramesAutoClear();
   testResetRuntimeBindingInEditedStart();
