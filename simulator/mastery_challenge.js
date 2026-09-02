@@ -739,19 +739,20 @@
       return mesh(new THREE.SphereGeometry(radius, 18, 12), meshMaterial, position, null, parent);
     }
 
-    function rigCadMechanism(model, pivotEdge) {
+    function rigCadMechanism(model, pivotFractions) {
       const part = model.getObjectByName && model.getObjectByName("telemark-cad-mechanism");
       if (!part) {
         setImportedRobotStatus("The optimized CAD is missing its movable mechanism node.");
         return null;
       }
       robot.updateMatrixWorld(true);
-      const bounds = new THREE.Box3().setFromObject(part);
-      const center = bounds.getCenter(new THREE.Vector3());
-      const pivotWorld = center.clone();
-      if (pivotEdge === "min-x") pivotWorld.x = bounds.min.x;
-      if (pivotEdge === "min-y") pivotWorld.y = bounds.min.y;
-      if (pivotEdge === "min-z") pivotWorld.z = bounds.min.z;
+      const bounds = importedCadBounds(THREE, part);
+      const fractions = pivotFractions || [0.5, 0.5, 0.5];
+      const pivotWorld = new THREE.Vector3(
+        THREE.MathUtils.lerp(bounds.min.x, bounds.max.x, fractions[0]),
+        THREE.MathUtils.lerp(bounds.min.y, bounds.max.y, fractions[1]),
+        THREE.MathUtils.lerp(bounds.min.z, bounds.max.z, fractions[2])
+      );
       const pivot = new THREE.Group();
       pivot.name = "telemark-cad-mechanism-pivot";
       robot.add(pivot);
@@ -845,8 +846,9 @@
       loadCadRobotForUnit(cadSourceUnit, THREE, robot, function (model) {
         rigCadChassis(model);
         if (model.getObjectByName && model.getObjectByName("telemark-cad-mechanism")) {
-          if (cadSourceUnit === 3 || cadSourceUnit === 6) cadMechanism = rigCadTranslation(model);
-          else cadMechanism = rigCadMechanism(model, cadSourceUnit === 5 ? "min-y" : "max-z");
+          if (cadSourceUnit === 3) cadMechanism = rigCadTranslation(model);
+          if (cadSourceUnit === 5) cadMechanism = rigCadMechanism(model, [0.46, 0.505, 0.5]);
+          if (cadSourceUnit === 6) cadMechanism = rigCadMechanism(model, [0.5, 0.455, 0.356]);
         }
       });
       animation = function () {
@@ -863,12 +865,11 @@
           let deployment = 0;
           if (unit === 5) deployment = motion.state.primaryPosition;
           if (unit === 15) deployment = motion.servoValues()[0] || 0;
-          cadMechanism.rotation.z = deployment * 1.08;
+          cadMechanism.rotation.z = deployment * 2.0;
           return;
         }
         if (cadSourceUnit === 6) {
-          const deployment = unit === 6 ? motion.state.armAngle : motion.state.primaryPosition;
-          cadMechanism.position.z = -deployment * 0.62;
+          cadMechanism.rotation.x = -motion.state.armAngle;
         }
       };
     } else if (unit === 7) {
