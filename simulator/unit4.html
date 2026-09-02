@@ -1992,7 +1992,7 @@ var sticks = {
     dragging: false, pointerId: null,
     setValues: function(sx, sy) {
       gamepad.left_stick_x = sx;
-      gamepad.left_stick_y = -sy; // Inverted for FTC convention
+      gamepad.left_stick_y = sy;
       updateInputMonitor();
     }
   },
@@ -2003,7 +2003,7 @@ var sticks = {
     dragging: false, pointerId: null,
     setValues: function(sx, sy) {
       gamepad.right_stick_x = sx;
-      gamepad.right_stick_y = -sy;
+      gamepad.right_stick_y = sy;
       updateInputMonitor();
     }
   }
@@ -2031,7 +2031,8 @@ function updateStickFromPointer(stick, clientX, clientY) {
   var clampedDx = dx * scale;
   var clampedDy = dy * scale;
   
-  stick.setValues(clamp(clampedDx / maxR, -1, 1), clamp(-clampedDy / maxR, -1, 1));
+  // Screen Y and FTC stick Y use the same sign: up is negative.
+  stick.setValues(clamp(clampedDx / maxR, -1, 1), clamp(clampedDy / maxR, -1, 1));
   
   var knobCx = (zoneRect.left - wrapRect.left + zoneRect.width / 2 + clampedDx) / wrapRect.width * 100;
   var knobCy = (zoneRect.top - wrapRect.top + zoneRect.height / 2 + clampedDy) / wrapRect.height * 100;

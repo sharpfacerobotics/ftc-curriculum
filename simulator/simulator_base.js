@@ -373,6 +373,7 @@
       --border: #243746;
       --active: #22d3ee;
       --good: #22cc66;
+      --warn: #ffb547;
       --danger: #cc2222;
       --text-primary: #eaf8ff;
       --text-secondary: #94a3b8;
@@ -392,6 +393,7 @@
       --border: #bfd0da;
       --active: #087f9c;
       --good: #168449;
+      --warn: #8a5700;
       --danger: #b4232c;
       --text-primary: #102a36;
       --text-secondary: #506b78;
@@ -828,12 +830,16 @@
     }
     #sim-robot-canvas:active { cursor: grabbing; }
 
-    /* ── Reset Scene Button ── */
-    .sim-scene-reset-btn {
+    /* ── Scene Controls ── */
+    .sim-scene-reset-controls {
       position: absolute;
       top: 8px;
       right: 8px;
       z-index: 5;
+      display: flex;
+      gap: 7px;
+    }
+    .sim-scene-reset-btn {
       padding: 6px 12px;
       border-radius: 6px;
       border: 1px solid var(--border);
@@ -849,6 +855,92 @@
       background: rgba(40, 40, 60, 0.9);
       border-color: var(--active);
       color: var(--active);
+    }
+
+    /* ── Reset Confirmation ── */
+    .sim-reset-dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(5px);
+    }
+    .sim-reset-dialog-backdrop[hidden] {
+      display: none;
+    }
+    .sim-reset-dialog {
+      width: min(420px, 100%);
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      color: var(--text-primary);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65);
+      font-family: var(--font-ui);
+    }
+    .sim-reset-dialog-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      margin-bottom: 14px;
+      border-radius: 9px;
+      background: rgba(255, 181, 71, 0.12);
+      color: var(--warn);
+      font-size: 1rem;
+    }
+    .sim-reset-dialog h2 {
+      margin: 0 0 8px;
+      color: var(--text-primary);
+      font-size: 1.05rem;
+      line-height: 1.3;
+    }
+    .sim-reset-dialog p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    .sim-reset-dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .sim-reset-dialog-actions button {
+      min-height: 36px;
+      padding: 8px 13px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font: 600 0.82rem var(--font-ui);
+      cursor: pointer;
+    }
+    .sim-reset-dialog-cancel {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+    .sim-reset-dialog-cancel:hover,
+    .sim-reset-dialog-cancel:focus-visible {
+      border-color: var(--active);
+      color: var(--text-primary);
+    }
+    .sim-reset-dialog-confirm {
+      border-color: var(--danger) !important;
+      background: var(--danger);
+      color: #fff;
+    }
+    .sim-reset-dialog-confirm:hover,
+    .sim-reset-dialog-confirm:focus-visible {
+      filter: brightness(1.12);
+    }
+    .sim-reset-dialog-actions button:focus-visible {
+      outline: 2px solid var(--active);
+      outline-offset: 2px;
     }
 
     /* ────────────────────────────────────────────────────────────────────────
@@ -1387,6 +1479,13 @@
       border-color: var(--active);
       color: var(--active);
     }
+    :root[data-theme="light"] .sim-reset-dialog,
+    :root[data-telemark-theme="light"] .sim-reset-dialog {
+      background: #ffffff;
+      border-color: var(--border);
+      color: var(--text-primary);
+      box-shadow: 0 24px 70px rgba(16, 42, 54, 0.25);
+    }
     :root[data-theme="light"] .sim-telemetry-panel,
     :root[data-telemark-theme="light"] .sim-telemetry-panel {
       background: #102229;
@@ -1609,20 +1708,113 @@
     const sceneContainer = el("div", { id: "sim-scene-container" });
     const canvas = el("canvas", { id: "sim-robot-canvas" });
     sceneContainer.appendChild(canvas);
-    // Reset button overlay
-    const resetBtn = el("button", {
+    // Robot and source resets are deliberately separate: one restores the
+    // scene immediately, while the destructive source reset requires the
+    // confirmation card below.
+    const resetControls = el("div", {className: "sim-scene-reset-controls"});
+    const robotResetBtn = el("button", {
       className: "sim-scene-reset-btn",
       id: "sim-scene-reset-btn",
     });
-    resetBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Reset';
-    resetBtn.addEventListener("click", function () {
+    robotResetBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Reset robot';
+    robotResetBtn.addEventListener("click", function () {
       handleStop();
+      // Mastery robots are driven from a persistent motion model. Reset that
+      // model—not only the Three.js group—or animation would immediately move
+      // the robot back to its previous field coordinates.
+      if (
+        window.__telemarkMasteryMotion &&
+        typeof window.__telemarkMasteryMotion.resetPose === "function"
+      ) {
+        window.__telemarkMasteryMotion.resetPose();
+      }
       if (typeof window.onReset === "function") window.onReset();
     });
-    sceneContainer.appendChild(resetBtn);
+    resetControls.appendChild(robotResetBtn);
+
+    const codeResetBtn = el("button", {
+      className: "sim-scene-reset-btn",
+      id: "sim-code-reset-btn",
+    });
+    codeResetBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Reset code';
+    resetControls.appendChild(codeResetBtn);
+    sceneContainer.appendChild(resetControls);
     rightPanel.appendChild(sceneContainer);
 
     document.body.appendChild(rightPanel);
+
+    // A simulator-native confirmation card keeps the destructive code reset
+    // visually consistent and gives keyboard users a safe Cancel-first flow.
+    const resetDialogBackdrop = el("div", {
+      className: "sim-reset-dialog-backdrop",
+      id: "sim-reset-dialog-backdrop",
+    });
+    resetDialogBackdrop.hidden = true;
+    resetDialogBackdrop.setAttribute("aria-hidden", "true");
+
+    const resetDialog = el("div", {className: "sim-reset-dialog"});
+    resetDialog.setAttribute("role", "dialog");
+    resetDialog.setAttribute("aria-modal", "true");
+    resetDialog.setAttribute("aria-labelledby", "sim-reset-dialog-title");
+    resetDialog.setAttribute("aria-describedby", "sim-reset-dialog-description");
+    resetDialog.innerHTML = `
+      <span class="sim-reset-dialog-icon" aria-hidden="true"><i class="fa-solid fa-rotate-left"></i></span>
+      <h2 id="sim-reset-dialog-title">Restore starter code?</h2>
+      <p id="sim-reset-dialog-description">This will stop the simulator and replace your current code with the lesson's original starter code.</p>
+      <div class="sim-reset-dialog-actions">
+        <button type="button" class="sim-reset-dialog-cancel">Cancel</button>
+        <button type="button" class="sim-reset-dialog-confirm">Restore starter code</button>
+      </div>
+    `;
+    resetDialogBackdrop.appendChild(resetDialog);
+    document.body.appendChild(resetDialogBackdrop);
+
+    const resetCancelBtn = resetDialog.querySelector(".sim-reset-dialog-cancel");
+    const resetConfirmBtn = resetDialog.querySelector(".sim-reset-dialog-confirm");
+    let resetDialogReturnFocus = null;
+
+    function closeResetDialog() {
+      resetDialogBackdrop.hidden = true;
+      resetDialogBackdrop.setAttribute("aria-hidden", "true");
+      if (resetDialogReturnFocus && typeof resetDialogReturnFocus.focus === "function") {
+        resetDialogReturnFocus.focus();
+      }
+      resetDialogReturnFocus = null;
+    }
+
+    function openResetDialog() {
+      resetDialogReturnFocus = document.activeElement;
+      resetDialogBackdrop.hidden = false;
+      resetDialogBackdrop.setAttribute("aria-hidden", "false");
+      resetCancelBtn.focus();
+    }
+
+    codeResetBtn.addEventListener("click", openResetDialog);
+    resetCancelBtn.addEventListener("click", closeResetDialog);
+    resetConfirmBtn.addEventListener("click", function () {
+      closeResetDialog();
+      handleStop();
+      window.resetCodeToStarter();
+      if (typeof window.onReset === "function") window.onReset();
+    });
+    resetDialogBackdrop.addEventListener("click", function (event) {
+      if (event.target === resetDialogBackdrop) closeResetDialog();
+    });
+    resetDialogBackdrop.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeResetDialog();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      if (event.shiftKey && document.activeElement === resetCancelBtn) {
+        event.preventDefault();
+        resetConfirmBtn.focus();
+      } else if (!event.shiftKey && document.activeElement === resetConfirmBtn) {
+        event.preventDefault();
+        resetCancelBtn.focus();
+      }
+    });
 
     // ── Gamepad Card ──
     buildGamepadCard();
@@ -1894,14 +2086,36 @@
   window.setCode = function (str) {
     const editor = document.getElementById("sim-code-editor");
     if (editor) {
-      editor.value = str;
+      const source = String(str == null ? "" : str);
+      editor.value = source;
       if (!editor.__telemarkInitialCodeSet) {
+        // Capture this before restoring a saved draft. Reset must always be
+        // able to recover the lesson-authored source, even when the draft is
+        // empty or the browser's undo history no longer reaches it.
+        editor.__telemarkStarterCode = source;
         editor.__telemarkInitialCodeSet = true;
         if (window.TelemarkEditor) window.TelemarkEditor.restoreDraft(editor);
       }
       updateHighlighting();
       syncScroll();
     }
+  };
+
+  window.resetCodeToStarter = function () {
+    const editor = document.getElementById("sim-code-editor");
+    if (!editor || typeof editor.__telemarkStarterCode !== "string") return false;
+
+    editor.value = editor.__telemarkStarterCode;
+    editor.selectionStart = editor.selectionEnd = 0;
+    if (window.TelemarkEditor) {
+      window.TelemarkEditor.clearDiagnostics(document);
+      // Replace the persisted draft too, so refreshing cannot bring back the
+      // accidentally deleted source that the student just reset.
+      window.TelemarkEditor.saveDraft(editor);
+    }
+    updateHighlighting();
+    syncScroll();
+    return true;
   };
 
   // ========================================================================

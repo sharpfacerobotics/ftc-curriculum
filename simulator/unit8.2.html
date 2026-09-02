@@ -709,8 +709,10 @@ function updateRobotPhysics(dt){
   var ROT_SPEED = 3.0;
   var h   = robotHeading;
   var cos = Math.cos(h), sin = Math.sin(h);
-  var nx = robotGroup.position.x + (-forward  *sin + strafe*  cos)  *SPEED*  dt;
-  var nz = robotGroup.position.z + (-forward  *cos - strafe*  sin)  *SPEED*  dt;
+  // The model's nose points along local +Z (see the blue front marker in
+  // initScene), so positive drivetrain power must move it along local +Z.
+  var nx = robotGroup.position.x + ( forward  *sin + strafe*  cos)  *SPEED*  dt;
+  var nz = robotGroup.position.z + ( forward  *cos - strafe*  sin)  *SPEED*  dt;
   nx = clamp(nx, -FIELD_HALF+ROBOT_MARGIN, FIELD_HALF-ROBOT_MARGIN);
   nz = clamp(nz, -FIELD_HALF+ROBOT_MARGIN, FIELD_HALF-ROBOT_MARGIN);
   robotGroup.position.x = nx;

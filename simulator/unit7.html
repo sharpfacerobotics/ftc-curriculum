@@ -929,8 +929,8 @@ setupTriggerSlider('right-trigger-slider','right-trigger-fill','right_trigger');
 var controllerWrap=document.getElementById('controller-wrap');
 function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
 var sticks={
-    left:{zone:document.getElementById('stick-zone-left'),knob:document.getElementById('stick-knob-left'),defaultL:'35.5%',defaultT:'65.5%',dragging:false,pointerId:null,setValues:function(sx,sy){gamepad.left_stick_x=sx;gamepad.left_stick_y=-sy}},
-    right:{zone:document.getElementById('stick-zone-right'),knob:document.getElementById('stick-knob-right'),defaultL:'64%',defaultT:'65.5%',dragging:false,pointerId:null,setValues:function(sx,sy){gamepad.right_stick_x=sx;gamepad.right_stick_y=-sy}}
+    left:{zone:document.getElementById('stick-zone-left'),knob:document.getElementById('stick-knob-left'),defaultL:'35.5%',defaultT:'65.5%',dragging:false,pointerId:null,setValues:function(sx,sy){gamepad.left_stick_x=sx;gamepad.left_stick_y=sy}},
+    right:{zone:document.getElementById('stick-zone-right'),knob:document.getElementById('stick-knob-right'),defaultL:'64%',defaultT:'65.5%',dragging:false,pointerId:null,setValues:function(sx,sy){gamepad.right_stick_x=sx;gamepad.right_stick_y=sy}}
 };
 function resetStick(s){
     s.dragging=false;
@@ -942,7 +942,8 @@ function resetStick(s){
 }
 function updateStickFromPointer(s,cx,cy){
     var wr=controllerWrap.getBoundingClientRect(),zr=s.zone.getBoundingClientRect(),centerX=zr.left+zr.width/2,centerY=zr.top+zr.height/2,dx=cx-centerX,dy=cy-centerY,maxR=Math.min(zr.width,zr.height)*.36,dist=Math.hypot(dx,dy),sc=dist>maxR?maxR/dist:1,cdx=dx*sc,cdy=dy*sc;
-    s.setValues(clamp(cdx/maxR,-1,1),clamp(-cdy/maxR,-1,1));
+    // Screen Y and FTC stick Y use the same sign: up is negative.
+    s.setValues(clamp(cdx/maxR,-1,1),clamp(cdy/maxR,-1,1));
     s.knob.style.left=(zr.left-wr.left+zr.width/2+cdx)/wr.width*100+'%';
     s.knob.style.top=(zr.top-wr.top+zr.height/2+cdy)/wr.height*100+'%';
     s.knob.style.transform='translate(-50%,-50%)';

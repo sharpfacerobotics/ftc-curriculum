@@ -665,12 +665,12 @@ public class MecanumEncoderDrive extends OpMode {
         const sin = Math.sin(h);
 
         robotGroup.position.x = clamp(
-            robotGroup.position.x + (-forward * sin + strafe * cos) * speed * dt,
+            robotGroup.position.x + (forward * sin + strafe * cos) * speed * dt,
             -fieldHalf + robotMargin,
             fieldHalf - robotMargin
         );
         robotGroup.position.z = clamp(
-            robotGroup.position.z + (-forward * cos - strafe * sin) * speed * dt,
+            robotGroup.position.z + (forward * cos - strafe * sin) * speed * dt,
             -fieldHalf + robotMargin,
             fieldHalf - robotMargin
         );
