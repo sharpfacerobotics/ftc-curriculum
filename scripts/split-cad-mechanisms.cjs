@@ -2,6 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const repoRoot = path.resolve(__dirname, '..');
+const ftc17438ArmRoots = new Set([
+  431396, 432149, 1975, 7554, 899, 5967, 4292,
+]);
 
 const jobs = [
   {
@@ -20,9 +23,12 @@ const jobs = [
   },
   {
     file: 'static/simulator/models/ftc17438-inputoutput-telemark.glb',
-    label: 'FTC 17438 front intake assembly',
+    label: 'FTC 17438 upper arm assembly',
     select(component) {
-      return component.center[1] > 0.55;
+      // These connected solids are the driven rails and end effector. The
+      // curved side plates, motor housing, and lower mount remain on the
+      // chassis so the student's `arm` output cannot move the robot base.
+      return ftc17438ArmRoots.has(component.root);
     },
   },
 ];
@@ -169,7 +175,7 @@ function encodeGlb(json, bin) {
   return output;
 }
 
-function splitJob(job, inspectOnly) {
+function splitJob(job, inspectOnly, inspectAll, selectedRoots) {
   const file = path.join(repoRoot, job.file);
   const {bytes, json, bin} = parseGlb(file);
   const existingMechanismNode = json.nodes.find((node) => node.name === 'telemark-cad-mechanism');
@@ -191,11 +197,13 @@ function splitJob(job, inspectOnly) {
     alreadySplit ? [chassisPrimitive, mechanismPrimitive] : chassisPrimitive,
   );
   const movingRoots = new Set(
-    [...graph.components.values()].filter(job.select).map((component) => component.root),
+    [...graph.components.values()]
+      .filter((component) => selectedRoots.size ? selectedRoots.has(component.root) : job.select(component))
+      .map((component) => component.root),
   );
   if (inspectOnly) {
     [...graph.components.values()]
-      .filter(job.select)
+      .filter((component) => component.triangles > 0 && (inspectAll || job.select(component)))
       .sort((left, right) => right.triangles - left.triangles)
       .slice(0, 120)
       .forEach((component) => console.log(JSON.stringify(component)));
@@ -211,12 +219,54 @@ function splitJob(job, inspectOnly) {
     throw new Error(`${job.file} selection produced an empty chassis or mechanism`);
   }
 
+  const mechanismComponents = [...graph.components.values()].filter(
+    (component) => component.triangles > 0 && movingRoots.has(component.root),
+  );
+  const mechanismBounds = mechanismComponents.reduce((bounds, component) => {
+    for (let axis = 0; axis < 3; axis++) {
+      bounds.min[axis] = Math.min(bounds.min[axis], component.min[axis]);
+      bounds.max[axis] = Math.max(bounds.max[axis], component.max[axis]);
+    }
+    return bounds;
+  }, {
+    min: [Infinity, Infinity, Infinity],
+    max: [-Infinity, -Infinity, -Infinity],
+  });
+  const mechanismCenter = mechanismBounds.min.map(
+    (value, axis) => (value + mechanismBounds.max[axis]) / 2,
+  );
+  const mechanismExtras = {
+    telemarkCadMechanism: true,
+    label: job.label,
+    telemarkCadBounds: mechanismBounds,
+    telemarkCadCenter: mechanismCenter,
+  };
+
   const chassisBuffer = uint32Buffer(chassisIndices);
   const mechanismBuffer = uint32Buffer(mechanismIndices);
+  const existingChassisIndexCount = alreadySplit
+    ? json.accessors[chassisPrimitive.indices].count
+    : 0;
+  const existingMechanismIndexCount = alreadySplit
+    ? json.accessors[mechanismPrimitive.indices].count
+    : 0;
+  let existingPartitionMatches = alreadySplit
+    && existingChassisIndexCount === chassisIndices.length
+    && existingMechanismIndexCount === mechanismIndices.length;
+  for (let index = 0; existingPartitionMatches && index < graph.indices.length; index += 3) {
+    const wasMechanism = index >= existingChassisIndexCount;
+    const shouldBeMechanism = movingRoots.has(graph.find(graph.indices[index]));
+    if (wasMechanism !== shouldBeMechanism) existingPartitionMatches = false;
+  }
+
   let outputBin;
   let chassisAccessorIndex;
   let mechanismAccessorIndex;
-  if (alreadySplit) {
+  if (existingPartitionMatches) {
+    outputBin = bin;
+    chassisAccessorIndex = chassisPrimitive.indices;
+    mechanismAccessorIndex = mechanismPrimitive.indices;
+  } else if (alreadySplit) {
     const chassisOffset = align4(bin.length);
     const mechanismOffset = align4(chassisOffset + chassisBuffer.length);
     outputBin = Buffer.alloc(mechanismOffset + mechanismBuffer.length);
@@ -237,6 +287,19 @@ function splitJob(job, inspectOnly) {
       byteOffset: 0,
     }) - 1;
     chassisPrimitive.indices = chassisAccessorIndex;
+    const mechanismViewIndex = json.bufferViews.push({
+      buffer: 0,
+      byteOffset: mechanismOffset,
+      byteLength: mechanismBuffer.length,
+      target: graph.indexView.target,
+    }) - 1;
+    mechanismAccessorIndex = json.accessors.push({
+      type: 'SCALAR',
+      componentType: 5125,
+      count: mechanismIndices.length,
+      bufferView: mechanismViewIndex,
+      byteOffset: 0,
+    }) - 1;
   } else {
     const originalIndexOffset = graph.indexView.byteOffset || 0;
     chassisBuffer.copy(bin, originalIndexOffset);
@@ -246,27 +309,24 @@ function splitJob(job, inspectOnly) {
     outputBin = Buffer.alloc(mechanismOffset + mechanismBuffer.length);
     bin.copy(outputBin);
     mechanismBuffer.copy(outputBin, mechanismOffset);
+    const mechanismViewIndex = json.bufferViews.push({
+      buffer: 0,
+      byteOffset: mechanismOffset,
+      byteLength: mechanismBuffer.length,
+      target: graph.indexView.target,
+    }) - 1;
+    mechanismAccessorIndex = json.accessors.push({
+      type: 'SCALAR',
+      componentType: 5125,
+      count: mechanismIndices.length,
+      bufferView: mechanismViewIndex,
+      byteOffset: 0,
+    }) - 1;
   }
-  const mechanismOffset = alreadySplit
-    ? align4(align4(bin.length) + chassisBuffer.length)
-    : align4(bin.length);
-  const mechanismViewIndex = json.bufferViews.push({
-    buffer: 0,
-    byteOffset: mechanismOffset,
-    byteLength: mechanismBuffer.length,
-    target: graph.indexView.target,
-  }) - 1;
-  mechanismAccessorIndex = json.accessors.push({
-    type: 'SCALAR',
-    componentType: 5125,
-    count: mechanismIndices.length,
-    bufferView: mechanismViewIndex,
-    byteOffset: 0,
-  }) - 1;
 
   if (alreadySplit) {
     mechanismPrimitive.indices = mechanismAccessorIndex;
-    existingMechanismNode.extras = {telemarkCadMechanism: true, label: job.label};
+    existingMechanismNode.extras = mechanismExtras;
   } else {
     chassisNode.name = 'telemark-cad-chassis';
     json.meshes[0].name = 'telemark-cad-chassis';
@@ -281,15 +341,19 @@ function splitJob(job, inspectOnly) {
       scale: chassisNode.scale,
       matrix: chassisNode.matrix,
       mesh: mechanismMeshIndex,
-      extras: {telemarkCadMechanism: true, label: job.label},
+      extras: mechanismExtras,
     }) - 1;
     for (const scene of json.scenes) scene.nodes.push(mechanismNodeIndex);
   }
   json.buffers[0].byteLength = outputBin.length;
+  const modificationNote = 'Existing CAD geometry partitioned into independently movable chassis and mechanism nodes.';
+  const existingModification = json.extras?.modification || '';
   json.extras = {
     ...(json.extras || {}),
     telemarkCadMechanism: job.label,
-    modification: `${json.extras?.modification || ''} Existing CAD geometry partitioned into independently movable chassis and mechanism nodes.`.trim(),
+    modification: existingModification.includes(modificationNote)
+      ? existingModification
+      : `${existingModification} ${modificationNote}`.trim(),
   };
 
   const temporary = `${file}.tmp`;
@@ -300,9 +364,21 @@ function splitJob(job, inspectOnly) {
   );
 }
 
-const inspectOnly = process.argv.includes('--inspect');
-const requested = new Set(process.argv.slice(2).filter((argument) => argument !== '--inspect'));
+const inspectOnly = process.argv.includes('--inspect') || process.argv.includes('--inspect-all');
+const inspectAll = process.argv.includes('--inspect-all');
+const selectedRoots = new Set(
+  process.argv
+    .filter((argument) => argument.startsWith('--root='))
+    .flatMap((argument) => argument.slice('--root='.length).split(','))
+    .map(Number)
+    .filter(Number.isFinite),
+);
+const requested = new Set(process.argv.slice(2).filter((argument) => (
+  argument !== '--inspect' && argument !== '--inspect-all' && !argument.startsWith('--root=')
+)));
 for (const job of jobs) {
   const basename = path.basename(job.file);
-  if (!requested.size || requested.has(basename) || requested.has(job.file)) splitJob(job, inspectOnly);
+  if (!requested.size || requested.has(basename) || requested.has(job.file)) {
+    splitJob(job, inspectOnly, inspectAll, selectedRoots);
+  }
 }

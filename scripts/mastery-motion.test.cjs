@@ -187,6 +187,13 @@ function testProvidedArcadeDriveProgramEndToEnd() {
 function testMotorDrivenMechanisms() {
   for (const unit of [3, 5]) {
     const motion = MasteryMotion.create(unit);
+    motion.setMotorPower('intake', -0.7);
+    motion.step(0.1);
+    assert.equal(
+      motion.snapshot().primaryPosition,
+      0,
+      `Unit ${unit} mechanism must not travel behind its initial retracted stop`,
+    );
     const before = motion.snapshot().primaryPosition;
     motion.setMotorPower('intake', 0.7);
     motion.step(0.1);
@@ -203,6 +210,11 @@ function testMotorDrivenMechanisms() {
 
   for (const unit of [6, 13]) {
     const motion = MasteryMotion.create(unit);
+    if (unit === 6) {
+      motion.setMotorPower('arm', -0.7);
+      motion.step(0.1);
+      assert.equal(motion.snapshot().armAngle, 0, 'Unit 6 arm must not rotate behind its stowed stop');
+    }
     const before = motion.snapshot().armAngle;
     motion.setMotorPower('arm', 0.7);
     motion.step(0.1);
@@ -214,6 +226,24 @@ function testMotorDrivenMechanisms() {
   slide.setMotorPower('slide', 0.8);
   slide.step(0.1);
   assert.notEqual(slide.snapshot().slidePosition, slideBefore, 'Unit 8 slide should move');
+}
+
+function testImportedMechanismEndpoints() {
+  const unit5 = MasteryMotion.create(5);
+  unit5.setMotorPower('intake', 1);
+  for (let step = 0; step < 20; step++) unit5.step(0.1);
+  assert.equal(unit5.snapshot().primaryPosition, 1, 'Unit 5 positive power must stop at the ground endpoint');
+  unit5.setMotorPower('intake', -1);
+  for (let step = 0; step < 20; step++) unit5.step(0.1);
+  assert.equal(unit5.snapshot().primaryPosition, 0, 'Unit 5 negative power must return to the rear stop');
+
+  const unit6 = MasteryMotion.create(6);
+  unit6.setMotorPower('arm', 1);
+  for (let step = 0; step < 20; step++) unit6.step(0.1);
+  assert.equal(unit6.snapshot().armAngle, 0.65, 'Unit 6 positive power must stop at its safe arm endpoint');
+  unit6.setMotorPower('arm', -1);
+  for (let step = 0; step < 20; step++) unit6.step(0.1);
+  assert.equal(unit6.snapshot().armAngle, 0, 'Unit 6 negative power must return to its stowed stop');
 }
 
 function testImportedRobotOutputReadouts() {
@@ -406,6 +436,7 @@ testEveryImportedRobotChassis();
 testUnit4StudentProgramEndToEnd();
 testProvidedArcadeDriveProgramEndToEnd();
 testMotorDrivenMechanisms();
+testImportedMechanismEndpoints();
 testImportedRobotOutputReadouts();
 testUnit5StudentProgramDrivesIntakeAndTelemetry();
 testMechanismsHoldAndReverse();

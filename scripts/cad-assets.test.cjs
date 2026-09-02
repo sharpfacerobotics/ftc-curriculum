@@ -210,11 +210,29 @@ for (const model of chassisModels) {
     const mechanismNode = gltfJson.nodes.find((node) => node.name === 'telemark-cad-mechanism');
     assert.ok(mechanismNode, `${model} must expose actual CAD mechanism geometry`);
     assert.equal(mechanismNode.extras?.telemarkCadMechanism, true);
+    const mechanismBounds = indexedBounds(gltf, mechanismNode);
+    assert.deepEqual(
+      mechanismNode.extras?.telemarkCadBounds,
+      {min: mechanismBounds.min, max: mechanismBounds.max},
+      `${model} must record bounds from the mechanism's indexed triangles`,
+    );
+    assert.deepEqual(
+      mechanismNode.extras?.telemarkCadCenter,
+      mechanismBounds.min.map((value, axis) => (value + mechanismBounds.max[axis]) / 2),
+      `${model} must record the mechanism's indexed center`,
+    );
+    for (const triangle of triangleSignatures(gltf, mechanismNode)) {
+      assert.equal(
+        chassisSignatures.has(triangle),
+        false,
+        `${model} mechanism triangles must be removed from the fixed chassis`,
+      );
+    }
     if (model === 'ftc17438-inputoutput-telemark.glb') {
       assert.equal(
         mechanismNode.extras?.label,
-        'FTC 17438 front intake assembly',
-        'Team 17438 must rig the front intake rather than the rear scoring linkage',
+        'FTC 17438 upper arm assembly',
+        'Team 17438 must rig the driven upper arm while leaving its lower mount fixed',
       );
     }
     const mechanismTriangles = gltfJson.meshes[mechanismNode.mesh].primitives.reduce(
@@ -222,6 +240,13 @@ for (const model of chassisModels) {
       0,
     );
     assert.ok(mechanismTriangles > 1000, `${model} mechanism must contain real CAD triangles`);
+    if (model === 'ftc17438-inputoutput-telemark.glb') {
+      assert.equal(
+        mechanismTriangles,
+        4840,
+        'Team 17438 arm must exclude the curved base plates and fixed motor housing',
+      );
+    }
   }
 }
 
@@ -236,6 +261,11 @@ assert.doesNotMatch(
 );
 assert.match(challengeSource, /getObjectByName\("telemark-cad-mechanism"\)/);
 assert.match(challengeSource, /rigCadTranslation\(model\)/);
+assert.match(challengeSource, /rigCadMechanism\(model, \[0\.46, 0\.505, 0\.5\]\)/);
+assert.match(challengeSource, /rigCadMechanism\(model, \[0\.5, 0\.455, 0\.356\]\)/);
+assert.match(challengeSource, /cadMechanism\.rotation\.z = deployment \* 2\.0/);
+assert.match(challengeSource, /cadMechanism\.rotation\.x = -motion\.state\.armAngle/);
+assert.doesNotMatch(challengeSource, /cadMechanism\.position\.z = -deployment/);
 assert.doesNotMatch(
   challengeSource,
   /Math\.sin\(motion\.state\.primaryAngle/,
