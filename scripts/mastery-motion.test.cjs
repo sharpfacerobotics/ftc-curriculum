@@ -228,6 +228,22 @@ function testMotorDrivenMechanisms() {
   assert.notEqual(slide.snapshot().slidePosition, slideBefore, 'Unit 8 slide should move');
 }
 
+function testResetPoseReturnsRobotToFieldCenter() {
+  const motion = MasteryMotion.create(15);
+  motion.setPose(2.2, -1.7, 1.25);
+  motion.startFollower();
+  motion.step(0.5);
+
+  motion.resetPose();
+  const reset = motion.snapshot();
+  assert.equal(reset.x, 0);
+  assert.equal(reset.z, 0);
+  assert.equal(reset.heading, 0);
+  assert.equal(reset.pathProgress, 0);
+  assert.equal(reset.followerActive, false);
+  assert.deepEqual(reset.wheelAngles, [0, 0, 0, 0]);
+}
+
 function testImportedMechanismEndpoints() {
   const unit5 = MasteryMotion.create(5);
   unit5.setMotorPower('intake', 1);
@@ -436,6 +452,7 @@ testEveryImportedRobotChassis();
 testUnit4StudentProgramEndToEnd();
 testProvidedArcadeDriveProgramEndToEnd();
 testMotorDrivenMechanisms();
+testResetPoseReturnsRobotToFieldCenter();
 testImportedMechanismEndpoints();
 testImportedRobotOutputReadouts();
 testUnit5StudentProgramDrivesIntakeAndTelemetry();

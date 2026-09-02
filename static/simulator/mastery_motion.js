@@ -239,6 +239,18 @@
       }
     }
 
+    function resetPose() {
+      state.x = 0;
+      state.z = 0;
+      state.heading = 0;
+      state.pathProgress = 0;
+      state.followerActive = false;
+      state.driveLeftPower = 0;
+      state.driveRightPower = 0;
+      state.wheelAngles = [0, 0, 0, 0];
+      return state;
+    }
+
     return {
       state,
       setMotorPower,
@@ -255,6 +267,7 @@
         state.z = clamp(z, -2.7, 2.7);
         state.heading = Number(heading) || 0;
       },
+      resetPose,
       step,
       servoValues,
       connectHardwareMap,

@@ -451,6 +451,25 @@ function testPointerStickSnapbackAndArrowVisuals() {
   installed.destroy();
 }
 
+function testEverySimulatorUsesFtcYAxisSign() {
+  const simulatorRoot = path.resolve(__dirname, '../static/simulator');
+  const simulatorSources = fs.readdirSync(simulatorRoot)
+    .filter((name) => name.endsWith('.html'))
+    .map((name) => fs.readFileSync(path.join(simulatorRoot, name), 'utf8'))
+    .join('\n');
+
+  assert.doesNotMatch(
+    simulatorSources,
+    /(?:left|right)_stick_y\s*=\s*-sy/,
+    'legacy simulators must not invert an already-normalized stick Y value',
+  );
+  assert.doesNotMatch(
+    simulatorSources,
+    /setValues\([^\n]*-c(?:lampedD|d)y/,
+    'pointer-up must remain negative throughout legacy simulator paths',
+  );
+}
+
 function testInputCallbackFailureDoesNotAbortInstall() {
   const document = new FakeDocument();
   const eventTarget = new FakeEventTarget();
@@ -493,6 +512,7 @@ testFallbackOverlaySynthesis();
 testInstalledKeyboardLifecycleAndLegend();
 testLegacyDpadBecomesPointerInteractive();
 testPointerStickSnapbackAndArrowVisuals();
+testEverySimulatorUsesFtcYAxisSign();
 testInputCallbackFailureDoesNotAbortInstall();
 
 console.log('Gamepad controls tests passed');

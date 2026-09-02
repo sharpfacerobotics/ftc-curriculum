@@ -1709,7 +1709,7 @@ var sticks = {
     dragging: false, pointerId: null,
     setValues: function(sx, sy) {
       gamepad.left_stick_x = sx;
-      gamepad.left_stick_y = -sy;
+      gamepad.left_stick_y = sy;
       if (currentState === 'RUNNING') { drawFlowchart(); renderConditionInspector(); }
     }
   },
@@ -1720,7 +1720,7 @@ var sticks = {
     dragging: false, pointerId: null,
     setValues: function(sx, sy) {
       gamepad.right_stick_x = sx;
-      gamepad.right_stick_y = -sy;
+      gamepad.right_stick_y = sy;
     }
   }
 };
@@ -1744,7 +1744,8 @@ function updateStickFromPointer(stick, clientX, clientY) {
   var dist = Math.hypot(dx, dy), scale = dist > maxR ? maxR / dist : 1;
   var clampedDx = dx * scale, clampedDy = dy * scale;
   
-  stick.setValues(clamp(clampedDx / maxR, -1, 1), clamp(-clampedDy / maxR, -1, 1));
+  // Screen Y and FTC stick Y use the same sign: up is negative.
+  stick.setValues(clamp(clampedDx / maxR, -1, 1), clamp(clampedDy / maxR, -1, 1));
   
   var knobCx = (zoneRect.left - wrapRect.left + zoneRect.width / 2 + clampedDx) / wrapRect.width * 100;
   var knobCy = (zoneRect.top - wrapRect.top + zoneRect.height / 2 + clampedDy) / wrapRect.height * 100;

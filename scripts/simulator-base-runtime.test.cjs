@@ -40,6 +40,7 @@ function createBaseHarness() {
       classList: {add() {}, remove() {}, toggle() {}},
       addEventListener() {},
       appendChild(child) { value.children.push(child); return child; },
+      querySelector() { return null; },
       setAttribute() {},
     };
     if (id) elements.set(id, value);
@@ -315,6 +316,34 @@ function testLoopRuntimeErrorStopsExecution() {
   assert.match(telemetryText(page), /loop\(\) runtime error.*missingLoopAction/is);
 }
 
+function testStarterCodeCanAlwaysBeRecovered() {
+  const page = createBaseHarness();
+  const editor = page.context.document.getElementById('sim-code-editor');
+
+  page.context.setCode('public class Starter {}');
+  editor.value = '';
+
+  assert.equal(page.context.resetCodeToStarter(), true);
+  assert.equal(editor.value, 'public class Starter {}');
+  assert.deepEqual([editor.selectionStart, editor.selectionEnd], [0, 0]);
+}
+
+function testResetUsesAnInSimulatorConfirmationDialog() {
+  assert.doesNotMatch(
+    simulatorBaseSource,
+    /window\.confirm\s*\(/,
+    'reset must not use the browser-native confirmation prompt',
+  );
+  assert.match(simulatorBaseSource, /id:\s*"sim-reset-dialog-backdrop"/);
+  assert.match(simulatorBaseSource, /aria-modal/);
+  assert.match(simulatorBaseSource, /Restore starter code/);
+  assert.match(simulatorBaseSource, /id:\s*"sim-scene-reset-btn"/);
+  assert.match(simulatorBaseSource, /Reset robot/);
+  assert.match(simulatorBaseSource, /__telemarkMasteryMotion\.resetPose\(\)/);
+  assert.match(simulatorBaseSource, /id:\s*"sim-code-reset-btn"/);
+  assert.match(simulatorBaseSource, /Reset code/);
+}
+
 testCompileErrorGatesInit();
 testMissingCompilerFailsClosed();
 testStudentOnlyTelemetryRoutesDiagnosticsToHints();
@@ -326,4 +355,6 @@ testStartRuntimeErrorGatesRunning();
 testInitLoopRuntimeErrorGatesInitialized();
 testLifecycleTelemetryFramesFlushAutomatically();
 testLoopRuntimeErrorStopsExecution();
+testStarterCodeCanAlwaysBeRecovered();
+testResetUsesAnInSimulatorConfirmationDialog();
 console.log('Shared simulator lifecycle regression tests passed.');

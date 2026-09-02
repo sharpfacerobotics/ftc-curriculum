@@ -315,11 +315,23 @@ function FeatureMark({tone, children}: {tone: string; children: React.ReactNode}
  * without ever showing one, so the only picture of either was the wall of
  * gallery tiles further down the page.
  */
-function FeatureShot({src, alt, caption}: {src: string; alt: string; caption: string}): React.JSX.Element {
+function FeatureShot({
+  src,
+  alt,
+  caption,
+  width = 1100,
+  height = 726,
+}: {
+  src: string;
+  alt: string;
+  caption: string;
+  width?: number;
+  height?: number;
+}): React.JSX.Element {
   const base = useBaseUrl('/').replace(/\/$/, '');
   return (
     <figure className={styles.featureShot}>
-      <img src={`${base}/${src}`} alt={alt} loading="lazy" decoding="async" width={1100} height={726} />
+      <img src={`${base}/${src}`} alt={alt} loading="lazy" decoding="async" width={width} height={height} />
       <figcaption>{caption}</figcaption>
     </figure>
   );
@@ -345,9 +357,11 @@ function SimulatorSection(): React.JSX.Element {
           </p>
         </div>
         <FeatureShot
-          src="img/showcase/arm-simulator.jpg"
-          alt="The arm simulator mid-run, with telemetry beside the simulated arm."
-          caption="The arm simulator, running a student's own numbers."
+          src="img/showcase/unit-6-mastery-homepage.png"
+          alt="The Unit 6 coding challenge open beside FTC Team 17438's simulated robot and gamepad."
+          caption="A complete FTC Java challenge, running against a team's own CAD robot."
+          width={1672}
+          height={941}
         />
       </div>
       <SimulatorWorkflow

@@ -408,6 +408,29 @@ assert.match(
   /if\s*\(\s*!executeInit\s*\(\s*\)\s*\)\s*\{\s*handleStop\s*\(\s*\)\s*;\s*return/,
   'unit8.2.html must not begin its loop after Init compilation fails',
 );
+function assertPositiveZNoseDrive(name, source) {
+  assert.match(
+    source,
+    /marker\.position\.set\s*\(\s*0\s*,\s*0?\.31\s*,\s*0?\.51\s*\)/,
+    `${name} must retain its +Z-facing robot nose marker`,
+  );
+  assert.match(
+    source,
+    /robotGroup\.position\.x\s*\+\s*\(\s*forward\s*\*\s*sin\s*\+\s*strafe\s*\*\s*cos\s*\)/,
+    `${name} forward power must move toward the robot nose on the X axis`,
+  );
+  assert.match(
+    source,
+    /robotGroup\.position\.z\s*\+\s*\(\s*forward\s*\*\s*cos\s*-\s*strafe\s*\*\s*sin\s*\)/,
+    `${name} forward power must move toward the robot nose on the Z axis`,
+  );
+}
+
+assertPositiveZNoseDrive('unit8.2.html', unit82Source);
+assertPositiveZNoseDrive(
+  'unit10.4.html',
+  fs.readFileSync(path.join(simulatorRoot, 'unit10.4.html'), 'utf8'),
+);
 
 const unit83Source = requiredMethodSources['unit8.3.html'];
 assert.match(
