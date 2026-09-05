@@ -231,18 +231,18 @@ public class PoseCorrection extends OpMode {
     void correctPoseFromLimelight() {
         LLResult result = limelight.getLatestResult();
 
-        // Guard clause 1: invalid result
-        // TODO: Return if result is not valid
+        // TODO: Reject invalid, stale (>100 ms), or tagless results
 
-        // Guard clause 2: unavailable pose
         // TODO: Read result.getBotpose() into a Pose3D named botpose
         // TODO: Return if botpose is null
 
-        // Convert meters to inches and request yaw in radians
-        // TODO: Read botpose.getPosition().x and .y, then convert to inches
-        // TODO: Read botpose.getOrientation().getYaw(AngleUnit.RADIANS)
+        // TODO: Read the current follower Pose, then calculate x, y, and
+        // normalized-heading innovations (measurement minus estimate)
 
-        // TODO: Apply the corrected pose to the follower
+        // TODO: Reject position innovations larger than 12 inches
+
+        // TODO: Choose a gain between 0 and 1 and apply that fraction of
+        // each innovation instead of overwriting the estimate
     }
 
     @Override
@@ -259,13 +259,13 @@ public class PoseCorrection extends OpMode {
 
   const requirements = [
     "Call limelight.getLatestResult()",
-    "Check result.isValid() before using pose data",
-    "Read result.getBotpose() into a Pose3D",
-    "Check result.getBotpose() != null",
-    "Convert meters to inches with 39.3701 or equivalent",
-    "Request yaw with AngleUnit.RADIANS",
-    "Call follower.setPose(new Pose(...)) with converted values",
-    "Place guard clauses before follower.setPose()"
+    "Reject invalid Limelight results",
+    "Gate on result freshness and tag count",
+    "Read and null-check result.getBotpose()",
+    "Compute innovations from the current follower pose",
+    "Reject a large position innovation",
+    "Use a fusion gain strictly between 0 and 1",
+    "Blend x, y, and normalized heading in follower.setPose()"
   ];
 
   const INCHES_PER_METER = 39.3701;
@@ -288,7 +288,8 @@ public class PoseCorrection extends OpMode {
       resultNotNull: true,
       valid: true,
       botposeNotNull: true,
-      lengthOk: true
+      freshAndTagged: true,
+      innovationOk: true
     }
   };
 
@@ -381,20 +382,20 @@ public class PoseCorrection extends OpMode {
   setCode(starterCode);
   setChallenge(
     "Telemark Unit 15.4 Simulator",
-    "Limelight Pose Correction with Pedro Pathing",
+    "Gated Limelight + Odometry Pose Fusion",
     requirements
   );
   setBadges([
     { icon: "fa-crosshairs", iconClass: "fa-solid fa-crosshairs", label: "Limelight", active: true },
     { icon: "fa-route", iconClass: "fa-solid fa-route", label: "PedroPathing", active: true },
-    { icon: "fa-arrows-to-dot", iconClass: "fa-solid fa-arrows-to-dot", label: "PoseCorrection", active: true },
+    { icon: "fa-arrows-to-dot", iconClass: "fa-solid fa-arrows-to-dot", label: "SensorFusion", active: true },
     { icon: "fa-display", iconClass: "fa-solid fa-display", label: "Telemetry", active: true }
   ]);
   setActiveInputs([]);
 
   const banner = el("sim-success-banner");
   if (banner) {
-    banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> Challenge Complete! correctPoseFromLimelight handles all edge cases and converts units correctly.';
+    banner.innerHTML = '<i class="fa-solid fa-circle-check"></i> Challenge Complete! The estimator gates and blends AprilTag measurements.';
   }
 
   followerDevice = hardwareMap.registerFollower("follower");
@@ -441,7 +442,7 @@ public class PoseCorrection extends OpMode {
         validateCode();
         updatePanel();
       } catch (err) {
-        state.lastError = "NullPointerException or runtime error: " + err.message;
+        state.lastError = "runtime error: " + err.message;
         state.lastCorrectionStatus = "ERROR";
         state.running = false;
         failStudentExecution(state.lastError);
@@ -567,7 +568,7 @@ public class PoseCorrection extends OpMode {
     panel.id = "u154-panel";
     panel.className = "u154-panel";
     panel.innerHTML = `
-      <div class="u154-title"><i class="fa-solid fa-map-location-dot"></i> Pose Correction</div>
+      <div class="u154-title"><i class="fa-solid fa-map-location-dot"></i> Pose Fusion</div>
       <div class="u154-grid">
         <div class="u154-card large" id="u154-odom-card"></div>
         <div class="u154-card large" id="u154-lime-card"></div>
@@ -594,7 +595,8 @@ public class PoseCorrection extends OpMode {
         <button class="u154-button" type="button" data-scenario="valid">Valid Reading</button>
         <button class="u154-button" type="button" data-scenario="nullBotpose">Null Botpose</button>
         <button class="u154-button" type="button" data-scenario="invalid">Invalid Result</button>
-        <button class="u154-button" type="button" data-scenario="starting">Camera Starting</button>
+        <button class="u154-button" type="button" data-scenario="stale">Stale Frame</button>
+        <button class="u154-button" type="button" data-scenario="outlier">Pose Outlier</button>
       </div>
       <div class="u154-card" style="margin-top:8px">
         <i class="fa-solid fa-arrows-left-right"></i> Drift slider<br>
@@ -604,9 +606,9 @@ public class PoseCorrection extends OpMode {
 
       <div class="u154-callout">
         <i class="fa-solid fa-circle-info"></i>
-        Limelight MegaTag2 returns meters and yaw degrees. Pedro Pathing expects inches and radians.
+        Odometry predicts continuously. Fresh AprilTag poses constrain the estimate according to a tunable gain.
       </div>
-      <div class="u154-success" id="u154-success"><i class="fa-solid fa-circle-check"></i> Challenge Complete! correctPoseFromLimelight handles all edge cases and converts units correctly.</div>
+      <div class="u154-success" id="u154-success"><i class="fa-solid fa-circle-check"></i> Challenge Complete! Measurements are gated and blended.</div>
       <div class="u154-warning" id="u154-warning"></div>
     `;
     rightPanel.appendChild(panel);
@@ -864,9 +866,10 @@ public class PoseCorrection extends OpMode {
       );
       correctFn = new Function(
         "getLimelightResult",
+        "getFollowerPose",
         "setFollowerPose",
         "createPose",
-        "degreesToRadians",
+        "normalizeAngle",
         '"use strict";\n' + transpileCorrectBody(correctBody)
       );
       loopFn = new Function(
@@ -926,11 +929,18 @@ public class PoseCorrection extends OpMode {
       .replace(/\blimelight\s*\.\s*getLatestResult\s*\(\s*\)/g, "getLimelightResult()")
       .replace(/\bresult\s*\.\s*getBotpose\s*\(\s*\)/g, "result.botpose")
       .replace(/\bresult\s*\.\s*isValid\s*\(\s*\)/g, "result.valid")
+      .replace(/\bresult\s*\.\s*getStaleness\s*\(\s*\)/g, "result.staleness")
+      .replace(/\bresult\s*\.\s*getBotposeTagCount\s*\(\s*\)/g, "result.tagCount")
       .replace(/\bbotpose\s*\.\s*getPosition\s*\(\s*\)\s*\.\s*x\b/g, "botpose.position.x")
       .replace(/\bbotpose\s*\.\s*getPosition\s*\(\s*\)\s*\.\s*y\b/g, "botpose.position.y")
       .replace(/\bbotpose\s*\.\s*getOrientation\s*\(\s*\)\s*\.\s*getYaw\s*\(\s*AngleUnit\.RADIANS\s*\)/g, "botpose.orientation.yawRadians")
+      .replace(/\bfollower\s*\.\s*getPose\s*\(\s*\)/g, "getFollowerPose()")
       .replace(/\bfollower\s*\.\s*setPose\s*\(/g, "setFollowerPose(")
       .replace(/\bnew\s+Pose\s*\(/g, "createPose(")
+      .replace(/\bAngleUnit\s*\.\s*normalizeRadians\s*\(/g, "normalizeAngle(")
+      .replace(/\.getX\s*\(\s*\)/g, ".x")
+      .replace(/\.getY\s*\(\s*\)/g, ".y")
+      .replace(/\.getHeading\s*\(\s*\)/g, ".heading")
       .replace(/(^|[;{}\n]\s*)(?:final\s+)?(?:LLResult|Pose3D|Pose|double|int|boolean|String|float|long|byte|short|char)\s+([A-Za-z_$])/gm, "$1let $2");
     if (typeof _simTranspile === "function") js = _simTranspile(js);
     return js;
@@ -964,8 +974,9 @@ public class PoseCorrection extends OpMode {
   }
 
   function setFollowerPose(pose) {
+    const before = driftMagnitude();
     state.odomPose = createPose(pose && pose.x, pose && pose.y, pose && pose.heading);
-    state.lastCorrectionStatus = correctionGood() ? "CORRECTED" : "CORRECTED WITH BAD UNITS";
+    state.lastCorrectionStatus = driftMagnitude() < before ? "FUSED" : "FUSION MOVED AWAY";
     state.correctedAt = performance.now();
     emitFollowerPoseSet();
   }
@@ -991,11 +1002,7 @@ public class PoseCorrection extends OpMode {
       state.lastError = "correctPoseFromLimelight() was not found.";
       return;
     }
-    correctFn(getLimelightResult, setFollowerPose, createPose, degreesToRadians);
-  }
-
-  function degreesToRadians(value) {
-    return (Number(value) || 0) * Math.PI / 180;
+    correctFn(getLimelightResult, getFollowerPose, setFollowerPose, createPose, normalizeAngle);
   }
 
   function getLimelightResult() {
@@ -1004,10 +1011,11 @@ public class PoseCorrection extends OpMode {
       resultNotNull: true,
       valid: !!botpose.result.valid,
       botposeNotNull: !!botpose.result.botpose,
-      lengthOk: !!botpose.result.botpose
+      freshAndTagged: botpose.result.staleness <= 100 && botpose.result.tagCount > 0,
+      innovationOk: state.scenario !== "outlier"
     };
     state.guardRuntime = runtime;
-    if (runtime.lengthOk) emitLimelightBotpose();
+    if (runtime.botposeNotNull) emitLimelightBotpose();
     return botpose.result;
   }
 
@@ -1021,9 +1029,15 @@ public class PoseCorrection extends OpMode {
         yawRadians: TRUE_POSE.heading
       }
     };
-    if (state.scenario === "valid") return { result: { valid: true, botpose: raw } };
-    if (state.scenario === "nullBotpose") return { result: { valid: true, botpose: null } };
-    return { result: { valid: false, botpose: null } };
+    if (state.scenario === "outlier") {
+      raw.position.x = (TRUE_POSE.x + 48) / INCHES_PER_METER;
+      raw.position.y = (TRUE_POSE.y - 36) / INCHES_PER_METER;
+    }
+    if (state.scenario === "valid") return { result: { valid: true, botpose: raw, staleness: 22, tagCount: 2 } };
+    if (state.scenario === "nullBotpose") return { result: { valid: true, botpose: null, staleness: 22, tagCount: 2 } };
+    if (state.scenario === "stale") return { result: { valid: true, botpose: raw, staleness: 260, tagCount: 1 } };
+    if (state.scenario === "outlier") return { result: { valid: true, botpose: raw, staleness: 22, tagCount: 1 } };
+    return { result: { valid: false, botpose: null, staleness: 0, tagCount: 0 } };
   }
 
   function applyDrift() {
@@ -1035,10 +1049,6 @@ public class PoseCorrection extends OpMode {
     };
     state.correctedAt = 0;
     emitFollowerPoseSet();
-  }
-
-  function correctionGood() {
-    return driftMagnitude() < 1.8 && Math.abs(normalizeAngle(state.odomPose.heading - TRUE_POSE.heading)) < 0.08;
   }
 
   function driftMagnitude() {
@@ -1063,22 +1073,22 @@ public class PoseCorrection extends OpMode {
     const checks = validateCode(false);
     const drift = driftMagnitude();
     const rawX = TRUE_POSE.x / INCHES_PER_METER;
-    const rawYaw = TRUE_POSE.heading * 180 / Math.PI;
+    const rawYaw = TRUE_POSE.heading;
     const driftClass = drift < 2 ? "good" : drift < 5 ? "warn" : "bad";
-    const statusClass = state.lastCorrectionStatus === "CORRECTED" ? "good" : state.lastCorrectionStatus === "ERROR" ? "bad" : "warn";
+    const statusClass = state.lastCorrectionStatus === "FUSED" ? "good" : state.lastCorrectionStatus === "ERROR" ? "bad" : "warn";
 
     renderCard("u154-odom-card", '<i class="fa-solid fa-route"></i> ODOM<br><strong>(' + fmt(state.odomPose.x) + ", " + fmt(state.odomPose.y) + ", " + fmt(state.odomPose.heading) + " rad)</strong>", driftClass);
     renderCard("u154-lime-card", '<i class="fa-solid fa-crosshairs"></i> LIMELIGHT<br><strong>(' + fmt(TRUE_POSE.x) + ", " + fmt(TRUE_POSE.y) + ", " + fmt(TRUE_POSE.heading) + " rad)</strong>", "good");
     renderCard("u154-drift-card", '<i class="fa-solid fa-ruler"></i> DRIFT<br><strong>' + fmt(drift) + " inches</strong>", driftClass);
     renderCard("u154-status-card", '<i class="fa-solid fa-location-crosshairs"></i> Status<br><strong>' + escapeHTML(state.lastCorrectionStatus) + "</strong>", statusClass);
 
-    renderGuard("u154-guard-result", "LLResult available", true, state.guardRuntime.resultNotNull);
-    renderGuard("u154-guard-valid", "result.isValid()", checks.meta.hasValidCheck, state.guardRuntime.valid);
+    renderGuard("u154-guard-result", "result.isValid()", checks.meta.hasValidCheck, state.guardRuntime.valid);
     renderGuard("u154-guard-botpose", "Pose3D botpose", checks.meta.hasPose3D, state.guardRuntime.botposeNotNull);
-    renderGuard("u154-guard-length", "yaw in radians", checks.meta.hasYawConversion, state.guardRuntime.lengthOk);
+    renderGuard("u154-guard-valid", "fresh + tagged", checks.meta.hasFreshnessGate && checks.meta.hasTagGate, state.guardRuntime.freshAndTagged);
+    renderGuard("u154-guard-length", "innovation gate", checks.meta.hasInnovationGate, state.guardRuntime.innovationOk);
 
     renderConversion("u154-conv-x", "Raw Limelight X", fmt(rawX) + " m", "Converted X", fmt(rawX * INCHES_PER_METER) + " in", checks.meta.hasMetersConversion);
-    renderConversion("u154-conv-yaw", "Raw yaw", fmt(rawYaw) + " deg", "Converted yaw", fmt(rawYaw * Math.PI / 180) + " rad", checks.meta.hasYawConversion);
+    renderConversion("u154-conv-yaw", "Requested yaw", fmt(rawYaw) + " rad", "Heading residual", "normalized", checks.meta.hasYawConversion && checks.meta.hasInnovations);
 
     const sliderLabel = el("u154-drift-slider-label");
     if (sliderLabel) sliderLabel.textContent = fmt(state.driftAmount) + " in";
@@ -1112,8 +1122,8 @@ public class PoseCorrection extends OpMode {
       correctionBadge.style.color = state.lastCorrectionStatus === "ERROR" ? "#8f8778" : "#f3ead7";
       correctionBadge.style.borderColor = state.lastCorrectionStatus === "ERROR" ? "rgba(143, 135, 120, 0.58)" : "rgba(243, 234, 215, 0.58)";
       correctionBadge.innerHTML = state.lastCorrectionStatus === "ERROR"
-        ? '<i class="fa-solid fa-burst"></i> NullPointerException'
-        : '<i class="fa-solid fa-circle-check"></i> POSE CORRECTED';
+        ? '<i class="fa-solid fa-burst"></i> RUNTIME ERROR'
+        : '<i class="fa-solid fa-circle-check"></i> MEASUREMENT FUSED';
     }
   }
 
@@ -1150,28 +1160,40 @@ public class PoseCorrection extends OpMode {
     const correctBody = extractMethodBody(code, "correctPoseFromLimelight") || "";
     const setPoseIndex = correctBody.search(/follower\s*\.\s*setPose\s*\(/);
     const beforeSetPose = setPoseIndex >= 0 ? correctBody.slice(0, setPoseIndex) : correctBody;
+    const hasLatestResult = /limelight\s*\.\s*getLatestResult\s*\(\s*\)/.test(correctBody);
     const hasValidCheck = /!\s*result\s*\.\s*isValid\s*\(\s*\)|result\s*\.\s*isValid\s*\(\s*\)\s*==\s*false|result\s*\.\s*isValid\s*\(\s*\)/.test(correctBody);
+    const hasFreshnessGate = /getStaleness\s*\(\s*\)\s*>\s*(?:100(?:\.0)?|[A-Z_][A-Z0-9_]*)/.test(beforeSetPose);
+    const hasTagGate = /getBotposeTagCount\s*\(\s*\)\s*<\s*(?:1(?:\.0)?|[A-Z_][A-Z0-9_]*)/.test(beforeSetPose);
     const hasPose3D = /\bPose3D\s+botpose\s*=\s*result\s*\.\s*getBotpose\s*\(\s*\)/.test(correctBody);
     const hasBotposeNull = /botpose\s*==\s*null|null\s*==\s*botpose|botpose\s*!=\s*null|null\s*!=\s*botpose/.test(correctBody);
     const hasMetersConversion = /getPosition\s*\(\s*\)\s*\.\s*x/.test(correctBody) &&
       /getPosition\s*\(\s*\)\s*\.\s*y/.test(correctBody) &&
       /39\.3701|39\.37|\/\s*0\.0254/.test(correctBody);
     const hasYawConversion = /getOrientation\s*\(\s*\)\s*\.\s*getYaw\s*\(\s*AngleUnit\s*\.\s*RADIANS\s*\)/.test(correctBody);
-    const returnCount = (beforeSetPose.match(/\breturn\s*;/g) || []).length;
-    const setPoseConverted = /follower\s*\.\s*setPose\s*\(\s*new\s+Pose\s*\(/.test(correctBody) &&
-      /xInches/.test(correctBody) &&
-      /yInches/.test(correctBody) &&
-      /heading/.test(correctBody);
+    const hasEstimate = /\bPose\s+(?:estimate|predicted)\s*=\s*follower\s*\.\s*getPose\s*\(\s*\)/.test(correctBody);
+    const hasInnovations = /\bdouble\s+innovationX\s*=/.test(correctBody) &&
+      /\bdouble\s+innovationY\s*=/.test(correctBody) &&
+      /\bdouble\s+innovationHeading\s*=\s*AngleUnit\s*\.\s*normalizeRadians\s*\(/.test(correctBody);
+    const hasInnovationGate = /Math\s*\.\s*hypot\s*\(\s*innovationX\s*,\s*innovationY\s*\)\s*>\s*(?:12(?:\.0)?|[A-Z_][A-Z0-9_]*)/.test(beforeSetPose);
+    const gainMatch = correctBody.match(/\bdouble\s+gain\s*=\s*(0(?:\.\d+)?|1(?:\.0+)?)\s*;/);
+    const gainValue = gainMatch ? Number(gainMatch[1]) : NaN;
+    const hasGain = Number.isFinite(gainValue) && gainValue > 0 && gainValue < 1;
+    const hasSetPose = /follower\s*\.\s*setPose\s*\(\s*new\s+Pose\s*\(/.test(correctBody);
+    const hasBlendedX = /(?:estimate|predicted)\s*\.\s*getX\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationX/.test(correctBody);
+    const hasBlendedY = /(?:estimate|predicted)\s*\.\s*getY\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationY/.test(correctBody);
+    const hasBlendedHeading = /AngleUnit\s*\.\s*normalizeRadians\s*\([\s\S]*?(?:estimate|predicted)\s*\.\s*getHeading\s*\(\s*\)\s*\+\s*gain\s*\*\s*innovationHeading/.test(correctBody);
+    const guardsBeforeSetPose = setPoseIndex > 0 && hasValidCheck && hasFreshnessGate &&
+      hasTagGate && hasBotposeNull && hasInnovationGate;
 
     const checks = [
-      /limelight\s*\.\s*getLatestResult\s*\(\s*\)/.test(correctBody),
+      hasLatestResult,
       hasValidCheck,
-      hasPose3D,
-      hasBotposeNull,
-      hasMetersConversion,
-      hasYawConversion,
-      setPoseConverted,
-      hasValidCheck && hasBotposeNull && returnCount >= 2 && setPoseIndex > beforeSetPose.search(/\breturn\s*;/)
+      hasFreshnessGate && hasTagGate,
+      hasPose3D && hasBotposeNull,
+      hasMetersConversion && hasYawConversion && hasEstimate && hasInnovations,
+      hasInnovationGate,
+      hasGain,
+      hasSetPose && hasBlendedX && hasBlendedY && hasBlendedHeading && guardsBeforeSetPose
     ];
     if (updateRequirements !== false) {
       checks.forEach(function (passed, index) {
@@ -1182,30 +1204,37 @@ public class PoseCorrection extends OpMode {
       list: checks,
       meta: {
         hasValidCheck: hasValidCheck,
+        hasFreshnessGate: hasFreshnessGate,
+        hasTagGate: hasTagGate,
         hasPose3D: hasPose3D,
         hasBotposeNull: hasBotposeNull,
         hasMetersConversion: hasMetersConversion,
         hasYawConversion: hasYawConversion,
+        hasEstimate: hasEstimate,
+        hasInnovations: hasInnovations,
+        hasInnovationGate: hasInnovationGate,
+        hasGain: hasGain,
+        hasSetPose: hasSetPose,
+        hasBlendedX: hasBlendedX,
+        hasBlendedY: hasBlendedY,
+        hasBlendedHeading: hasBlendedHeading,
         setPoseIndex: setPoseIndex,
-        returnCount: returnCount,
         correctBody: correctBody
       }
     };
   }
 
   function getHint(meta) {
-    const body = meta.correctBody || "";
     if (!meta.hasValidCheck) return { type: "error", message: "Check result.isValid() before using pose data" };
+    if (!meta.hasFreshnessGate || !meta.hasTagGate) return { type: "error", message: "Reject stale results and require at least one tag" };
     if (!meta.hasPose3D) return { type: "error", message: "Store result.getBotpose() in a Pose3D variable named botpose" };
     if (!meta.hasBotposeNull) return { type: "error", message: "Check botpose != null before reading its position" };
     if (!meta.hasMetersConversion) return { type: "error", message: "Read botpose.getPosition().x and .y, then convert meters to inches" };
     if (!meta.hasYawConversion) return { type: "error", message: "Read yaw with getYaw(AngleUnit.RADIANS)" };
-    if (meta.setPoseIndex >= 0 && /\bfollower\s*\.\s*setPose\s*\(/.test(body.slice(0, meta.setPoseIndex))) {
-      return { type: "error", message: "All guard clauses must come before setPose() - return early if any check fails" };
-    }
-    if (!/xInches/.test(body) || !/yInches/.test(body)) {
-      return { type: "error", message: "Pass the converted x and y values into the new Pose" };
-    }
+    if (!meta.hasEstimate || !meta.hasInnovations) return { type: "error", message: "Compute measurement-minus-estimate innovations for x, y, and normalized heading" };
+    if (!meta.hasInnovationGate) return { type: "error", message: "Reject position innovations above 12 inches before fusion" };
+    if (!meta.hasGain) return { type: "error", message: "Declare a double gain strictly between 0 and 1" };
+    if (!meta.hasSetPose || !meta.hasBlendedX || !meta.hasBlendedY || !meta.hasBlendedHeading) return { type: "error", message: "Blend all three innovations into the follower pose and normalize heading" };
     if (!/telemetry\s*\.\s*update\s*\(\s*\)/.test(getCodeSafe())) {
       return { type: "warn", message: "Call telemetry.update() to send data to the Driver Station" };
     }
@@ -1224,7 +1253,8 @@ public class PoseCorrection extends OpMode {
     if (value === "valid") return "Valid Reading";
     if (value === "nullBotpose") return "Null Botpose";
     if (value === "invalid") return "Invalid Result";
-    return "Camera Starting";
+    if (value === "stale") return "Stale Frame";
+    return "Pose Outlier";
   }
 
   function extractMethodBody(source, methodName) {

@@ -31,7 +31,7 @@
       wheelAngles: [0, 0, 0, 0],
       primaryAngle: 0,
       primaryPosition: 0,
-      slidePosition: 1.25,
+      slidePosition: unit === 8 ? 0.72 : 1.25,
       armAngle: 0,
       cameraAngle: 0,
       pathProgress: 0,

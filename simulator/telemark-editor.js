@@ -17,6 +17,123 @@
   const CLOSERS = new Set(Object.values(PAIRS));
   const DRAFT_PREFIX = "telemark.editor.v1:";
   const DRAFT_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+  const GLOBAL_COMPLETIONS = [
+    {label: "@Autonomous", insertText: '@Autonomous(name="Name")', detail: "Register an Autonomous OpMode"},
+    {label: "@TeleOp", insertText: '@TeleOp(name="Name")', detail: "Register a TeleOp OpMode"},
+    {label: "ElapsedTime", insertText: "ElapsedTime timer = new ElapsedTime();", detail: "Create a non-blocking SDK timer"},
+    {label: "for", insertText: "for (int i = 0; i < count; i++) {\n    \n}", cursorOffset: 9, detail: "Counted loop"},
+    {label: "if", insertText: "if (condition) {\n    \n}", cursorOffset: 4, detail: "Conditional block"},
+    {label: "while", insertText: "while (opModeIsActive()) {\n    \n}", cursorOffset: 7, detail: "Active OpMode loop"},
+  ];
+  const MEMBER_COMPLETIONS = {
+    hardwareMap: [
+      {label: "get", insertText: 'get(DcMotor.class, "name")', detail: "Required configured device"},
+      {label: "tryGet", insertText: 'tryGet(DcMotor.class, "name")', detail: "Optional device; may return null"},
+    ],
+    telemetry: [
+      {label: "addData", insertText: 'addData("Caption", value)', detail: "Add a telemetry item"},
+      {label: "update", insertText: "update()", detail: "Send queued telemetry"},
+      {label: "clear", insertText: "clear()", detail: "Clear telemetry items"},
+    ],
+    gamepad1: gamepadCompletions(),
+    gamepad2: gamepadCompletions(),
+    limelight: [
+      {label: "getLatestResult", insertText: "getLatestResult()", detail: "Read the latest vision result"},
+      {label: "pipelineSwitch", insertText: "pipelineSwitch(0)", detail: "Select a Limelight pipeline"},
+      {label: "start", insertText: "start()", detail: "Begin polling"},
+      {label: "stop", insertText: "stop()", detail: "Stop polling"},
+      {label: "updateRobotOrientation", insertText: "updateRobotOrientation(yawDegrees)", detail: "Send robot yaw for MegaTag2"},
+    ],
+    result: [
+      {label: "isValid", insertText: "isValid()", detail: "Check target validity"},
+      {label: "getBotpose", insertText: "getBotpose()", detail: "Robot field pose"},
+      {label: "getBotpose_MT2", insertText: "getBotpose_MT2()", detail: "MegaTag2 robot field pose"},
+      {label: "getStaleness", insertText: "getStaleness()", detail: "Result age in milliseconds"},
+      {label: "getBotposeTagCount", insertText: "getBotposeTagCount()", detail: "Tags used for pose estimate"},
+      {label: "getBotposeAvgDist", insertText: "getBotposeAvgDist()", detail: "Average target distance"},
+    ],
+    follower: [
+      {label: "update", insertText: "update()", detail: "Advance localization and following"},
+      {label: "getPose", insertText: "getPose()", detail: "Current pose estimate"},
+      {label: "setPose", insertText: "setPose(new Pose(x, y, heading))", detail: "Apply a corrected pose"},
+      {label: "followPath", insertText: "followPath(path)", detail: "Start following a path"},
+      {label: "isBusy", insertText: "isBusy()", detail: "Check whether a path is active"},
+    ],
+    imu: [
+      {label: "getRobotYawPitchRollAngles", insertText: "getRobotYawPitchRollAngles()", detail: "Read robot orientation"},
+      {label: "resetYaw", insertText: "resetYaw()", detail: "Zero the yaw angle"},
+    ],
+  };
+  const TIMER_COMPLETIONS = [
+    {label: "reset", insertText: "reset()", detail: "Restart the timer at zero"},
+    {label: "seconds", insertText: "seconds()", detail: "Elapsed seconds"},
+    {label: "milliseconds", insertText: "milliseconds()", detail: "Elapsed milliseconds"},
+    {label: "time", insertText: "time()", detail: "Elapsed seconds"},
+  ];
+
+  function methods(specs) {
+    return specs.map(function (spec) {
+      const label = spec.split('(')[0];
+      return {label: label, insertText: spec, detail: spec,
+        cursorOffset: spec.endsWith('()') ? spec.length : spec.indexOf('(') + 1};
+    });
+  }
+  const MOTOR_COMPLETIONS = methods(['setPower(0.0)', 'getPower()', 'setDirection(DcMotorSimple.Direction.REVERSE)',
+    'getDirection()', 'setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE)', 'getZeroPowerBehavior()',
+    'setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER)', 'getMode()', 'setTargetPosition(0)',
+    'getTargetPosition()', 'getCurrentPosition()', 'isBusy()']);
+  const TYPE_COMPLETIONS = {
+    DcMotor: MOTOR_COMPLETIONS,
+    DcMotorEx: MOTOR_COMPLETIONS.concat(methods(['setVelocity(0.0)', 'getVelocity()', 'setTargetPositionTolerance(10)', 'isOverCurrent()'])),
+    Servo: methods(['setPosition(0.0)', 'getPosition()', 'scaleRange(0.0, 1.0)', 'setDirection(Servo.Direction.REVERSE)', 'getDirection()']),
+    CRServo: methods(['setPower(0.0)', 'getPower()', 'setDirection(DcMotorSimple.Direction.REVERSE)', 'getDirection()']),
+    DigitalChannel: methods(['getState()', 'setMode(DigitalChannel.Mode.INPUT)', 'getMode()', 'setState(true)']),
+    TouchSensor: methods(['isPressed()', 'getValue()']),
+    AnalogInput: methods(['getVoltage()', 'getMaxVoltage()']),
+    DistanceSensor: methods(['getDistance(DistanceUnit.CM)']),
+    ColorSensor: methods(['red()', 'green()', 'blue()', 'alpha()', 'argb()', 'enableLed(true)']),
+    ElapsedTime: TIMER_COMPLETIONS,
+    IMU: MEMBER_COMPLETIONS.imu.concat(methods(['initialize(parameters)'])),
+    Limelight3A: MEMBER_COMPLETIONS.limelight,
+    LLResult: MEMBER_COMPLETIONS.result,
+    Follower: MEMBER_COMPLETIONS.follower,
+    Telemetry: MEMBER_COMPLETIONS.telemetry,
+    HardwareMap: MEMBER_COMPLETIONS.hardwareMap,
+    Gamepad: gamepadCompletions(),
+  };
+  GLOBAL_COMPLETIONS.push.apply(GLOBAL_COMPLETIONS, methods([
+    'opModeIsActive()', 'isStopRequested()', 'waitForStart()', 'getRuntime()', 'resetRuntime()',
+  ]));
+
+  function declarations(source) {
+    const clean = String(source).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g,
+      function (text) { return text.replace(/[^\n]/g, ' '); });
+    const found = new Map();
+    const pattern = /\b([A-Za-z_$][\w$]*)(?:\s*<[^;{}=]+>)?\s*(?:\[\s*\])?\s+([A-Za-z_$][\w$]*)\s*(?=[=;,):])/g;
+    let match;
+    while ((match = pattern.exec(clean))) {
+      if (/^(return|new|throw|package|import|else|case)$/.test(match[1])) continue;
+      found.set(match[2], match[1]);
+      // Also support fields such as "DcMotor left, right;".
+      let rest = clean.slice(pattern.lastIndex);
+      let next;
+      while ((next = rest.match(/^\s*,\s*([A-Za-z_$][\w$]*)\s*(?=[,;=])/))) {
+        found.set(next[1], match[1]);
+        rest = rest.slice(next[0].length);
+      }
+    }
+    return found;
+  }
+
+  function gamepadCompletions() {
+    return [
+      "a", "b", "x", "y", "dpad_up", "dpad_down", "dpad_left", "dpad_right",
+      "left_bumper", "right_bumper", "left_trigger", "right_trigger",
+      "left_stick_x", "left_stick_y", "right_stick_x", "right_stick_y",
+    ].map(function (label) {
+      return {label: label, insertText: label, detail: "Gamepad input"};
+    });
+  }
 
   function runtimeRoot() {
     return typeof globalThis !== "undefined" ? globalThis : {};
@@ -188,6 +305,210 @@
     }
     editor.selectionStart = selectionStart;
     editor.selectionEnd = selectionEnd == null ? selectionStart : selectionEnd;
+  }
+
+  function completionContext(value, cursor) {
+    const source = String(value || "");
+    const position = Math.max(0, Math.min(source.length, Number(cursor) || 0));
+    const before = source.slice(0, position);
+    const member = before.match(/([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)?$/);
+    if (member) {
+      return {
+        receiver: member[1],
+        prefix: member[2] || "",
+        replaceStart: position - (member[2] || "").length,
+        replaceEnd: position,
+      };
+    }
+    const global = before.match(/(?:^|[^\w$])([A-Za-z_$][\w$]*)$/);
+    const prefix = global ? global[1] : "";
+    return {
+      receiver: null,
+      prefix: prefix,
+      replaceStart: position - prefix.length,
+      replaceEnd: position,
+    };
+  }
+
+  function elapsedTimeVariables(source) {
+    const names = new Set();
+    const pattern = /\bElapsedTime\s+([A-Za-z_$][\w$]*)/g;
+    let match;
+    while ((match = pattern.exec(String(source || "")))) names.add(match[1]);
+    return names;
+  }
+
+  function getCompletions(value, cursor, options) {
+    options = options || {};
+    const context = completionContext(value, cursor);
+    // Do not offer code while typing comments or string literals.
+    const before = String(value).slice(0, cursor);
+    const tokens = before.match(/\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*|"(?:\\.|[^"\\])*(?:"|$)|'(?:\\.|[^'\\])*(?:'|$)/g) || [];
+    const last = tokens[tokens.length - 1];
+    if (last && before.endsWith(last) && (last.startsWith('//') ||
+      (last.startsWith('/*') && !last.endsWith('*/')) ||
+      (last.startsWith('"') && (last.length === 1 || !last.endsWith('"'))) ||
+      (last.startsWith("'") && (last.length === 1 || !last.endsWith("'"))))) return [];
+    const variables = declarations(value);
+    let pool;
+    if (context.receiver) {
+      pool = TYPE_COMPLETIONS[variables.get(context.receiver)] || MEMBER_COMPLETIONS[context.receiver];
+      if (!pool && elapsedTimeVariables(value).has(context.receiver)) pool = TIMER_COMPLETIONS;
+    } else {
+      pool = GLOBAL_COMPLETIONS.concat(Array.from(variables, function (entry) {
+        return {label: entry[0], insertText: entry[0], detail: entry[1] + ' variable'};
+      }), ['hardwareMap', 'telemetry', 'gamepad1', 'gamepad2'].map(function (name) {
+        return {label: name, insertText: name, detail: 'OpMode field'};
+      }));
+      if (!options.force && context.prefix.length < 2) return [];
+    }
+    if (!pool) return [];
+    const prefix = context.prefix.toLowerCase();
+    return pool.filter(function (item, index) { return pool.findIndex(function (other) { return other.label === item.label; }) === index; })
+      .filter(function (item) { return !prefix || item.label.toLowerCase().startsWith(prefix); })
+      .map(function (item) {
+        return Object.assign({}, item, {
+          replaceStart: context.replaceStart,
+          replaceEnd: context.replaceEnd,
+        });
+      });
+  }
+
+  function closeCompletions(editor) {
+    const state = editor && editor.__telemarkCompletion;
+    if (!state) return;
+    if (state.menu && typeof state.menu.remove === "function") state.menu.remove();
+    delete editor.__telemarkCompletion;
+    if (typeof editor.removeAttribute === "function") editor.removeAttribute("aria-activedescendant");
+  }
+
+  function positionCompletionMenu(menu, editor) {
+    const doc = editor.ownerDocument || runtimeRoot().document;
+    const view = doc && doc.defaultView || runtimeRoot();
+    const style = view && typeof view.getComputedStyle === "function"
+      ? view.getComputedStyle(editor)
+      : null;
+    if (!style || !editor.getBoundingClientRect) return;
+    const rect = editor.getBoundingClientRect();
+    const mirror = doc.createElement('div');
+    ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'lineHeight', 'letterSpacing',
+      'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth',
+      'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'boxSizing', 'tabSize',
+      'textIndent', 'textTransform'].forEach(function (key) { mirror.style[key] = style[key]; });
+    Object.assign(mirror.style, {position: 'fixed', visibility: 'hidden', left: '0', top: '0',
+      width: rect.width + 'px', borderStyle: 'solid',
+      whiteSpace: editor.wrap === 'off' ? 'pre' : 'pre-wrap', overflowWrap: 'break-word'});
+    mirror.textContent = editor.value.slice(0, editor.selectionStart);
+    const caret = doc.createElement('span');
+    caret.textContent = editor.value.slice(editor.selectionStart) || '\u200b';
+    mirror.appendChild(caret);
+    doc.body.appendChild(mirror);
+    // A multiline span's bounding box starts at its leftmost line, not the caret.
+    const marker = caret.getClientRects()[0] || caret.getBoundingClientRect();
+    const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2;
+    const x = rect.left + marker.left - editor.scrollLeft;
+    const y = rect.top + marker.top - editor.scrollTop;
+    mirror.remove();
+    const viewport = view.visualViewport;
+    const left = viewport ? viewport.offsetLeft : 0;
+    const top = viewport ? viewport.offsetTop : 0;
+    const width = viewport ? viewport.width : view.innerWidth;
+    const height = viewport ? viewport.height : view.innerHeight;
+    const below = top + height - (y + lineHeight) - 8;
+    const above = y - top - 8;
+    const flip = below < 180 && above > below;
+    menu.style.width = Math.min(380, width - 16) + 'px';
+    menu.style.maxHeight = Math.max(40, Math.min(290, flip ? above : below)) + 'px';
+    const box = menu.getBoundingClientRect();
+    menu.style.left = Math.max(left + 8, Math.min(x, left + width - box.width - 8)) + 'px';
+    menu.style.top = Math.max(top + 8, Math.min(flip ? y - box.height : y + lineHeight,
+      top + height - box.height - 8)) + 'px';
+    menu.style.visibility = y < rect.top || y > rect.bottom ? 'hidden' : 'visible';
+  }
+
+  function renderCompletions(editor) {
+    const state = editor.__telemarkCompletion;
+    if (!state || !state.menu) return;
+    const doc = editor.ownerDocument || runtimeRoot().document;
+    state.menu.innerHTML = "";
+    state.candidates.forEach(function (candidate, index) {
+      const option = doc.createElement("button");
+      option.type = "button";
+      option.className = "telemark-completion-option" + (index === state.index ? " active" : "");
+      option.id = state.id + "-" + index;
+      option.setAttribute("role", "option");
+      option.setAttribute("aria-selected", index === state.index ? "true" : "false");
+      const label = doc.createElement("span");
+      label.className = "telemark-completion-label";
+      label.textContent = candidate.label;
+      const detail = doc.createElement("span");
+      detail.className = "telemark-completion-detail";
+      detail.textContent = candidate.detail || "";
+      option.appendChild(label);
+      option.appendChild(detail);
+      option.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+        applyCompletion(editor, candidate);
+      });
+      state.menu.appendChild(option);
+    });
+    const footer = doc.createElement("div");
+    footer.className = "telemark-completion-footer";
+    footer.textContent = "↑↓ choose  •  Tab or Enter insert  •  Ctrl+Space open";
+    state.menu.appendChild(footer);
+    if (typeof editor.setAttribute === "function") {
+      editor.setAttribute("aria-activedescendant", state.id + "-" + state.index);
+    }
+    positionCompletionMenu(state.menu, editor);
+    const active = state.menu.querySelector('[aria-selected="true"]');
+    if (active && active.scrollIntoView) active.scrollIntoView({block: 'nearest'});
+  }
+
+  function showCompletions(editor, force) {
+    const candidates = getCompletions(editor.value, editor.selectionStart, {force: force});
+    if (!candidates.length) {
+      closeCompletions(editor);
+      return false;
+    }
+    const doc = editor.ownerDocument || runtimeRoot().document;
+    if (!doc || typeof doc.createElement !== "function") return false;
+    closeCompletions(editor);
+    const host = doc.body;
+    const menu = doc.createElement("div");
+    const id = "telemark-completions-" + Math.random().toString(36).slice(2);
+    menu.className = "telemark-completion-menu";
+    menu.id = id;
+    menu.setAttribute("role", "listbox");
+    menu.setAttribute("aria-label", "Java code completions");
+    host.appendChild(menu);
+    editor.__telemarkCompletion = {menu: menu, candidates: candidates, index: 0, id: id};
+    if (typeof editor.setAttribute === "function") {
+      editor.setAttribute("aria-autocomplete", "list");
+      editor.setAttribute("aria-controls", id);
+    }
+    renderCompletions(editor);
+    return true;
+  }
+
+  function dispatchEditorInput(editor) {
+    if (typeof editor.dispatchEvent !== "function") return;
+    const EventType = runtimeRoot().Event;
+    if (typeof EventType === "function") editor.dispatchEvent(new EventType("input", {bubbles: true}));
+  }
+
+  function applyCompletion(editor, candidate) {
+    if (!editor || !candidate) return false;
+    const text = candidate.insertText || candidate.label;
+    const cursor = candidate.replaceStart + (
+      candidate.cursorOffset == null ? text.length : candidate.cursorOffset
+    );
+    editor.__telemarkApplyingCompletion = true;
+    replaceRange(editor, candidate.replaceStart, candidate.replaceEnd, text, cursor);
+    closeCompletions(editor);
+    dispatchEditorInput(editor);
+    delete editor.__telemarkApplyingCompletion;
+    if (typeof editor.focus === "function") editor.focus();
+    return true;
   }
 
   function prevent(event) {
@@ -385,6 +706,36 @@
     options = options || {};
 
     const listener = function (event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === " ") {
+        prevent(event);
+        showCompletions(editor, true);
+        return;
+      }
+      const completion = editor.__telemarkCompletion;
+      if (completion) {
+        if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) {
+          closeCompletions(editor);
+        }
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          prevent(event);
+          const direction = event.key === "ArrowDown" ? 1 : -1;
+          completion.index = (completion.index + direction + completion.candidates.length)
+            % completion.candidates.length;
+          renderCompletions(editor);
+          return;
+        }
+        if (event.key === "Enter" || (event.key === "Tab" && !event.shiftKey)) {
+          prevent(event);
+          applyCompletion(editor, completion.candidates[completion.index]);
+          if (typeof options.onChange === "function") options.onChange(editor);
+          return;
+        }
+        if (event.key === "Escape") {
+          prevent(event);
+          closeCompletions(editor);
+          return;
+        }
+      }
       const handled = handleKeydown(event, options);
       if (handled) {
         clearDiagnostics();
@@ -392,10 +743,37 @@
         if (typeof options.onChange === "function") options.onChange(editor);
       }
     };
+    const completionInput = function () {
+      if (!editor.__telemarkApplyingCompletion) showCompletions(editor, false);
+    };
+    const completionBlur = function () {
+      const defer = runtimeRoot().setTimeout || function (fn) { fn(); };
+      defer(function () { closeCompletions(editor); }, 120);
+    };
     editor.addEventListener("keydown", listener);
+    editor.addEventListener("input", completionInput);
+    editor.addEventListener("blur", completionBlur);
+    const reposition = function () {
+      if (editor.__telemarkCompletion) positionCompletionMenu(editor.__telemarkCompletion.menu, editor);
+    };
+    const view = editor.ownerDocument && editor.ownerDocument.defaultView;
+    if (view) {
+      view.addEventListener('scroll', reposition, true);
+      view.addEventListener('resize', reposition);
+    }
+    const selectionChanged = function () { closeCompletions(editor); };
+    editor.addEventListener('click', selectionChanged);
     bindPersistence(editor, options);
     editor.__telemarkEditorDetach = function () {
       editor.removeEventListener("keydown", listener);
+      editor.removeEventListener("input", completionInput);
+      editor.removeEventListener("blur", completionBlur);
+      editor.removeEventListener('click', selectionChanged);
+      if (view) {
+        view.removeEventListener('scroll', reposition, true);
+        view.removeEventListener('resize', reposition);
+      }
+      closeCompletions(editor);
       delete editor.__telemarkEditorDetach;
     };
     return editor.__telemarkEditorDetach;
@@ -436,11 +814,13 @@
   }
 
   return Object.freeze({
-    version: "1.1.0",
+    version: "1.2.0",
+    applyCompletion: applyCompletion,
     attach: attach,
     bindPersistence: bindPersistence,
     clearDiagnostics: clearDiagnostics,
     draftKey: draftKey,
+    getCompletions: getCompletions,
     handleKeydown: handleKeydown,
     restoreDraft: restoreDraft,
     saveDraft: saveDraft,

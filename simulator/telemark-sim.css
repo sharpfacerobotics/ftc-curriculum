@@ -71,6 +71,58 @@ body {
   background: var(--tm-bg);
 }
 
+/* Context-aware Java completions shared by every simulator editor. */
+.telemark-completion-host { position: relative; }
+
+.telemark-completion-menu {
+  position: fixed;
+  z-index: 10000;
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 16px));
+  max-height: 290px;
+  overflow: auto;
+  padding: 5px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 9px;
+  background: #081019;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.telemark-completion-option {
+  display: grid;
+  grid-template-columns: minmax(100px, auto) 1fr;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--tm-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.telemark-completion-option:is(:hover, .active) {
+  background: rgba(56, 189, 248, 0.16);
+  color: var(--tm-text-strong);
+}
+
+.telemark-completion-label { color: var(--tm-accent); font-weight: 700; overflow-wrap: anywhere; }
+.telemark-completion-detail { color: var(--tm-text-muted); font-size: 0.72rem; }
+.telemark-completion-footer {
+  padding: 6px 9px 3px;
+  color: var(--tm-text-muted);
+  font-size: 0.65rem;
+  border-top: 1px solid var(--tm-border-quiet);
+}
+
+:root:is([data-theme='light'], [data-telemark-theme='light']) .telemark-completion-menu {
+  background: #ffffff;
+  border-color: rgba(8, 127, 156, 0.38);
+  box-shadow: 0 12px 28px rgba(24, 56, 70, 0.18);
+}
+
 /* Panel chrome, brought in line with the site's cards. */
 #left-panel { background: var(--tm-surface-1); }
 #right-panel { background: var(--tm-bg); }
