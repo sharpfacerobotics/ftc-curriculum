@@ -14,15 +14,15 @@ import Unit6Simulator from '@site/src/components/Unit6Simulator';
 
 ## Technical Context
 
-"Blocking" code (using `sleep()` or empty `while` loops) prevents a robot from performing parallel tasks. A responsive robot must be able to drive toward a target while simultaneously raising a lift. A **non-blocking timer loop** allows the program to check multiple conditions: time, sensors, and encoders: in a single loop cycle, enabling true parallel mechanism control.
+"Blocking" code (using `sleep()` or empty `while` loops) prevents a robot from performing parallel tasks. A responsive robot may need to drive toward a target while simultaneously raising a lift. A **non-blocking timer loop** lets the program check time, sensors, and encoders in the same loop cycle, so independent mechanisms can continue updating.
 
 ---
 
 ## How Non-Blocking Timing Lets Mechanisms Work Together
 
-This lesson integrates `while(opModeIsActive())` and `getRuntime()` comparisons from the previous lessons. The key insight is that the loop body runs many times per second. Instead of waiting inside the loop, the code simply **checks** whether a condition is met on each pass and acts accordingly: all other hardware logic continues to run uninterrupted every cycle.
+This lesson uses the SDK's `ElapsedTime` utility. Calling `new ElapsedTime()` creates a timer and starts it immediately; calling `reset()` establishes a new zero point when an action begins. The loop can then check `seconds()` or `milliseconds()` without pausing other code.
 
-This is the foundation of state machine transitions and parallel autonomous movement, used by championship-level FTC teams.
+This pattern is commonly used for state-machine transitions and parallel mechanism control.
 
 ---
 
@@ -34,9 +34,13 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="Parallel_Control_Demo")
 public class ParallelControlDemo extends LinearOpMode {
+
+    // The constructor starts the timer; reset it when the timed action begins.
+    private final ElapsedTime liftTimer = new ElapsedTime();
 
     @Override
     public void runOpMode() {
@@ -44,27 +48,48 @@ public class ParallelControlDemo extends LinearOpMode {
         DcMotor liftMotor  = hardwareMap.get(DcMotor.class, "lift");
 
         waitForStart();
-
-        // Set a target time: run the lift for 2 seconds after match starts
-        double liftTargetTime = getRuntime() + 2.0;
+        liftTimer.reset();
 
         while (opModeIsActive()) {
-            // Action 1: Drive responds to gamepad every cycle: never blocked
+            // Action 1: Drive can continue responding on each loop cycle
             driveMotor.setPower(-gamepad1.left_stick_y);
 
             // Action 2: Lift only runs if the timer window is still open
-            if (getRuntime() < liftTargetTime) {
+            if (liftTimer.seconds() < 2.0) {
                 liftMotor.setPower(1.0);
             } else {
                 liftMotor.setPower(0.0);
             }
 
-            telemetry.addData("Lift Active", getRuntime() < liftTargetTime);
+            telemetry.addData("Lift Time", "%.2f s", liftTimer.seconds());
             telemetry.update();
         }
     }
 }
 ```
+
+## Competition Code in the Wild
+
+[Murray Bridge Bunyips' BunyipsLib](https://github.com/Murray-Bridge-Bunyips/BunyipsLib) wraps a function in a reusable periodic scheduler. Its field initialization also shows the complete `new ElapsedTime()` expression:
+
+```java
+private final ElapsedTime timer = new ElapsedTime();
+
+@Override
+public void run() {
+    if (!init) {
+        timer.reset();
+        init = true;
+    }
+
+    if (intervalMs <= 0 || timer.milliseconds() >= intervalMs) {
+        function.run();
+        timer.reset();
+    }
+}
+```
+
+Nothing in `run()` waits. Repeated calls check the deadline, run the function when due, reset the timer, and return. Excerpted from [BunyipsLib's `Periodic.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/executables/Periodic.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
 
 ---
 
@@ -72,14 +97,14 @@ public class ParallelControlDemo extends LinearOpMode {
 
 1. Using `sleep()` is discouraged because it `__________` the entire program thread from updating other hardware.
 2. A `__________` timer loop is necessary to allow parallel mechanism control.
-3. To trigger an event after 5 seconds without stopping the robot, you would compare `getRuntime()` against a `__________` captured at the start of the event.
+3. To trigger an event after 5 seconds without stopping the robot, call `reset()` when the event begins and compare `__________` against `5.0`.
 
 <details>
 <summary>Show answers</summary>
 
 1. **blocks**
 2. **non-blocking**
-3. **timestamp** (a `double` variable storing `getRuntime() + 5.0`)
+3. **`timer.seconds()`** (where `timer` is an `ElapsedTime` instance)
 
 </details>
 

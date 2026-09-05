@@ -184,6 +184,55 @@ function testPairedEditsAreSaved() {
   assert.equal(freshEditor.value, 'telemetry.update()');
 }
 
+function testContextAwareCompletions() {
+  const telemetry = TelemarkEditor.getCompletions('telemetry.ad', 'telemetry.ad'.length);
+  assert.deepEqual(telemetry.map((item) => item.label), ['addData']);
+  assert.equal(telemetry[0].replaceStart, 'telemetry.'.length);
+
+  const hardware = TelemarkEditor.getCompletions('hardwareMap.', 'hardwareMap.'.length);
+  assert.deepEqual(hardware.map((item) => item.label), ['get', 'tryGet']);
+
+  const timerSource = 'ElapsedTime liftTimer = new ElapsedTime();\nliftTimer.sec';
+  const timer = TelemarkEditor.getCompletions(timerSource, timerSource.length);
+  assert.deepEqual(timer.map((item) => item.label), ['seconds']);
+
+  const global = TelemarkEditor.getCompletions('wh', 2);
+  assert.deepEqual(global.map((item) => item.label), ['while']);
+}
+
+function testApplyCompletion() {
+  const value = 'telemetry.up';
+  const editor = makeEditor(value);
+  const [candidate] = TelemarkEditor.getCompletions(value, value.length);
+  assert.equal(TelemarkEditor.applyCompletion(editor, candidate), true);
+  assert.equal(editor.value, 'telemetry.update()');
+  assert.equal(editor.selectionStart, editor.value.length);
+}
+
+function testTypedVariablesAndMethods() {
+  for (const [type, name, prefix, expected] of [
+    ['DcMotor', 'armLift', 'setP', 'setPower'],
+    ['DcMotorEx', 'flywheel', 'setV', 'setVelocity'],
+    ['Servo', 'claw', 'setP', 'setPosition'],
+    ['ElapsedTime', 'timer', 'sec', 'seconds'],
+  ]) {
+    const source = `${type} ${name};\n${name}.${prefix}`;
+    assert.ok(TelemarkEditor.getCompletions(source, source.length).some(item => item.label === expected));
+  }
+  const source = 'DcMotor left, right;\ndouble targetHeight = 0;\ntar';
+  assert.ok(TelemarkEditor.getCompletions(source, source.length).some(item => item.label === 'targetHeight'));
+  const right = 'DcMotor left, right;\nright.setP';
+  const [candidate] = TelemarkEditor.getCompletions(right, right.length);
+  assert.equal(candidate.label, 'setPower');
+  const editor = makeEditor(right);
+  TelemarkEditor.applyCompletion(editor, candidate);
+  assert.equal(editor.value[editor.selectionStart - 1], '(');
+  for (const comment of ['// lift.setP', '/* lift.setP', '"lift.setP']) {
+    const text = 'DcMotor lift;\n' + comment;
+    assert.deepEqual(TelemarkEditor.getCompletions(text, text.length), []);
+  }
+}
+
 testClosingDelimiterOvertype();
 testPairingAndSelectionWrapping();
 testStructuredEnterIndentation();
@@ -192,4 +241,7 @@ testMultilineIndentAndOutdent();
 testSingleChangeNotification();
 testDraftPersistenceByLesson();
 testPairedEditsAreSaved();
+testContextAwareCompletions();
+testApplyCompletion();
+testTypedVariablesAndMethods();
 console.log('TelemarkEditor tests passed');

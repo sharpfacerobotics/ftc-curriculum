@@ -24,7 +24,7 @@ Annotations in the FTC SDK are metadata tags that start with the `@` symbol. Whe
 
 Because `LinearOpMode` extends `OpMode`, both TeleOp and Autonomous classes are still discovered through this same registration system.
 
-Using parameters like `name` and `group` within the annotation provides human-readable labels and organized folders for the drivers. Alternatively, you can use `@Disabled` to hide the program from the compiler.
+Using parameters like `name` and `group` within the annotation provides human-readable labels and organized folders for the drivers. Adding `@Disabled` does **not** hide the class from the Java compiler; the code is still compiled. It tells the FTC SDK not to make that OpMode available in the Driver Station's selectable list. Remove or comment out `@Disabled` when the OpMode is ready to run, as shown in the [official FTC sample](https://github.com/FIRST-Tech-Challenge/FtcRobotController/blob/master/FtcRobotController/src/main/java/org/firstinspires/ftc/robotcontroller/external/samples/RobotAutoDriveByTime_Linear.java).
 
 ---
 

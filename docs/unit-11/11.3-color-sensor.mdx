@@ -16,7 +16,7 @@ import Unit11Simulator from '@site/src/components/Unit11Simulator';
 
 RGB color sensing sounds straightforward until you run it at a real competition venue. Stadium lighting varies between arenas, and shadow from the robot itself or from game elements can shift the raw channel values by a significant margin between one match and the next. A threshold that worked in your school gymnasium may completely fail under the bright LEDs of a competition field.
 
-The key insight that makes color detection robust is that you rarely need to match an exact value. What you need is to determine which color component is dominant. A red game element will always have a higher `red()` reading than `blue()` or `green()` under almost any reasonable lighting condition, because the fundamental reflectance properties of the object do not change even if the overall brightness does. Comparing the channels against each other instead of against absolute constants is what separates reliable autonomous code from code that works only in practice.
+A useful first heuristic is to compare relative color channels instead of matching one exact raw value. A red game element may produce a higher `red()` reading than `blue()` or `green()`, but that relationship can change with sensor distance, ambient light, surface finish, LED intensity, and the sensor's spectral response. Competition code should log samples, require a minimum brightness or channel margin, and test an `UNKNOWN` region instead of assuming the largest channel is always correct.
 
 ---
 

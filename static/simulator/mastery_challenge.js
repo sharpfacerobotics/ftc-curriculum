@@ -147,8 +147,8 @@
       ]
     },
     8: {
-      title: "Unit 8 Coding Challenge: Limit-Safe Linear Slide",
-      scenario: "Build a two-way slide controller that maps one motor and two limits, corrects direction, selects braking, accepts proportional driver power, and always stops at a limit.",
+      title: "Unit 8 Coding Challenge: Team 11115 Limit-Safe Lift",
+      scenario: "Control Team 11115 Gluten Free's SKYSTONE double-reverse four-bar with one lift motor and two limits. Correct its direction, select braking, accept proportional driver power, and always stop at a limit.",
       starter: shell([
         "import com.qualcomm.robotcore.eventloop.opmode.OpMode;",
         "import com.qualcomm.robotcore.eventloop.opmode.TeleOp;",
@@ -158,7 +158,7 @@
       ], "@TeleOp(name=\"Unit_8_Mastery\")", "Unit8Mastery", "OpMode"),
       inputs: ["left_stick_y"],
       checks: [
-        ["Map the slide motor and both limit switches", /hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class/, /hardwareMap\s*\.\s*get\s*\(\s*DigitalChannel\.class[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DigitalChannel\.class/],
+        ["Map the lift motor and both limit switches", /hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class\s*,\s*"lift"\s*\)/, /hardwareMap\s*\.\s*get\s*\(\s*DigitalChannel\.class[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DigitalChannel\.class/],
         ["Configure both digital channels as inputs", /setMode\s*\(\s*DigitalChannel\.Mode\.INPUT\s*\)[\s\S]*?setMode\s*\(\s*DigitalChannel\.Mode\.INPUT\s*\)/],
         ["Correct the motor direction with REVERSE", /setDirection\s*\([^)]*Direction\.REVERSE\s*\)/],
         ["Select BRAKE zero-power behavior", /setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE\s*\)/],
@@ -166,7 +166,7 @@
         ["Use upper and lower limit states in direction checks", /getState\s*\(\s*\)[\s\S]*?getState\s*\(\s*\)/, /[<>]\s*0/],
         ["Command motion in both directions", /setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)/],
         ["Stop explicitly when motion is unsafe", /setPower\s*\(\s*0(?:\.0+)?\s*\)/],
-        ["Report slide power and both limits through telemetry", /telemetry\s*\.\s*addData\s*\([^)]*(?:power|slide)[^)]*\)[\s\S]*?telemetry\s*\.\s*addData\s*\(/i]
+        ["Report lift power and both limits through telemetry", /telemetry\s*\.\s*addData\s*\([^)]*(?:power|lift)[^)]*\)[\s\S]*?telemetry\s*\.\s*addData\s*\(/i]
       ]
     },
     9: {
@@ -379,7 +379,15 @@
       sourceUrl: "https://charlestondragonrobotics.org/ftc/"
     },
     7: {name: "Reusable subsystem robot", detail: "Mapped motor, limit switch, and analog sensor module", accent: 0x2dd4bf},
-    8: {name: "Limit-safe slide robot", detail: "Twin slide rails, moving carriage, and upper/lower limits", accent: 0xfb7185},
+    8: {
+      name: "FTC 11115 Gluten Free · SKYSTONE robot",
+      detail: "One-motor DR4B lift · real rollers, linkage bars, and scoring assembly",
+      accent: 0xfb7185,
+      driveYaw: Math.PI / 2,
+      wheelAxis: "z",
+      sourceLabel: "FTC Team 11115 Gluten Free CAD · used with explicit team permission · Modified from the original; simplified lift motion",
+      sourceUrl: "https://www.youtube.com/watch?v=i2g_b54MEFI"
+    },
     9: {name: "Servo gripper robot", detail: "Mirrored fingers with a continuous-rotation intake roller", accent: 0xf472b6},
     10: {name: "Encoder distance robot", detail: "Marked drive wheels for measured RUN_TO_POSITION travel", accent: 0x4ade80},
     11: {name: "Multi-sensor intake robot", detail: "Touch, potentiometer, color, and distance sensing around the intake", accent: 0xfbbf24},
@@ -398,6 +406,7 @@
     // flattened imported CAD cannot articulate faithfully. Their dedicated
     // models preserve the exact motor, sensor, and servo behavior being coded.
     if (GENERATED_MECHANISM_UNITS.indexOf(numericUnit) >= 0) return null;
+    if (numericUnit === 8) return 8;
     return 2 + ((numericUnit - 2) % 5);
   }
 
@@ -427,7 +436,7 @@
       {label: "Potentiometer", name: "mechanism_pot"}
     ],
     8: [
-      {label: "Slide motor", name: "slide"},
+      {label: "Lift motor", name: "lift"},
       {label: "Upper limit", name: "limit_upper"},
       {label: "Lower limit", name: "limit_lower"}
     ],
@@ -460,12 +469,19 @@
   const FTC_2025_ROBOT_MODEL_URL = "./models/2025-ftc-robot-manning-telemark.glb";
   const FTC_2024_ROBOT_MODEL_URL = "./models/2024-centerstage-manning-telemark.glb";
   const FTC_17438_ROBOT_MODEL_URL = "./models/ftc17438-inputoutput-telemark.glb";
+  const FTC_11115_ROBOT_MODEL_URL = "./models/11115-gluten-free-skystone-telemark.glb";
   const GLTF_LOADER_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
 
   function setImportedRobotStatus(message) {
     const label = document.getElementById("mastery-robot-label");
     const detail = label && label.querySelector(".mastery-robot-status");
     if (detail) detail.textContent = message;
+    if (/unavailable|could not|missing|did not contain/.test(message)) {
+      const button = document.getElementById('sim-btn-run');
+      if (button && button.textContent === 'Loading robot…') {
+        button.textContent = 'Robot failed to load — reload page';
+      }
+    }
   }
 
   function ensureGltfLoader(THREE, callback) {
@@ -659,12 +675,26 @@
     });
   }
 
+  function load11115Robot(THREE, robot, onLoad) {
+    loadImportedRobot(THREE, robot, {
+      name: "FTC 11115 Gluten Free SKYSTONE robot",
+      url: FTC_11115_ROBOT_MODEL_URL,
+      footprint: 2.2,
+      rotation: [-Math.PI / 2, 0, 0],
+      groundClearance: 0,
+      castShadow: false,
+      loadedMessage: "Team 11115 CAD · one-motor DR4B linkage driven by student code",
+      onLoad: onLoad
+    });
+  }
+
   function loadCadRobotForUnit(sourceUnit, THREE, robot, onLoad) {
     if (sourceUnit === 2) return loadKgRobot(THREE, robot, onLoad);
     if (sourceUnit === 3) return loadQuixilverRobot(THREE, robot, onLoad);
     if (sourceUnit === 4) return load2025FtcRobot(THREE, robot, onLoad);
     if (sourceUnit === 5) return load2024CenterstageRobot(THREE, robot, onLoad);
     if (sourceUnit === 6) return load17438Robot(THREE, robot, onLoad);
+    if (sourceUnit === 8) return load11115Robot(THREE, robot, onLoad);
     return null;
   }
 
@@ -675,12 +705,18 @@
     const profile = robotProfileForUnit(unit);
     if (!THREE || !scene || !profile) return null;
     const motion = challengeMotion || global.TelemarkMasteryMotion.create(unit);
+    let modelReady = !cadSourceUnit;
+    if (cadSourceUnit) {
+      const button = document.getElementById('sim-btn-run');
+      if (button) { button.disabled = true; button.textContent = 'Loading robot…'; }
+    }
 
     const oldVisual = scene.getObjectByName && scene.getObjectByName("mastery-challenge-visual");
     if (oldVisual) scene.remove(oldVisual);
 
     const visual = new THREE.Group();
     visual.name = "mastery-challenge-visual";
+    visual.userData.isModelReady = function () { return modelReady; };
     const robot = new THREE.Group();
     robot.name = "unit-" + unit + "-challenge-robot";
     visual.add(robot);
@@ -776,6 +812,97 @@
       return travel;
     }
 
+    function rig11115Lift(model, modelScale) {
+      function part(name) {
+        return model.getObjectByName && model.getObjectByName(name);
+      }
+
+      function pivotPart(name) {
+        const movingPart = part(name);
+        const rawPivot = movingPart && movingPart.userData && movingPart.userData.telemarkCadPivot;
+        if (!movingPart || !Array.isArray(rawPivot)) return null;
+        model.updateWorldMatrix(true, false);
+        const pivotWorld = model.localToWorld(new THREE.Vector3(rawPivot[0], rawPivot[1], rawPivot[2]));
+        const pivot = new THREE.Group();
+        pivot.name = name + "-pivot";
+        robot.add(pivot);
+        pivot.position.copy(robot.worldToLocal(pivotWorld.clone()));
+        robot.updateMatrixWorld(true);
+        pivot.attach(movingPart);
+        pivot.userData.restPosition = pivot.position.clone();
+        return pivot;
+      }
+
+      function travelPart(name) {
+        const movingPart = part(name);
+        if (!movingPart) return null;
+        const travel = new THREE.Group();
+        travel.name = name + "-travel";
+        robot.add(travel);
+        robot.updateMatrixWorld(true);
+        travel.attach(movingPart);
+        travel.userData.restPosition = travel.position.clone();
+        return travel;
+      }
+
+      const rig = {
+        lowerLow: pivotPart("telemark-cad-lift-lower-low"),
+        lowerHigh: pivotPart("telemark-cad-lift-lower-high"),
+        upperLow: pivotPart("telemark-cad-lift-upper-low"),
+        upperHigh: pivotPart("telemark-cad-lift-upper-high"),
+        middle: travelPart("telemark-cad-lift-middle"),
+        carriage: travelPart("telemark-cad-lift-carriage"),
+        scale: modelScale
+      };
+      if (Object.values(rig).some(function (value) { return value == null; })) {
+        setImportedRobotStatus("The optimized Team 11115 CAD is missing a lift linkage group.");
+        return null;
+      }
+      return rig;
+    }
+
+    function animate11115Lift(rig) {
+      const progress = THREE.MathUtils.clamp((motion.state.slidePosition - 0.72) / 1.10, 0, 1);
+      const restingAngle = 0.322;
+      const deployedAngle = 1.32;
+      const angle = THREE.MathUtils.lerp(restingAngle, deployedAngle, progress);
+      const deltaAngle = angle - restingAngle;
+      const linkLength = 0.441;
+      const baseMidpoint = {x: -0.2, z: 0.2685};
+      const middleRest = {x: 0.2195, z: 0.408};
+      const middleNow = {
+        x: baseMidpoint.x + linkLength * Math.cos(angle),
+        z: baseMidpoint.z + linkLength * Math.sin(angle)
+      };
+      const middleDelta = {
+        x: middleNow.x - middleRest.x,
+        z: middleNow.z - middleRest.z
+      };
+      const upperAnchorRest = {x: 0.2195, z: 0.306};
+      const topRest = {x: -0.2, z: 0.4455};
+      const upperAngle = Math.PI - angle;
+      const topNow = {
+        x: upperAnchorRest.x + middleDelta.x + linkLength * Math.cos(upperAngle),
+        z: upperAnchorRest.z + middleDelta.z + linkLength * Math.sin(upperAngle)
+      };
+      const topDelta = {x: topNow.x - topRest.x, z: topNow.z - topRest.z};
+
+      rig.lowerLow.rotation.z = deltaAngle;
+      rig.lowerHigh.rotation.z = deltaAngle;
+      [rig.upperLow, rig.upperHigh].forEach(function (pivot) {
+        pivot.rotation.z = -deltaAngle;
+        pivot.position.copy(pivot.userData.restPosition);
+        pivot.position.x += middleDelta.x * rig.scale;
+        pivot.position.y += middleDelta.z * rig.scale;
+      });
+      rig.middle.position.copy(rig.middle.userData.restPosition);
+      rig.middle.position.x += middleDelta.x * rig.scale;
+      rig.middle.position.y += middleDelta.z * rig.scale;
+      rig.carriage.position.copy(rig.carriage.userData.restPosition);
+      rig.carriage.position.x += topDelta.x * rig.scale;
+      rig.carriage.position.y += topDelta.z * rig.scale;
+    }
+
     function rigCadChassis(model) {
       const rigged = [];
       CAD_WHEEL_ORDER.forEach(function (name) {
@@ -843,8 +970,14 @@
 
     if (cadSourceUnit) {
       let cadMechanism = null;
-      loadCadRobotForUnit(cadSourceUnit, THREE, robot, function (model) {
+      let glutenFreeLift = null;
+      loadCadRobotForUnit(cadSourceUnit, THREE, robot, function (model, modelScale) {
         rigCadChassis(model);
+        if (cadSourceUnit === 8) glutenFreeLift = rig11115Lift(model, modelScale);
+        if (cadSourceUnit === 8 && !glutenFreeLift) return;
+        modelReady = true;
+        const button = document.getElementById('sim-btn-run');
+        if (button) { button.disabled = false; button.textContent = 'Init'; }
         if (model.getObjectByName && model.getObjectByName("telemark-cad-mechanism")) {
           if (cadSourceUnit === 3) cadMechanism = rigCadTranslation(model);
           if (cadSourceUnit === 5) cadMechanism = rigCadMechanism(model, [0.46, 0.505, 0.5]);
@@ -853,6 +986,10 @@
       });
       animation = function () {
         applyDriveState();
+        if (cadSourceUnit === 8) {
+          if (glutenFreeLift) animate11115Lift(glutenFreeLift);
+          return;
+        }
         if (!cadMechanism) return;
         if (cadSourceUnit === 3) {
           let extension = motion.state.primaryPosition;
@@ -1028,10 +1165,6 @@
       detail.className = "mastery-robot-status";
       detail.textContent = profile.detail;
       label.appendChild(detail);
-      const motionReadout = document.createElement("span");
-      motionReadout.className = "mastery-robot-motion";
-      motionReadout.textContent = "Outputs idle · initialize and run student code";
-      label.appendChild(motionReadout);
       if (profile.sourceUrl && profile.sourceLabel) {
         const source = document.createElement("a");
         source.className = "mastery-robot-source";
@@ -1050,8 +1183,12 @@
       global.setCameraOrbit({
         theta: groundView ? 0.82 : 0.56,
         phi: groundView ? 1.2 : 0.78,
-        radius: unit >= 14 ? 6.8 : 5.2,
-        target: {x: 0, y: groundView ? 0.42 : 0.72, z: unit >= 14 ? -0.35 : 0}
+        radius: unit === 8 ? 8.0 : (unit >= 14 ? 6.8 : 5.2),
+        target: {
+          x: 0,
+          y: unit === 8 ? 1.5 : (groundView ? 0.42 : 0.72),
+          z: unit >= 14 ? -0.35 : 0
+        }
       });
     }
     if (animation && typeof global.addAnimationCallback === "function") {
@@ -1060,25 +1197,12 @@
         const currentTime = Date.now() * 0.001;
         const dt = currentTime - previousTime;
         previousTime = currentTime;
+        if (!modelReady) return;
         if (global.hardwareMap && typeof global.hardwareMap.tick === "function") {
           global.hardwareMap.tick(dt);
         }
         motion.step(dt);
         animation(currentTime);
-        const readout = document.querySelector(".mastery-robot-motion");
-        if (readout && typeof motion.outputs === "function") {
-          const outputs = motion.outputs();
-          if (unit >= 2 && unit <= 6) {
-            readout.textContent = (unit === 2 ? motion.state.lifecyclePhase + " · " : "")
-              + "Drive L " + outputs.driveLeft.toFixed(2)
-              + " · R " + outputs.driveRight.toFixed(2)
-              + (unit === 3 ? " · mechanism " + outputs.primary.toFixed(2) : "")
-              + (unit === 5 ? " · intake " + outputs.primary.toFixed(2) : "")
-              + (unit === 6 ? " · arm " + outputs.arm.toFixed(2) : "");
-          } else {
-            readout.textContent = "Mechanism motor " + outputs.primary.toFixed(2);
-          }
-        }
       });
     }
     visual.userData.challengeMotion = motion;
@@ -1140,7 +1264,6 @@
       + ".mastery-sensor-tests button[aria-pressed='true']{border-color:var(--active);color:var(--active)}"
       + ".mastery-robot-label{position:absolute;left:12px;bottom:12px;z-index:3;max-width:calc(100% - 24px);padding:7px 10px;border:1px solid rgba(34,211,238,.35);border-radius:7px;background:rgba(5,8,13,.82);color:#effbff;font:600 .72rem/1.3 var(--font-code);letter-spacing:.03em;pointer-events:none;backdrop-filter:blur(7px)}"
       + ".mastery-robot-label span{display:block;margin-top:2px;color:rgba(221,241,249,.68);font-family:var(--font-ui);font-weight:400;letter-spacing:0}"
-      + ".mastery-robot-label .mastery-robot-motion{color:#fbbf24;font-family:var(--font-code);font-weight:600}"
       + ".mastery-robot-label a{display:block;margin-top:3px;color:#67e8f9;font-family:var(--font-ui);font-weight:500;letter-spacing:0;pointer-events:auto;text-decoration:none}"
       + ".mastery-robot-label a:hover,.mastery-robot-label a:focus{text-decoration:underline}"
       + ":root[data-theme='light'] .mastery-robot-label,:root[data-telemark-theme='light'] .mastery-robot-label{background:rgba(255,255,255,.86);color:#102a36}"
@@ -1255,7 +1378,7 @@
       ]);
       setActiveInputs(config.inputs || []);
       createHardwareMap(unit);
-      createChallengeRobot(unit, challengeMotion);
+      const challengeVisual = createChallengeRobot(unit, challengeMotion);
 
       function validate() {
         clearHints();
@@ -1282,6 +1405,10 @@
       }
 
       global.onInit = function () {
+        if (challengeVisual && !challengeVisual.userData.isModelReady()) {
+          addHint('Wait for the robot model to load before initializing.', 'info');
+          return false;
+        }
         challengeMotion.setLifecyclePhase("initialized");
         validate();
         return transpileAndRun(

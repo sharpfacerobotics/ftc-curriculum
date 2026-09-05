@@ -30,7 +30,7 @@ Because the subsystem objects are declared as `public` members of the robot clas
 
 ## Initialization Order
 
-The order in which subsystems are initialized inside `CompetitionRobot.init()` matters when one subsystem depends on the state of another at startup. Drivetrain motors are usually initialized first so that the robot is controllable immediately, followed by mechanism motors and servos, and finally sensors. If an initialization failure (such as a hardware name mismatch) throws an exception, initializing the drive system first ensures the robot is at least drivable even if the mechanism initialization aborts partway through.
+The order in which subsystems are initialized inside `CompetitionRobot.init()` matters when one subsystem depends on another at startup. A team may initialize the drivetrain first, followed by mechanisms and sensors, but order does not make a failed initialization safe: an uncaught hardware-mapping exception can stop the OpMode before it becomes runnable. Required devices should fail clearly during initialization. Handle a missing device only when the design genuinely treats that device as optional.
 
 ---
 
@@ -133,20 +133,46 @@ public class ModularTeleOp extends OpMode {
 }
 ```
 
+## Robot Composition in Titan's Framework
+
+Titan Robotics Club's central `Robot` class owns the drive, sensors, indicators, and vision references, then constructs the drive-base layer before the optional subsystems that depend on it:
+
+```java
+public FtcRobotBase.RobotInfo robotInfo;
+public FtcRobotBase robotBase;
+public FtcRobotBattery battery;
+public LEDIndicator ledIndicator;
+public Vision vision;
+
+public Robot(TrcRobot.RunMode runMode) {
+    opMode = FtcOpMode.getInstance();
+    globalTracer = TrcDbgTrace.getGlobalTracer();
+    dashboard = FtcDashboard.getInstance();
+
+    robotDriveBase = new DriveBase();
+    robotInfo = robotDriveBase.getRobotInfo();
+    robotBase = robotDriveBase.getRobotBase();
+    battery = RobotParams.Preferences.useBatteryMonitor
+        ? new FtcRobotBattery() : null;
+}
+```
+
+The types are specific to Titan's framework, but the composition pattern transfers directly: one robot object creates and exposes subsystem objects in dependency order. Excerpted from [Team 3543 Titan Robotics Club's `Robot.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/Robot.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 ---
 
 ## Fill-in-the-Blank Practice
 
 1. When one class contains instances of other classes as member variables (the "has-a" relationship), the design pattern is called `__________`.
 2. To create a new instance of a subsystem object and assign it to a member variable, use the `__________` keyword.
-3. Initializing the drivetrain subsystem before mechanism subsystems ensures the robot remains `__________` even if a subsequent initialization call fails.
+3. If required hardware mapping throws an uncaught exception during initialization, the OpMode initialization `__________`.
 
 <details>
 <summary>Show answers</summary>
 
 1. **composition**
 2. **`new`**
-3. **drivable** (controllable)
+3. **fails** (the OpMode does not become runnable)
 
 </details>
 

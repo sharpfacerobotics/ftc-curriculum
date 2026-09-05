@@ -14,7 +14,7 @@ import Unit7Simulator from '@site/src/components/Unit7Simulator';
 
 ## Technical Context
 
-The Control Hub maintains an internal XML configuration file that maps physical ports to user-defined strings. If the Java code attempts to instantiate a component that does not exist in this registry, the program will throw a `NullPointerException` or a `MissingHardwareException`, causing the robot to fail during the initialization phase of a match.
+The active Robot Controller configuration maps physical ports to user-defined names. `HardwareMap.get(Class, String)` returns a matching configured device, but **throws an exception if no such device is found**. It does not return `null`. For optional hardware, `HardwareMap.tryGet(Class, String)` performs a lookup that returns `null` when no matching device is available. See the [`HardwareMap` SDK Javadoc](https://javadoc.io/doc/org.firstinspires.ftc/RobotCore/latest/com/qualcomm/robotcore/hardware/HardwareMap.html).
 
 ---
 
@@ -23,6 +23,7 @@ The Control Hub maintains an internal XML configuration file that maps physical 
 The `hardwareMap` object is an instance of the SDK's `HardwareMap` class. It acts as a **lookup service**. When you call `get()`, the SDK searches the active Robot Controller configuration for a device with the requested type and name, then returns the Java object used to communicate with that configured device.
 
 The `get()` method requires two parameters:
+
 1. **The hardware class**: tells the SDK what type of device to return (e.g., `DcMotor.class`)
 2. **The configuration name string**: must match the name defined in the Robot Controller app exactly, character for character
 
@@ -58,20 +59,29 @@ public class HardwareMapDemo extends OpMode {
 }
 ```
 
+For a genuinely optional device, use `tryGet()` and test its result before calling methods on it:
+
+```java
+DcMotor testMotor = hardwareMap.tryGet(DcMotor.class, "test_motor");
+if (testMotor != null) {
+    testMotor.setPower(0.25);
+}
+```
+
 ---
 
 ## Fill-in-the-Blank Practice
 
 1. The `hardwareMap` object is used to perform a `__________` in the robot's configuration registry.
 2. The `get()` method requires two parameters: the `__________` of the device and the exact string name from the configuration.
-3. Attempting to access a hardware device that is not registered in the configuration will result in a `__________` during OpMode initialization.
+3. Calling `get()` for a device that is not present in the active configuration will result in an `__________` during OpMode initialization.
 
 <details>
 <summary>Show answers</summary>
 
 1. **lookup** (configuration registry search)
 2. **class type** (e.g., `DcMotor.class`)
-3. **`NullPointerException`** (or `MissingHardwareException`)
+3. **exception**. Use `tryGet()` when a missing device should instead produce `null`.
 
 </details>
 

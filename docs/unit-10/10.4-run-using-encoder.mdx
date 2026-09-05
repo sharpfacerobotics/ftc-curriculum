@@ -15,7 +15,7 @@ import {MotorModesDiagram} from '@site/src/components/DocDiagrams';
 
 ## The Problem with Voltage-Based Speed Control
 
-Picture this: your autonomous routine drives the robot perfectly in practice at full battery. Then in the second match of the day, the battery is at 80% and the robot underdrives every segment by a few inches. You change nothing in the code. The issue is that `RUN_WITHOUT_ENCODER` sends a fixed fraction of whatever voltage the battery currently has. Less voltage means less speed, and by the end of a competition day the robot is driving noticeably slower than it was at the start.
+Suppose an autonomous segment is tuned with a freshly charged battery, then runs more slowly later as battery voltage and mechanism load change. In `RUN_WITHOUT_ENCODER`, `setPower()` requests open-loop motor effort rather than a measured wheel speed, so a timed drive can cover a different distance as conditions change.
 
 `RUN_USING_ENCODER` reduces this problem by letting the Hub use encoder feedback while commanding motor speed. It can improve consistency across battery levels, but it cannot overcome traction loss, incorrect motor configuration, bad wiring, or a mechanism that is physically overloaded.
 

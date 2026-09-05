@@ -17,7 +17,7 @@ import {BezierComparisonDiagram} from '@site/src/components/DocDiagrams';
 
 A robot executing a stop-turn-drive pattern decelerates to zero, rotates in place, then accelerates again. This sequence is mechanically straightforward to program but it has two costs. First, it is slow. The deceleration, rotation, and re-acceleration together consume time that could be spent scoring. Second, each stop-and-turn introduces a fresh opportunity for accumulated positioning error because the robot must halt all momentum before the next step can begin with a clean state.
 
-A robot following a smooth Bézier curve never stops. It maintains momentum through the entire trajectory, shedding speed only in proportion to the sharpness of the curve at each point. When a robot needs to move from the same start to the same scoring target while bending around field obstacles or traffic, a curved path can use the same key waypoints as a stop-turn route while replacing the hard corners with continuous motion.
+A smooth Bézier path can let a robot carry momentum through a trajectory instead of requiring a stop-and-turn at every waypoint. Actual speed still depends on constraints, controller tuning, curvature, and endpoint behavior. When a robot needs to bend around field obstacles or traffic, a curved path can replace hard geometric corners with continuous direction changes.
 
 <BezierComparisonDiagram />
 

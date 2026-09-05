@@ -1305,6 +1305,14 @@ const sleep=runtime.sleep||((ms)=>new Promise((resolve)=>setTimeout(resolve,Math
 const linearTick=runtime.linearTick||(()=>sleep(0));
 const __telemarkCaptureVariable=runtime.captureVariable||(()=>{});
 const __telemarkRect=runtime.Rect||(typeof globalThis!=="undefined"&&globalThis.Rect)||class{constructor(x,y,width,height){Object.assign(this,{x,y,width,height});}};
+const ElapsedTime=runtime.ElapsedTime||class{
+  constructor(){this.reset();}
+  reset(){this.__start=Date.now();}
+  seconds(){return (Date.now()-this.__start)/1000;}
+  milliseconds(){return Date.now()-this.__start;}
+  time(){return this.seconds();}
+  toString(){return this.seconds().toFixed(3);}
+};
 ${options.classPrelude || ""}
 with(scope){${js}}`
       );

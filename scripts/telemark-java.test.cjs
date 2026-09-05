@@ -144,6 +144,22 @@ function testJavaMathHelpers() {
   assert.equal(program.scope.result, 0.5);
 }
 
+function testElapsedTimeFieldInitializer() {
+  const program = compile(`
+    public class TimerTest extends OpMode {
+      final ElapsedTime timer = new ElapsedTime();
+      double measured = -1;
+      public void loop() {
+        timer.reset();
+        measured = timer.seconds();
+      }
+    }
+  `);
+  assert.equal(typeof program.scope.timer.milliseconds, 'function');
+  program.methods.loop();
+  assert.ok(program.scope.measured >= 0);
+}
+
 function testClassFieldInitializersPersistAcrossLoops() {
   const gamepad = {a: false};
   const program = compile(`
@@ -657,6 +673,7 @@ async function main() {
   testEnumsAndSwitch();
   testHardwareAndTelemetry();
   testJavaMathHelpers();
+  testElapsedTimeFieldInitializer();
   testClassFieldInitializersPersistAcrossLoops();
   testGeneratedSyntaxDiagnosticUsesStatementLocation();
   testMethodLocalVariableTracking();

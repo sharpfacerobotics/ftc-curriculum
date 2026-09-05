@@ -69,6 +69,24 @@ public class SetPositionDemo extends OpMode {
 }
 ```
 
+## Coordinating Two Servos in BunyipsLib
+
+A dual-servo mechanism stores separate targets, then sends both targets during its periodic update:
+
+```java
+@Override
+protected void periodic() {
+    left.setPosition(leftServoPosition);
+    right.setPosition(rightServoPosition);
+    logger.leftTarget = leftServoPosition;
+    logger.rightTarget = rightServoPosition;
+    logger.leftServoTarget = left.getPosition();
+    logger.rightServoTarget = right.getPosition();
+}
+```
+
+Separating the desired state from the hardware write makes it easier for commands such as open and close to update a pair consistently. Excerpted from [BunyipsLib's `DualServos.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/subsystems/DualServos.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 ---
 
 ## Fill-in-the-Blank Practice

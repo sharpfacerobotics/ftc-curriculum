@@ -14,7 +14,7 @@ import Unit3Simulator from '@site/src/components/Unit3Simulator';
 
 ## Technical Context
 
-A competitive robot rarely runs at a static speed. By combining multiple variables (inputs, multipliers, and offsets), you can create dynamic control systems. For instance, scaling joystick input by a "Battery Multiplier" variable ensures consistent robot performance even as the 12V battery voltage drops during a match.
+A competitive robot rarely runs at one static speed. Combining inputs, multipliers, and offsets can create adjustable control behavior. For example, a driver-selected multiplier can reduce maximum power for precise alignment. Compensating for battery sag requires a measured voltage model or closed-loop velocity controller; a fixed multiplier alone cannot ensure consistent performance.
 
 ---
 

@@ -14,7 +14,7 @@ import Unit8Simulator from '@site/src/components/Unit8Simulator';
 
 ## Technical Context
 
-Precision in autonomous and TeleOp depends on **predictable stops**. If a programmer relies on mechanical friction alone to stop a robot, the stopping distance will vary based on battery voltage, field tile material, and the robot's momentum at the moment power cuts. Using `setPower(0.0)` in conjunction with the correct `ZeroPowerBehavior` ensures the robot stops consistently across different match conditions.
+Precision in autonomous and TeleOp benefits from **predictable stops**. If a programmer relies on mechanical friction alone to stop a robot, the stopping distance can vary with field tile material, mechanism load, and the robot's speed when power is cut. Using `setPower(0.0)` with an intentional `ZeroPowerBehavior` makes the response more repeatable, but it does not eliminate mechanical variation.
 
 ---
 
@@ -25,11 +25,11 @@ Precision in autonomous and TeleOp depends on **predictable stops**. If a progra
 | `ZeroPowerBehavior` | Effect of `setPower(0.0)` |
 |---|---|
 | `FLOAT` (default) | Motor terminals disconnected, so the robot coasts to a stop via friction |
-| `BRAKE` | Motor terminals shorted, so the robot decelerates rapidly and holds position |
+| `BRAKE` | Motor terminals electrically brake rotation, so the mechanism usually decelerates faster; this is not active position holding |
 
-In a high-speed drivetrain, switching to `0.0` power with `FLOAT` behavior can cause the robot to over-travel its target by several inches, enough to miss a scoring zone entirely. `BRAKE` mode reduces this over-travel dramatically, making autonomous navigation far more repeatable.
+In a high-speed drivetrain, switching to `0.0` power with `FLOAT` behavior can let the robot travel beyond its target. `BRAKE` often reduces that coast distance, although the result still depends on mass, speed, traction, gearing, and motor-controller behavior.
 
-A common pattern is to set `BRAKE` on all drive motors in `init()`, then send `setPower(0.0)` as the last command of every autonomous step to guarantee a clean stop before the next movement begins.
+A common pattern is to set `BRAKE` on drive motors in `init()`, then send `setPower(0.0)` at the end of an autonomous step. Closed-loop position or velocity control is needed when the robot must settle to a measured target rather than merely resist coasting.
 
 ---
 
@@ -51,7 +51,7 @@ public class CoastVsStopDemo extends LinearOpMode {
     public void runOpMode() {
         driveMotor = hardwareMap.get(DcMotor.class, "drive");
 
-        // BRAKE ensures setPower(0.0) stops the robot, not just cuts voltage
+        // BRAKE resists coasting after setPower(0.0); it is not position hold.
         driveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
@@ -60,7 +60,7 @@ public class CoastVsStopDemo extends LinearOpMode {
         driveMotor.setPower(0.6);
         sleep(2000);
 
-        // This stops the motor AND holds position, not a coast
+        // Command zero power; BRAKE resists continued rotation.
         driveMotor.setPower(0.0);
 
         telemetry.addData("Status", "Stopped at target position");

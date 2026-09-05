@@ -27,7 +27,7 @@ Java provides four primary logical operators to combine boolean expressions:
 - **`!`** (Logical NOT): inverts a boolean value
 - **`^`** (XOR): true only if the sides differ
 
-Using these operators lets you create complex safety gates. For example, `if (isArmRaised && isClawClosed)` ensures the robot only drives fast when the center of gravity is stable.
+Using these operators lets you create compound safety gates. For example, `if (isArmRaised && isClawClosed)` can permit a behavior only when both software flags are true. The flags still need to come from trustworthy sensors or state logic; their names alone do not prove the mechanism is safe.
 
 ---
 
@@ -47,6 +47,22 @@ public void loop() {
     }
 }
 ```
+
+## Logical Gates in Robot Initialization
+
+Titan Robotics Club uses `&&` to require both global vision support and camera information, then groups several acceptable camera choices with `||`:
+
+```java
+if (RobotParams.Preferences.useVision && robotInfo.camInfos != null &&
+    (RobotParams.Preferences.useLimelightVision ||
+     RobotParams.Preferences.useWebcamAprilTagVision ||
+     RobotParams.Preferences.useColorBlobVision))
+{
+    vision = new Vision(this);
+}
+```
+
+The parentheses make the intended rule explicit: initialize vision only when the common prerequisites are true **and** at least one vision implementation is enabled. Excerpted from [Team 3543 Titan Robotics Club's `Robot.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/Robot.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
 
 ---
 

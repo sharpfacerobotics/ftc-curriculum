@@ -14,11 +14,11 @@ import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 ## What This Lesson Assembles
 
-    This lesson brings the major techniques from the unit into one competition-ready autonomous sequence. It combines:
+This lesson brings the major techniques from the unit into one integrated autonomous example. It combines:
 
 - Pre-match spike mark detection via a custom `VisionProcessor` (Unit 14) to select the correct scoring path.
 - A `Follower` and `PathChain` of `BezierCurve` segments (Lessons 15.2 and 15.3) to execute smooth field navigation.
-- Periodic Limelight AprilTag corrections (Lesson 15.4) to prevent accumulated odometry drift from corrupting later path segments.
+- Gated Limelight AprilTag updates (Lesson 15.4) to constrain accumulated odometry drift.
 - A state machine (introduced in the curriculum PDF) to coordinate mechanism actions with drivetrain movement without blocking `follower.update()`.
 
 None of these components is new on its own. The work here is integrating them into a coherent, non-blocking program structure.
@@ -27,7 +27,7 @@ None of these components is new on its own. The work here is integrating them in
 
 ## The State Machine Architecture
 
-A sequential `LinearOpMode` that calls `followPath()` and then blocks on `isBusy()` before activating a mechanism cannot execute both simultaneously. While it is blocking on `isBusy()`, `follower.update()` is still being called, but no mechanism logic runs. The moment you need a claw to open at a specific field position while the robot is still in motion, sequential logic fails.
+A sequential `LinearOpMode` that calls `followPath()` and then runs only `follower.update()` while `isBusy()` does not update mechanism logic at the same time. If a claw needs to move at a specific field position while the drivetrain is moving, a state machine gives both systems an opportunity to update on each pass.
 
 A state machine replaces sequential `if-this-then-that` logic with an `enum` that names each phase of the routine and a `switch` block that executes the logic for the current state. The loop body runs on every iteration: `follower.update()` is called first, then the current state's logic runs, then the state transitions if its completion condition is met. No state blocks the loop.
 
@@ -56,7 +56,7 @@ The state transitions only when the completion condition for the current state i
 
 ## Non-Blocking Mechanism Actions
 
-Mechanism actions inside a state machine must also be non-blocking. A `sleep(500)` to wait for a claw to close blocks `follower.update()` for 500 milliseconds, during which the Follower cannot correct the robot's position. Use a timer instead: record the time when the action starts, and check `getRuntime()` against the target time as a condition in the state's `case` block. Only transition to the next state when the timer has elapsed, not when a sleep returns.
+Mechanism actions inside this state machine should also be non-blocking. A `sleep(500)` to wait for a claw to close blocks `follower.update()` for 500 milliseconds, during which the Follower cannot correct the robot's position. One option is to record when the action starts and check `getRuntime()` in the state's `case` block. Transition when the interval has elapsed instead of waiting inside `sleep()`.
 
 ```java
 case SCORE_ELEMENT:
@@ -123,6 +123,9 @@ public class FullAutonomousPractice extends LinearOpMode {
     private static final double CLAW_OPEN          = 0.1;
     private static final double CLAW_CLOSED        = 0.9;
     private static final double ACTION_DURATION_S  = 0.4; // seconds for claw to move
+    private static final double VISION_GAIN        = 0.35;
+    private static final double MAX_VISION_JUMP_IN = 12.0;
+    private static final double MAX_STALENESS_MS   = 100.0;
 
     private double actionTimer = 0;
 
@@ -186,7 +189,7 @@ public class FullAutonomousPractice extends LinearOpMode {
             // 1. Update the Follower every cycle
             follower.update();
 
-            // 2. Apply Limelight correction whenever a tag is visible
+            // 2. Consider one gated Limelight measurement update
             applyLimelightCorrection();
 
             // 3. State machine
@@ -238,15 +241,30 @@ public class FullAutonomousPractice extends LinearOpMode {
 
     private void applyLimelightCorrection() {
         LLResult result = limelight.getLatestResult();
-        if (!result.isValid()) return;
+        if (result == null || !result.isValid()) return;
+        if (result.getStaleness() > MAX_STALENESS_MS) return;
+        if (result.getBotposeTagCount() < 1) return;
 
         Pose3D botPose = result.getBotpose();
         if (botPose == null) return;
 
-        follower.setPose(new Pose(
-            botPose.getPosition().x * M_TO_IN,
-            botPose.getPosition().y * M_TO_IN,
+        Pose estimate = follower.getPose();
+        double innovationX = botPose.getPosition().x * M_TO_IN - estimate.getX();
+        double innovationY = botPose.getPosition().y * M_TO_IN - estimate.getY();
+        double innovationHeading = AngleUnit.normalizeRadians(
             botPose.getOrientation().getYaw(AngleUnit.RADIANS)
+                - estimate.getHeading()
+        );
+
+        if (Math.hypot(innovationX, innovationY) > MAX_VISION_JUMP_IN) return;
+
+        // Compact complementary update. Lesson 15.4 shows the covariance-based form.
+        follower.setPose(new Pose(
+            estimate.getX() + VISION_GAIN * innovationX,
+            estimate.getY() + VISION_GAIN * innovationY,
+            AngleUnit.normalizeRadians(
+                estimate.getHeading() + VISION_GAIN * innovationHeading
+            )
         ));
     }
 }

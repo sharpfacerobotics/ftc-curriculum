@@ -76,6 +76,33 @@ public class TouchSensorDemo extends LinearOpMode {
 }
 ```
 
+## Normalizing an Active-Low Touch Sensor
+
+Some switches report the opposite electrical state from the meaning a mechanism wants. BunyipsLib wraps a `TouchSensor` and makes that inversion configurable:
+
+```java
+public class InvertibleTouchSensor implements TouchSensor {
+    private final TouchSensor sensor;
+    private boolean inverted = true;
+
+    public void setInverted(boolean inverted) {
+        this.inverted = inverted;
+    }
+
+    @Override
+    public double getValue() {
+        return inverted ? 1 - sensor.getValue() : sensor.getValue();
+    }
+
+    @Override
+    public boolean isPressed() {
+        return inverted != sensor.isPressed();
+    }
+}
+```
+
+The wrapper lets the rest of the robot use `isPressed()` consistently even if the physical wiring is active-low. Excerpted from [BunyipsLib's `InvertibleTouchSensor.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/hardware/InvertibleTouchSensor.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 ---
 
 ## Fill-in-the-Blank Practice

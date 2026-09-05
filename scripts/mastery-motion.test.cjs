@@ -221,11 +221,11 @@ function testMotorDrivenMechanisms() {
     assert.notEqual(motion.snapshot().armAngle, before, `Unit ${unit} arm should move`);
   }
 
-  const slide = MasteryMotion.create(8);
-  const slideBefore = slide.snapshot().slidePosition;
-  slide.setMotorPower('slide', 0.8);
-  slide.step(0.1);
-  assert.notEqual(slide.snapshot().slidePosition, slideBefore, 'Unit 8 slide should move');
+  const lift = MasteryMotion.create(8);
+  const liftBefore = lift.snapshot().slidePosition;
+  lift.setMotorPower('lift', 0.8);
+  lift.step(0.1);
+  assert.notEqual(lift.snapshot().slidePosition, liftBefore, 'Unit 8 DR4B lift should move');
 }
 
 function testResetPoseReturnsRobotToFieldCenter() {
@@ -411,11 +411,11 @@ function testMecanumPhysicsBeginsAfterUnitEightLesson() {
     assert.notEqual(motion.snapshot().x, 0, `Unit ${unit} should use mecanum strafe physics`);
   }
 
-  const slideOnly = MasteryMotion.create(8);
-  slideOnly.setMotorPower('slide', 0.9);
-  slideOnly.step(0.1);
-  assert.equal(slideOnly.snapshot().x, 0, 'slide power must not move the mecanum chassis sideways');
-  assert.equal(slideOnly.snapshot().z, 0, 'slide power must not drive the mecanum chassis');
+  const liftOnly = MasteryMotion.create(8);
+  liftOnly.setMotorPower('lift', 0.9);
+  liftOnly.step(0.1);
+  assert.equal(liftOnly.snapshot().x, 0, 'lift power must not move the mecanum chassis sideways');
+  assert.equal(liftOnly.snapshot().z, 0, 'lift power must not drive the mecanum chassis');
 }
 
 function testChallengeSdkMocks() {

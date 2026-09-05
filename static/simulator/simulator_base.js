@@ -2063,7 +2063,14 @@
       // The starter is assigned asynchronously by each lesson. Bind saving
       // now, then restore only after the first setCode() call below so a saved
       // student draft cannot be overwritten by the starter.
-      window.TelemarkEditor.bindPersistence(editor, {restore: false});
+      window.TelemarkEditor.attach(editor, {
+        restore: false,
+        onChange: function () {
+          clearStaleDiagnostics();
+          updateHighlighting();
+          syncScroll();
+        },
+      });
     }
 
     editor.addEventListener("input", function () {
@@ -2074,7 +2081,9 @@
 
     editor.addEventListener("scroll", syncScroll);
 
-    editor.addEventListener("keydown", handleJavaEditorAutocomplete);
+    if (!window.TelemarkEditor) {
+      editor.addEventListener("keydown", handleJavaEditorAutocomplete);
+    }
   }
 
   // Public API

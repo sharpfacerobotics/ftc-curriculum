@@ -16,7 +16,7 @@ import Unit12Simulator from '@site/src/components/Unit12Simulator';
 
 In a standard robot-centric drive scheme, pushing the left joystick forward always drives the robot toward whatever direction the front of the robot is facing at that moment. If the robot has spun 90 degrees during a defensive maneuver, pushing "forward" on the joystick now drives the robot sideways from the driver's point of view. The driver must mentally account for the robot's rotation and compensate with stick inputs to achieve the intended field direction. Under match pressure, this mental overhead causes errors.
 
-Field-centric control removes this burden entirely. Pushing the joystick forward always moves the robot away from the driver's station, regardless of which direction the robot's front is pointing. The robot's rotation is compensated for mathematically in the code before the motor commands are calculated. The driver's frame of reference is always the field, not the robot.
+Field-centric control can reduce this burden. With a correctly initialized heading and coordinate convention, pushing the joystick forward commands motion in a consistent field direction even as the robot turns. The code compensates for the measured robot rotation before calculating motor commands.
 
 ---
 
@@ -33,9 +33,11 @@ The robot's current heading in radians is subtracted from the joystick's polar a
 
 ---
 
-## The Wraparound Problem and AngleUnit.normalizeRadians()
+## Angle Wraparound and `AngleUnit.normalizeRadians()`
 
-Subtracting the robot's heading from the joystick angle can produce a result outside the -π to π range. For example, if the joystick points at 2.8 radians and the robot is heading at -2.8 radians, the raw difference is 5.6 radians, which is well outside the range and would produce nonsensical motor outputs. The SDK provides `AngleUnit.normalizeRadians(angle)` to solve this. It takes any radian value and wraps it into the -π to π range by adding or subtracting 2π as needed. Always apply this to the subtraction result before converting back to Cartesian coordinates.
+Subtracting the robot's heading from the joystick angle can produce a result outside the -π to π range. For example, `2.8 - (-2.8)` is `5.6` radians. That value is **not** a problem for `Math.sin()` or `Math.cos()`: both functions are periodic, so adding or subtracting a whole turn produces the same Cartesian vector.
+
+The SDK's `AngleUnit.normalizeRadians(angle)` wraps any radian value into a canonical range around -π to π. Normalization is useful for readable telemetry, comparisons, interpolation, and shortest-path heading error calculations. The example below normalizes for clarity, but the trigonometric conversion would produce the same motor vector without that step.
 
 ---
 
@@ -88,7 +90,7 @@ public class FieldCentricDemo extends OpMode {
         double joystickAngle = Math.atan2(forward, strafe);
         double magnitude     = Math.hypot(strafe, forward);
 
-        // Subtract the robot's heading and normalize to keep the result in -PI to PI
+        // Normalize to a canonical angle; sin/cos would also accept the raw difference
         double correctedAngle = AngleUnit.normalizeRadians(joystickAngle - robotHeading);
 
         // Convert the corrected polar angle back to Cartesian for motor math
@@ -116,6 +118,28 @@ public class FieldCentricDemo extends OpMode {
     }
 }
 ```
+
+## The Same Rotation in BunyipsLib
+
+BunyipsLib represents heading and velocity with Road Runner geometry types, but the transformation is the same inverse-heading rotation developed above:
+
+```java
+protected PoseVelocity2d applyOrientation(PoseVelocity2d robotFrameVel) {
+    if (fieldCentricEnabled.getAsBoolean()) {
+        Pose2d currentPose = Objects.requireNonNull(
+            drive.getPose(),
+            "A heading localizer must be attached to the drive instance " +
+            "to allow for Field-Centric driving!"
+        );
+        return currentPose.heading.inverse()
+            .times(fcOffset)
+            .times(robotFrameVel);
+    }
+    return robotFrameVel;
+}
+```
+
+`heading.inverse()` rotates the requested field-frame velocity into the robot frame. `fcOffset` provides a driver-selected zero direction. Excerpted from [BunyipsLib's `FieldOrientableDriveTask.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/tasks/FieldOrientableDriveTask.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
 
 ---
 

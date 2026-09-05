@@ -86,6 +86,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="Non_Blocking_Timer")
 public class NonBlockingTimer extends OpMode {
@@ -166,7 +167,9 @@ public class ParallelAction extends OpMode {
 
     private DcMotor drive;
     private DcMotor intake;
-    private double intakeEnd = 0;
+    private final ElapsedTime intakeTimer = new ElapsedTime();
+    private boolean intakeRunning = false;
+    private boolean previousA = false;
 
     @Override
     public void init() {
@@ -176,17 +179,19 @@ public class ParallelAction extends OpMode {
 
     @Override
     public void loop() {
-        if (gamepad1.a) {
-            // SET intakeEnd TO 3 SECONDS IN THE FUTURE
+        if (gamepad1.a && !previousA) {
+            // RESET THE TIMER AND START THE TIMED ACTION
             // INSERT CODE HERE
         }
+        previousA = gamepad1.a;
 
         drive.setPower(-gamepad1.left_stick_y);
 
         // RUN THE INTAKE ONLY WHILE TIME REMAINS
         // INSERT CODE HERE
 
-        telemetry.addData("Intake Active", getRuntime() < intakeEnd);
+        telemetry.addData("Intake Active", intakeRunning);
+        telemetry.addData("Intake Time", intakeTimer.seconds());
         telemetry.update();
     }
 }

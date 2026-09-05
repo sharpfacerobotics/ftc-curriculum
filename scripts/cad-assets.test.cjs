@@ -250,6 +250,50 @@ for (const model of chassisModels) {
   }
 }
 
+const glutenFreeModel = readGlb('11115-gluten-free-skystone-telemark.glb');
+const glutenFreeJson = glutenFreeModel.json;
+function subtreeTriangles(json, node) {
+  let triangles = node.mesh === undefined ? 0 : json.meshes[node.mesh].primitives.reduce(
+    (sum, primitive) => sum + json.accessors[primitive.indices].count / 3,
+    0,
+  );
+  for (const childIndex of node.children || []) {
+    triangles += subtreeTriangles(json, json.nodes[childIndex]);
+  }
+  return triangles;
+}
+const glutenFreeGroups = [
+  'telemark-cad-chassis',
+  ...wheelNames.map((name) => `telemark-cad-wheel-${name}`),
+  'telemark-cad-lift-lower-low',
+  'telemark-cad-lift-lower-high',
+  'telemark-cad-lift-upper-low',
+  'telemark-cad-lift-upper-high',
+  'telemark-cad-lift-middle',
+  'telemark-cad-lift-base',
+  'telemark-cad-lift-carriage',
+];
+for (const name of glutenFreeGroups) {
+  const node = glutenFreeJson.nodes.find((candidate) => candidate.name === name);
+  assert.ok(node, `Team 11115 CAD must expose ${name}`);
+  assert.ok(subtreeTriangles(glutenFreeJson, node) > 500, `${name} must contain real CAD geometry`);
+}
+for (const name of [
+  'telemark-cad-lift-lower-low',
+  'telemark-cad-lift-lower-high',
+  'telemark-cad-lift-upper-low',
+  'telemark-cad-lift-upper-high',
+]) {
+  const node = glutenFreeJson.nodes.find((candidate) => candidate.name === name);
+  assert.equal(node.extras?.telemarkCadPivot?.length, 3, `${name} must record its physical hinge pivot`);
+}
+assert.equal(glutenFreeJson.extras?.telemarkCadLift, 'double-reverse four-bar');
+assert.match(glutenFreeJson.asset?.copyright || '', /11115 Gluten Free.*explicit permission/i);
+assert.ok(
+  fs.statSync(path.join(repoRoot, 'static/simulator/models/11115-gluten-free-skystone-telemark.glb')).size < 32 * 1024 * 1024,
+  'Team 11115 browser CAD should stay below 32 MiB',
+);
+
 const challengeSource = fs.readFileSync(
   path.join(repoRoot, 'static/simulator/mastery_challenge.js'),
   'utf8',
@@ -265,6 +309,12 @@ assert.match(challengeSource, /rigCadMechanism\(model, \[0\.46, 0\.505, 0\.5\]\)
 assert.match(challengeSource, /rigCadMechanism\(model, \[0\.5, 0\.455, 0\.356\]\)/);
 assert.match(challengeSource, /cadMechanism\.rotation\.z = deployment \* 2\.0/);
 assert.match(challengeSource, /cadMechanism\.rotation\.x = -motion\.state\.armAngle/);
+assert.match(challengeSource, /function animate11115Lift\(rig\)/);
+assert.match(challengeSource, /radius:\s*unit === 8 \? 8\.0/);
+assert.match(challengeSource, /y:\s*unit === 8 \? 1\.5/);
+assert.match(challengeSource, /rig\.lowerLow\.rotation\.z = deltaAngle/);
+assert.match(challengeSource, /pivot\.rotation\.z = -deltaAngle/);
+assert.match(challengeSource, /rig\.carriage\.position\.y \+= topDelta\.z \* rig\.scale/);
 assert.doesNotMatch(challengeSource, /cadMechanism\.position\.z = -deployment/);
 assert.doesNotMatch(
   challengeSource,
@@ -297,6 +347,7 @@ for (const hardwareName of [
   'mechanism_pot',
   'limit_upper',
   'limit_lower',
+  'lift',
 ]) {
   assert.match(
     challengeSource,
@@ -320,7 +371,8 @@ for (const unit of [7, 9, 11, 13]) {
     `Unit ${unit} must use its independently articulated mechanism model`,
   );
 }
-for (const unit of [2, 3, 4, 5, 6, 8, 10, 12, 14, 15]) {
+assert.equal(challengeApi.cadSourceUnitFor(8), 8, 'Unit 8 must use Team 11115 Gluten Free CAD');
+for (const unit of [2, 3, 4, 5, 6, 10, 12, 14, 15]) {
   assert.equal(
     challengeApi.cadSourceUnitFor(unit),
     2 + ((unit - 2) % 5),

@@ -58,6 +58,30 @@ public class TransitionDemo extends OpMode {
 }
 ```
 
+## How an FTC Team Separates Lifecycle Work
+
+Titan Robotics Club keeps initialization, enable-time work, and cleanup in separate callbacks. This shortened excerpt leaves out logging and vision setup but preserves the calls that hand each phase to the robot object:
+
+```java
+@Override
+public void robotInit() {
+    robot = new Robot(TrcRobot.getRunMode());
+    // ... gamepad and drive setup ...
+}
+
+@Override
+public void startMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode) {
+    robot.startMode(nextMode);
+}
+
+@Override
+public void stopMode(TrcRobot.RunMode prevMode, TrcRobot.RunMode nextMode) {
+    robot.stopMode(prevMode);
+}
+```
+
+The important design choice is the boundary: construction belongs to initialization, enabling sensors belongs to `startMode()`, and cleanup belongs to `stopMode()`. Adapt the idea to the SDK callbacks in this lesson rather than copying the team's framework types. Excerpted from [Team 3543 Titan Robotics Club's `FtcTeleOp.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/FtcTeleOp.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 ---
 
 ## Fill-in-the-Blank Practice

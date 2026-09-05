@@ -20,7 +20,7 @@ In a `LinearOpMode`, failure to check the status of the Robot Controller (RC) ca
 
 ## Why opModeIsActive() Is Your Safety Check
 
-The `opModeIsActive()` method is a member of the `LinearOpMode` class that returns a `boolean` value. It serves as a listener that monitors the match lifecycle. While `true`, the program continues to execute logic; if it returns `false` (due to a stop request or loss of communication), the loop terminates immediately, ensuring the Control Hub ceases command transmission to the `DcMotors`.
+The `opModeIsActive()` method is a member of `LinearOpMode` that returns a `boolean` value. After Start, it remains `true` while the OpMode is active and no stop has been requested. A loop conditioned on it can therefore exit when the Driver Station requests Stop. Code should also set mechanism outputs to a safe state after the loop or in cleanup rather than depending only on the loop condition.
 
 This is in contrast to the standard `OpMode` you have used in previous units. A `LinearOpMode` uses a single `runOpMode()` method where you write all your logic sequentially, wrapped in this safety loop.
 

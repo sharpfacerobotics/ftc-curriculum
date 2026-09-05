@@ -47,6 +47,30 @@ public class JoystickScaling extends OpMode {
 }
 ```
 
+## Scaling in a Competition Drive Loop
+
+Titan Robotics Club passes its driver inputs through separate translation and turn scales before selecting the appropriate drive method:
+
+```java
+double[] inputs = driverGamepad.getDriveInputs(
+    Dashboard.Subsystem_Drivebase.driveMode,
+    true,
+    drivePowerScale,
+    turnPowerScale
+);
+
+if (robot.robotBase.driveBase.supportsHolonomicDrive()) {
+    robot.robotBase.driveBase.holonomicDrive(
+        null, inputs[0], inputs[1], inputs[2],
+        robot.robotBase.driveBase.getDriveGyroAngle()
+    );
+} else {
+    robot.robotBase.driveBase.arcadeDrive(inputs[1], inputs[2]);
+}
+```
+
+Their framework centralizes scaling inside `getDriveInputs(...)`; the simpler multiplication in this lesson is the same idea without that abstraction. Excerpted from [Team 3543 Titan Robotics Club's `FtcTeleOp.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/FtcTeleOp.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 ---
 
 ## Fill-in-the-Blank Practice

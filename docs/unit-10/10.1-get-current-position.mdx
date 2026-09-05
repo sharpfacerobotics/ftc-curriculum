@@ -79,6 +79,32 @@ public class EncoderMonitorDemo extends OpMode {
 }
 ```
 
+## What a Production Encoder Wrapper Adds
+
+BunyipsLib obtains a raw position, applies logical direction, accumulates the change since the previous reading, and returns the position relative to its reset value:
+
+```java
+public int getPosition() {
+    int currentPosition;
+    if (!useCache || cachedPosition == null) {
+        currentPosition =
+            (getDirection() == DcMotorSimple.Direction.FORWARD ? 1 : -1)
+            * position.get();
+        cachedPosition = currentPosition;
+    } else {
+        currentPosition = cachedPosition;
+    }
+    accumulation += currentPosition - lastPosition;
+    if (currentPosition != lastPosition) {
+        // ... update the velocity estimate and timestamp ...
+        lastPosition = currentPosition;
+    }
+    return accumulation - resetVal;
+}
+```
+
+This excerpt is slightly shortened around its velocity estimate. The central idea remains visible: a useful encoder reading may include direction, caching, accumulation, and a software zero, not just one raw integer. Excerpted from [BunyipsLib's `Encoder.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/logic/Encoder.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 ---
 
 ## Fill-in-the-Blank Practice

@@ -118,6 +118,33 @@ public class SpikeMarkProcessor implements VisionProcessor {
 }
 ```
 
+## KookyBotz's PowerPlay Sleeve Region
+
+Team 16379 KookyBotz published a compact PowerPlay sleeve pipeline and explicitly invited teams to place the two Java files in their projects. Its `processFrame()` crops one rectangle and compares the summed color channels:
+
+```java
+Mat areaMat = input.submat(new Rect(sleeve_pointA, sleeve_pointB));
+Scalar sumColors = Core.sumElems(areaMat);
+
+double minColor = Math.min(
+    sumColors.val[0],
+    Math.min(sumColors.val[1], sumColors.val[2])
+);
+
+if (sumColors.val[0] == minColor) {
+    position = ParkingPosition.CENTER;
+} else if (sumColors.val[1] == minColor) {
+    position = ParkingPosition.RIGHT;
+} else {
+    position = ParkingPosition.LEFT;
+}
+
+areaMat.release();
+return input;
+```
+
+This is a useful example of reducing a full frame to the pixels that answer the autonomous question. A competition pipeline should also test the chosen region and thresholds under varied lighting. Excerpted from [KookyBotz's `SleeveDetection.java` at a pinned commit](https://github.com/KookyBotz/PowerPlaySleeveDetection/blob/247fccab99a8bb5de1c4b45ac6095567afa7c087/SleeveDetection.java) under the [MIT License](https://github.com/KookyBotz/PowerPlaySleeveDetection/blob/247fccab99a8bb5de1c4b45ac6095567afa7c087/LICENSE).
+
 ---
 
 ## Fill-in-the-Blank Practice

@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 8 Comprehensive Coding Challenge: Limit-Safe Linear Slide"
+title: "Unit 8 Comprehensive Coding Challenge: Team 11115 Limit-Safe Lift"
 sidebar_label: "Unit 8 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -10,11 +10,13 @@ import MasterySimulator from '@site/src/components/MasterySimulator';
 
 # Unit 8 Comprehensive Coding Challenge
 
-The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMode class, like Android Studio would. Build the complete linear-slide controller yourself. Passing every requirement demonstrates full mastery of Unit 8, so experienced students can take this challenge first and continue directly to Unit 9.
+The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMode class, like Android Studio would. Build the complete one-motor lift controller yourself. The simulator uses Team 11115 Gluten Free's SKYSTONE robot CAD with the team's explicit permission. It is modified from the original, with simplified lift motion for this challenge. The mechanism is not an exact reproduction of the team's [robot reveal](https://www.youtube.com/watch?v=i2g_b54MEFI).
+
+The green front rollers are the robot's block collector. This challenge focuses on the high-reach scoring lift, so the simulator exposes only one lift motor; both linkage stages follow that motor together.
 
 ## Your Task
 
-1. Map the slide motor as `"slide"` and the digital switches as `"limit_upper"` and `"limit_lower"`.
+1. Map the lift motor as `"lift"` and the digital switches as `"limit_upper"` and `"limit_lower"`.
 2. Configure both switches as inputs.
 3. Correct the motor's installed direction with `setDirection()`.
 4. Select `BRAKE` as its zero-power behavior and initialize it at zero power.
@@ -23,7 +25,7 @@ The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMod
 7. Send `setPower(0)` whenever the request is neutral or unsafe.
 8. Report power and limit state through telemetry.
 
-The mechanism must never retain an old nonzero command after a limit becomes active.
+The lift must never retain an old nonzero command after a limit becomes active.
 
 ## Coding Challenge Simulator
 

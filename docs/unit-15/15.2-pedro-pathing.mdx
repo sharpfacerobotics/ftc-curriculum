@@ -17,7 +17,7 @@ import {PathFollowingDiagram} from '@site/src/components/DocDiagrams';
 
 Every encoder-based autonomous routine in this curriculum so far has followed the same pattern: command a motor to a tick target, wait for `isBusy()` to return false, then proceed to the next step. This works well for straight lines and simple turns on a clean practice floor. At competition, the combination of wheel slip on textured field tiles, variation in battery voltage between matches, and incidental contact with game elements introduces cumulative positioning errors. Each step in a multi-step autonomous sequence starts slightly off from where the previous step ended, and those offsets compound until the robot misses its final scoring target.
 
-Pedro Pathing addresses this by maintaining a continuous estimate of the robot's position on the field using a high-frequency odometry system, typically three dead-wheel encoders that are independent of the drivetrain. Because the dead wheels do not transmit drive torque, they do not slip when the drive motors do. The Follower reads this position estimate many times per second, compares it to the commanded path, and adjusts motor power to correct for any deviation. The robot follows the intended geometric trajectory regardless of what the drivetrain wheels are doing.
+Pedro Pathing addresses this by maintaining a continuous estimate of the robot's position on the field using a high-frequency localization system, often dead-wheel encoders that are independent of the drivetrain. Because those wheels do not transmit drive torque, their slip behavior can differ from the drive wheels, though they are still affected by contact, geometry, and surface conditions. The Follower compares the pose estimate with the commanded path and adjusts motor power to reduce tracking error.
 
 ---
 
@@ -29,7 +29,7 @@ The central object in Pedro Pathing is the `Follower`. It manages the odometry l
 - **Path execution**: `followPath(path)` commands the Follower to begin tracking a `Path` or `PathChain` object. The Follower takes over motor control for the duration of the path.
 - **Status polling**: `isBusy()` returns `true` while the Follower is actively tracking a path. `update()` must be called every loop iteration to process the latest odometry readings and recompute motor outputs.
 
-The `update()` call is not optional and not occasional. It is a contract. Every iteration of your main loop must call `follower.update()`. If `update()` is not called for even a single cycle, the Follower's position estimate drifts, the path tracking correction falls behind, and the robot will deviate from the intended trajectory. Placing `follower.update()` as the first statement inside your main loop, before any other logic, ensures it is never skipped.
+Call `follower.update()` consistently in the active loop so localization and path-control calculations continue at a useful rate. An occasional delayed cycle may be tolerable, but repeated gaps or blocking work can make pose and motor corrections stale. Placing `follower.update()` near the start of the loop makes that update easy to audit.
 
 <PathFollowingDiagram />
 

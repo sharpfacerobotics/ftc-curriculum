@@ -23,10 +23,10 @@ By this point, you have seen the FTC lifecycle methods and how the SDK manages t
 
 `LinearOpMode` extends `OpMode` and gives you a single `runOpMode()` method. Inside `runOpMode()`, you control execution flow yourself using `waitForStart()` and `while (!isStopRequested())` style logic.
 
-The golden rule is simple:
+Both base classes work with either `@TeleOp` or `@Autonomous`. A useful starting convention is:
 
-- TeleOp always uses `OpMode`.
-- Autonomous always uses `LinearOpMode`.
+- Use iterative `OpMode` when several subsystems benefit from explicit `init()`, `start()`, and `loop()` callbacks.
+- Use `LinearOpMode` when a sequential-looking `runOpMode()` is clearer, while still keeping its active loop responsive.
 
 Why this rule works:
 
@@ -39,19 +39,19 @@ Why this rule works:
 
 | Category | `OpMode` | `LinearOpMode` |
 |---|---|---|
-| Used for | TeleOp | Autonomous |
+| Often used for | TeleOp and state-machine autonomous | Autonomous and TeleOp |
 | Main method | `loop()` | `runOpMode()` |
 | Flow control | SDK handles it | You write it |
-| Gamepad input | ✅ Yes | ❌ Never |
+| Gamepad input | Available | Available |
 | Sequential steps | Awkward | Natural |
 
 ---
 
 ## Common OpMode Mistakes
 
-1. Using `LinearOpMode` for TeleOp. This creates gamepad timing problems and usually leads to awkward control code.
-2. Using `OpMode` for Autonomous. You can make it work, but writing clear step-by-step logic becomes much harder than it needs to be.
-3. Calling `gamepad1` inside a `LinearOpMode` autonomous program. In autonomous, the gamepad values stay at zero.
+1. Using a blocking loop or long `sleep()` in either style, which delays other subsystem updates.
+2. Choosing `LinearOpMode` but forgetting to create a responsive active loop for continuous TeleOp controls.
+3. Choosing iterative `OpMode` for autonomous without a state machine to represent sequential actions.
 4. Forgetting `waitForStart()` in `LinearOpMode`. The robot can begin moving before the match officially starts.
 5. Forgetting `telemetry.update()` in `LinearOpMode`. The Driver Station never receives the telemetry lines you added.
 6. Putting `hardwareMap.get()` inside `loop()` or inside the body of a `runOpMode()` loop instead of before `waitForStart()`. Hardware should be mapped once, not repeatedly.

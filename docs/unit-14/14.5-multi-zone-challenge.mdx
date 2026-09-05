@@ -48,7 +48,7 @@ public volatile SpikeLocation detectedLocation = SpikeLocation.UNKNOWN;
 SpikeLocation result = spikeProcessor.detectedLocation;
 ```
 
-Using the `volatile` keyword on the field is a best practice that ensures the OpMode thread always reads the most recently written value rather than a stale cached copy.
+Using `volatile` gives writes to this shared reference visibility across the processor and OpMode threads. It does not make a multi-step update atomic, so share one enum or immutable result rather than mutating several related fields independently.
 
 ---
 
@@ -184,7 +184,7 @@ public class SpikeSelectionAuto extends LinearOpMode {
 
 1. To convert a camera frame from the RGB color space to HSV, use `Imgproc.__________()` with the constant `Imgproc.COLOR_RGB2HSV`.
 2. In the HSV color space, index `__________` of the array returned by `Core.mean()` corresponds to the Saturation channel.
-3. The `__________` keyword on a shared result field ensures the OpMode thread always reads the most recently written value from the processor thread.
+3. The `__________` keyword gives writes to a shared result field cross-thread visibility.
 
 <details>
 <summary>Show answers</summary>

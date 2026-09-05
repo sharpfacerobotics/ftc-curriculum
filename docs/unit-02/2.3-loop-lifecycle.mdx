@@ -35,8 +35,8 @@ Use the FTC SDK Javadocs when you want to confirm the exact method names and inh
 If telemetry says the OpMode is "Initialized" but robot controls do nothing, ask which lifecycle method owns the code. Hardware mapping belongs in `init()`, live driver logic belongs in `loop()`, and one-time cleanup belongs in `stop()`.
 :::
 
-:::warning Gamepad input only works in TeleOp (OpMode)
-Never read gamepad values in an Autonomous program. The values will always be zero, and your robot will not behave as expected.
+:::warning Do not make match autonomous depend on gamepad input
+The SDK exposes gamepad objects to either OpMode style, but an Autonomous routine is expected to run from its programmed logic after Start. Use sensors, timers, and state transitions for match autonomous behavior rather than requiring driver input.
 :::
 
 ---
