@@ -25,6 +25,18 @@
     {label: "if", insertText: "if (condition) {\n    \n}", cursorOffset: 4, detail: "Conditional block"},
     {label: "while", insertText: "while (opModeIsActive()) {\n    \n}", cursorOffset: 7, detail: "Active OpMode loop"},
   ];
+  GLOBAL_COMPLETIONS.push.apply(GLOBAL_COMPLETIONS,
+    ('public private protected static final abstract void boolean byte short int long float double char ' +
+      'class interface enum extends implements import package new return else switch case default break continue ' +
+      'do try catch finally throw throws this super null true false synchronized volatile').split(' ').map(function (keyword) {
+      return {label: keyword, insertText: keyword, detail: 'Java keyword'};
+    }));
+  GLOBAL_COMPLETIONS.push.apply(GLOBAL_COMPLETIONS, methods([
+    'init()', 'init_loop()', 'start()', 'loop()', 'stop()', 'runOpMode()',
+  ]).map(function (item) {
+    item.detail = 'OpMode lifecycle method · ' + item.insertText;
+    return item;
+  }));
   const MEMBER_COMPLETIONS = {
     hardwareMap: [
       {label: "get", insertText: 'get(DcMotor.class, "name")', detail: "Required configured device"},

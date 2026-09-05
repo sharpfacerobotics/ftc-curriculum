@@ -244,4 +244,12 @@ testPairedEditsAreSaved();
 testContextAwareCompletions();
 testApplyCompletion();
 testTypedVariablesAndMethods();
+for (const word of ['public', 'private', 'protected', 'static', 'void', 'init', 'loop', 'runOpMode']) {
+  const source = word.slice(0, 2);
+  const candidate = TelemarkEditor.getCompletions(source, source.length).find(item => item.label === word);
+  assert.ok(candidate, `completion for ${word}`);
+  const editor = makeEditor(source);
+  TelemarkEditor.applyCompletion(editor, candidate);
+  assert.equal(editor.value, word + (['init', 'loop', 'runOpMode'].includes(word) ? '()' : ''));
+}
 console.log('TelemarkEditor tests passed');

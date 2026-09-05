@@ -325,7 +325,7 @@ assert.match(challengeSource, /getObjectByName\("telemark-cad-wheel-" \+ name\)/
 assert.match(challengeSource, /importedCadCenter\(THREE, part\)/);
 assert.match(challengeSource, /importedCadBounds\(THREE, wheel\)/);
 assert.match(challengeSource, /const driveCenter = wheelCenters\.length/);
-assert.match(challengeSource, /object\.rotation\[axis\] = wheelSpinSign \* motion\.state\.wheelAngles\[index\]/);
+assert.match(challengeSource, /object\.rotation\[axis\] = wheelSpinSign \* motion\.state\.wheelAngles\[motionIndex\]/);
 assert.match(
   challengeSource,
   /5:\s*\{[\s\S]*?name:\s*"2024 FTC Robot — CENTERSTAGE"[\s\S]*?driveYaw:\s*Math\.PI \/ 2[\s\S]*?wheelSpinSign:\s*1[\s\S]*?\n\s*\}/,
@@ -364,6 +364,24 @@ vm.runInNewContext(challengeSource, {
   console,
 });
 const challengeApi = challengeWindow.TelemarkMasteryChallenge;
+// Exercise the actual presentation update with independent drive commands.
+const driveUpdate = challengeSource.match(/function applyDriveState\(\) \{([\s\S]*?)\n    \}\n\n    if \(cadSourceUnit\)/)[1];
+for (const [angles, expected] of [
+  [[1, 1, 1, 1], [1, 1, 1, 1]],
+  [[-1, -1, -1, -1], [-1, -1, -1, -1]],
+  [[1, 1, -1, -1], [-1, -1, 1, 1]],
+  [[1, 1, 0, 0], [0, 0, 1, 1]],
+  [[0, 0, 1, 1], [1, 1, 0, 0]],
+]) {
+  const wheels = wheelNames.map(() => ({axis: 'z', object: {rotation: {}}}));
+  const robot = {position: {}, rotation: {}};
+  vm.runInNewContext(driveUpdate, {
+    profile: challengeApi.robotProfileForUnit(8), wheels, robot,
+    motion: {state: {x: 0, z: -1, heading: 0, wheelAngles: angles}},
+  });
+  assert.deepEqual(wheels.map(wheel => wheel.object.rotation.z), expected);
+  assert.ok(robot.position.x < 0, 'Forward travels along CAD negative X; positive Z wheel rotation rolls in that direction');
+}
 for (const unit of [7, 9, 11, 13]) {
   assert.equal(
     challengeApi.cadSourceUnitFor(unit),

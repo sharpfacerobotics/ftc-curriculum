@@ -385,6 +385,9 @@
       accent: 0xfb7185,
       driveYaw: Math.PI / 2,
       wheelAxis: "z",
+      wheelSpinSign: 1,
+      // CAD left/right labels face the opposite direction to our driving frame.
+      wheelMotionOrder: [2, 3, 0, 1],
       sourceLabel: "FTC Team 11115 Gluten Free CAD · used with explicit team permission · Modified from the original; simplified lift motion",
       sourceUrl: "https://www.youtube.com/watch?v=i2g_b54MEFI"
     },
@@ -961,10 +964,9 @@
       wheels.forEach(function (wheel, index) {
         const object = wheel.object || wheel;
         const axis = wheel.axis || "x";
-        // Student-positive drive power translates the chassis forward. The
-        // imported CAD axles use the opposite visual rotation convention, so
-        // invert only the presentation angle—not the drivetrain integration.
-        object.rotation[axis] = wheelSpinSign * motion.state.wheelAngles[index];
+        const motionIndex = profile.wheelMotionOrder ? profile.wheelMotionOrder[index] : index;
+        // Match each CAD axle and physical side to the simulator's driving frame.
+        object.rotation[axis] = wheelSpinSign * motion.state.wheelAngles[motionIndex];
       });
     }
 
