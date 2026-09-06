@@ -1,0 +1,107 @@
+/* Sits on the homepage above the fold's neighbours, so it is quiet: a returning
+   student should notice it without it competing with the hero. */
+/* Its own full-width ground. Wrapping it in the page's Band would leave an
+   empty tinted strip on the page for every reader the card has nothing to
+   say to, which is most of them. */
+.card {
+  display: block;
+  width: 100%;
+  padding: var(--tm-sp-5) 2rem;
+  border-top: 1px solid var(--tm-border-hair);
+  border-bottom: 1px solid var(--tm-border-hair);
+  background: var(--tm-surface-2);
+}
+
+.card > * {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tm-sp-4);
+  margin-bottom: var(--tm-sp-4);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--tm-border-hair);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dismiss {
+  padding: 5px 12px;
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-lg);
+  background: transparent;
+  color: var(--tm-text-muted);
+  cursor: pointer;
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.05em;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.dismiss:hover {
+  border-color: var(--tm-accent);
+  color: var(--tm-text-strong);
+}
+
+.list {
+  display: grid;
+  gap: var(--tm-sp-4);
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+
+/* A word, not an icon. The category is short enough to read faster than a
+   glyph anyone would have to learn first. */
+.kind {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  padding: 2px 7px;
+  border-radius: var(--tm-r-sm);
+  background: var(--tm-accent-a08);
+  color: var(--tm-accent);
+  font-family: var(--tm-font-label);
+  font-size: var(--tm-fs-2xs);
+  letter-spacing: 0.04em;
+}
+
+.title {
+  margin: 0 0 0.2rem;
+  color: var(--tm-text-strong);
+  font-size: var(--tm-fs-sm);
+  font-weight: 600;
+  line-height: var(--tm-lh-tight);
+}
+
+.body {
+  margin: 0;
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-xs);
+  line-height: var(--tm-lh-normal);
+}
+
+.all {
+  display: inline-block;
+  margin-top: var(--tm-sp-4);
+  color: var(--tm-accent);
+  font-size: var(--tm-fs-xs);
+}

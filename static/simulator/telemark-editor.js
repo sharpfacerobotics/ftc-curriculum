@@ -117,6 +117,99 @@
     'opModeIsActive()', 'isStopRequested()', 'waitForStart()', 'getRuntime()', 'resetRuntime()',
   ]));
 
+  /**
+   * Annotations. The @ is typed first, so these carry it in the label and the
+   * context hands back a range that includes it.
+   */
+  /**
+   * The SDK type names.
+   *
+   * These were not offered at all: typing `DcM` completed nothing, so every
+   * hardware class had to be recalled and spelled from memory, which is the
+   * thing a student gets wrong most often and the compiler complains about
+   * last. Declaring one is usually the first line of a mapping, so the
+   * completion carries the type on its own and leaves the name to them.
+   */
+  const TYPE_COMPLETIONS_LIST = [
+    ["DcMotor", "A motor, in the usual case"],
+    ["DcMotorEx", "A motor, with velocity and current"],
+    ["DcMotorSimple", "Direction only, shared by motors and CR servos"],
+    ["Servo", "A servo held at a position"],
+    ["CRServo", "A continuous rotation servo, driven by power"],
+    ["TouchSensor", "A limit or touch switch"],
+    ["DigitalChannel", "A digital input or output"],
+    ["AnalogInput", "An analog input"],
+    ["ColorSensor", "Colour, as red, green, blue"],
+    ["DistanceSensor", "Distance, in the unit you ask for"],
+    ["IMU", "The hub's orientation sensor"],
+    ["ElapsedTime", "A timer you reset and read"],
+    ["HardwareMap", "The configured devices on the robot"],
+    ["Telemetry", "The lines shown on the Driver Station"],
+    ["Gamepad", "One driver's controller"],
+    ["OpMode", "The class a TeleOp usually extends"],
+    ["LinearOpMode", "The class an autonomous usually extends"],
+    ["RevHubOrientationOnRobot", "How the hub is mounted, for the IMU"],
+    ["YawPitchRollAngles", "The angles the IMU reports"],
+    ["Limelight3A", "The Limelight camera"],
+    ["LLResult", "One reading from the Limelight"],
+    ["Follower", "Pedro Pathing's path follower"],
+    ["Pose", "A position and heading on the field"],
+    ["Math", "Java's maths library"],
+    ["String", "Text"],
+  ].map(function (entry) {
+    return {label: entry[0], insertText: entry[0], detail: entry[1]};
+  });
+
+  const ANNOTATION_COMPLETIONS = [
+    {label: "@Override", insertText: "@Override", detail: "Replaces a method from the class you extend"},
+    {label: "@TeleOp", insertText: '@TeleOp(name = "Name", group = "Group")', detail: "Registers a driver-controlled OpMode"},
+    {label: "@Autonomous", insertText: '@Autonomous(name = "Name", group = "Group")', detail: "Registers an autonomous OpMode"},
+    {label: "@Disabled", insertText: "@Disabled", detail: "Keeps an OpMode off the Driver Station list"},
+    {label: "@Deprecated", insertText: "@Deprecated", detail: "Marks something as replaced"},
+    {label: "@SuppressWarnings", insertText: '@SuppressWarnings("unchecked")', detail: "Silences one compiler warning"},
+  ];
+
+  /**
+   * Methods the student has written, read out of the buffer.
+   *
+   * This is what makes a class they wrote themselves complete. Requiring the
+   * opening brace is what separates a declaration from a call, and the
+   * control-flow words are excluded because `if (x) {` matches the same shape.
+   *
+   * It stays a scan rather than a parse on purpose: the buffer is usually
+   * mid-edit and unbalanced, and something that gave up at the first syntax
+   * error would go quiet exactly when the help is wanted.
+   */
+  function ownMethods(source) {
+    const clean = String(source || "").replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, " ");
+    const pattern = /(?:^|[;{}\s])(?:public|private|protected|static|final|abstract|synchronized|\s)*([A-Za-z_$][\w$]*(?:\s*<[^>]*>)?(?:\s*\[\s*\])?)\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*\{/g;
+    const skip = /^(if|for|while|switch|catch|synchronized|return|new)$/;
+    const found = new Map();
+    let match;
+    while ((match = pattern.exec(clean))) {
+      if (skip.test(match[2])) continue;
+      const args = match[3].trim();
+      found.set(match[2], {
+        label: match[2],
+        insertText: match[2] + "(" + (args ? "" : "") + ")",
+        detail: "your " + match[1].trim() + " method",
+      });
+    }
+    return Array.from(found.values());
+  }
+
+  /** Classes, interfaces and enums the student has declared. */
+  function ownClasses(source) {
+    const clean = String(source || "").replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, " ");
+    const pattern = /\b(?:class|interface|enum)\s+([A-Za-z_$][\w$]*)/g;
+    const found = new Map();
+    let match;
+    while ((match = pattern.exec(clean))) {
+      found.set(match[1], {label: match[1], insertText: match[1], detail: "your class"});
+    }
+    return Array.from(found.values());
+  }
+
   function declarations(source) {
     const clean = String(source).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g,
       function (text) { return text.replace(/[^\n]/g, ' '); });
@@ -334,6 +427,19 @@
         replaceEnd: position,
       };
     }
+    // An annotation is matched before a bare word, and the @ is part of what
+    // gets replaced: without it, accepting @Override on a typed @Ov leaves @@Override.
+    const annotation = before.match(/@([A-Za-z_$][\w$]*)?$/);
+    if (annotation) {
+      const typed = "@" + (annotation[1] || "");
+      return {
+        receiver: null,
+        annotation: true,
+        prefix: typed,
+        replaceStart: position - typed.length,
+        replaceEnd: position,
+      };
+    }
     const global = before.match(/(?:^|[^\w$])([A-Za-z_$][\w$]*)$/);
     const prefix = global ? global[1] : "";
     return {
@@ -365,11 +471,29 @@
       (last.startsWith("'") && (last.length === 1 || !last.endsWith("'"))))) return [];
     const variables = declarations(value);
     let pool;
+    if (context.annotation) {
+      // A single @ is enough to be worth offering: there are few of them and
+      // the @ itself is a clear statement of intent.
+      pool = ANNOTATION_COMPLETIONS;
+      const typedAnnotation = context.prefix;
+      return pool
+        .filter(function (item) { return item.label.indexOf(typedAnnotation) === 0; })
+        .map(function (item) {
+          return Object.assign({}, item, {
+            replaceStart: context.replaceStart,
+            replaceEnd: context.replaceEnd,
+          });
+        });
+    }
     if (context.receiver) {
       pool = TYPE_COMPLETIONS[variables.get(context.receiver)] || MEMBER_COMPLETIONS[context.receiver];
       if (!pool && elapsedTimeVariables(value).has(context.receiver)) pool = TIMER_COMPLETIONS;
+      // The receiver may be one of the student's own objects, or `this`. Their
+      // own methods are the only sensible thing to offer there, and without
+      // this a custom class completed nothing at all after the dot.
+      if (!pool) pool = ownMethods(value);
     } else {
-      pool = GLOBAL_COMPLETIONS.concat(Array.from(variables, function (entry) {
+      pool = GLOBAL_COMPLETIONS.concat(TYPE_COMPLETIONS_LIST, ownMethods(value), ownClasses(value), Array.from(variables, function (entry) {
         return {label: entry[0], insertText: entry[0], detail: entry[1] + ' variable'};
       }), ['hardwareMap', 'telemetry', 'gamepad1', 'gamepad2'].map(function (name) {
         return {label: name, insertText: name, detail: 'OpMode field'};
@@ -377,9 +501,13 @@
       if (!options.force && context.prefix.length < 2) return [];
     }
     if (!pool) return [];
-    const prefix = context.prefix.toLowerCase();
+    // Case sensitive, because Java is. Matching case-insensitively meant
+    // `dcmotor` offered `DcMotor`, which the compiler will not accept: the
+    // student is taught the name is spelled however they felt like typing it,
+    // and finds out otherwise from an error much later.
+    const prefix = context.prefix;
     return pool.filter(function (item, index) { return pool.findIndex(function (other) { return other.label === item.label; }) === index; })
-      .filter(function (item) { return !prefix || item.label.toLowerCase().startsWith(prefix); })
+      .filter(function (item) { return !prefix || item.label.indexOf(prefix) === 0; })
       .map(function (item) {
         return Object.assign({}, item, {
           replaceStart: context.replaceStart,

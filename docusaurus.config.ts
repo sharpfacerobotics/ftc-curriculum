@@ -198,6 +198,14 @@ const config: Config = {
     },
     footer: {
       style: 'dark',
+      // One link, so a returning reader can find the record of what changed
+      // even after dismissing the card on the homepage.
+      links: [
+        {
+          title: 'Telemark',
+          items: [{label: 'Changelog', to: '/changelog'}],
+        },
+      ],
       copyright:
         '© 2026 Telemark. Built by FTC Team Sharp Face Robotics #30450. Built with Docusaurus. Not affiliated with FIRST®',
     },

@@ -7,6 +7,7 @@ import {useColorMode} from '@docusaurus/theme-common';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import {TOOL_CATALOG} from '@site/src/components/mechanical/toolCatalog';
+import WhatsNew from '@site/src/components/ui/WhatsNew';
 import styles from './index.module.css';
 import AuthenticatedSimulatorNavigator from '../components/AuthenticatedSimulatorNavigator';
 import SimulatorWorkflow from '../components/SimulatorWorkflow';
@@ -560,6 +561,12 @@ export default function Home(): React.JSX.Element {
 
       <main className={styles.lp}>
         <HeroSection />
+
+        {/* Only renders for somebody who has been here before, and only when
+            something has changed since; a first visit shows nothing. It carries
+            its own ground rather than sitting in a Band, so the page does not
+            keep an empty tinted strip for everyone it has nothing to say to. */}
+        <WhatsNew />
 
         {/* Sections sit on alternating grounds rather than being separated by
             hairlines. A rule between two identical backgrounds says only that
