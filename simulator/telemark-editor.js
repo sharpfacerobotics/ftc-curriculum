@@ -130,7 +130,9 @@
    * last. Declaring one is usually the first line of a mapping, so the
    * completion carries the type on its own and leaves the name to them.
    */
-  const TYPE_COMPLETIONS_LIST = [
+  // Distinct from TYPE_COMPLETIONS above, which holds the members of a type.
+  // These are the type names themselves, offered when declaring something.
+  const SDK_TYPE_NAMES = [
     ["DcMotor", "A motor, in the usual case"],
     ["DcMotorEx", "A motor, with velocity and current"],
     ["DcMotorSimple", "Direction only, shared by motors and CR servos"],
@@ -497,7 +499,7 @@
       // this a custom class completed nothing at all after the dot.
       if (!pool) pool = ownMethods(value);
     } else {
-      pool = GLOBAL_COMPLETIONS.concat(TYPE_COMPLETIONS_LIST, ownMethods(value), ownClasses(value), Array.from(variables, function (entry) {
+      pool = GLOBAL_COMPLETIONS.concat(SDK_TYPE_NAMES, ownMethods(value), ownClasses(value), Array.from(variables, function (entry) {
         return {label: entry[0], insertText: entry[0], detail: entry[1] + ' variable'};
       }), ['hardwareMap', 'telemetry', 'gamepad1', 'gamepad2'].map(function (name) {
         return {label: name, insertText: name, detail: 'OpMode field'};
