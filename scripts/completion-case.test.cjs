@@ -76,4 +76,18 @@ assert.ok(!ifItems.some((item) => /your .* method/.test(item.detail || '')));
 assert.ok(at('telemetry.ad').includes('addData'));
 assert.ok(at('hardwareMap.').length > 0);
 
-console.log('Completion case and annotation tests passed (%d cases)', 23);
+// Accepting one of their methods leaves the caret where the next keystroke
+// belongs: inside the brackets when it takes something, after them when it
+// does not. This follows the convention the built-in completions already use.
+const withArgs = editor
+  .getCompletions(own + '\ncoll', (own + '\ncoll').length, {force: true})
+  .find((item) => item.label === 'collect');
+assert.equal(withArgs.insertText, 'collect()');
+assert.equal(withArgs.cursorOffset, 'collect'.length + 1, 'caret sits inside the brackets');
+
+const noArgs = editor
+  .getCompletions(own + '\nisF', (own + '\nisF').length, {force: true})
+  .find((item) => item.label === 'isFull');
+assert.equal(noArgs.cursorOffset, 'isFull'.length + 2, 'caret sits after them');
+
+console.log('Completion case and annotation tests passed (%d cases)', 25);
