@@ -188,10 +188,14 @@
     let match;
     while ((match = pattern.exec(clean))) {
       if (skip.test(match[2])) continue;
-      const args = match[3].trim();
+      // Same convention the built-in method completions use: a method that
+      // takes something leaves the caret between the brackets, one that takes
+      // nothing leaves it after them, so the next keystroke is the right one.
+      const takesArguments = match[3].trim().length > 0;
       found.set(match[2], {
         label: match[2],
-        insertText: match[2] + "(" + (args ? "" : "") + ")",
+        insertText: match[2] + "()",
+        cursorOffset: match[2].length + (takesArguments ? 1 : 2),
         detail: "your " + match[1].trim() + " method",
       });
     }
