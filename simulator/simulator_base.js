@@ -112,7 +112,16 @@
     if (!window.TelemarkJava || typeof window.TelemarkJava.compile !== "function") {
       throw new Error("Telemark Java compiler is unavailable");
     }
-    return window.TelemarkJava.compile.apply(window.TelemarkJava, arguments);
+    const editor = document.getElementById("sim-code-editor") || document.getElementById("code-editor");
+    const project = editor && editor.__telemarkProject;
+    if (project && source === editor.value) source = project.source();
+    const result = window.TelemarkJava.compile(source, runtime, compileOptions);
+    if (project && project.diagnosticLocation && source === project.source()) {
+      (result.diagnostics || []).forEach(function (diagnostic) {
+        diagnostic.message = (diagnostic.file ? diagnostic.file + ':' + (diagnostic.line || 1) : project.diagnosticLocation(diagnostic.line || 1)) + ': ' + diagnostic.message;
+      });
+    }
+    return result;
   }
 
   function createRuntime(options) {
@@ -2069,11 +2078,17 @@
           clearStaleDiagnostics();
           updateHighlighting();
           syncScroll();
+          editor.dispatchEvent(new Event("telemark:code-change"));
         },
       });
     }
 
     editor.addEventListener("input", function () {
+      clearStaleDiagnostics();
+      updateHighlighting();
+      syncScroll();
+    });
+    editor.addEventListener("telemark:editor-view-change", function () {
       clearStaleDiagnostics();
       updateHighlighting();
       syncScroll();
@@ -2089,13 +2104,17 @@
   // Public API
   window.getCode = function () {
     const editor = document.getElementById("sim-code-editor");
-    return editor ? editor.value : "";
+    return editor ? (editor.__telemarkProject ? editor.__telemarkProject.source() : editor.value) : "";
   };
 
   window.setCode = function (str) {
     const editor = document.getElementById("sim-code-editor");
     if (editor) {
       const source = String(str == null ? "" : str);
+      if (editor.__telemarkProject) {
+        editor.__telemarkProject.reset(source);
+        return;
+      }
       editor.value = source;
       if (!editor.__telemarkInitialCodeSet) {
         // Capture this before restoring a saved draft. Reset must always be
@@ -2114,7 +2133,8 @@
     const editor = document.getElementById("sim-code-editor");
     if (!editor || typeof editor.__telemarkStarterCode !== "string") return false;
 
-    editor.value = editor.__telemarkStarterCode;
+    if (editor.__telemarkProject) editor.__telemarkProject.reset(editor.__telemarkStarterCode);
+    else editor.value = editor.__telemarkStarterCode;
     editor.selectionStart = editor.selectionEnd = 0;
     if (window.TelemarkEditor) {
       window.TelemarkEditor.clearDiagnostics(document);
@@ -5060,6 +5080,9 @@
           window.TelemarkEditor.restoreDraft(editor);
           updateHighlighting();
           syncScroll();
+        }
+        if (editor && window.TelemarkProject) {
+          window.TelemarkProject.attach(editor);
         }
       }
     }

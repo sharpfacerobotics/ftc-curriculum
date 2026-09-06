@@ -132,6 +132,9 @@ code{font-family:"Consolas","Courier New",monospace}
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<script src="telemark-project-checks.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -875,47 +878,7 @@ function simulatePhysics() {
 
 // =============== VALIDATION ===============
 function validate() {
-  const code = codeEditor.value;
-  const initBody = getMethodBody(code, 'init');
-  const loopBody = getMethodBody(code, 'loop');
-
-  const safeInit = initBody || '';
-  const safeLoop = loopBody || '';
-  const hasLift = /slideMotor\s*=\s*hardwareMap\.get.*"slide"/.test(safeInit);
-  const hasLimit = /upperLimit\s*=\s*hardwareMap\.get.*"limit_upper"/.test(safeInit) &&
-    /lowerLimit\s*=\s*hardwareMap\.get.*"limit_lower"/.test(safeInit);
-  const hasInputMode = (safeInit.match(/\.setMode\s*\(\s*DigitalChannel\.Mode\.INPUT\s*\)/g) || []).length >= 2;
-  const hasDirection = /slideMotor\.setDirection\s*\([^)]*Direction\.REVERSE/.test(safeInit);
-  const hasBrake = /slideMotor\.setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE/.test(safeInit);
-  const hasNegate = /-\s*gamepad1\.left_stick_y|gamepad1\.left_stick_y\s*\*\s*-1/.test(loopBody);
-  const hasBlock = /requestedPower\s*>\s*0(?:\.0+)?[^\n{]*&&[^\n{]*!atUpper|!atUpper[^\n{]*&&[^\n{]*requestedPower\s*>\s*0/.test(safeLoop);
-  const hasUpFree = /requestedPower\s*<\s*0(?:\.0+)?[^\n{]*&&[^\n{]*!atLower|!atLower[^\n{]*&&[^\n{]*requestedPower\s*<\s*0/.test(safeLoop);
-  const hasSafeFallback = /else\s*\{[\s\S]*?appliedPower\s*=\s*0(?:\.0+)?\s*;/.test(safeLoop);
-  const hasTelemetry =
-    /telemetry\.addData\s*\([^)]*Upper Limit/.test(safeLoop) &&
-    /telemetry\.addData\s*\([^)]*Lower Limit/.test(safeLoop) &&
-    /telemetry\.addData\s*\([^)]*(Power|Slide Power)/.test(safeLoop) &&
-    /telemetry\.update/.test(safeLoop);
-
-  document.getElementById('req-lift').querySelector('.check').className = 'check ' + (hasLift ? 'pass' : '');
-  document.getElementById('req-limit').querySelector('.check').className = 'check ' + (hasLimit ? 'pass' : '');
-  const hasSetup = hasNegate && hasDirection && hasBrake;
-  document.getElementById('req-negate').querySelector('.check').className = 'check ' + (hasSetup ? 'pass' : '');
-  document.getElementById('req-block').querySelector('.check').className = 'check ' + (hasBlock ? 'pass' : '');
-  document.getElementById('req-up').querySelector('.check').className = 'check ' + (hasUpFree && hasSafeFallback ? 'pass' : '');
-  document.getElementById('req-telemetry').querySelector('.check').className = 'check ' + (hasTelemetry ? 'pass' : '');
-
-  const complete = hasLift && hasLimit && hasInputMode && hasSetup && hasBlock && hasUpFree && hasSafeFallback && hasTelemetry;
-  document.getElementById('success-banner').classList.toggle('visible', complete);
-
-  activeHints = [];
-  if (hasLift && (!hasBlock || !hasUpFree)) activeHints.push({msg: "Protect both hard stops: upper blocks positive and lower blocks negative power", type: "error"});
-  if (hasLimit && !hasInputMode) activeHints.push({msg: "Set both DigitalChannels to INPUT mode in init()", type: "warn"});
-  if (!hasDirection || !hasBrake) activeHints.push({msg: "Configure REVERSE direction and BRAKE behavior in init()", type: "warn"});
-  if (!hasNegate) activeHints.push({msg: "Remember to negate left_stick_y for intuitive control (pushing up should raise the lift)", type: "warn"});
-  if (!hasTelemetry) activeHints.push({msg: "Call telemetry.update() and show both limit states", type: "warn"});
-
-  renderHints();
+  TelemarkProjectChecks.render("8.5", codeEditor);
 }
 
 function renderHints() {
@@ -931,7 +894,6 @@ function renderHints() {
 
 function onCodeChange() {
   updateCode(codeEditor.value);
-  validate();
 }
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
@@ -947,11 +909,13 @@ function validateFullJavaSource(code) {
   return false;
 }
 
+let projectRunner = null;
 function handleRun() {
   if (running) return;
   if (!validateFullJavaSource(codeEditor.value)) return;
-  const requiredInitBody = getMethodBody(codeEditor.value, 'init');
-  const requiredLoopBody = getMethodBody(codeEditor.value, 'loop');
+  const projectSource = codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;
+  const requiredInitBody = getMethodBody(projectSource, 'init');
+  const requiredLoopBody = getMethodBody(projectSource, 'loop');
   if (requiredInitBody === null || requiredLoopBody === null) {
     const missingMethod = requiredInitBody === null ? 'init()' : 'loop()';
     document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">Java compile error: Required ${missingMethod} method is missing or has unmatched braces</span>`;
@@ -968,13 +932,14 @@ function handleRun() {
   document.getElementById('btn-run').disabled = true;
   document.getElementById('telemetry-log').innerHTML = '';
 
-  const initBody = getMethodBody(codeEditor.value, 'init');
+  const initBody = requiredInitBody;
   if (initBody !== null) {
     try {
-      const js = transpile(initBody);
-      new Function('setZeroPowerBehavior', 'setLiftPower', 'addTelemetry', 'updateTelemetry', '"use strict";\n' + js)(
-        () => {}, setLiftPower, addTelemetry, updateTelemetry
-      );
+      projectRunner = TelemarkProject.createRunner(codeEditor, {gamepad1: gamepadState, onPower: setLiftPower,
+        getDigitalState: device => device.name === 'limit_upper' ? getUpperLimitState() : getLowerLimitState(),
+        onTelemetry: addTelemetry, onTelemetryUpdate: updateTelemetry, getRuntime: () => (Date.now() - runtimeStart) / 1000});
+      projectRunner.init();
+      validate();
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">init() compile/runtime error: ${esc(e.message)}</span>`;
       console.error('Unit 8.5 init() failed', e);
@@ -988,7 +953,7 @@ function handleRun() {
   }, 50);
 
   loopInterval = setInterval(() => {
-    const loopBody = getMethodBody(codeEditor.value, 'loop');
+    const loopBody = requiredLoopBody;
     if (loopBody === null) {
       document.getElementById('telemetry-log').innerHTML = '<span class="telemetry-error">Java compile error: Required loop() method is missing or has unmatched braces</span>';
       console.error('Unit 8.5 Java compile error: invalid loop() method');
@@ -997,16 +962,7 @@ function handleRun() {
     }
     telemetryBuffer = [];
     try {
-      const js = transpile(loopBody);
-      new Function('gamepad', 'setLiftPower', 'getUpperLimitState', 'getLowerLimitState', 'addTelemetry', 'updateTelemetry',
-        '"use strict";\n' + js)(
-          gamepadState,
-          setLiftPower,
-          getUpperLimitState,
-          getLowerLimitState,
-          addTelemetry,
-          updateTelemetry
-        );
+      projectRunner.loop();
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">loop() compile/runtime error: ${esc(e.message)}</span>`;
       console.error('Unit 8.5 loop() failed', e);
@@ -1015,11 +971,11 @@ function handleRun() {
     }
 
     simulatePhysics();
-    validate();
   }, 50);
 }
 
 function handleStop() {
+  if (projectRunner) { const stopped = projectRunner; projectRunner = null; try { stopped.stop(); } catch (e) { console.error(e); } }
   running = false;
   if (loopInterval) clearInterval(loopInterval);
   if (timerInterval) clearInterval(timerInterval);
@@ -1058,7 +1014,6 @@ function syncScroll(el) {
 // =============== STARTUP ===============
 window.addEventListener('load', () => {
   updateCode(codeEditor.value);
-  validate();
   initScene();
   updateLiftVisuals();
 });

@@ -122,6 +122,9 @@ code{font-family:"Consolas","Courier New",monospace}
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<script src="telemark-project-checks.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src="./simulator_base.js" data-telemark-mode="legacy"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -605,26 +608,7 @@ function applySimulatorTheme(theme) {
 
 // =============== VALIDATION, RUN/STOP, STARTUP (same as before) ===============
 function validate() {
-  var code = codeEditor.value;
-  var initBody = getMethodBody(code, 'init');
-  var loopBody = getMethodBody(code, 'loop');
-  var hasMap = /lift\s*=\s*hardwareMap\.get/.test(initBody);
-  var hasBrake = /gamepad1\.y/.test(loopBody) &&
-    /setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE\s*\)/.test(loopBody);
-  var hasFloat = /gamepad1\.x/.test(loopBody) &&
-    /setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.FLOAT\s*\)/.test(loopBody);
-  var hasTelemetry = /telemetry\.addData.*Mode/.test(loopBody) && /telemetry\.update/.test(loopBody);
-
-  document.getElementById('req-map').querySelector('.check').className = 'check ' + (hasMap ? 'pass' : '');
-  document.getElementById('req-brake').querySelector('.check').className = 'check ' + (hasBrake ? 'pass' : '');
-  document.getElementById('req-float').querySelector('.check').className = 'check ' + (hasFloat ? 'pass' : '');
-  document.getElementById('req-telemetry').querySelector('.check').className = 'check ' + (hasTelemetry ? 'pass' : '');
-
-  document.getElementById('success-banner').classList.toggle('visible', hasMap && hasBrake && hasFloat && hasTelemetry);
-  
-  activeHints = [];
-  if (!/left_stick_y/.test(loopBody)) activeHints.push({ msg: "Use gamepad1.left_stick_y to control the lift", type: "warn" });
-  renderHints();
+  TelemarkProjectChecks.render("8.3", codeEditor);
 }
 
 function renderHints() {
@@ -640,7 +624,6 @@ function renderHints() {
 
 function onCodeChange() {
   updateCode(codeEditor.value);
-  validate();
 }
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
@@ -659,11 +642,13 @@ function validateFullJavaSource(code) {
   return false;
 }
 
+let projectRunner = null;
 function handleRun() {
   if (running) return;
   if (!validateFullJavaSource(codeEditor.value)) return;
-  const requiredInitBody = getMethodBody(codeEditor.value, 'init');
-  const requiredLoopBody = getMethodBody(codeEditor.value, 'loop');
+  const projectSource = codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;
+  const requiredInitBody = getMethodBody(projectSource, 'init');
+  const requiredLoopBody = getMethodBody(projectSource, 'loop');
   if (requiredInitBody === null || requiredLoopBody === null) {
     const missingMethod = requiredInitBody === null ? 'init()' : 'loop()';
     document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">Java compile error: Required ${missingMethod} method is missing or has unmatched braces</span>`;
@@ -682,13 +667,13 @@ function handleRun() {
   document.getElementById('telemetry-log').innerHTML = '';
   validate();
 
-  const initBody = getMethodBody(codeEditor.value, 'init');
+  const initBody = requiredInitBody;
   if (initBody !== null) {
     try {
-      const js = transpile(initBody);
-      new Function('setZeroPowerBehavior', 'addTelemetry', 'updateTelemetry', '"use strict";\n' + js)(
-        setZeroPowerBehavior, addTelemetry, updateTelemetry
-      );
+      projectRunner = TelemarkProject.createRunner(codeEditor, {gamepad1: gamepad, onPower: setLiftPower,
+        onZeroPowerBehavior: setZeroPowerBehavior, onTelemetry: addTelemetry, onTelemetryUpdate: updateTelemetry,
+        getRuntime: () => (Date.now() - runtimeStart) / 1000});
+      projectRunner.init();
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">init() compile/runtime error: ${esc(e.message)}</span>`;
       console.error('Unit 8.3 init() failed', e);
@@ -702,7 +687,7 @@ function handleRun() {
   }, 30);
 
   loopInterval = setInterval(() => {
-    const loopBody = getMethodBody(codeEditor.value, 'loop');
+    const loopBody = requiredLoopBody;
     if (loopBody === null) {
       document.getElementById('telemetry-log').innerHTML = '<span class="telemetry-error">Java compile error: Required loop() method is missing or has unmatched braces</span>';
       console.error('Unit 8.3 Java compile error: invalid loop() method');
@@ -711,9 +696,7 @@ function handleRun() {
     }
     telemetryBuffer = [];
     try {
-      const js = transpile(loopBody);
-      new Function('gamepad', 'setLiftPower', 'setZeroPowerBehavior', 'addTelemetry', 'updateTelemetry', 'currentMode',
-        '"use strict";\n' + js)(gamepad, setLiftPower, setZeroPowerBehavior, addTelemetry, updateTelemetry, currentMode);
+      projectRunner.loop();
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">loop() compile/runtime error: ${esc(e.message)}</span>`;
       console.error('Unit 8.3 loop() failed', e);
@@ -725,6 +708,7 @@ function handleRun() {
 }
 
 function handleStop() {
+  if (projectRunner) { const stopped = projectRunner; projectRunner = null; try { stopped.stop(); } catch (e) { console.error(e); } }
   running = false;
   if (loopInterval) clearInterval(loopInterval);
   if (timerInterval) clearInterval(timerInterval);
@@ -748,7 +732,6 @@ function resetSimulation() {
 // =============== STARTUP ===============
 window.addEventListener('load', function() {
   updateCode(codeEditor.value);
-  validate();
   requestAnimationFrame(() => {
     initScene();
     updateLiftVisuals();

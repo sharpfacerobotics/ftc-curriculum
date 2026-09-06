@@ -389,6 +389,8 @@
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -528,6 +530,7 @@ function syncScroll(el) {
 
 // ─── Smart Editor ────────────────────────────────────────────────────────────
 const codeEditor = document.getElementById('code-editor');
+function getProjectSource(){return codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;}
 
 function loadInitialCode() {
   const params = new URLSearchParams(window.location.search);
@@ -541,7 +544,6 @@ TelemarkEditor.attach(codeEditor, {
   onChange(editor) {
     updateCode(editor.value);
     syncScroll(editor);
-    updateHints(editor.value);
   },
 });
 
@@ -599,6 +601,7 @@ function resetAfterJavaFailure() {
 
 function handleMainButton() {
   if (currentState === 'STOPPED') {
+    updateHints(getProjectSource());
     document.getElementById('telemetry-log').innerHTML = '';
     document.getElementById('timer-val').textContent   = '0.00';
     runtimeOffset = 0;
@@ -688,7 +691,7 @@ let telemarkCompiledProgram = null;
 let telemarkRuntime = null;
 
 function executeMethod(methodName) {
-  const code = codeEditor.value;
+  const code = getProjectSource();
   const shouldCompile = methodName === 'init'
     || code !== telemarkCompiledSource
     || !telemarkCompiledProgram?.ok;
@@ -777,14 +780,12 @@ function updateHints(code) {
 codeEditor.addEventListener('input', () => {
   updateCode(codeEditor.value);
   syncScroll(codeEditor);
-  updateHints(codeEditor.value);
 });
 
 // ─── Boot ────────────────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   loadInitialCode();
   updateCode(codeEditor.value);
-  updateHints(codeEditor.value);
 });
 if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({state: gamepad});
 </script>

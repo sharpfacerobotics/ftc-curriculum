@@ -347,6 +347,8 @@
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -537,6 +539,7 @@ var GAMEPAD_PROPS = [
 ];
 
 var codeEditor = document.getElementById('code-editor');
+function getProjectSource(){return codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;}
 
 function loadInitialConfig() {
   var params = new URLSearchParams(window.location.search);
@@ -591,13 +594,11 @@ TelemarkEditor.attach(codeEditor, {
   onChange: function(editor) {
     updateCode(editor.value);
     syncScroll(editor);
-    runStaticAnalysis();
   }
 });
 codeEditor.addEventListener('input', function() {
   updateCode(codeEditor.value);
   syncScroll(codeEditor);
-  runStaticAnalysis();
 });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -1124,7 +1125,7 @@ function renderTruthTable() {
 
 // ─── Static Analysis ─────────────────────────────────────────────────────────
 function runStaticAnalysis() {
-  var code = codeEditor.value;
+  var code = getProjectSource();
   activeHints = [];
   declaredVars = {};
   deadzoneThreshold = 0;
@@ -1219,7 +1220,7 @@ function getMethodBody(code, methodName) {
 
 function executeMethod(methodName) {
   if (window.TelemarkSimulatorBase) {
-    var sharedSource = codeEditor.value;
+    var sharedSource = getProjectSource();
     if (methodName === 'init' || window.__telemarkUnit5Source !== sharedSource) {
       var sharedTelemetry = [];
       window.__telemarkUnit5Runtime = TelemarkSimulatorBase.createRuntime({
@@ -1268,7 +1269,7 @@ function executeMethod(methodName) {
     return true;
   }
 
-  var code = codeEditor.value;
+  var code = getProjectSource();
   var body = getMethodBody(code, methodName);
   if (!body) return true;
 
@@ -1881,7 +1882,6 @@ if (!window.TelemarkSimulatorBase) {
 window.addEventListener('load', function() {
   loadInitialConfig();
   updateCode(codeEditor.value);
-  runStaticAnalysis();
   updateSensorDisplays();
 });
 

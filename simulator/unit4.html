@@ -737,6 +737,8 @@
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -1019,6 +1021,7 @@ function syncScroll(el) {
 
 // ─── Smart Editor ────────────────────────────────────────────────────────────
 const codeEditor = document.getElementById('code-editor');
+function getProjectSource(){return codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;}
 
 function loadInitialConfig() {
   var params = new URLSearchParams(window.location.search);
@@ -1042,13 +1045,11 @@ TelemarkEditor.attach(codeEditor, {
   onChange(editor) {
     updateCode(editor.value);
     syncScroll(editor);
-    runStaticAnalysis();
   },
 });
 codeEditor.addEventListener('input', () => {
   updateCode(codeEditor.value);
   syncScroll(codeEditor);
-  runStaticAnalysis();
 });
 
 // ─── Simulator State ─────────────────────────────────────────────────────────
@@ -1363,7 +1364,7 @@ function formatValue(val, type) {
 
 // ─── Static Analysis ─────────────────────────────────────────────────────────
 function runStaticAnalysis() {
-  var code = codeEditor.value;
+  var code = getProjectSource();
   activeHints = [];
   declaredVars = {};
   detectedCurve = null;
@@ -1472,7 +1473,7 @@ function getCustomMethodParamName(code, methodName) {
 }
 
 function evaluateCustomMethodCall(methodName, rawArgs) {
-  var code = codeEditor.value;
+  var code = getProjectSource();
   var methodBody = getCustomMethodBody(code, methodName);
   if (!methodBody) return null;
 
@@ -1546,7 +1547,7 @@ function splitArguments(argsString) {
 
 function executeMethod(methodName) {
   if (window.TelemarkSimulatorBase) {
-    var sharedSource = codeEditor.value;
+    var sharedSource = getProjectSource();
     if (methodName === 'init' || window.__telemarkUnit4Source !== sharedSource) {
       var sharedTelemetry = [];
       window.__telemarkUnit4Runtime = TelemarkSimulatorBase.createRuntime({
@@ -1595,7 +1596,7 @@ function executeMethod(methodName) {
     return true;
   }
 
-  var code = codeEditor.value;
+  var code = getProjectSource();
   var body = getMethodBody(code, methodName);
   if (!body) return true;
 
@@ -2167,7 +2168,6 @@ window.addEventListener('blur', function() { Object.values(sticks).forEach(reset
 window.addEventListener('load', function() {
   loadInitialConfig();
   updateCode(codeEditor.value);
-  runStaticAnalysis();
   updateInputMonitor();
   drawCurveGraph();
 });

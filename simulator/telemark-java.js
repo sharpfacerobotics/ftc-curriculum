@@ -202,6 +202,144 @@
     };
   }
 
+  // Keep compilation-unit boundaries: an import in one file never grants access
+  // from another file. SDK classes remain supplied by each simulator runtime.
+  function serializeProject(files, entry) {
+    const metadata = {entry: entry || '', files: files.map(f => ({name: f.name, lines: f.source.split('\n').length}))};
+    return '// @telemark-project ' + JSON.stringify(metadata) + '\n' + files.map(f => f.source).join('\n');
+  }
+
+  function projectInput(source) {
+    if (Array.isArray(source)) return {files: source, entry: ''};
+    if (source && typeof source === 'object' && Array.isArray(source.files)) return source;
+    if (typeof source !== 'string' || !source.startsWith('// @telemark-project ')) return null;
+    const lines = source.split('\n');
+    const metadata = JSON.parse(lines.shift().slice('// @telemark-project '.length));
+    if (!Array.isArray(metadata.files) || metadata.files.some(f => !f || !Number.isInteger(f.lines) || f.lines < 1) || metadata.files.reduce((count, f) => count + f.lines, 0) !== lines.length) throw new TelemarkJavaError('Invalid project file boundaries. Import the original Java files again.');
+    let offset = 0;
+    return {entry: metadata.entry, files: metadata.files.map(f => {
+      const file = {name: f.name, source: lines.slice(offset, offset + f.lines).join('\n')};
+      offset += f.lines;
+      return file;
+    })};
+  }
+
+  function linkProject(project) {
+    if (!project.files.length || project.files.length > 40) throw new TelemarkJavaError('A project needs 1–40 Java files.');
+    if (new Set(project.files.map(f => f?.name)).size !== project.files.length) throw new TelemarkJavaError('Duplicate project filename. Rename one of the files.');
+    const units = project.files.map(file => {
+      if (!file || typeof file.source !== 'string' || !/^[\w$/.-]+\.java$/.test(file.name) || file.name.split('/').includes('..')) {
+        throw new TelemarkJavaError('Invalid Java project file.');
+      }
+      try {
+        const ast = parse(file.source);
+        const tokens = significant(ast.tokens);
+        for (let i = 0; i < tokens.length; i++) {
+          if (tokens[i].value === 'interface' || tokens[i].value === 'record') throw new TelemarkJavaError('Interfaces and records are not supported yet. Use a concrete helper class.', tokens[i]);
+          if (/^[A-Z]\w*$/.test(tokens[i].value) && tokens[i + 1]?.value === '<' &&
+              /^(?:>|\?|[A-Z][\w$]*)$/.test(tokens[i + 2]?.value || '') &&
+              /^[^;{}()]*>/.test(file.source.slice(tokens[i + 1].start))) throw new TelemarkJavaError('Generic types are not supported yet. Use an array or a concrete helper class.', tokens[i]);
+        }
+        if (tokens.filter((t, i) => t.value === 'class' && tokens[i - 1]?.value !== '.' && tokens[i + 1]?.type === 'identifier').length > ast.classes.length) throw new TelemarkJavaError('Nested classes are not supported yet. Move the helper class to its own Java file.');
+        let packageName = '';
+        const imports = [];
+        for (let i = 0; i < tokens.length; i++) {
+          if (!['package', 'import'].includes(tokens[i].value)) continue;
+          const kind = tokens[i].value;
+          const start = tokens[i];
+          let path = '';
+          while (++i < tokens.length && tokens[i].value !== ';') path += tokens[i].value;
+          if (i === tokens.length) throw new TelemarkJavaError('Missing semicolon after ' + kind, start);
+          if (kind === 'package') {
+            if (packageName) throw new TelemarkJavaError('Only one package declaration is allowed per file.', start);
+            packageName = path;
+          } else imports.push({path, token: start});
+        }
+        const classes = ast.classes.map(c => {
+          const before = tokens.filter(t => t.end <= c.start);
+          const publicClass = before.at(-1)?.value === 'public' || before.slice(-3).some(t => t.value === 'public') && before.at(-1)?.value === 'final';
+          if (publicClass && file.name.split('/').pop() !== c.name + '.java') throw new TelemarkJavaError('Public class ' + c.name + ' must be in ' + c.name + '.java.', {line: 1});
+          return {...c, public: publicClass, qualifiedName: packageName ? packageName + '.' + c.name : c.name};
+        });
+        return {file, ast, tokens, packageName, imports, classes};
+      } catch (error) { error.file = file.name; throw error; }
+    });
+    const symbols = units.flatMap(u => u.classes.map(c => ({...c, unit: u})));
+    const names = new Set();
+    symbols.forEach(c => {
+      if (names.has(c.qualifiedName)) { const error = new TelemarkJavaError('Duplicate class ' + c.qualifiedName); error.file = c.unit.file.name; throw error; }
+      names.add(c.qualifiedName);
+    });
+    // Identical simple names in different packages are isolated at link time.
+    symbols.forEach((c, i) => { c.runtimeName = 'TMProjectClass' + i; });
+    const entryCandidates = symbols.filter(c => ['OpMode', 'LinearOpMode'].includes(c.superClass));
+    const selected = project.entry ? entryCandidates.find(c => c.qualifiedName === project.entry || c.unit.file.name === project.entry) : entryCandidates[0];
+    if (!selected) throw new TelemarkJavaError('Select a class extending OpMode or LinearOpMode to run.');
+    const linked = units.map(u => {
+      try {
+        const imported = new Map();
+        const wildcards = [];
+        const sdkNames = new Set([...TYPE_NAMES, 'OpMode', 'LinearOpMode', 'DcMotorSimple', 'Math', 'System', 'Integer', 'Double', 'Float', 'Boolean', 'Long', 'Short', 'Byte', 'Character', 'Exception', 'RuntimeException', 'IllegalArgumentException', 'Range', 'DistanceUnit', 'AngleUnit', 'AxesOrder', 'AxesReference', 'Orientation', ...u.ast.enums.map(e => e.name)]);
+        u.ast.classes.forEach(c => {
+          c.fields.forEach(f => sdkNames.add(f.name));
+          c.methods.forEach(m => m.params.forEach(p => sdkNames.add(p)));
+        });
+        for (const imp of u.imports) {
+          if (imp.path.startsWith('static')) throw new TelemarkJavaError('Static imports are not supported yet; use ClassName.MEMBER.', imp.token);
+          if (!imp.path.includes('.')) throw new TelemarkJavaError('Classes in the unnamed package cannot be imported. Add a package declaration to the helper file.', imp.token);
+          if (imp.path.endsWith('.*')) {
+            const pkg = imp.path.slice(0, -2);
+            if (!units.some(other => other.packageName === pkg) && !/^(java\.|com\.|org\.firstinspires\.)/.test(pkg)) throw new TelemarkJavaError('Package ' + pkg + ' is not present in this project.', imp.token);
+            wildcards.push(pkg); continue;
+          }
+          const match = symbols.find(c => c.qualifiedName === imp.path);
+          if (!match) {
+            const sdk = /^(?:java\.|com\.(?:qualcomm|acmerobotics|pedropathing)|org\.(?:opencv|openftc)|org\.firstinspires\.ftc\.(?:robotcore|vision))/.test(imp.path);
+            if (!sdk) throw new TelemarkJavaError('Import ' + imp.path + ' cannot be resolved. Add its Java file to this project.', imp.token);
+            sdkNames.add(imp.path.split('.').pop());
+            continue;
+          }
+          if (match.unit.packageName !== u.packageName && !match.public) throw new TelemarkJavaError(match.qualifiedName + ' must be public to import it from another package.', imp.token);
+          if (u.classes.some(c => c.name === match.name && c.qualifiedName !== match.qualifiedName)) throw new TelemarkJavaError('Import conflicts with class ' + match.name + ' declared in this file.', imp.token);
+          if (imported.has(match.name) && imported.get(match.name) !== match) throw new TelemarkJavaError('Conflicting imports for ' + match.name, imp.token);
+          imported.set(match.name, match);
+        }
+        const replacements = [];
+        for (let i = 0; i < u.tokens.length; i++) {
+          const token = u.tokens[i];
+          if (['package', 'import'].includes(token.value)) { while (i < u.tokens.length && u.tokens[i].value !== ';') i++; continue; }
+          if (token.type !== 'identifier') continue;
+          if (u.tokens[i - 1]?.value === '@') continue;
+          // Resolve qualified references before simple names.
+          const qualified = symbols.find(c => c.qualifiedName.includes('.') && u.file.source.slice(token.start).startsWith(c.qualifiedName) && !/[\w$]/.test(u.file.source[token.start + c.qualifiedName.length] || ''));
+          if (qualified) {
+            if (!qualified.public && qualified.unit.packageName !== u.packageName) throw new TelemarkJavaError(qualified.qualifiedName + ' is not public.', token);
+            const end = token.start + qualified.qualifiedName.length;
+            replacements.push({start: token.start, end, value: qualified.runtimeName});
+            while (u.tokens[i + 1]?.start < end) i++;
+            continue;
+          }
+          const candidates = symbols.filter(c => c.name === token.value);
+          if (u.tokens[i - 1]?.value === '.') continue;
+          if (!candidates.length) {
+            if (/^[A-Z][\w$]*$/.test(token.value) && !sdkNames.has(token.value) && (u.tokens[i - 1]?.value === 'new' || isDeclarationType(u.tokens, i) || u.tokens[i + 1]?.value === '.')) throw new TelemarkJavaError('Cannot resolve class ' + token.value + '. Add its Java file and import its package if needed.', token);
+            continue;
+          }
+          const samePackage = candidates.find(c => c.unit.packageName === u.packageName);
+          const wildcardMatches = candidates.filter(c => wildcards.includes(c.unit.packageName) && c.public);
+          const found = imported.get(token.value) || samePackage || (wildcardMatches.length === 1 ? wildcardMatches[0] : null);
+          if (!found) throw new TelemarkJavaError(wildcardMatches.length > 1 ? 'Ambiguous class ' + token.value + '; use an explicit import.' : 'Cannot resolve ' + token.value + '. Add import ' + candidates[0].qualifiedName + '; (or use its fully qualified name).', token);
+          if (!found.public && found.unit !== u && found.unit.packageName !== u.packageName) throw new TelemarkJavaError(found.qualifiedName + ' is not public.', token);
+          replacements.push({start: token.start, end: token.end, value: found.runtimeName});
+        }
+        let result = u.file.source;
+        for (const r of replacements.reverse()) result = result.slice(0, r.start) + r.value + result.slice(r.end);
+        return result;
+      } catch (error) { error.file = u.file.name; throw error; }
+    });
+    return {source: linked.join('\n'), entryClass: selected.runtimeName, className: selected.name, units};
+  }
+
   function extractEnums(allTokens) {
     const tokens = significant(allTokens);
     const enums = [];
@@ -341,6 +479,7 @@
       if (token.value !== ";") continue;
 
       const isStatic = statement.some((part) => part.value === "static");
+      const isFinal = statement.some((part) => part.value === "final");
       const useful = statement.filter((part) => !MODIFIERS.has(part.value));
       statement = [];
       const assignment = useful.findIndex((part) => part.value === "=");
@@ -377,6 +516,7 @@
           name: nameToken.value,
           type: useful[0]?.value || "Object",
           static: isStatic,
+          final: isFinal,
           initialValue: literalValue(initializer),
           initializer: initializerSource,
           line: nameToken.line,
@@ -445,6 +585,11 @@
         type: "MethodDeclaration",
         name: nameToken.value,
         params: parseParameters(tokens.slice(i + 1, paramsEnd)),
+        parameterTypes: tokens.slice(i + 1, paramsEnd).reduce((parts, t) => {
+          if (t.value === ',') parts.push([]); else parts[parts.length - 1].push(t.value);
+          return parts;
+        }, [[]]).filter(p => p.length).map(p => p.filter(v => v !== 'final').slice(0, -1).join('')),
+        static: tokens.slice(Math.max(0, i - 5), i - 1).some(t => t.value === 'static'),
         body: source.slice(tokens[bodyOpen].end, tokens[bodyClose].start),
         bodyStart: tokens[bodyOpen].end,
         bodyLine: sourceLocation(source, tokens[bodyOpen].end).line,
@@ -946,7 +1091,12 @@
         && rawTokens[i - 1]?.value !== "."
         && rawTokens[i + 1]?.value !== ":"
       ) {
-        output.push("this." + token.value);
+        output.push((options.staticFieldOwners?.[token.value] || "this") + "." + token.value);
+        continue;
+      }
+
+      if (options.methodNames?.has(token.value) && rawTokens[i - 1]?.value !== '.' && rawTokens[i + 1]?.value === '(') {
+        output.push('this.' + token.value);
         continue;
       }
 
@@ -1009,6 +1159,7 @@
 
   function diagnosticFromError(error) {
     return {
+      file: error.file,
       severity: "error",
       message: error.message,
       line: error.line || 1,
@@ -1289,6 +1440,7 @@
       const fn = new FunctionConstructor(
         "runtime",
         "scope",
+        "classes",
         ...method.params,
         `const gamepad=runtime.gamepad1||runtime.gamepad||{};
 const gamepad2=runtime.gamepad2||{};
@@ -1296,8 +1448,11 @@ const hardwareMap=runtime.hardwareMap;
 const addTelemetry=runtime.addTelemetry||(()=>{});
 const updateTelemetry=runtime.updateTelemetry||(()=>{});
 const clearTelemetry=runtime.clearTelemetry||(()=>{});
+const telemetry={addData:addTelemetry,addLine:(line)=>addTelemetry(line,""),update:updateTelemetry,clear:clearTelemetry,clearAll:clearTelemetry};
 const getRuntime=runtime.getRuntime||(()=>0);
 const resetRuntime=runtime.resetRuntime||(()=>{});
+const OpMode=class{constructor(){this.hardwareMap=hardwareMap;this.gamepad1=gamepad;this.gamepad2=gamepad2;this.telemetry=telemetry;}getRuntime(){return getRuntime();}};
+const LinearOpMode=class extends OpMode{};
 const opModeIsActive=runtime.opModeIsActive||(()=>false);
 const isStopRequested=runtime.isStopRequested||(()=>false);
 const waitForStart=runtime.waitForStart||(()=>Promise.resolve());
@@ -1313,10 +1468,10 @@ const ElapsedTime=runtime.ElapsedTime||class{
   time(){return this.seconds();}
   toString(){return this.seconds().toFixed(3);}
 };
-${options.classPrelude || ""}
+${options.classRegistry ? 'const {' + Object.keys(options.classRegistry).join(',') + '}=classes;' : options.classPrelude || ""}
 with(scope){${js}}`
       );
-      return (...args) => fn(options.runtime || {}, options.scope || {}, ...args);
+      return (...args) => fn(options.runtime || {}, options.scope || {}, options.classRegistry || {}, ...args);
     } catch (error) {
       const location = error?.name === "SyntaxError"
         ? locateGeneratedSyntaxError(method, error, options)
@@ -1350,57 +1505,90 @@ with(scope){${js}}`
         .join(",");
       return `const ${enumNode.name}=Object.freeze({${entries}});`;
     });
-    for (const classNode of ast.classes) {
+    const ordered = [], visiting = new Set();
+    function visit(c) {
+      if (ordered.includes(c)) return;
+      if (visiting.has(c)) throw new TelemarkJavaError('Cyclic inheritance involving ' + c.name);
+      visiting.add(c);
+      const parent = ast.classes.find(p => p.name === c.superClass);
+      if (parent && parent !== mainClass) visit(parent);
+      visiting.delete(c); ordered.push(c);
+    }
+    ast.classes.forEach(visit);
+    const staticInitializers = [];
+    for (const classNode of ordered) {
       if (classNode === mainClass) continue;
       const inheritedFields = classNode.superClass
         ? ast.classes.find((candidate) => candidate.name === classNode.superClass)?.fields || []
         : [];
       const fieldNames = new Set(
         [...inheritedFields, ...(classNode.fields || [])]
-          .filter((field) => !field.static)
           .map((field) => field.name),
       );
+      const staticFieldOwners = Object.fromEntries((classNode.fields || []).filter(field => field.static).map(field => [field.name, classNode.name]));
       const constructor = classNode.methods.find((method) => method.name === classNode.name);
+      if (classNode.methods.filter(m => m.name === classNode.name).length > 1) throw new TelemarkJavaError('Overloaded constructors are not supported yet; use one constructor.', constructor);
+      function bodyOptions(method) {
+        const localNames = new Set(method?.params || []);
+        const tokens = significant(tokenize(method?.body || ''));
+        tokens.forEach((t, i) => { if (isDeclarationType(tokens, i)) localNames.add(tokens[i + 1]?.value); });
+        return {...options, preserveThis: true,
+          fieldNames: new Set([...fieldNames].filter(name => !localNames.has(name))), staticFieldOwners,
+          methodNames: new Set(classNode.methods.filter(m => m.name !== classNode.name && !localNames.has(m.name)).map(m => m.name))};
+      }
       const instanceInitializers = (classNode.fields || [])
         .filter((field) => !field.static)
-        .map((field) => `this.${field.name}=${defaultValue(field)};`)
+        .map((field) => transpileBody(`this.${field.name}=${defaultValue(field)};`, bodyOptions()))
         .join("");
-      const methods = classNode.methods
-        .filter((method) => method.name !== classNode.name)
-        .map((method) => {
-          const body = transpileBody(method.body, {
-            ...options,
-            preserveThis: true,
-            fieldNames,
-          });
-          return `${method.name}(${method.params.join(",")}){${body}}`;
-        })
-        .join("\n");
-      const constructorBody = constructor
-        ? transpileBody(constructor.body, {
-            ...options,
-            preserveThis: true,
-            fieldNames,
-          })
+      const groups = new Map();
+      classNode.methods.filter(m => m.name !== classNode.name).forEach(m => {
+        if (!groups.has(m.name)) groups.set(m.name, []);
+        groups.get(m.name).push(m);
+      });
+      const methods = [...groups].map(([name, group]) => {
+        if (group.length === 1) {
+          const m = group[0];
+          return `${m.static ? 'static ' : ''}${name}(${m.params.join(',')}){${transpileBody(m.body, bodyOptions(m))}}`;
+        }
+        const signatures = new Set();
+        const branches = group.map(m => {
+          const types = (m.parameterTypes || []).map(t => ['byte','short','int','long','float','double'].includes(t) ? 'number' : t === 'String' || t === 'char' ? 'string' : t === 'boolean' ? 'boolean' : t);
+          const signature = types.join(',');
+          if (signatures.has(signature) || group.some(other => Boolean(other.static) !== Boolean(m.static))) throw new TelemarkJavaError('Overloads of ' + name + ' need distinct argument counts or distinguishable types in this simulator.', m);
+          signatures.add(signature);
+          const condition = types.map((t, i) => ['number','string','boolean'].includes(t) ? `typeof __args[${i}]===${JSON.stringify(t)}` : `(__args[${i}] instanceof ${t})`).join('&&');
+          return `if(__args.length===${types.length}${condition ? '&&' + condition : ''}){let [${m.params.join(',')}]=__args;${transpileBody(m.body, bodyOptions(m))};return;}`;
+        });
+        return `${group[0].static ? 'static ' : ''}${name}(...__args){${branches.join('')}throw new Error("No matching overload for ${name}");}`;
+      }).join('\n');
+      let constructorBody = constructor
+        ? transpileBody(constructor.body, bodyOptions(constructor))
         : "";
       const extension = classNode.superClass ? ` extends ${classNode.superClass}` : "";
-      const implicitSuper = classNode.superClass && !/\bsuper\s*\(/.test(constructorBody)
-        ? "super();"
-        : "";
+      let implicitSuper = classNode.superClass ? 'super();' : '';
+      if (classNode.superClass && /^\s*super\s*\(/.test(constructorBody)) {
+        const tokens = significant(tokenize(constructorBody));
+        const end = matchingToken(tokens, 1);
+        implicitSuper = constructorBody.slice(0, tokens[end].end) + ';';
+        constructorBody = constructorBody.slice(tokens[end].end).replace(/^\s*;/, '');
+      }
       definitions.push(
         `class ${classNode.name}${extension}{constructor(${constructor?.params.join(",") || ""}){${implicitSuper}${instanceInitializers}${constructorBody}}${methods}}`,
       );
       for (const field of classNode.fields || []) {
-        if (field.static) definitions.push(`${classNode.name}.${field.name}=${defaultValue(field)};`);
+        if (field.static) staticInitializers.push(transpileBody(`${classNode.name}.${field.name}=${defaultValue(field)};`, bodyOptions()));
       }
     }
-    return definitions.join("\n");
+    return definitions.concat(staticInitializers).join("\n");
   }
 
   function compile(source, runtime = {}, options = {}) {
+    let linked = null;
     try {
+      const project = projectInput(source);
+      if (project) { linked = linkProject(project); source = linked.source; }
       const ast = parse(source);
-      const classNode = ast.classes.find((candidate) =>
+      const classNode = (linked && ast.classes.find(c => c.name === linked.entryClass)) || ast.classes.find((candidate) =>
         candidate.superClass === "OpMode" || candidate.superClass === "LinearOpMode"
       ) || ast.classes[0];
       if (!classNode) throw new TelemarkJavaError("No Java class was found");
@@ -1420,13 +1608,21 @@ with(scope){${js}}`
         };
       }
       const classPrelude = buildClassPrelude(ast, classNode, options);
+      const helperNames = [...ast.classes.filter(c => c !== classNode).map(c => c.name), ...ast.enums.map(e => e.name)];
+      // One class namespace per compilation preserves static state and instanceof
+      // identity across lifecycle calls and between separate helper instances.
+      const classRegistry = helperNames.length ? compileMethod({name: 'project classes', params: [], body: 'return {' + helperNames.map(name => name + ':' + name).join(',') + '};'}, {
+        ...options, runtime: methodRuntime, scope, classPrelude,
+      })() : {};
       const methods = {};
       for (const method of classNode.methods) {
+        if (methods[method.name]) throw new TelemarkJavaError('Overloaded method ' + method.name + ' is not supported yet. Use distinct method names.', method);
         methods[method.name] = compileMethod(method, {
           ...options,
           runtime: methodRuntime,
           scope,
           classPrelude,
+          classRegistry,
           async: classNode.superClass === "LinearOpMode" && method.name === "runOpMode",
         });
       }
@@ -1456,6 +1652,7 @@ with(scope){${js}}`
           runtime: methodRuntime,
           scope,
           classPrelude,
+          classRegistry,
         });
         try {
           initializer();
@@ -1469,8 +1666,8 @@ with(scope){${js}}`
       }
       return {
         ok: true,
-        ast,
-        className: classNode.name,
+        ast: linked ? parse(linked.units.map(u => u.file.source).join('\n')) : ast,
+        className: linked ? linked.className : classNode.name,
         kind: classNode.superClass === "LinearOpMode" ? "linear" : "iterative",
         methods,
         scope,
@@ -1478,6 +1675,14 @@ with(scope){${js}}`
         diagnostics: [],
       };
     } catch (error) {
+      if (linked && !error.file) {
+        let line = error.line || 1;
+        for (const u of linked.units) {
+          const count = u.file.source.split('\n').length;
+          if (line <= count) { error.file = u.file.name; error.line = line; break; }
+          line -= count;
+        }
+      }
       return {
         ok: false,
         diagnostics: [diagnosticFromError(error)],
@@ -1599,6 +1804,8 @@ with(scope){${js}}`
     TelemarkJavaError,
     tokenize,
     parse,
+    serializeProject,
+    compileProject: (files, runtime, options = {}) => compile({files, entry: options.entry}, runtime, options),
     findMethod,
     transpileBody,
     compile,

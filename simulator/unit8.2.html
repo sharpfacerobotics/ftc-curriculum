@@ -118,6 +118,9 @@ code{font-family:"Consolas","Courier New",monospace}
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<script src="telemark-project-checks.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src="./simulator_base.js" data-telemark-mode="legacy"></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -354,7 +357,7 @@ function updateCode(t){
   if(window.Prism)Prism.highlightElement(el);
 }
 function syncScroll(el){var h=document.getElementById('highlighting');h.scrollTop=el.scrollTop;h.scrollLeft=el.scrollLeft}
-function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor);validate()}
+function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor)}
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 function setCameraFollowRobot(enabled){
   cameraFollowRobot = !!enabled;
@@ -433,32 +436,36 @@ function validateFullJavaSource(code){
   return false;
 }
 /* ── Execute Java ─────────────────────────────────────────────────────────── */
+var projectRunner=null,projectTelemetry=[];
 function executeInit(){
-  var initBody=getMethodBody(codeEditor.value,'init');
+  var initBody=getMethodBody(codeEditor.__telemarkProject?codeEditor.__telemarkProject.source():codeEditor.value,'init');
   if(initBody===null){renderError('Java compile error: Required init() method is missing or has unmatched braces');return false}
   resetDirections();
-  var telLines=[];
-  function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);telLines.push({key:String(k),val:String(v)})}
-  function updateTelemetry(){renderTelemetry(telLines)}
+  projectTelemetry=[];
+  function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);projectTelemetry.push({key:String(k),val:String(v)})}
+  function updateTelemetry(){renderTelemetry(projectTelemetry)}
   function mapHardware(){return{}}
   try{
-    var js=transpileInit(initBody);
-    var fn=new Function('mapHardware','setMotorDirection','addTelemetry','updateTelemetry','__runtime','"use strict";\n'+js);
-    fn(mapHardware,setMotorDirection,addTelemetry,updateTelemetry,function(){return(Date.now()-runtimeStart)/1000});
+    var names={left_front:'leftFront',right_front:'rightFront',left_back:'leftBack',right_back:'rightBack'};
+    projectRunner=TelemarkProject.createRunner(codeEditor,{gamepad1:gamepad,
+      onPower:function(power,device){setMotorPower(names[device.name]||device.name,power)},
+      onDirection:function(direction,device){setMotorDirection(names[device.name]||device.name,direction)},
+      getRuntime:function(){return(Date.now()-runtimeStart)/1000},onTelemetry:addTelemetry,onTelemetryUpdate:updateTelemetry});
+    projectRunner.init();
   }catch(e){renderError('init() compile/runtime error: '+e.message);console.error('Unit 8.2 init() failed',e);return false}
   updateDirectionPanel(motorDirections);
   return true;
 }
 function runLoop(){
-  var loopBody=getMethodBody(codeEditor.value,'loop');
+  var loopBody=getMethodBody(codeEditor.__telemarkProject?codeEditor.__telemarkProject.source():codeEditor.value,'loop');
   if(loopBody===null){renderError('Java compile error: Required loop() method is missing or has unmatched braces');handleStop();return false}
-  var telLines=[];
-  function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);telLines.push({key:String(k),val:String(v)})}
-  function updateTelemetry(){renderTelemetry(telLines)}
+  projectTelemetry=[];
+  function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);projectTelemetry.push({key:String(k),val:String(v)})}
+  function updateTelemetry(){renderTelemetry(projectTelemetry)}
   try{
-    var js=transpileLoop(loopBody);
-    var fn=new Function('gamepad','setMotorPower','setMotorDirection','addTelemetry','updateTelemetry','__runtime','"use strict";\n'+js);
-    fn(gamepad,setMotorPower,setMotorDirection,addTelemetry,updateTelemetry,function(){return(Date.now()-runtimeStart)/1000});
+    projectRunner.runtime.addTelemetry=addTelemetry;
+    projectRunner.runtime.updateTelemetry=updateTelemetry;
+    projectRunner.loop();
     lastLoopError='';
   }catch(e){
     if(e.message!==lastLoopError){renderError('loop() compile/runtime error: '+e.message);lastLoopError=e.message}
@@ -488,6 +495,7 @@ function handleRun(){
   loopInterval=setInterval(function(){runLoop()},40);
 }
 function handleStop(){
+  if(projectRunner){var stopped=projectRunner;projectRunner=null;try{stopped.stop()}catch(e){console.error(e)}}
   running=false;
   if(loopInterval)clearInterval(loopInterval);
   if(timerInterval)clearInterval(timerInterval);
@@ -538,24 +546,8 @@ function detectMecanumMath(loopBody){
          /fl\s*=.*drive.*strafe.*rotate/.test(loopBody)&&
          /setPower/.test(loopBody);
 }
-function validate(){
-  activeHints=[];
-  var code=codeEditor.value,initBody=getMethodBody(code,'init')||'',loopBody=getMethodBody(code,'loop')||'';
-  var rLF=hasMap(initBody,'leftFront'),rRF=hasMap(initBody,'rightFront');
-  var rLB=hasMap(initBody,'leftBack'), rRB=hasMap(initBody,'rightBack');
-  var rLFRev=hasReverse(initBody,'leftFront'),rLBRev=hasReverse(initBody,'leftBack');
-  var rMath=detectMecanumMath(loopBody);
-  setReq('req-lf-map',rLF);setReq('req-rf-map',rRF);setReq('req-lb-map',rLB);setReq('req-rb-map',rRB);
-  setReq('req-lf-rev',rLFRev);setReq('req-lb-rev',rLBRev);setReq('req-math',rMath);
-  document.getElementById('success-banner').classList.toggle('visible',rLF&&rRF&&rLB&&rRB&&rLFRev&&rLBRev&&rMath);
-  codePreviewDirections=directionSnapshotFromInit(initBody);
-  if(!running)updateDirectionPanel(codePreviewDirections);
-  if(/setDirection\s*\(/.test(loopBody))addHint('setDirection belongs in init()','error');
-  var leftRevCount=(codePreviewDirections.leftFront==='REVERSE'?1:0)+(codePreviewDirections.leftBack==='REVERSE'?1:0);
-  if(leftRevCount===1)addHint('Both left motors need to be reversed');
-  if(codePreviewDirections.rightFront==='REVERSE'&&codePreviewDirections.rightBack==='REVERSE'&&leftRevCount<2)addHint('Reverse the LEFT motors','error');
-  if(!rMath)addHint('Add standard mecanum math (fl/fr/bl/br) in loop()');
-  renderHints();
+function validate() {
+  TelemarkProjectChecks.render("8.2", codeEditor);
 }
 /* ── Direction / motor bar UI ─────────────────────────────────────────────── */
 function updateDirectionPanel(dirs){
@@ -783,7 +775,6 @@ function applySimulatorTheme(theme){
 }
 window.addEventListener('load',function(){
   updateCode(codeEditor.value);
-  validate();
   initScene();
   animateScene();
   updateMotorBars();

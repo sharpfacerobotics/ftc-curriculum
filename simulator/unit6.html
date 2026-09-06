@@ -158,6 +158,8 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -288,6 +290,7 @@ var LINEAR_CODE = '@Autonomous(name="Linear_Demo")\npublic class LinearDemo exte
 
 // ── Globals ──
 var codeEditor = document.getElementById('code-editor');
+function getProjectSource(){return codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;}
 var currentMode = 'opmode'; // 'opmode' | 'linear'
 var simState = 'STOPPED'; // STOPPED, INIT, RUNNING, WAITING
 var loopCount = 0;
@@ -320,7 +323,7 @@ var initialMode = urlParams.get('mode') === 'linear' ? 'linear' : 'opmode';
 // ── Editor ──
 function updateCode(t){var el=document.getElementById('highlighting-content');if(t&&t[t.length-1]==='\n')t+=' ';el.innerHTML=(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');Prism.highlightElement(el)}
 function syncScroll(el){document.getElementById('highlighting').scrollTop=el.scrollTop;document.getElementById('highlighting').scrollLeft=el.scrollLeft}
-function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor);runAnalysis()}
+function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor)}
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 // ── Resizer ──
@@ -348,7 +351,9 @@ function switchMode(mode){
   document.getElementById('tog-linear').classList.toggle('active',mode==='linear');
   document.getElementById('controls-opmode').style.display=mode==='opmode'?'flex':'none';
   document.getElementById('controls-linear').style.display=mode==='linear'?'flex':'none';
-  codeEditor.value=mode==='opmode'?OPMODE_CODE:LINEAR_CODE;
+  var starter=mode==='opmode'?OPMODE_CODE:LINEAR_CODE;
+  if(codeEditor.__telemarkProject)codeEditor.__telemarkProject.reset(starter);
+  else codeEditor.value=starter;
   var ec=document.getElementById('explain-card');
   ec.innerHTML=mode==='opmode'
     ?'<i class="fa-solid fa-info-circle" style="color:var(--accent)"></i> <code>init()</code> runs once, <code>loop()</code> is called repeatedly by the SDK. You never write your own loop.'
@@ -359,7 +364,7 @@ function switchMode(mode){
 
 // ── Badge Strip ──
 function renderBadges(){
-  var code=codeEditor.value;
+  var code=getProjectSource();
   var items=[
     {name:'Telemetry',icon:'fa-tower-broadcast',on:code.indexOf('telemetry')!==-1},
     {name:'Loop',icon:'fa-rotate',on:/\bfor\b|\bwhile\b|\bloop\b/.test(code)},
@@ -533,8 +538,8 @@ function createCompiledRuntime(){
 function compileStudentProgram(expectedKind){
   if(!window.TelemarkSimulatorBase)return failExecution('Compiler unavailable',new Error('Telemark simulator base did not load'));
   compiledRuntime=createCompiledRuntime();
-  compiledProgram=TelemarkSimulatorBase.compileStudentSource(codeEditor.value,compiledRuntime);
-  compiledSource=codeEditor.value;
+  compiledProgram=TelemarkSimulatorBase.compileStudentSource(getProjectSource(),compiledRuntime);
+  compiledSource=getProjectSource();
   if(!compiledProgram.ok){
     var diagnostic=compiledProgram.diagnostics&&compiledProgram.diagnostics[0]||{};
     var location=diagnostic.line?' (line '+diagnostic.line+', column '+diagnostic.column+')':'';
@@ -636,7 +641,7 @@ function handleLinearRun(){
   if(!compileStudentProgram('linear'))return;
   if(!compiledProgram.methods.runOpMode)return failExecution('Java compile error',new Error('No runOpMode() method was found'));
   document.getElementById('btn-run').disabled=true;
-  var body=getMethodBody(codeEditor.value,'runOpMode');
+  var body=getMethodBody(getProjectSource(),'runOpMode');
   if(!/\bwaitForStart\s*\(/.test(body||'')){
     runtimeOffset=Date.now();
     setState('RUNNING','var(--good)');
@@ -675,7 +680,7 @@ function handleLinearStart(){
 // ── Field Var Parser ──
 function parseFieldVars(){
   fieldVars={};
-  var code=codeEditor.value;
+  var code=getProjectSource();
   var types=['int','double','float','boolean','String','long'];
   types.forEach(function(t){
     var re=new RegExp('\\b'+t+'\\s+([\\w\\s,=.\\-]+);','g');
@@ -713,7 +718,7 @@ function parseFieldVars(){
 
 // ── Blocking Detector ──
 function checkBlocking(){
-  var body=getMethodBody(codeEditor.value,'loop')||'';
+  var body=getMethodBody(getProjectSource(),'loop')||'';
   if(/while\s*\(\s*(?:gamepad1\.\w+|true)\s*\)/.test(body)){
     document.getElementById('blocking-warn').classList.add('visible');
     return true;
@@ -724,7 +729,7 @@ function checkBlocking(){
 
 // ── For Loop Step Visualizer ──
 function parseForLoop(){
-  var code=codeEditor.value;
+  var code=getProjectSource();
   stepForLoop=null;
   var forIdx=code.search(/\bfor\s*\(/);
   if(forIdx===-1)return;
@@ -808,7 +813,7 @@ function renderStepUI(){
 // ── Analysis ──
 function runAnalysis(){
   activeHints=[];
-  var code=codeEditor.value;
+  var code=getProjectSource();
   var nameMatch=/@(?:TeleOp|Autonomous)\s*\(\s*name\s*=\s*"([^"]+)"/.exec(code);
   document.getElementById('opmode-name').textContent=nameMatch?nameMatch[1]:'Unnamed';
   renderBadges();
