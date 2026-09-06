@@ -490,6 +490,8 @@
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -645,6 +647,7 @@ function syncScroll(el) {
 
 // ─── Smart Editor ────────────────────────────────────────────────────────────
 const codeEditor = document.getElementById('code-editor');
+function getProjectSource(){return codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;}
 
 function loadInitialConfig() {
   const params = new URLSearchParams(window.location.search);
@@ -668,13 +671,11 @@ TelemarkEditor.attach(codeEditor, {
   onChange(editor) {
     updateCode(editor.value);
     syncScroll(editor);
-    runStaticAnalysis();
   },
 });
 codeEditor.addEventListener('input', () => {
   updateCode(codeEditor.value);
   syncScroll(codeEditor);
-  runStaticAnalysis();
 });
 
 // ─── Simulator State & Inspector ─────────────────────────────────────────────
@@ -819,7 +820,7 @@ function evaluateExpression(expr) {
 }
 
 function runStaticAnalysis() {
-    const code = codeEditor.value;
+    const code = getProjectSource();
     activeHints.clear();
     declaredVars = {};
 
@@ -872,7 +873,7 @@ let telemarkCompiledProgram = null;
 let telemarkRuntime = null;
 
 function executeMethod(methodName) {
-  const code = codeEditor.value;
+  const code = getProjectSource();
   if (methodName === 'init') telemarkCompiledSource = '';
   if (code !== telemarkCompiledSource) {
     const telemetryLines = [];
@@ -993,7 +994,6 @@ function handleStopButton() {
 window.addEventListener('load', () => {
   loadInitialConfig();
   updateCode(codeEditor.value);
-  runStaticAnalysis();
 });
 if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({state: gamepad});
 </script>

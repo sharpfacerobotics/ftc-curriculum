@@ -115,9 +115,11 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+  <script src="./telemark-project.js"></script>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
+<link rel="stylesheet" href="./telemark-project.css"/>
 </head>
 <body>
 <div id="editor-container">
@@ -262,10 +264,10 @@ function syncScroll(el){
     h.scrollTop = el.scrollTop;
     h.scrollLeft = el.scrollLeft;
 }
+function projectSource(){ return codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value; }
 function onCodeChange(){
     updateCode(codeEditor.value);
     syncScroll(codeEditor);
-    runAnalysis();
 }
 
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
@@ -322,7 +324,7 @@ function getRuntime() { return runtimeOffset === 0 ? 0 : (Date.now() - runtimeOf
 
 // ── Parse & Analyze ──
 function runAnalysis() {
-  var code = codeEditor.value;
+  var code = projectSource();
   hwDevices = [];
   activeHints = [];
   declaredVars = {};
@@ -333,7 +335,24 @@ function runAnalysis() {
   var initBody = getMethodBody(code, 'init') || '';
   var loopBody = getMethodBody(code, 'loop') || '';
 
-  var declTypes = ['DcMotor','Servo','IMU','ColorSensor','DistanceSensor','TouchSensor','CRServo'];
+  // Inspect every helper's lifecycle, including a supplied HardwareMap parameter.
+  try {
+    var ast = TelemarkJava.parse(code);
+    var allMethods = ast.classes.reduce(function(list, c) { return list.concat(c.methods); }, []);
+    initBody = allMethods.filter(function(m) { return m.name === 'init'; }).map(function(m) { return m.body; }).join('\n');
+    loopBody = allMethods.filter(function(m) { return m.name !== 'init'; }).map(function(m) { return m.body; }).join('\n');
+    ast.classes.forEach(function(c) {
+      c.fields.forEach(function(f) {
+        if (f.static && f.type === 'String' && typeof f.initialValue === 'string') {
+          var pattern = new RegExp('(\\.\\s*get\\s*\\(\\s*\\w+\\.class\\s*,\\s*)(?:' + c.name + '\\.\\s*)?' + f.name + '(\\s*\\))', 'g');
+          code = code.replace(pattern, function(_, before, after) { return before + JSON.stringify(f.initialValue) + after; });
+          initBody = initBody.replace(pattern, function(_, before, after) { return before + JSON.stringify(f.initialValue) + after; });
+          loopBody = loopBody.replace(pattern, function(_, before, after) { return before + JSON.stringify(f.initialValue) + after; });
+        }
+      });
+    });
+  } catch (_) { /* Incomplete edits are still inspected below. */ }
+  var declTypes = ['DcMotor','Servo','IMU','ColorSensor','DistanceSensor','TouchSensor','CRServo','DigitalChannel','AnalogInput'];
   declTypes.forEach(function(dtype) {
     var re = new RegExp('\\b' + dtype + '\\s+([\\w\\s,]+);', 'g');
     var m;
@@ -346,7 +365,7 @@ function runAnalysis() {
     }
   });
 
-  var hwRe = /(\w+)\s*=\s*hardwareMap\.get\(\s*(\w+)\.class\s*,\s*"([^"]+)"\s*\)/g;
+  var hwRe = /(\w+)\s*=\s*\w+\s*\.\s*get\(\s*(\w+)\.class\s*,\s*"([^"]+)"\s*\)/g;
   var match;
   while ((match = hwRe.exec(code)) !== null) {
     var varName = match[1], devType = match[2], configName = match[3];
@@ -550,8 +569,8 @@ function createHardwareRuntime() {
 function compileHardwareProgram() {
   if(!window.TelemarkSimulatorBase)return failExecution('Compiler unavailable',new Error('Telemark simulator base did not load'));
   compiledRuntime=createHardwareRuntime();
-  compiledProgram=TelemarkSimulatorBase.compileStudentSource(codeEditor.value,compiledRuntime);
-  compiledSource=codeEditor.value;
+  compiledProgram=TelemarkSimulatorBase.compileStudentSource(projectSource(),compiledRuntime);
+  compiledSource=projectSource();
   if(!compiledProgram.ok){
     var diagnostic=compiledProgram.diagnostics&&compiledProgram.diagnostics[0]||{};
     var location=diagnostic.line?' (line '+diagnostic.line+', column '+diagnostic.column+')':'';
@@ -1028,10 +1047,10 @@ window.addEventListener('load', function() {
   if (customCode) {
     codeEditor.value = customCode;
   }
+  TelemarkProject.attach(codeEditor, onCodeChange);
   updateCode(codeEditor.value);
   initRobot3D();
   animateRobot();
-  runAnalysis();
 });
 if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.installLegacy({
   state: gamepad,

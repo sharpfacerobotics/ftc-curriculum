@@ -89,6 +89,8 @@ for (const name of htmlFiles) {
 
   if (/^unit\d/.test(name)) {
     assert.match(source, /telemark-editor\.js/, `${name} must load the shared editor behavior`);
+    const supportsProjects = legacyLessonFiles.has(name) || masteryFiles.has(name) || /^unit(?:9\.[2-5]|10\.[1-5]|12\.[24])\.html$/.test(name);
+    assert.equal(/telemark-project\.js/.test(source), supportsProjects, `${name} project controls must match its runtime capability`);
     const usesSharedBase = /<script\b[^>]*\bsrc\s*=\s*["'][^"']*simulator_base\.js["']/i.test(source);
     assert.equal(usesSharedBase, true, `${name} must load simulator_base.js`);
     assert.match(
@@ -154,6 +156,11 @@ for (const name of htmlFiles) {
     true,
     `${name} starter code failed: ${result.diagnostics?.[0]?.message}`,
   );
+  const className = starter[1].match(/public\s+class\s+(\w+)/)?.[1];
+  if (className) {
+    const project = TelemarkJava.compileProject([{name: className + '.java', source: starter[1]}]);
+    assert.equal(project.ok, true, `${name} project starter failed: ${project.diagnostics?.[0]?.message}`);
+  }
 }
 
 assert.equal(starterCount, 34, 'Expected 34 embedded starter-code fixtures');
@@ -267,6 +274,11 @@ assert.match(
   baseSource,
   /function compileStudentSource\s*\([^)]*\)[\s\S]{0,500}TelemarkJava\.compile(?:\.apply)?\s*\(/,
   'simulator_base.js must own the shared Java compiler wrapper',
+);
+assert.doesNotMatch(
+  baseSource,
+  /TelemarkProject\.attach\([^)]*,\s*function\s*\([^)]*\)\s*\{[\s\S]{0,160}dispatchEvent\(new Event\(['"]input/,
+  'file switches must not dispatch synthetic editor input events',
 );
 assert.match(
   baseSource,
@@ -493,7 +505,7 @@ assert.match(
 for (const name of ['unit8.3.html', 'unit8.4.html', 'unit8.5.html']) {
   const source = requiredMethodSources[name];
   const runStart = source.indexOf('function handleRun()');
-  const preflight = source.indexOf("const requiredInitBody = getMethodBody(codeEditor.value, 'init');", runStart);
+  const preflight = source.indexOf("const requiredInitBody = getMethodBody(projectSource, 'init');", runStart);
   const runningAssignment = source.indexOf('running = true', runStart);
   assert.ok(
     preflight > runStart && runningAssignment > preflight,

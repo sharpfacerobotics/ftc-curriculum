@@ -23,7 +23,54 @@ the dashboard. Google sign-in is required only for Sharp AI and the private
 analytics dashboard; when a learner signs in, browser progress is merged into
 their existing Firestore progress.
 
-### Adding an mechanical module
+### Java simulator projects
+
+37 Java simulator pages share `static/simulator/telemark-project.js` and
+`telemark-java.js`: Units 2–10, Lessons 12.2/12.4, and all unit mastery challenges.
+The remaining 23 lesson pages have custom execution adapters and retain their
+single-file editors until those adapters can execute complete projects.
+Supported full-mode simulators use the project through
+`TelemarkSimulatorBase.getCode()` and `compileStudentSource()`; older iterative
+lessons can use `TelemarkProject.createRunner(editor, hardwareCallbacks)`.
+`TelemarkJava.compileProject(files, runtime, {entry})` also accepts projects
+directly. Each file is `{name, source}`; `entry` is a qualified OpMode class name.
+
+Project linking preserves per-file package/import scope, same-package access,
+public class filenames, explicit/wildcard imports, qualified references, and
+classes with identical names in different packages. Helpers share class identity
+and static state throughout one run. Concrete inheritance, constructors, arrays,
+and helper method overloads distinguished by argument count or runtime type are
+supported. Errors include a filename and line when available.
+
+Typing, autocomplete, file switching, and draft saving only update the editor
+view and browser storage. Compilation begins when the learner presses Init (or
+Run on older one-button lessons), and behavioral requirement checks run after
+Start/Run. Do not dispatch synthetic `input` events for project navigation;
+those events are reserved for edits made by the learner.
+
+This remains a Java-to-JavaScript teaching runtime, not a JVM or complete Java
+type checker. SDK APIs depend on the lesson. Interfaces, records, nested classes,
+generic collections, static imports, overloaded constructors, and ambiguous
+numeric overloads report unsupported-feature errors. Java access modifiers and
+compile-time overload resolution are not fully modeled. No Java service or
+CheerpJ dependency is involved.
+
+Projects and the completed-lesson library stay in browser storage, for guests
+and signed-in learners alike. `SimulatorFrame` supplies lesson identity and
+completion state; skipped and placement-completed lessons do not appear in the
+library. Existing drafts enter the library when their lesson is opened. Local
+`.java`/project JSON imports preview selected files and reject collisions without
+overwriting current work; project exports move code between devices. The tab
+strip reveals create/import and per-file delete controls on hover or keyboard
+focus, while Export remains visible. Files created or imported through this UI
+use `package org.firstinspires.ftc.teamcode;`.
+
+Run `npm run test:simulator` and `npm run test:simulator:audit` when changing this
+layer. Unit 7 mastery and Units 8.1–8.5/9.1 use isolated hardware behavior checks
+to accept working imported helpers and reject inactive or unsafe implementations.
+Other lesson rubrics retain their existing lesson-specific checks.
+
+### Adding a mechanical module
 
 1. Add a seed to `MODULE_SEEDS` in `src/telemark/mechanical.ts`.
 2. Create `mechanical/module-NN/` with `_category_.json`, an overview that

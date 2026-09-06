@@ -142,6 +142,9 @@ code{font-family:"Consolas","Courier New",monospace}
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<script src="telemark-project-checks.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -872,36 +875,7 @@ function updateUI() {
 }
 
 function validate() {
-  const code = codeEditor.value;
-  const init = getMethodBody(code, 'init');
-  const loop = getMethodBody(code, 'loop');
-
-  const map1 = /motor1\s*=\s*hardwareMap/.test(init);
-  const map2 = /motor2\s*=\s*hardwareMap/.test(init);
-  const brake =
-    /motor1\.setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE\s*\)/.test(init) &&
-    /motor2\.setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE\s*\)/.test(init);
-  const estop = /gamepad1\.b/.test(loop) &&
-    /motor1\.setPower\s*\(\s*0(?:\.0)?\s*\)/.test(loop) &&
-    /motor2\.setPower\s*\(\s*0(?:\.0)?\s*\)/.test(loop);
-  const telemetryOK = /telemetry\.addData\s*\(/.test(loop) &&
-    /EMERGENCY STOP/i.test(loop) &&
-    /telemetry\.update/.test(loop);
-
-  document.getElementById('req-map1').querySelector('.check').className = 'check ' + (map1 ? 'pass' : '');
-  document.getElementById('req-map2').querySelector('.check').className = 'check ' + (map2 ? 'pass' : '');
-  document.getElementById('req-brake').querySelector('.check').className = 'check ' + (brake ? 'pass' : '');
-  document.getElementById('req-estop').querySelector('.check').className = 'check ' + (estop ? 'pass' : '');
-  document.getElementById('req-telemetry').querySelector('.check').className = 'check ' + (telemetryOK ? 'pass' : '');
-
-  document.getElementById('success-banner').classList.toggle('visible', map1 && map2 && brake && estop && telemetryOK);
-
-  activeHints = [];
-  if (estop && !brake) activeHints.push({msg: "Motors will coast without BRAKE. Set ZeroPowerBehavior.BRAKE in init() for a true emergency stop.", type: "error"});
-  if (!/left_stick_y/.test(loop) || !/right_stick_y/.test(loop)) activeHints.push({msg: "Use left stick Y for motor1 and right stick Y for motor2", type: "warn"});
-  if (!/updateTelemetry/.test(loop)) activeHints.push({msg: "Call updateTelemetry() after adding data", type: "warn"});
-
-  renderHints();
+  TelemarkProjectChecks.render("8.4", codeEditor);
 }
 
 function renderHints() {
@@ -917,7 +891,6 @@ function renderHints() {
 
 function onCodeChange() {
   updateCode(codeEditor.value);
-  validate();
 }
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
@@ -933,11 +906,13 @@ function validateFullJavaSource(code) {
   return false;
 }
 
+let projectRunner = null;
 function handleRun() {
   if (running) return;
   if (!validateFullJavaSource(codeEditor.value)) return;
-  const requiredInitBody = getMethodBody(codeEditor.value, 'init');
-  const requiredLoopBody = getMethodBody(codeEditor.value, 'loop');
+  const projectSource = codeEditor.__telemarkProject ? codeEditor.__telemarkProject.source() : codeEditor.value;
+  const requiredInitBody = getMethodBody(projectSource, 'init');
+  const requiredLoopBody = getMethodBody(projectSource, 'loop');
   if (requiredInitBody === null || requiredLoopBody === null) {
     const missingMethod = requiredInitBody === null ? 'init()' : 'loop()';
     document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">Java compile error: Required ${missingMethod} method is missing or has unmatched braces</span>`;
@@ -954,13 +929,15 @@ function handleRun() {
   document.getElementById('ds-state').style.color = "var(--good)";
   document.getElementById('btn-run').disabled = true;
 
-  const initBody = getMethodBody(codeEditor.value, 'init');
+  const initBody = requiredInitBody;
   if (initBody !== null) {
     try {
-      const js = transpile(initBody);
-      new Function('setZeroPowerBehavior', 'addTelemetry', 'updateTelemetry', '"use strict";\n' + js)(
-        setZeroPowerBehavior, addTelemetry, updateTelemetry
-      );
+      projectRunner = TelemarkProject.createRunner(codeEditor, {gamepad1: gamepadState,
+        onPower: (power, device) => setMotorPower(device.name, power),
+        onZeroPowerBehavior: (mode, device) => setZeroPowerBehavior(device.name, mode),
+        onTelemetry: addTelemetry, onTelemetryUpdate: updateTelemetry, getRuntime: () => (Date.now() - runtimeStart) / 1000});
+      projectRunner.init();
+      validate();
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">init() compile/runtime error: ${esc(e.message)}</span>`;
       console.error('Unit 8.4 init() failed', e);
@@ -974,7 +951,7 @@ function handleRun() {
   }, 50);
 
   loopInterval = setInterval(() => {
-    const loopBody = getMethodBody(codeEditor.value, 'loop');
+    const loopBody = requiredLoopBody;
     if (loopBody === null) {
       document.getElementById('telemetry-log').innerHTML = '<span class="telemetry-error">Java compile error: Required loop() method is missing or has unmatched braces</span>';
       console.error('Unit 8.4 Java compile error: invalid loop() method');
@@ -983,9 +960,7 @@ function handleRun() {
     }
     telemetryBuffer = [];
     try {
-      const js = transpile(loopBody);
-      new Function('gamepad', 'setMotorPower', 'setZeroPowerBehavior', 'addTelemetry', 'updateTelemetry',
-        '"use strict";\n' + js)(gamepadState, setMotorPower, setZeroPowerBehavior, addTelemetry, updateTelemetry);
+      projectRunner.loop();
     } catch(e) {
       document.getElementById('telemetry-log').innerHTML = `<span class="telemetry-error">loop() compile/runtime error: ${esc(e.message)}</span>`;
       console.error('Unit 8.4 loop() failed', e);
@@ -1004,11 +979,11 @@ function handleRun() {
     }
 
     simulatePhysics();
-    validate();
   }, 45);
 }
 
 function handleStop() {
+  if (projectRunner) { const stopped = projectRunner; projectRunner = null; try { stopped.stop(); } catch (e) { console.error(e); } }
   running = false;
   if (loopInterval) clearInterval(loopInterval);
   if (timerInterval) clearInterval(timerInterval);
@@ -1050,7 +1025,6 @@ function syncScroll(el) {
 // =============== STARTUP ===============
 window.addEventListener('load', () => {
   updateCode(codeEditor.value);
-  validate();
   initScene();
   updateUI();
   setTimeout(() => {

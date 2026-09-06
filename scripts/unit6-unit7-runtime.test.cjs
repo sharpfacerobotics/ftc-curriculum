@@ -77,7 +77,7 @@ function createPageHarness(relativeFile) {
       getBoundingClientRect() {
         return {left: 0, top: 0, width: 400, height: 250, right: 400, bottom: 250};
       },
-      getContext() { return {}; },
+    getContext() { return {}; },
     };
     elements.set(id, value);
     return value;
@@ -86,6 +86,7 @@ function createPageHarness(relativeFile) {
   const windowListeners = new Map();
   const document = {
     getElementById: element,
+    querySelectorAll() { return []; },
     addEventListener() {},
     createElement(tag) { return element(`created:${tag}:${elements.size}`); },
   };
@@ -117,16 +118,22 @@ function createPageHarness(relativeFile) {
   vm.createContext(context);
   vm.runInContext(telemarkJavaSource, context, {filename: 'telemark-java.js'});
   context.TelemarkSimulatorBase = {
-    compileStudentSource: (...args) => context.TelemarkJava.compile(...args),
+    compileStudentSource: (source, runtime, options) => {
+      const editor=element('code-editor');
+      return context.TelemarkJava.compile(source===editor.value && editor.__telemarkProject ? editor.__telemarkProject.source() : source, runtime, options);
+    },
     createRuntime: (...args) => context.TelemarkJava.createRuntime(...args),
     installLegacy() {},
   };
+  vm.runInContext(fs.readFileSync(path.join(repoRoot, 'static/simulator/telemark-project.js'), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.join(repoRoot, 'static/simulator/telemark-project-checks.js'), 'utf8'), context);
   const file = path.join(repoRoot, relativeFile);
   vm.runInContext(lastInlineScript(file), context, {filename: file});
 
   return {
     context,
     elements,
+    evaluate(source) { return vm.runInContext(source, context); },
     runInterval(id) {
       assert.ok(intervals.has(id), `expected active interval ${id}`);
       intervals.get(id)();
@@ -256,6 +263,22 @@ function testUnit7CompiledLifecycle() {
   assert.equal(sim.currentState, 'STOPPED');
   assert.match(page.elements.get('telemetry-log').innerHTML, /No telemetry data/);
 
+  const multiPage = createPageHarness('static/simulator/unit7.html');
+  const multi = multiPage.context;
+  multi.codeEditor.value = '@TeleOp(name="Slide") public class SlideTeleOp extends OpMode { LinearSlide slide = new LinearSlide(); public void init() { slide.init(hardwareMap); } public void loop() { slide.move(gamepad1.left_stick_y); } }';
+  const helperSource = 'public class LinearSlide { private DcMotor motor; static final String NAME = "slide_motor"; public void init(HardwareMap hw) { motor = hw.get(DcMotor.class, NAME); } public void move(double speed) { motor.setPower(speed); } }';
+  multi.codeEditor.__telemarkProject = {source: () => multi.codeEditor.value + '\n' + helperSource};
+  multi.runAnalysis();
+  assert.equal(multi.hwDevices[0].configName, 'slide_motor');
+  assert.equal(multi.hwDevices[0].inInit, true);
+  multi.handleMainButton();
+  assert.equal(multi.currentState, 'INIT_LOOP', multiPage.elements.get('telemetry-log').innerHTML);
+  multi.handleMainButton();
+  multi.gamepad.left_stick_y = 0.6;
+  multiPage.runInterval(multi.intervalId);
+  assert.equal(multi.compiledRuntime.devices.get('DcMotor:slide_motor').getPower(), 0.6);
+  multi.handleStopButton();
+
   const starterPage = createPageHarness('static/simulator/unit7.html');
   const starter = starterPage.context;
   starter.codeEditor.value = initialEditorSource(path.join(repoRoot, 'static/simulator/unit7.html'));
@@ -269,7 +292,8 @@ function testUnit7CompiledLifecycle() {
   starter.handleStopButton();
 }
 
-(async () => {
+module.exports = {createPageHarness};
+if (require.main === module) (async () => {
   await testUnit6LifecycleAndCancellation();
   testUnit7CompiledLifecycle();
   console.log('Unit 6/7 compiled lifecycle tests passed.');

@@ -129,6 +129,9 @@ code{font-family:"JetBrains Mono","Fira Code","Consolas",monospace}
   </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<script src="telemark-project-checks.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -203,6 +206,7 @@ var STARTER_CODE = '@TeleOp(name="Gate_Servo")\npublic class GateServo extends O
 
 var state = {
   running: false, code: STARTER_CODE, telemetry: [], telemetryError: null, initialized: false,
+  challengeRequirements: [false,false,false,false],
   gamepad: { a:false,b:false,x:false,y:false,dpad_up:false,dpad_down:false,dpad_left:false,dpad_right:false,left_bumper:false,right_bumper:false,left_trigger:0,right_trigger:0,left_stick_x:0,left_stick_y:0,right_stick_x:0,right_stick_y:0,back:false,start:false },
   loopInterval:null, runtimeInterval:null, runtimeSeconds:0, telemetryBuffer:[], challengeCollapsed:false
 };
@@ -229,7 +233,15 @@ function updateTelemetry(){state.telemetry=state.telemetryBuffer.slice();renderT
 function clearTelemetryBuffer(){state.telemetryBuffer=[]}
 
 // Validator
-function validateCode(c){var ib=getMethodBody(c,'init')||'',lb=getMethodBody(c,'loop')||'',h=[];var r1=/hardwareMap\s*\.\s*get\s*\(\s*Servo\s*\.\s*class\s*,\s*"gate"\s*\)/.test(ib);var yb=/if\s*\(\s*gamepad1\.y\s*\)/.test(lb),p75=/setPosition\s*\(\s*0\.75\s*\)/.test(lb),r2=false;if(yb&&p75){var ym=lb.match(/if\s*\(\s*gamepad1\.y\s*\)\s*\{([^}]*)\}/);if(ym&&/setPosition\s*\(\s*0\.75\s*\)/.test(ym[1]))r2=true}var ab=/if\s*\(\s*gamepad1\.a\s*\)|else\s+if\s*\(\s*gamepad1\.a\s*\)/.test(lb),p0=/setPosition\s*\(\s*0(\.0)?\s*\)/.test(lb),r3=false;if(ab&&p0){var am=lb.match(/(?:else\s+)?if\s*\(\s*gamepad1\.a\s*\)\s*\{([^}]*)\}/);if(am&&/setPosition\s*\(\s*0(\.0)?\s*\)/.test(am[1]))r3=true}var r4=/telemetry\s*\.\s*addData\s*\(/.test(lb);var pm=lb.match(/setPosition\s*\(\s*(-?[\d.]+)\s*\)/g);if(pm)pm.forEach(function(m){var vm=m.match(/setPosition\s*\(\s*(-?[\d.]+)\s*\)/);if(vm){var v=parseFloat(vm[1]);if(v<0||v>1)h.push({text:'Servo positions must be between 0.0 and 1.0',type:'error'})}});if(/hardwareMap\s*\.\s*get/.test(lb)&&!/hardwareMap\s*\.\s*get/.test(ib))h.push({text:'Map hardware in init() not loop()',type:'error'});var he=/}\s*else\s+(if\s*)?\{/.test(lb)||/}\s*else\s+if/.test(lb);if(p75&&p0&&!he)h.push({text:'Use if/else so only one position is commanded per loop cycle',type:'warning'});if(/telemetry\s*\.\s*addData/.test(lb)&&!/telemetry\s*\.\s*update\s*\(\s*\)/.test(lb))h.push({text:'Call telemetry.update() to send data to the Driver Station',type:'warning'});if(yb&&ab){var yB=lb.match(/if\s*\(\s*gamepad1\.y\s*\)\s*\{([^}]*)\}/),aB=lb.match(/(?:else\s+)?if\s*\(\s*gamepad1\.a\s*\)\s*\{([^}]*)\}/);if(yB&&aB&&/setPosition\s*\(\s*0(\.0)?\s*\)/.test(yB[1])&&/setPosition\s*\(\s*0\.75\s*\)/.test(aB[1]))h.push({text:'Check your button mapping — Y should open, A should close',type:'warning'})}return{requirements:[r1,r2,r3,r4],hints:h}}
+function validateCode(c) {
+  return {requirements:state.challengeRequirements,hints:[]};
+}
+function assessChallenge() {
+  var editor=document.getElementById("code-editor");
+  var result=TelemarkProjectChecks.evaluate("9.1", editor&&editor.__telemarkProject?editor.__telemarkProject.source():state.code);
+  state.challengeRequirements=result.requirements;
+  return result;
+}
 
 // Editor
 var cmEditor=null;
@@ -307,7 +319,7 @@ function installCodeMirrorAutocomplete(cm){
   });
   cm.on('keydown',function(_cm,e){e.stopPropagation();});
 }
-function initEditor(){cmEditor=CodeMirror(document.getElementById('editor-wrap'),{value:STARTER_CODE,mode:'text/x-java',theme:'dracula',lineNumbers:true,indentUnit:4,tabSize:4,indentWithTabs:false,extraKeys:{Tab:'indentMore','Shift-Tab':'indentLess'}});installCodeMirrorAutocomplete(cmEditor);cmEditor.on('change',function(){state.code=cmEditor.getValue();renderChallenge()})}
+function initEditor(){cmEditor=CodeMirror(document.getElementById('editor-wrap'),{value:STARTER_CODE,mode:'text/x-java',theme:'dracula',lineNumbers:true,indentUnit:4,tabSize:4,indentWithTabs:false,extraKeys:{Tab:'indentMore','Shift-Tab':'indentLess'}});installCodeMirrorAutocomplete(cmEditor);cmEditor.on('change',function(){state.code=cmEditor.getValue();state.challengeRequirements=[false,false,false,false];renderChallenge()})}
 
 // Rendering
 function renderTelemetry(){
@@ -373,18 +385,24 @@ function validateFullJavaSource(code){
   return false;
 }
 
+var projectProgram = null;
+var projectCompiledSource = null;
 function handleInit(){
+  state.initialized=false;
+  state.challengeRequirements=[false,false,false,false];
   state.telemetryError=null; state.telemetry=[]; state.telemetryBuffer=[]; renderTelemetry();
-  if(!validateFullJavaSource(state.code))return false;
-  var c = state.code, cf = extractClassFields(c), ib = getMethodBody(c,'init');
+  var projectEditor = document.getElementById('code-editor');
+  var c = projectEditor && projectEditor.__telemarkProject ? projectEditor.__telemarkProject.source() : state.code, cf = extractClassFields(c), ib = getMethodBody(c,'init');
   if(ib === null){ state.telemetryError = 'Java compile error: Required init() method is missing or has unmatched braces'; renderTelemetry(); return false; }
   var hn = extractHardwareNames(ib), ssScope = {};
   Object.keys(cf).forEach(function(f){ ssScope[f] = undefined; });
   try{
-    var ijs = transpileJava(ib, cf, hn);
-    var fn = Object.keys(cf), iw = fn.map(function(f){return 'var '+f+'=__scope.'+f+';'}).join('\n') + '\n' + ijs + '\n' + fn.map(function(f){return '__scope.'+f+'='+f+';'}).join('\n');
-    var ifn = new Function('gamepad','hardwareMap','addTelemetry','updateTelemetry','clearTelemetry','getRuntime','setServoPosition','__scope','"use strict";\n'+iw);
-    ifn(state.gamepad, mockHardwareMap, addTelemetry, updateTelemetry, clearTelemetryBuffer, function(){return state.runtimeSeconds}, setServoPosition, ssScope);
+    projectProgram = TelemarkSimulatorBase.compileStudentSource(c, {gamepad1:state.gamepad,hardwareMap:mockHardwareMap,
+      addTelemetry:addTelemetry,updateTelemetry:updateTelemetry,clearTelemetry:clearTelemetryBuffer,getRuntime:function(){return state.runtimeSeconds}});
+    if(!projectProgram.ok) throw new Error(projectProgram.diagnostics[0].message);
+    if(projectProgram.kind!=='iterative') throw new Error('This lesson expects an OpMode.');
+    projectProgram.methods.init();
+    projectCompiledSource=c;
   }catch(e){ state.telemetryError = 'init() error: '+e.message; renderTelemetry(); return false; }
   if(state.telemetryBuffer.length && state.telemetry.length === 0) updateTelemetry();
   // persist the init scope so loop() can reuse hardware mappings
@@ -401,9 +419,9 @@ function handleRun(){
   state.telemetryBuffer=[];
   state.runtimeSeconds=0;
   renderTelemetry();
-  if(!validateFullJavaSource(state.code))return;
-  if(!state.initialized && !handleInit()) return;
-  var c=state.code;
+  var projectEditor=document.getElementById('code-editor');
+  var c=projectEditor&&projectEditor.__telemarkProject?projectEditor.__telemarkProject.source():state.code;
+  if((!state.initialized || c!==projectCompiledSource) && !handleInit()) return;
   var cf=extractClassFields(c);
   var ib=getMethodBody(c,'init');
   var lb=getMethodBody(c,'loop');
@@ -414,15 +432,13 @@ function handleRun(){
   if(detectBlockingLoop(lb)){state.telemetryError='Blocking loop detected in loop()!';renderTelemetry();return}
   var runLoopOnce;
   try{
-    var ljs=transpileJava(lb,cf,hn);
-    var fn2=Object.keys(cf);
-    var lw=fn2.map(function(f){return'var '+f+'=__scope.'+f+';'}).join('\n')+'\n'+ljs+'\n'+fn2.map(function(f){return'__scope.'+f+'='+f+';'}).join('\n');
-    var lfn=new Function('gamepad','hardwareMap','addTelemetry','updateTelemetry','clearTelemetry','getRuntime','setServoPosition','__scope','"use strict";\n'+lw);
+    if(projectProgram.methods.start)projectProgram.methods.start();
     runLoopOnce=function(){
       if(!state.running)return false;
       try{
         clearTelemetryBuffer();
-        lfn(state.gamepad,mockHardwareMap,addTelemetry,updateTelemetry,clearTelemetryBuffer,function(){return state.runtimeSeconds},setServoPosition,ss);
+        projectProgram.methods.loop();
+        updateTelemetry();
         return true;
       }catch(e){
         state.telemetryError='loop() runtime error: '+e.message;
@@ -440,13 +456,14 @@ function handleRun(){
   updateRunUI();
   state.runtimeInterval=setInterval(function(){state.runtimeSeconds+=0.05;var tv=document.getElementById('timer-val'); if(tv) tv.textContent = state.runtimeSeconds.toFixed(2)},50);
   if(!runLoopOnce())return;
+  assessChallenge();
   state.loopInterval=setInterval(runLoopOnce,50);
   renderChallenge();
 }
 
-function handleStop(){if(state.loopInterval){clearInterval(state.loopInterval);state.loopInterval=null}if(state.runtimeInterval){clearInterval(state.runtimeInterval);state.runtimeInterval=null}state.running=false;updateRunUI()}
+function handleStop(){if(projectProgram&&state.running){try{if(projectProgram.methods.stop)projectProgram.methods.stop()}catch(e){state.telemetryError=e.message;renderTelemetry()}}if(state.loopInterval){clearInterval(state.loopInterval);state.loopInterval=null}if(state.runtimeInterval){clearInterval(state.runtimeInterval);state.runtimeInterval=null}state.running=false;updateRunUI()}
 
-function handleReset(){handleStop();state.telemetry=[];state.telemetryError=null;state.telemetryBuffer=[];state.runtimeSeconds=0;state.initialized=false;document.getElementById('btn-init').disabled=false;var tv=document.getElementById('timer-val'); if(tv) tv.textContent='0.00';updateRunUI();resetHardware();renderTelemetry();renderChallenge();if(window.resetScene)window.resetScene()}
+function handleReset(){handleStop();state.telemetry=[];state.telemetryError=null;state.telemetryBuffer=[];state.runtimeSeconds=0;state.initialized=false;state.challengeRequirements=[false,false,false,false];document.getElementById('btn-init').disabled=false;var tv=document.getElementById('timer-val'); if(tv) tv.textContent='0.00';updateRunUI();resetHardware();renderTelemetry();renderChallenge();if(window.resetScene)window.resetScene()}
 
 // Gamepad
 (function(){var rs=document.getElementById('split-resizer'),lp=document.getElementById('left-panel'),rp=document.getElementById('right-panel'),drag=false,pid=null;if(!rs||!lp||!rp)return;function px(v,f){var n=parseFloat(v);return isFinite(n)?n:f}function resizeScene(){window.dispatchEvent(new Event('resize'))}function setWidth(x){var main=document.getElementById('main'),rect=(main||document.body).getBoundingClientRect(),total=rect.width,rsw=rs.offsetWidth||6,ls=getComputedStyle(lp),rsx=getComputedStyle(rp),minL=px(ls.minWidth,260),minR=px(rsx.minWidth,260),minW=Math.min(minL,Math.max(160,total-rsw-minR)),maxW=Math.max(minW,total-rsw-minR),w=Math.max(minW,Math.min(maxW,x-rect.left));lp.style.flex='0 0 '+w+'px';lp.style.width=w+'px';rp.style.flex='1 1 0';rp.style.width='auto';resizeScene()}rs.addEventListener('pointerdown',function(e){drag=true;pid=e.pointerId;rs.classList.add('active');if(rs.setPointerCapture)rs.setPointerCapture(e.pointerId);document.body.style.cursor='col-resize';document.body.style.userSelect='none';setWidth(e.clientX);e.preventDefault()});function move(e){if(!drag)return;if(pid!==null&&e.pointerId!==undefined&&e.pointerId!==pid)return;setWidth(e.clientX);e.preventDefault()}document.addEventListener('pointermove',move);window.addEventListener('pointermove',move);function end(){drag=false;pid=null;rs.classList.remove('active');document.body.style.cursor='';document.body.style.userSelect='';resizeScene()}document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end);window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end)})();

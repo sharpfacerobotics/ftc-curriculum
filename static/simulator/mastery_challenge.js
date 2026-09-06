@@ -124,7 +124,7 @@
     },
     7: {
       title: "Unit 7 Coding Challenge: Reusable Hardware Subsystem",
-      scenario: "Build a TeleOp with centralized configuration names and a reusable nested mechanism class that maps a motor, a digital limit, and an analog sensor exactly once.",
+      scenario: "Build a TeleOp with centralized configuration names and a reusable mechanism class (in its own Java file or in the same file) that maps a motor, a digital limit, and an analog sensor exactly once.",
       starter: shell([
         "import com.qualcomm.robotcore.eventloop.opmode.OpMode;",
         "import com.qualcomm.robotcore.eventloop.opmode.TeleOp;",
@@ -1239,7 +1239,85 @@
     return [registrationCheck].concat(config.checks);
   }
 
+  // Run an isolated, deterministic hardware fixture; never move the student's robot.
+  function evaluateHardwareProject(source) {
+    const results = checksForUnit(7).map(() => false);
+    const code = sourceWithoutComments(source);
+    results[0] = checksForUnit(7)[0].slice(1).every(p => p.test(code));
+    const java = global.TelemarkJava;
+    if (!java) return results;
+    let digitalState = true;
+    let voltageReads = 0;
+    const mappings = [];
+    const runtime = java.createRuntime({
+      gamepad1: {left_stick_y: 0},
+      getDigitalState: () => digitalState,
+      getVoltage: () => { voltageReads++; return 1.65; }
+    });
+    const expected = {mechanism: 'DcMotor', mechanism_limit: 'DigitalChannel', mechanism_pot: 'AnalogInput'};
+    const get = runtime.hardwareMap.get;
+    runtime.hardwareMap.get = function (type, name) {
+      if (expected[name] !== type) throw new Error('Hardware configuration name or type mismatch: ' + name);
+      mappings.push({type, name});
+      return get(type, name);
+    };
+    const program = java.compile(source, runtime, {loopLimit: 1000});
+    if (!program.ok || program.kind !== 'iterative') return results;
+    const main = program.ast.classes.find(c => c.name === program.className);
+    const helpers = program.ast.classes.filter(c => c !== main);
+    const mechanism = helpers.find(c => c.methods.some(m => m.name === 'init' && /\binit\s*\(\s*(?:final\s+)?HardwareMap\s+\w+\s*\)/.test(sourceWithoutComments(source.slice(c.bodyStart, c.bodyEnd))) && m.params.length === 1));
+    const init = main.methods.find(m => m.name === 'init');
+    const loop = main.methods.find(m => m.name === 'loop');
+    results[2] = Boolean(mechanism);
+    results[3] = Boolean(mechanism && /\binit\s*\(\s*(?:final\s+)?HardwareMap\s+\w+\s*\)/.test(code));
+    // Accept constants in the mechanism or a separate config class, with any identifier spelling.
+    const constants = program.ast.classes.flatMap(c => c.fields.filter(f => f.static && f.final && f.type === 'String' && f.initializer).map(f => ({owner: c.name, name: f.name})));
+    const mappingBodies = helpers.flatMap(c => c.methods).map(m => m.body).join('\n');
+    results[1] = ['DcMotor', 'DigitalChannel', 'AnalogInput'].every(type => constants.some(f =>
+      new RegExp('\\.\\s*get\\s*\\(\\s*' + type + '\\s*\\.\\s*class\\s*,\\s*(?:' + f.owner + '\\s*\\.\\s*)?' + f.name + '\\s*\\)').test(mappingBodies)
+    ));
+    const delegatesInit = Boolean(init && /\.\s*init\s*\(\s*hardwareMap\s*\)/.test(init.body));
+    const delegatesLoop = Boolean(loop && /\.\s*\w+\s*\(/.test(loop.body) && /gamepad1\s*\./.test(loop.body));
+    try {
+      if (!program.methods.init || !program.methods.loop) return results;
+      program.methods.init();
+      const initMappings = mappings.length;
+      const mappedOnce = name => mappings.filter(m => m.name === name).length === 1;
+      results[4] = mappedOnce('mechanism');
+      const limit = runtime.devices.get('DigitalChannel:mechanism_limit');
+      results[5] = mappedOnce('mechanism_limit') && limit._state.mode === 'INPUT';
+      if (program.methods.init_loop) program.methods.init_loop();
+      if (program.methods.start) program.methods.start();
+      const motor = runtime.devices.get('DcMotor:mechanism');
+      const outputs = [];
+      for (const input of [-0.7, 0, 0.7]) {
+        runtime.gamepad1.left_stick_y = input;
+        digitalState = true;
+        program.methods.loop();
+        outputs.push(motor ? motor.getPower() : NaN);
+      }
+      results[6] = mappedOnce('mechanism_pot') && voltageReads > 0;
+      results[8] = delegatesLoop && outputs.every(Number.isFinite) && Math.abs(outputs[0]) > 0 && outputs[1] === 0 && outputs[0] * outputs[2] < 0;
+      const blocked = [];
+      for (const input of [-0.7, 0.7]) {
+        runtime.gamepad1.left_stick_y = input;
+        digitalState = false;
+        program.methods.loop();
+        blocked.push(motor ? motor.getPower() : NaN);
+      }
+      // A limit may block both directions or only travel toward the switch.
+      results[9] = results[8] && blocked.some(power => power === 0);
+      if (program.methods.stop) program.methods.stop();
+      results[7] = delegatesInit && initMappings === 3 && mappings.length === initMappings;
+      if (!results[7]) results[4] = results[5] = results[6] = false;
+    } catch (_) {
+      return results;
+    }
+    return results;
+  }
+
   function evaluate(unit, source) {
+    if (unit === 7) return evaluateHardwareProject(source);
     const code = sourceWithoutComments(source);
     return checksForUnit(unit).map(function (check) {
       return check.slice(1).every(function (pattern) {
@@ -1370,7 +1448,7 @@
         title: config.title,
         scenario: config.scenario,
         requirements: checks.map(function (check) { return check[0]; }),
-        successMessage: "Every unit objective is represented. You have demonstrated full mastery and can continue to the next unit."
+        successMessage: "All challenge checks passed. Review the simulator behavior before continuing to the next unit."
       });
       setBadges([
         {iconClass: "fa-solid fa-file-code", label: "FTC SDK shell", active: true},
@@ -1386,6 +1464,11 @@
         clearHints();
         const source = getCode();
         const compilation = global.TelemarkSimulatorBase.compileStudentSource(source);
+        if (!compilation.ok) {
+          const diagnostic = compilation.diagnostics[0] || {};
+          const message = String(diagnostic.message || "Unable to compile Java").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          addHint("Java compile error: " + message, "error");
+        }
         const results = compilation.ok ? evaluate(unit, source) : checks.map(function () { return false; });
         const forbiddenFailures = (config.forbidden || []).filter(function (rule) {
           rule[1].lastIndex = 0;
@@ -1399,7 +1482,7 @@
           addHint("<i class=\"fa-solid fa-triangle-exclamation\"></i> " + rule[0], "error");
         });
         if (results.every(Boolean) && forbiddenFailures.length === 0) {
-          addHint("<i class=\"fa-solid fa-circle-check\"></i> Source structure covers every unit objective.", "info");
+          addHint("<i class=\"fa-solid fa-circle-check\"></i> Unit checks passed for the current source.", "info");
         } else if (compilation.ok) {
           addHint("Use the requirement list beside the editor as a debugging map. It describes behavior, not exact code spelling.", "info");
         }
@@ -1412,7 +1495,6 @@
           return false;
         }
         challengeMotion.setLifecyclePhase("initialized");
-        validate();
         return transpileAndRun(
           getCode(),
           function (initFn) {
@@ -1437,10 +1519,16 @@
         }
       };
       global.onReset = function () {
-        validate();
+        clearHints();
+        checks.forEach(function (_check, index) { setRequirement(index, false); });
       };
 
-      validate();
+      if (unit === 7 && global.TelemarkProject) {
+        const editor = document.getElementById("sim-code-editor");
+        global.TelemarkProject.attach(editor);
+      }
+      clearHints();
+      checks.forEach(function (_check, index) { setRequirement(index, false); });
     };
   }
 

@@ -201,6 +201,7 @@
   }
 
   function saveDraft(editor, options) {
+    if (editor && editor.__telemarkProject) { editor.__telemarkProject.save(); return true; }
     if (!editor || typeof editor.value !== "string") return false;
     const storage = draftStorage(options);
     if (!storage) return false;
@@ -216,6 +217,7 @@
   }
 
   function restoreDraft(editor, options) {
+    if (editor && editor.__telemarkProject) return true;
     if (!editor || typeof editor.value !== "string") return false;
     const storage = draftStorage(options);
     if (!storage) return false;

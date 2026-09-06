@@ -41,6 +41,7 @@ const dashboardCss = read('src/pages/dashboard.module.css');
 const loginCss = read('src/pages/login.module.css');
 const markCompleteCss = read('src/components/HomepageFeatures/MarkComplete.module.css');
 const simulatorFrame = read('src/components/SimulatorFrame.tsx');
+assert.match(simulatorFrame, /event\.key === PROGRESS_STORAGE_KEY/, 'simulator frames must ignore code-library storage changes');
 const authenticatedNavigator = read('src/components/AuthenticatedSimulatorNavigator.tsx');
 const askPanel = read('src/components/ui/AskPanel.tsx');
 const adminPage = read('src/pages/admin.tsx');

@@ -11,6 +11,7 @@ import {useAuth} from '@site/src/telemark/useAuth';
 import {useProgress} from '@site/src/telemark/useProgress';
 import {trackEvent} from '@site/src/telemark/analytics';
 import BlockRobotScene, {describePlaybackFrame} from './BlockRobotScene';
+import ConfirmDialog from '../ConfirmDialog';
 import styles from './BlockPractice.module.css';
 
 interface BlockPracticeProps {
@@ -55,11 +56,13 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
   const shellRef = useRef<HTMLDivElement>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
+  const pendingImportRef = useRef<WorkspaceFile | null>(null);
   const [result, setResult] = useState<BlockRunResult | null>(null);
   const [stepIndex, setStepIndex] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmation, setConfirmation] = useState<'reset' | 'import' | null>(null);
   const {user} = useAuth();
   const {isComplete, markManyComplete, markSkipped} = useProgress(user);
   const recorded = isComplete(lessonId);
@@ -175,7 +178,13 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
 
   function reset() {
     const workspace = workspaceRef.current;
-    if (!workspace || !window.confirm('Reset this workspace to the lesson starter blocks?')) return;
+    if (!workspace) return;
+    setConfirmation('reset');
+  }
+
+  function applyReset() {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
     workspace.clear();
     Blockly.serialization.workspaces.load(config.starter, workspace);
     window.localStorage.removeItem(storageKey(lessonId));
@@ -184,6 +193,20 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
     setStepIndex(-1);
     setPlaying(false);
     setMessage('Workspace reset.');
+  }
+
+  function applyImport(parsed: WorkspaceFile) {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+    workspace.clear();
+    Blockly.serialization.workspaces.load(parsed.workspace, workspace);
+    saveWorkspace(lessonId, workspace);
+    setResult(null);
+    setStepIndex(-1);
+    setPlaying(false);
+    setMessage(parsed.lessonId === lessonId
+      ? 'Workspace imported.'
+      : 'Workspace imported from a different lesson. Check each block before running it.');
   }
 
   function download() {
@@ -214,17 +237,13 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
       if (parsed.format !== 'telemark-block-workspace' || parsed.version !== 1 || !parsed.workspace) {
         throw new Error('That file is not a Telemark block workspace.');
       }
-      if (workspaceRef.current.getAllBlocks(false).length > 0
-        && !window.confirm('Replace the blocks currently in this workspace?')) return;
-      workspaceRef.current.clear();
-      Blockly.serialization.workspaces.load(parsed.workspace, workspaceRef.current);
-      saveWorkspace(lessonId, workspaceRef.current);
-      setResult(null);
-      setStepIndex(-1);
-      setPlaying(false);
-      setMessage(parsed.lessonId === lessonId
-        ? 'Workspace imported.'
-        : 'Workspace imported from a different lesson. Check each block before running it.');
+      const imported = parsed as WorkspaceFile;
+      if (workspaceRef.current.getAllBlocks(false).length > 0) {
+        pendingImportRef.current = imported;
+        setConfirmation('import');
+        return;
+      }
+      applyImport(imported);
     } catch (reason) {
       setMessage(reason instanceof Error ? reason.message : 'Could not import that workspace.');
     }
@@ -336,6 +355,25 @@ export default function BlockPractice({lessonId}: BlockPracticeProps): React.JSX
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmation !== null}
+        title={confirmation === 'import' ? 'Replace this workspace?' : 'Restore the starter blocks?'}
+        description={confirmation === 'import'
+          ? 'Importing this file will replace every block currently in the workspace.'
+          : 'This will replace your current blocks with the original lesson starter blocks.'}
+        confirmLabel={confirmation === 'import' ? 'Replace and import' : 'Restore starter blocks'}
+        danger
+        onCancel={() => { pendingImportRef.current = null; setConfirmation(null); }}
+        onConfirm={() => {
+          const action = confirmation;
+          const imported = pendingImportRef.current;
+          pendingImportRef.current = null;
+          setConfirmation(null);
+          if (action === 'reset') applyReset();
+          else if (action === 'import' && imported) applyImport(imported);
+        }}
+      />
 
       <p className={result?.error ? styles.error : styles.status} role="status" aria-live="polite">
         {message ?? 'Your workspace saves automatically in this browser.'}

@@ -194,9 +194,10 @@ assert.match(recursive.error, /too deeply/i);
 
 const practiceSource = fs.readFileSync(path.join(root, 'src/components/blocks/BlockPractice.tsx'), 'utf8');
 const robotSceneSource = fs.readFileSync(path.join(root, 'src/components/blocks/BlockRobotScene.tsx'), 'utf8');
+assert.doesNotMatch(practiceSource, /window\.(?:alert|confirm|prompt)\s*\(/, 'block practice uses in-page confirmation cards');
 for (const requirement of [
   'telemark:blocks:workspace:v1:',
-  'window.confirm',
+  'ConfirmDialog',
   'Download',
   'Import',
   'requestFullscreen',

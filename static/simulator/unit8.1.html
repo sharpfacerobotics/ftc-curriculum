@@ -110,6 +110,9 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 </style>
   <script src="./telemark-java.js"></script>
   <script src="./telemark-editor.js"></script>
+<script src="./telemark-project.js"></script>
+<script src="telemark-project-checks.js"></script>
+<link rel="stylesheet" href="./telemark-project.css"/>
   <script src="./gamepad-controls.js"></script>
   <script src='./simulator_base.js' data-telemark-mode='legacy'></script>
 <link href="telemark-sim.css" rel="stylesheet"/>
@@ -238,7 +241,7 @@ function renderHints(){var c=document.getElementById('hint-container');c.innerHT
 // ── Editor ──
 function updateCode(t){var el=document.getElementById('highlighting-content');if(t&&t[t.length-1]==='\n')t+=' ';el.innerHTML=(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');Prism.highlightElement(el)}
 function syncScroll(el){document.getElementById('highlighting').scrollTop=el.scrollTop;document.getElementById('highlighting').scrollLeft=el.scrollLeft}
-function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor);validate()}
+function onCodeChange(){updateCode(codeEditor.value);syncScroll(codeEditor)}
 TelemarkEditor.attach(codeEditor, {onChange: onCodeChange});
 
 // ── Resizer ──
@@ -267,16 +270,21 @@ function transpile(java){
       })
     : js;
 }
+var projectRunner = null, projectTelemetry = [];
 function runLoop(){
-  var body=getMethodBody(codeEditor.value,'loop');
+  var body=getMethodBody(codeEditor.__telemarkProject?codeEditor.__telemarkProject.source():codeEditor.value,'loop');
   if(body===null)return failJavaExecution('Java compile error',new Error('Required loop() method is missing or has unmatched braces'));
-  var telLines=[];
-  function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);telLines.push({key:String(k),val:String(v)})}
+  var telLines=projectTelemetry=[];
+  function addTelemetry(k,v){if(typeof v==='number'&&v!==Math.floor(v))v=v.toFixed(2);projectTelemetry.push({key:String(k),val:String(v)})}
   function setIntakePower(p){intakePower=Math.max(-1,Math.min(1,p))}
   try{
-    var js=transpile(body);
-    var fn=new Function('gamepad','addTelemetry','setIntakePower','__runtime','"use strict";\n'+js);
-    fn(gamepad,addTelemetry,setIntakePower,function(){return(Date.now()-runtimeStart)/1000});
+    if (!projectRunner) {
+      projectRunner = TelemarkProject.createRunner(codeEditor, {gamepad1: gamepad, onPower: setIntakePower, getRuntime: function(){return(Date.now()-runtimeStart)/1000}, onTelemetry: addTelemetry});
+      projectRunner.init();
+      validate();
+    }
+    projectRunner.runtime.addTelemetry = addTelemetry;
+    projectRunner.loop();
   }catch(e){return failJavaExecution('loop() compile/runtime error',e)}
   // Always append samples count
   telLines.push({key:'Samples',val:String(sampleCount)});
@@ -313,6 +321,7 @@ function handleRun(){
   if(running)return;
   if(!validateFullJavaSource(codeEditor.value))return;
   running=true;runtimeStart=Date.now();intakePower=0;
+  projectRunner=null;
   document.getElementById('ds-state').textContent='RUNNING';
   document.getElementById('ds-state').style.color='var(--good)';
   document.getElementById('btn-run').disabled=true;
@@ -322,6 +331,7 @@ function handleRun(){
   loopInterval=setInterval(function(){runLoop()},50);
 }
 function handleStop(){
+  if(projectRunner){var stopped=projectRunner;projectRunner=null;try{stopped.stop()}catch(e){console.error(e)}}
   running=false;
   clearInterval(loopInterval);clearInterval(timerInterval);
   loopInterval=null;timerInterval=null;
@@ -343,28 +353,8 @@ function updatePowerBar(){
 }
 
 // ── Validation ──
-function validate(){
-  activeHints=[];
-  var code=codeEditor.value;
-  var initBody=getMethodBody(code,'init')||'';
-  var loopBody=getMethodBody(code,'loop')||'';
-  var r1=false,r2=false,r3=false,r4=false;
-  r1=/hardwareMap\.get\s*\(\s*DcMotor\.class\s*,\s*"intake"\s*\)/.test(initBody);
-  var hasTriggerCond=/right_trigger\s*(?:>|>=)\s*0\.5/.test(loopBody);
-  var hasFullPower=/setPower\s*\(\s*1(?:\.0)?\s*\)/.test(loopBody);
-  r2=hasTriggerCond&&hasFullPower;
-  var hasStopPower=/setPower\s*\(\s*0(?:\.0)?\s*\)/.test(loopBody);
-  var hasElse=/\}\s*else\s*\{/.test(loopBody);
-  r3=hasStopPower&&hasElse;
-  r4=/telemetry\.addData\s*\(/.test(loopBody);
-  setReq('req1',r1);setReq('req2',r2);setReq('req3',r3);setReq('req4',r4);
-  document.getElementById('success-banner').classList.toggle('visible',r1&&r2&&r3&&r4);
-  if(/setPower/.test(loopBody)&&!/hardwareMap/.test(initBody))addHint('Map your hardware in init() before using it in loop()','error');
-  if(/right_trigger\s*==/.test(loopBody))addHint('Triggers return analog values &mdash; use <code>&gt; 0.5</code> not <code>== 0.5</code>');
-  if(/setPower\s*\(\s*[2-9]/.test(loopBody)||/setPower\s*\(\s*-[2-9]/.test(loopBody))addHint('SDK clamps power to &plusmn;1.0');
-  if(/telemetry\.addData/.test(loopBody)&&!/telemetry\.update/.test(loopBody))addHint('Call <code>telemetry.update()</code> to send data to the Driver Station');
-  if(hasTriggerCond&&!hasElse)addHint('What happens when the trigger is released? Add an <code>else</code> to stop the motor');
-  renderHints();
+function validate() {
+  TelemarkProjectChecks.render("8.1", codeEditor);
 }
 function setReq(id,pass){
   var el=document.getElementById(id);
@@ -753,7 +743,6 @@ setupJoysticks();
 
 window.addEventListener('load',function(){
   updateCode(codeEditor.value);
-  validate();
   initScene();
   animateScene();
   updatePowerBar();

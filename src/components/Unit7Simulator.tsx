@@ -193,7 +193,7 @@ export default function Unit7Simulator({lesson}: Unit7SimulatorProps): React.JSX
       />
 
       <Admonition type="info" title={simulatorTitle}>
-        <div>Supports hardware mapping practice with live config inspection and lesson-specific starter code.</div>
+        <div>Supports multiple Java files: hover over the tabs and choose + to create a separate mechanism or configuration class, or to import existing code.</div>
         <div>Shows mapping errors, type mismatches, direction settings, and missing initialization hints.</div>
         <div>Best for practicing `hardwareMap.get()`, device classes, naming consistency, and mapping structure.</div>
       </Admonition>

@@ -1,6 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useColorMode} from '@docusaurus/theme-common';
 import {trackEvent} from '@site/src/telemark/analytics';
+import {CURRICULUM_LESSONS} from '@site/src/telemark/curriculum';
+import {readLocalProgress, PROGRESS_CHANGED_EVENT, PROGRESS_STORAGE_KEY} from '@site/src/telemark/progressStore';
 
 const SIMULATOR_THEME_STATE = 'telemark:simulator-theme-state';
 
@@ -44,7 +46,37 @@ export default function SimulatorFrame({
       {type: SIMULATOR_THEME_STATE, theme: colorMode},
       window.location.origin,
     );
+    sendLessonState();
   };
+
+  const sendLessonState = () => {
+    const path = window.location.pathname.replace(/\/$/, '');
+    const lesson = CURRICULUM_LESSONS.find(item => path.endsWith(item.path));
+    if (!lesson) return;
+    const progress = readLocalProgress();
+    iframeRef.current?.contentWindow?.postMessage({
+      type: 'telemark:project-lesson',
+      lesson: {id: lesson.id, title: `${lesson.label}: ${lesson.title}`},
+      completed: progress.completedLessons.filter(id => !progress.skippedLessons.includes(id) && !progress.autoCompletedLessons.includes(id)),
+    }, window.location.origin);
+  };
+
+  useEffect(() => {
+    const onReady = (event: MessageEvent) => {
+      if (event.origin === window.location.origin && event.source === iframeRef.current?.contentWindow && event.data?.type === 'telemark:project-ready') sendLessonState();
+    };
+    const onProgressStorage = (event: StorageEvent) => {
+      if (event.key === PROGRESS_STORAGE_KEY) sendLessonState();
+    };
+    window.addEventListener('message', onReady);
+    window.addEventListener(PROGRESS_CHANGED_EVENT, sendLessonState);
+    window.addEventListener('storage', onProgressStorage);
+    return () => {
+      window.removeEventListener('message', onReady);
+      window.removeEventListener(PROGRESS_CHANGED_EVENT, sendLessonState);
+      window.removeEventListener('storage', onProgressStorage);
+    };
+  }, [src]);
 
   useEffect(() => {
     sendThemeState();

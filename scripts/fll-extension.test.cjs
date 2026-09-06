@@ -95,6 +95,7 @@ assert.equal(collision.scene.collision, true);
 
 const practice = fs.readFileSync(path.join(root, 'src/components/blocks/FllPractice.tsx'), 'utf8');
 const scene = fs.readFileSync(path.join(root, 'src/components/blocks/FllRobotScene3D.tsx'), 'utf8');
+assert.doesNotMatch(practice, /window\.(?:alert|confirm|prompt)\s*\(/, 'FLL practice uses in-page confirmation cards');
 for (const required of ['telemark:fll:workspace:v1:', 'Download', 'Import', 'requestFullscreen', 'prefers-reduced-motion', 'fll_challenge_pass']) assert.ok(practice.includes(required));
 for (const required of ['OrbitControls', 'WebGLRenderer', 'disposeObject', 'ResizeObserver', '3D practice field', 'WebGL is unavailable']) assert.ok(scene.includes(required));
 

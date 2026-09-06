@@ -7,6 +7,7 @@ export default function SimulatorRunGuide(): React.JSX.Element {
       <div className={styles.step}>
         <strong><span className={styles.number}>1.</span>Complete the code</strong>
         Work in fullscreen when you need more room for the editor and visualizer.
+        {' '}Where file tabs are available, hover over the tab strip and choose + to create a file or reuse saved code.
       </div>
       <div className={styles.step}>
         <strong><span className={styles.number}>2.</span>Run the lifecycle</strong>
