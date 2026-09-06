@@ -90,6 +90,39 @@ export function changesSince(
   return entries.filter((entry) => entry.date > since);
 }
 
+/**
+ * Storage this site writes when somebody actually uses it.
+ *
+ * `telemark:progress:v1` is the progress store; the editor writes a draft per
+ * simulator under its own prefix. Either one means this browser has been here
+ * and done something, whatever the changelog happens to know about it.
+ */
+export const PRIOR_USE_KEY = 'telemark:progress:v1';
+export const PRIOR_USE_PREFIX = 'telemark.editor.v1:';
+
+/**
+ * Whether this browser has used the site before.
+ *
+ * Needed because the card records the date of a reader's first visit, and
+ * every reader the site already had has no such record: the key did not exist
+ * until the card shipped. Judged on that alone they all look new, so nobody
+ * who was already using Telemark would ever see a change announced, which is
+ * exactly backwards. Their saved progress and drafts say otherwise.
+ */
+export function hasUsedSiteBefore(storage: Storage | null | undefined): boolean {
+  if (!storage) return false;
+  try {
+    if (storage.getItem(PRIOR_USE_KEY)) return true;
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key && key.startsWith(PRIOR_USE_PREFIX)) return true;
+    }
+  } catch {
+    // Blocked site data. Treated as a new reader, which shows nothing.
+  }
+  return false;
+}
+
 /** A readable date, without depending on the reader's locale for ordering. */
 export function formatChangeDate(date: string): string {
   const parsed = new Date(`${date}T00:00:00Z`);

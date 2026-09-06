@@ -5,6 +5,7 @@ import {
   CHANGELOG,
   LATEST_CHANGE,
   changesSince,
+  hasUsedSiteBefore,
   type ChangeEntry,
 } from '@site/src/telemark/changelog';
 import styles from './WhatsNew.module.css';
@@ -47,12 +48,31 @@ export default function WhatsNew(): React.JSX.Element | null {
 
   React.useEffect(() => {
     const seen = readSeen();
-    if (!seen) {
-      // First visit: record where they came in, so the next real change shows.
-      writeSeen(LATEST_CHANGE);
+    if (seen) {
+      setEntries(changesSince(seen));
       return;
     }
-    setEntries(changesSince(seen));
+
+    // No record of a previous visit. That is either a genuinely new reader or
+    // somebody who was using the site before this card existed, and the two
+    // look identical from the date alone. Saved progress or a saved draft
+    // tells them apart, and without this check every reader the site already
+    // had was told nothing had changed.
+    let storage: Storage | null = null;
+    try {
+      storage = window.localStorage;
+    } catch {
+      storage = null;
+    }
+    if (hasUsedSiteBefore(storage)) {
+      setEntries(CHANGELOG.slice(0, 4));
+      return;
+    }
+
+    // A genuinely new reader. Record where they came in and show nothing: a
+    // list of changes means nothing without a version of the site to compare
+    // it against.
+    writeSeen(LATEST_CHANGE);
   }, []);
 
   if (entries.length === 0) return null;

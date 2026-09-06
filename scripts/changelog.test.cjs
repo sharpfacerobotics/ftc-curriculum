@@ -19,7 +19,10 @@ const {outputText} = ts.transpileModule(source, {
 const mod = {};
 new Function('exports', 'require', 'module', outputText)(mod, require, {exports: mod});
 
-const {CHANGELOG, LATEST_CHANGE, changesSince, formatChangeDate} = mod;
+const {
+  CHANGELOG, LATEST_CHANGE, changesSince, formatChangeDate,
+  hasUsedSiteBefore, PRIOR_USE_KEY, PRIOR_USE_PREFIX,
+} = mod;
 
 assert.ok(CHANGELOG.length > 0, 'there is a changelog');
 
@@ -72,4 +75,46 @@ assert.deepEqual(changesSince('2999-01-01'), []);
 assert.equal(formatChangeDate('2026-08-27'), 'August 27, 2026');
 assert.equal(formatChangeDate('not-a-date'), 'not-a-date');
 
-console.log('Changelog tests passed (%d cases)', 16);
+// ── Telling a new reader from an old one ────────────────────────────────────
+// The card stores the date of a first visit, so every reader the site already
+// had has no record and looks new. Judged on that alone, nobody who was
+// already using Telemark would ever be shown a change, which is backwards.
+const fakeStorage = (entries) => {
+  const keys = Object.keys(entries);
+  return {
+    length: keys.length,
+    getItem: (key) => (key in entries ? entries[key] : null),
+    key: (index) => keys[index] ?? null,
+  };
+};
+
+assert.equal(hasUsedSiteBefore(null), false, 'no storage is not evidence');
+assert.equal(hasUsedSiteBefore(fakeStorage({})), false, 'an empty browser is a new reader');
+assert.equal(
+  hasUsedSiteBefore(fakeStorage({[PRIOR_USE_KEY]: '{"lessons":{}}'})),
+  true,
+  'saved progress means they have been here',
+);
+assert.equal(
+  hasUsedSiteBefore(fakeStorage({[PRIOR_USE_PREFIX + 'abc:code-editor']: '{}'})),
+  true,
+  'a saved draft means they have been here',
+);
+assert.equal(
+  hasUsedSiteBefore(fakeStorage({theme: 'dark', 'some.other.key': '1'})),
+  false,
+  'unrelated keys are not evidence',
+);
+
+// Storage that throws on access is treated as a new reader, not a crash.
+assert.equal(
+  hasUsedSiteBefore({
+    get length() { throw new Error('blocked'); },
+    getItem() { throw new Error('blocked'); },
+    key() { throw new Error('blocked'); },
+  }),
+  false,
+  'blocked site data does not throw',
+);
+
+console.log('Changelog tests passed (%d cases)', 22);
