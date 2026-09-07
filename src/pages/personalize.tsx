@@ -48,6 +48,7 @@ export default function PersonalizePage(): React.JSX.Element {
   const {markManyAutoComplete, clearAutoCompleted} = useProgress(user);
   const [tracks, setTracks] = useState<MainTrackId[]>([]);
   const [softwareLevel, setSoftwareLevel] = useState<SoftwareLevel | null>(null);
+  const [blockExperienceChoice, setBlockExperienceChoice] = useState<'python' | 'java' | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
@@ -61,6 +62,12 @@ export default function PersonalizePage(): React.JSX.Element {
     initialized.current = true;
     setTracks(profile.selectedTracks);
     setSoftwareLevel(profile.softwareLevel ?? null);
+    setBlockExperienceChoice(
+      profile.softwareLevel === 'block_experience'
+        && (profile.postBlocksChoice === 'python' || profile.postBlocksChoice === 'java')
+        ? profile.postBlocksChoice
+        : null,
+    );
   }, [profile, status]);
 
   function toggleTrack(track: MainTrackId) {
@@ -81,6 +88,10 @@ export default function PersonalizePage(): React.JSX.Element {
       setError('Choose the software level that best matches your current experience.');
       return;
     }
+    if (softwareLevel === 'block_experience' && !blockExperienceChoice) {
+      setError('Choose the optional Python bridge or continue directly to FTC Java.');
+      return;
+    }
 
     const nextProfile: LearnerProfile = {
       version: 1,
@@ -91,7 +102,9 @@ export default function PersonalizePage(): React.JSX.Element {
           ? 'required' as const
           : 'auto_completed' as const,
       } : {}),
-      ...(profile?.postBlocksChoice ? {postBlocksChoice: profile.postBlocksChoice} : {}),
+      ...(softwareLevel === 'block_experience'
+        ? {postBlocksChoice: blockExperienceChoice!}
+        : profile?.postBlocksChoice ? {postBlocksChoice: profile.postBlocksChoice} : {}),
       onboardingComplete: true,
     };
 
@@ -109,6 +122,9 @@ export default function PersonalizePage(): React.JSX.Element {
       trackEvent('personalization_complete', {
         tracks: saved.selectedTracks.join(','),
         software_level: saved.softwareLevel ?? 'not_selected',
+        blocks_exit_choice: saved.softwareLevel === 'block_experience'
+          ? saved.postBlocksChoice ?? 'not_selected'
+          : 'not_applicable',
       });
       history.push(basePath(profileDestination(saved)));
     } catch (reason) {
@@ -175,10 +191,30 @@ export default function PersonalizePage(): React.JSX.Element {
               <div className={styles.options}>
                 {LEVELS.map((level) => (
                   <label key={level.id} className={`${styles.option} ${softwareLevel === level.id ? styles.selected : ''}`}>
-                    <input type="radio" name="software-level" checked={softwareLevel === level.id} onChange={() => setSoftwareLevel(level.id)} />
+                    <input type="radio" name="software-level" checked={softwareLevel === level.id} onChange={() => { setSoftwareLevel(level.id); setError(null); }} />
                     <span><strong>{level.title}</strong><small>{level.description}</small></span>
                   </label>
                 ))}
+              </div>
+            </fieldset>
+          )}
+
+          {softwareLevel === 'block_experience' && (
+            <fieldset className={`${styles.fieldset} ${styles.bridge}`}>
+              <legend>How confident are you about moving to text code?</legend>
+              <p className={styles.bridgeIntro}>Python is an optional bridge. It can make the change from blocks easier, but FTC robot programs still use Java.</p>
+              <div className={styles.options}>
+                <label className={`${styles.option} ${blockExperienceChoice === 'python' ? styles.selected : ''}`}>
+                  <input type="radio" name="blocks-next-step" checked={blockExperienceChoice === 'python'} onChange={() => { setBlockExperienceChoice('python'); setError(null); }} />
+                  <span>
+                    <strong>Optional Python bridge <span className={styles.recommended}>Recommended if unsure</span></strong>
+                    <small>Choose this if you understand blocks but are not completely confident typing variables, conditions, loops, and functions.</small>
+                  </span>
+                </label>
+                <label className={`${styles.option} ${blockExperienceChoice === 'java' ? styles.selected : ''}`}>
+                  <input type="radio" name="blocks-next-step" checked={blockExperienceChoice === 'java'} onChange={() => { setBlockExperienceChoice('java'); setError(null); }} />
+                  <span><strong>Go directly to FTC Java</strong><small>Choose this if you are ready to learn Java syntax while building robot programs.</small></span>
+                </label>
               </div>
             </fieldset>
           )}

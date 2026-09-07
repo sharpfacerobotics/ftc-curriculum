@@ -3,7 +3,7 @@
 Telemark is Sharp Face Robotics' Docusaurus-based FTC curriculum. It has two
 parallel tracks:
 
-- **Software** (`docs/`, served at `/docs`): 16 units and 111 lessons of FTC
+- **Software** (`docs/`, served at `/docs`): 16 units and 118 lessons of FTC
   Java, from classes and OpModes through sensors, vision, and autonomous, with
   a browser simulator on most lessons.
 - **Mechanical** (`mechanical/`, served at `/mechanical`): 12 modules and 60

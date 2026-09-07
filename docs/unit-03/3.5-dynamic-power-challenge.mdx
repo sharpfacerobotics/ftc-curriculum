@@ -109,6 +109,20 @@ public void loop() {
 
 </details>
 
+## A Team Separates Input from Scale
+
+Titan Robotics Club reads drive inputs, applies separate drive and turn scales, then sends the results to its drive base. This smaller version keeps the variable flow visible:
+
+```java
+double forwardInput = -gamepad1.left_stick_y;
+double turnInput = gamepad1.right_stick_x;
+double forwardPower = forwardInput * driveScale;
+double turnPower = turnInput * turnScale;
+robot.drive.arcadeDrive(forwardPower, turnPower);
+```
+
+The input array and framework types were replaced with lesson vocabulary. The separate variables still make each value and scale easy to inspect. Adapted from [Team 3543 Titan Robotics Club's `FtcTeleOp.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/FtcTeleOp.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 <MarkComplete
   lessonId="unit-03/dynamic-power-challenge"
   nextUnit="/docs/unit-03/mastery-coding-challenge"

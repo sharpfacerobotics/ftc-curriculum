@@ -119,6 +119,18 @@ If the mechanism does not stop in the same place twice, suspect backlash in the 
 See [Lesson 6.4: Efficiency Losses, Backlash, and Real Transmission Behavior](/mechanical/module-06/efficiency-and-backlash).
 :::
 
+## A Team Builds Active Position Hold Explicitly
+
+BunyipsLib's holdable actuator captures an encoder position, selects `RUN_TO_POSITION`, and applies power. This lesson changes the target to the scoring height:
+
+```java
+lift.setTargetPosition(SCORE_HEIGHT_TICKS);
+lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+lift.setPower(LIFT_POWER);
+```
+
+The original current-position hold target was replaced with a named scoring target. The controller setup order is unchanged. Adapted from [BunyipsLib's `HoldableActuator.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/subsystems/HoldableActuator.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 <MarkComplete
   lessonId="unit-10/run-to-position"
   nextUnit="/docs/unit-10/run-using-encoder"

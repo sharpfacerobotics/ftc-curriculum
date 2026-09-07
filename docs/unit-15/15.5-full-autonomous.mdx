@@ -16,6 +16,7 @@ import Unit15Simulator from '@site/src/components/Unit15Simulator';
 
 This lesson brings the major techniques from the unit into one integrated autonomous example. It combines:
 
+- The `Intake`, `Lift`, and `RobotHardware` classes built in Unit 13.
 - Pre-match spike mark detection via a custom `VisionProcessor` (Unit 14) to select the correct scoring path.
 - A `Follower` and `PathChain` of `BezierCurve` segments (Lessons 15.2 and 15.3) to execute smooth field navigation.
 - Gated Limelight AprilTag updates (Lesson 15.4) to constrain accumulated odometry drift.
@@ -27,28 +28,45 @@ None of these components is new on its own. The work here is integrating them in
 
 ## The State Machine Architecture
 
-A sequential `LinearOpMode` that calls `followPath()` and then runs only `follower.update()` while `isBusy()` does not update mechanism logic at the same time. If a claw needs to move at a specific field position while the drivetrain is moving, a state machine gives both systems an opportunity to update on each pass.
+A sequential `LinearOpMode` that calls `followPath()` and then runs only `follower.update()` while `isBusy()` does not update mechanism logic at the same time. If an intake or lift needs to move at a specific field position while the drivetrain is moving, a state machine gives both systems an opportunity to update on each pass.
 
 A state machine replaces sequential `if-this-then-that` logic with an `enum` that names each phase of the routine and a `switch` block that executes the logic for the current state. The loop body runs on every iteration: `follower.update()` is called first, then the current state's logic runs, then the state transitions if its completion condition is met. No state blocks the loop.
 
-```java
-enum AutoState { DRIVE_TO_SCORE, SCORE_ELEMENT, DRIVE_TO_PICKUP, PICKUP, DONE }
+<AnnotatedCode
+  title="One non-blocking autonomous cycle"
+  java={String.raw`enum AutoState { DRIVE_TO_SCORE, SCORE_ELEMENT, DONE }
 AutoState state = AutoState.DRIVE_TO_SCORE;
 
 while (opModeIsActive()) {
     follower.update();
+    robot.update();
 
     switch (state) {
         case DRIVE_TO_SCORE:
             if (!follower.isBusy()) {
-                claw.open();
+                robot.lift.moveToScore();
                 state = AutoState.SCORE_ELEMENT;
             }
             break;
         // ...
     }
-}
-```
+}`}
+  python={String.raw`class AutoState(Enum):
+    DRIVE_TO_SCORE = 1
+    SCORE_ELEMENT = 2
+    DONE = 3
+
+state = AutoState.DRIVE_TO_SCORE
+
+while op_mode_is_active():
+    follower.update()
+    robot.update()
+
+    if state == AutoState.DRIVE_TO_SCORE:
+        if not follower.is_busy():
+            robot.lift.move_to_score()
+            state = AutoState.SCORE_ELEMENT`}
+/>
 
 The state transitions only when the completion condition for the current state is satisfied: the path is finished, the mechanism has reached its position, or a sensor confirms the action is complete. Until then, `follower.update()` continues to run and the drivetrain continues to track its path.
 
@@ -56,12 +74,12 @@ The state transitions only when the completion condition for the current state i
 
 ## Non-Blocking Mechanism Actions
 
-Mechanism actions inside this state machine should also be non-blocking. A `sleep(500)` to wait for a claw to close blocks `follower.update()` for 500 milliseconds, during which the Follower cannot correct the robot's position. One option is to record when the action starts and check `getRuntime()` in the state's `case` block. Transition when the interval has elapsed instead of waiting inside `sleep()`.
+Mechanism actions inside this state machine should also be non-blocking. A `sleep(500)` to wait for an intake action blocks `follower.update()` for 500 milliseconds. During that time, the Follower cannot correct the robot's position. Record when the action starts and check `getRuntime()` in the state's `case` block. Transition when the interval has elapsed.
 
 ```java
 case SCORE_ELEMENT:
     if (getRuntime() > scoreActionEndTime) {
-        claw.close();
+        robot.intake.eject();
         follower.followPath(driveToPickupPath);
         state = AutoState.DRIVE_TO_PICKUP;
     }
@@ -95,7 +113,6 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.teamcode.vision.SpikeMarkVisionProcessor;
 import org.firstinspires.ftc.teamcode.vision.SpikeMarkVisionProcessor.SpikeLocation;
 import com.qualcomm.robotcore.hardware.WebcamName;
-import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
@@ -107,10 +124,10 @@ public class FullAutonomousPractice extends LinearOpMode {
     private Limelight3A            limelight;
     private SpikeMarkVisionProcessor spikeProcessor;
     private VisionPortal           visionPortal;
-    private Servo                  claw;
+    private RobotHardware          robot;
 
     // ── State machine ──────────────────────────────────────────────────
-    private enum AutoState { DRIVE_TO_SPIKE, PLACE_ELEMENT, DRIVE_TO_BACKDROP, SCORE, DONE }
+    private enum AutoState { DRIVE_TO_SPIKE, PLACE_ELEMENT, DRIVE_TO_BACKDROP, RAISE_LIFT, RELEASE, DONE }
     private AutoState currentState;
 
     // ── Paths (built during init, executed during run) ─────────────────
@@ -120,9 +137,7 @@ public class FullAutonomousPractice extends LinearOpMode {
     // ── Constants ──────────────────────────────────────────────────────
     private static final int    LIMELIGHT_PIPELINE = 0;
     private static final double M_TO_IN            = 39.3701;
-    private static final double CLAW_OPEN          = 0.1;
-    private static final double CLAW_CLOSED        = 0.9;
-    private static final double ACTION_DURATION_S  = 0.4; // seconds for claw to move
+    private static final double ACTION_DURATION_S  = 0.4;
     private static final double VISION_GAIN        = 0.35;
     private static final double MAX_VISION_JUMP_IN = 12.0;
     private static final double MAX_STALENESS_MS   = 100.0;
@@ -134,10 +149,11 @@ public class FullAutonomousPractice extends LinearOpMode {
         // ── Hardware initialization ────────────────────────────────────
         follower  = new Follower(hardwareMap);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        claw      = hardwareMap.get(Servo.class,        "claw");
+        robot     = new RobotHardware();
+        robot.init(hardwareMap);
 
         follower.setStartingPose(new Pose(12, 12, 0));
-        claw.setPosition(CLAW_CLOSED);
+        robot.intake.stop();
 
         // ── Vision initialization ──────────────────────────────────────
         WebcamName webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
@@ -189,6 +205,9 @@ public class FullAutonomousPractice extends LinearOpMode {
             // 1. Update the Follower every cycle
             follower.update();
 
+            // Keep non-blocking subsystem work moving every cycle.
+            robot.update();
+
             // 2. Consider one gated Limelight measurement update
             applyLimelightCorrection();
 
@@ -197,15 +216,16 @@ public class FullAutonomousPractice extends LinearOpMode {
 
                 case DRIVE_TO_SPIKE:
                     if (!follower.isBusy()) {
-                        claw.setPosition(CLAW_OPEN);
+                        robot.intake.eject();
                         actionTimer = getRuntime() + ACTION_DURATION_S;
                         currentState = AutoState.PLACE_ELEMENT;
                     }
                     break;
 
                 case PLACE_ELEMENT:
-                    // Wait for the claw to fully open before driving away
+                    // Give the intake time to eject before driving away
                     if (getRuntime() > actionTimer) {
+                        robot.intake.stop();
                         follower.followPath(driveToBackdrop);
                         currentState = AutoState.DRIVE_TO_BACKDROP;
                     }
@@ -213,14 +233,22 @@ public class FullAutonomousPractice extends LinearOpMode {
 
                 case DRIVE_TO_BACKDROP:
                     if (!follower.isBusy()) {
-                        claw.setPosition(CLAW_CLOSED);
-                        actionTimer = getRuntime() + ACTION_DURATION_S;
-                        currentState = AutoState.SCORE;
+                        robot.lift.moveToScore();
+                        currentState = AutoState.RAISE_LIFT;
                     }
                     break;
 
-                case SCORE:
+                case RAISE_LIFT:
+                    if (robot.lift.isAtTarget()) {
+                        robot.intake.eject();
+                        actionTimer = getRuntime() + ACTION_DURATION_S;
+                        currentState = AutoState.RELEASE;
+                    }
+                    break;
+
+                case RELEASE:
                     if (getRuntime() > actionTimer) {
+                        robot.intake.stop();
                         currentState = AutoState.DONE;
                     }
                     break;
@@ -237,6 +265,7 @@ public class FullAutonomousPractice extends LinearOpMode {
         }
 
         limelight.stop();
+        robot.stopAll();
     }
 
     private void applyLimelightCorrection() {
@@ -270,12 +299,37 @@ public class FullAutonomousPractice extends LinearOpMode {
 }
 ```
 
+## A Competition Team Uses the Same Update Pattern
+
+Titan Robotics Club's autonomous OpMode keeps a robot object and an autonomous command active together. Its periodic callback updates the command instead of waiting for one action to finish inside the callback. This lesson uses the same idea with direct subsystem calls:
+
+```java
+public void updateAutonomous(double elapsedTime) {
+    robot.update();
+    if (autonomousCommand != null) {
+        autonomousCommand.update(elapsedTime);
+    }
+}
+```
+
+The method and variable names were shortened to match this lesson. Framework-specific tracing and menu code were omitted. The important behavior remains: every cycle advances the robot and the current autonomous task. Adapted from [Team 3543 Titan Robotics Club's `FtcAuto.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/FtcAuto.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
+## Bring Your Unit 13 Files Forward
+
+Use the simulator's **+** control to bring files forward from the completed-lesson library or import the project exported by Lesson 13.9. Select `RobotConfig.java`, `Intake.java`, `MotorMechanism.java`, `Lift.java`, and `RobotHardware.java`. Keep `FullAutonomousPractice.java` as the runnable OpMode.
+
+These classes use the same TeamCode package, so Java resolves them by class name. You do not add an import statement for another class in the same package.
+
+Keep raw intake and lift hardware access inside their subsystem files. The autonomous OpMode should express intent through `robot.intake` and `robot.lift`.
+
+If you changed computers, import the project export you downloaded in Unit 13. The reference implementations in Lessons 13.6 through 13.9 provide a recovery path if that file is unavailable.
+
 ---
 
 ## Fill-in-the-Blank Practice
 
 1. In a state machine, each phase of the autonomous routine is represented by a value in a Java `__________`.
-2. The correct approach to waiting for a mechanism action (such as a claw closing) without blocking `follower.update()` is to record a target time using `getRuntime()` and transition only when `__________` has elapsed.
+2. The correct approach to waiting for a mechanism action without blocking `follower.update()` is to record a target time using `getRuntime()` and transition only when `__________` has elapsed.
 3. Paths should be constructed during `__________` rather than inside the main loop to avoid computation latency at the moment the robot needs to start moving.
 
 <details>
@@ -291,7 +345,7 @@ public class FullAutonomousPractice extends LinearOpMode {
 
 ## Simulator Practice
 
-Complete the simulator's state machine transition logic. The routine starts in `State.DRIVE_TO_TARGET`, transitions to `State.DELIVER` when the robot finishes driving (`!follower.isBusy()`), opens the claw, and records `deliverTimer = getRuntime()`. Once `getRuntime() - deliverTimer >= 0.5`, transition to `State.DONE`.
+Complete the simulator's state machine transition logic. Import or complete the supplied subsystem files, initialize `RobotHardware`, and call `robot.update()` every cycle. When the path finishes, command the lift and intake through their public methods, record `deliverTimer = getRuntime()`, and transition without blocking. Stop the robot when the routine ends.
 
 <SimulatorRunGuide />
 
@@ -303,7 +357,8 @@ Complete the simulator's state machine transition logic. The routine starts in `
 ```java
 case DRIVE_TO_TARGET:
     if (!follower.isBusy()) {
-        claw.setPosition(CLAW_OPEN);
+        robot.lift.moveToScore();
+        robot.intake.eject();
         deliverTimer = getRuntime();
         currentState = State.DELIVER;
     }
@@ -311,6 +366,7 @@ case DRIVE_TO_TARGET:
 
 case DELIVER:
     if (getRuntime() - deliverTimer >= 0.5) {
+        robot.intake.stop();
         currentState = State.DONE;
     }
     break;

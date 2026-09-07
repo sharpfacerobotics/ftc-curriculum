@@ -50,6 +50,14 @@ assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'python'
 assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'java'}).postBlocksChoice, 'java');
 assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'fll'}).postBlocksChoice, 'fll');
 assert.equal(make(['software'], 'complete_beginner', {postBlocksChoice: 'invalid'}).postBlocksChoice, undefined);
+assert.equal(profileDestination(make(['software'], 'block_experience', {postBlocksChoice: 'python'})), '/blocks/python-resources');
+assert.equal(profileDestination(make(['software'], 'block_experience', {postBlocksChoice: 'java'})), '/docs');
+
+const personalizationSource = fs.readFileSync(path.join(root, 'src/pages/personalize.tsx'), 'utf8');
+assert.match(personalizationSource, /softwareLevel === 'block_experience' && !blockExperienceChoice/);
+assert.match(personalizationSource, /Optional Python bridge/);
+assert.match(personalizationSource, /Recommended if unsure/);
+assert.match(personalizationSource, /Go directly to FTC Java/);
 
 const authSource = fs.readFileSync(path.join(root, 'src/telemark/googleAuth.ts'), 'utf8');
 assert.ok(authSource.indexOf('!result.user.emailVerified') < authSource.indexOf('syncLocalProgressWithUser(result.user)'));

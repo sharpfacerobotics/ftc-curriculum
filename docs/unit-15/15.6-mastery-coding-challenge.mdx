@@ -10,7 +10,7 @@ import MasterySimulator from '@site/src/components/MasterySimulator';
 
 # Unit 15 Comprehensive Coding Challenge
 
-The editor provides the FTC SDK imports, autonomous registration, and an empty `LinearOpMode` class, like Android Studio would. Write the complete routine yourself. Passing every requirement demonstrates full mastery of Unit 15 and completes the software track.
+The editor provides the FTC SDK imports, autonomous registration, and an empty `LinearOpMode` class. Import the five reusable files from your Unit 13 project, then write the autonomous coordinator. Passing every requirement demonstrates full mastery of Unit 15 and completes the software track.
 
 ## Your Task
 
@@ -20,14 +20,15 @@ The editor provides the FTC SDK imports, autonomous registration, and an empty `
 4. Create a named `enum` state machine for path and mechanism phases.
 5. Call `follower.update()` on every active loop before state logic.
 6. Validate each `LLResult` before using it, then fuse a valid global pose back into the Follower.
-7. Map scoring servo `"scoringArm"` and coordinate its action with a `getRuntime()` deadline instead of `sleep()`.
-8. Report path, state, and vision status, then stop the Limelight during cleanup.
+7. Create and initialize one `RobotHardware` object. Call `robot.update()` every cycle and coordinate `robot.lift` and `robot.intake` with a `getRuntime()` deadline instead of `sleep()`.
+8. Keep raw intake and lift hardware access inside their subsystem files.
+9. Report path, state, and vision status, then call `robot.stopAll()` and stop the Limelight during cleanup.
 
 No state may block the loop. Vision loss and a busy follower must both be handled as expected operating conditions.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={15} />
+<MasterySimulator unit={15} project />
 
 <MarkComplete
   lessonId="unit-15/mastery-coding-challenge"

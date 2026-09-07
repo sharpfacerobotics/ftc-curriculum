@@ -2,7 +2,7 @@
 id: mastery-coding-challenge
 title: "Unit 13 Comprehensive Coding Challenge: Modular Robot Architecture"
 sidebar_label: "Unit 13 · Coding Challenge"
-sidebar_position: 6
+sidebar_position: 10
 ---
 
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
@@ -10,24 +10,24 @@ import MasterySimulator from '@site/src/components/MasterySimulator';
 
 # Unit 13 Comprehensive Coding Challenge
 
-The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMode class, like Android Studio would. Write the supporting classes and complete OpMode implementation yourself. Passing every requirement demonstrates full mastery of Unit 13, so experienced students can take this challenge first and continue directly to Unit 14.
+The editor provides separate project tabs for the configuration, intake, lift, robot hardware, and OpMode classes. Complete the architecture as one project. Passing every requirement demonstrates full mastery of Unit 13.
 
 ## Your Task
 
 1. Create a reusable parent mechanism class with encapsulated hardware state.
 2. Create at least one child subsystem with `extends` and specialized behavior.
 3. Use `@Override` for behavior that differs from the parent implementation.
-4. Centralize `"arm"`, `"claw"`, and the calibration values as `static final` constants.
+4. Centralize `"intake"`, `"lift"`, and calibration values as `static final` constants.
 5. Create a Robot class that composes multiple subsystem objects.
 6. Give the Robot class one `init(HardwareMap)` entry point.
 7. Instantiate the Robot in the OpMode, initialize it in `init()`, and control it from `loop()`.
 8. Provide one cleanup path that leaves powered mechanisms safe.
 
-The OpMode should read like coordination code. Hardware details belong inside the subsystem classes.
+The OpMode should read like coordination code. Hardware details belong inside the subsystem classes. Export the finished project so Lesson 15.5 can reuse it.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={13} />
+<MasterySimulator unit={13} project />
 
 <MarkComplete
   lessonId="unit-13/mastery-coding-challenge"

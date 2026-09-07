@@ -110,6 +110,19 @@ Use the simulator below to practice synchronizing `"servoL"` and `"servoR"` with
 
 <Unit9Simulator lesson="dual-servo-challenge" />
 
+## A Team Stores Two Targets Together
+
+BunyipsLib's dual-servo subsystem stores a target for each side and writes both targets during its periodic update. Here is the same pattern with gripper names:
+
+```java
+void updateGripper() {
+    leftServo.setPosition(leftTarget);
+    rightServo.setPosition(rightTarget);
+}
+```
+
+Logging and framework lifecycle code were omitted. The target names were shortened so the two coordinated hardware writes are easy to compare. Adapted from [BunyipsLib's `DualServos.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/subsystems/DualServos.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 <MarkComplete
   lessonId="unit-09/dual-servo-challenge"
   nextUnit="/docs/unit-09/mastery-coding-challenge"

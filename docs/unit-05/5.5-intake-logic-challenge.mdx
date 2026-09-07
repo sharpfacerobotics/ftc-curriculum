@@ -119,6 +119,21 @@ public void loop() {
 
 </details>
 
+## A Team Makes Every Prerequisite Explicit
+
+Titan Robotics Club checks shared vision prerequisites and then accepts any enabled camera implementation. The same shape works for a sorter with shared safety checks and several acceptable samples:
+
+```java
+if (storageHasRoom && sampleIsClose
+        && (sampleIsRed || sampleIsBlue)) {
+    intake.collect();
+} else {
+    intake.stop();
+}
+```
+
+Vision names were replaced with the sensor names from this lesson, and setup code was omitted. The grouped `&&` and `||` rule is the part carried forward. Adapted from [Team 3543 Titan Robotics Club's `Robot.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/Robot.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 <MarkComplete
   lessonId="unit-05/intake-logic-challenge"
   nextUnit="/docs/unit-05/mastery-coding-challenge"

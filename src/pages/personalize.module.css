@@ -69,6 +69,30 @@
   display: block;
 }
 
+.bridge {
+  padding: var(--tm-sp-5);
+  border: 1px solid var(--tm-border);
+  border-radius: var(--tm-r-md);
+  background: var(--tm-surface-2);
+}
+
+.bridgeIntro {
+  margin: 0 0 var(--tm-sp-4);
+  color: var(--tm-text-muted);
+  font-size: var(--tm-fs-sm);
+}
+
+.recommended {
+  display: inline-flex !important;
+  margin-left: var(--tm-sp-2);
+  padding: 2px var(--tm-sp-2);
+  border: 1px solid var(--tm-accent-a35);
+  border-radius: var(--tm-r-pill);
+  color: var(--tm-accent);
+  font-size: var(--tm-fs-2xs);
+  white-space: nowrap;
+}
+
 .option small {
   margin-top: var(--tm-sp-1);
   color: var(--tm-text-muted);

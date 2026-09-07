@@ -155,6 +155,18 @@ Use the simulator below to complete the autonomous IMU turn. The editor starts w
 
 <Unit12Simulator lesson="imu-turn" />
 
+## A Team Converts Heading Before Driving
+
+BunyipsLib's field-oriented drive task inverts the current heading before it transforms a requested velocity. An IMU turn uses the same rule: calculate in a consistent frame before commanding motors.
+
+```java
+double headingError = normalizeDegrees(targetHeading - currentHeading);
+double turnPower = Range.clip(headingError * TURN_GAIN, -0.5, 0.5);
+drive.turn(turnPower);
+```
+
+The geometry types were replaced with a scalar heading error, and the names now match this lesson. The preserved idea is to transform the heading difference before applying drive output. Adapted from [BunyipsLib's `FieldOrientableDriveTask.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/tasks/FieldOrientableDriveTask.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 <MarkComplete
   lessonId="unit-12/imu-turn"
   nextUnit="/docs/unit-12/mastery-coding-challenge"

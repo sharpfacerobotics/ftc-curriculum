@@ -44,6 +44,32 @@ assert.throws(()=>project.importFiles([lessonFiles[1]]),/Already in this project
 assert.equal(project.files().length,2,'failed import is atomic');
 assert.throws(()=>project.importFiles([{name:'../../Escape.java',source:'class Escape{}'}]),/40 Java files/);
 
+const mergeDom = new JSDOM('<div><div><textarea id="merge-editor"></textarea></div></div>', {url:'https://telemark.test/simulator/unit13.project.html?lesson=lift', runScripts:'outside-only'});
+const mergeWindow = mergeDom.window;
+mergeWindow.TelemarkJava = java;
+mergeWindow.eval(fs.readFileSync('static/simulator/telemark-editor.js','utf8'));
+mergeWindow.eval(fs.readFileSync('static/simulator/telemark-project.js','utf8'));
+const mergeEditor = mergeWindow.document.querySelector('textarea');
+mergeEditor.value = 'public class Intake { /* supplied */ }';
+const cumulativeKey = 'telemark:test-cumulative-project';
+mergeWindow.localStorage.setItem(cumulativeKey, JSON.stringify({
+  files: [{name:'Intake.java',source:'public class Intake { /* learner draft */ }'}],
+  active: 0,
+  entry: '',
+}));
+const mergedProject = mergeWindow.TelemarkProject.attach(mergeEditor, null, {
+  key: cumulativeKey,
+  addMissingInitialFiles: true,
+  initialFiles: [
+    {name:'Intake.java',source:'public class Intake { /* supplied */ }'},
+    {name:'Lift.java',source:'public class Lift {}'},
+  ],
+});
+assert.equal(mergedProject.files().length, 2, 'a later cumulative stage adds only missing helper tabs');
+assert.match(mergedProject.files()[0].source, /learner draft/, 'new helper tabs never overwrite a saved learner file');
+assert.equal(mergedProject.files()[1].name, 'Lift.java');
+mergeDom.window.close();
+
 (async()=>{
   const upload=w.document.querySelector('input[type="file"]');
   Object.defineProperty(upload,'files',{configurable:true,value:[{name:'Names.java',size:100,text:async()=> 'package robot.config; public class Names {public static final String MOTOR="lift";}'}]});

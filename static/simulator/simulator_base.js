@@ -2974,9 +2974,12 @@
     }
 
     try {
-      const source = window.getCode();
+      let source = window.getCode();
       if (typeof source !== "string") {
         throw new Error("The simulator did not provide Java source text");
+      }
+      if (typeof window.prepareSimulatorValidationSource === "function") {
+        source = window.prepareSimulatorValidationSource(source);
       }
       const validation = compileStudentSource(source);
       if (validation.ok) return true;

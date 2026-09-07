@@ -36,6 +36,27 @@ The order in which subsystems are initialized inside `CompetitionRobot.init()` m
 
 ## Annotated Code
 
+<AnnotatedCode
+  title="One robot object owns its subsystems"
+  java={String.raw`public class RobotHardware {
+    public final Intake intake = new Intake();
+    public final Lift lift = new Lift();
+
+    public void update() {
+        lift.update();
+    }
+}`}
+  python={String.raw`class RobotHardware:
+    def __init__(self):
+        self.intake = Intake()
+        self.lift = Lift()
+
+    def update(self):
+        self.lift.update()`}
+/>
+
+Each robot object owns one intake object and one lift object. This is composition in either language.
+
 ```java
 package org.firstinspires.ftc.teamcode;
 
@@ -272,6 +293,6 @@ public void stop() {
 
 <MarkComplete
   lessonId="unit-13/robot-class"
-  nextUnit="/docs/unit-13/mastery-coding-challenge"
-  nextUnitName="Unit 13 Comprehensive Coding Challenge"
+  nextUnit="/docs/unit-13/build-intake"
+  nextUnitName="Lesson 13.6: Build RobotConfig.java and Intake.java"
 />

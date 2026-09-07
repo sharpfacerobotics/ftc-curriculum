@@ -177,6 +177,20 @@ Use the simulator below to complete the smart intake gate. The editor starts wit
 
 <Unit11Simulator lesson="sensor-gated-intake" />
 
+## A Team Normalizes Sensor Meaning First
+
+BunyipsLib wraps an active-low touch sensor so the rest of the robot can ask `isPressed()` without remembering its wiring polarity. That makes a gate read directly:
+
+```java
+boolean storageFull = storageSwitch.isPressed();
+boolean sampleReady = distanceCm < 10.0;
+
+if (sampleReady && !storageFull) intake.collect();
+else intake.stop();
+```
+
+The source wrapper remains outside this excerpt. The sensor and action names were changed to match the intake lesson. Adapted from [BunyipsLib's `InvertibleTouchSensor.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/hardware/InvertibleTouchSensor.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 <MarkComplete
   lessonId="unit-11/sensor-gated-intake"
   nextUnit="/docs/unit-11/mastery-coding-challenge"

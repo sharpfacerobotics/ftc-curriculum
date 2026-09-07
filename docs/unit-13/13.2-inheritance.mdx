@@ -40,6 +40,32 @@ In FTC mechanism classes, where initialization is typically handled by an `init(
 
 ## Annotated Code
 
+<AnnotatedCode
+  title="A specialized mechanism inherits shared behavior"
+  java={String.raw`class MotorMechanism {
+    protected DcMotor motor;
+
+    public void stop() {
+        motor.setPower(0.0);
+    }
+}
+
+class Lift extends MotorMechanism {
+    public void raise() {
+        motor.setPower(0.7);
+    }
+}`}
+  python={String.raw`class MotorMechanism:
+    def stop(self):
+        self.motor.set_power(0.0)
+
+class Lift(MotorMechanism):
+    def raise_lift(self):
+        self.motor.set_power(0.7)`}
+/>
+
+Java writes the relationship with `extends`. Python places the parent class in parentheses. In both versions, `Lift` receives `stop()` from `MotorMechanism`.
+
 ```java
 package org.firstinspires.ftc.teamcode;
 

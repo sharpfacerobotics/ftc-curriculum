@@ -146,6 +146,18 @@ public class ArcadeDrive extends OpMode {
 
 </details>
 
+## A Team Delegates the Finished Drive Command
+
+Titan Robotics Club calculates its driver inputs before choosing holonomic or arcade drive. This lesson uses the arcade branch directly:
+
+```java
+double forward = shapeInput(-gamepad1.left_stick_y);
+double turn = shapeInput(gamepad1.right_stick_x);
+robot.drive.arcadeDrive(forward, turn);
+```
+
+The source's input array, scaling arguments, and framework object names were shortened. The order remains the same: shape the inputs, then send one drive command. Adapted from [Team 3543 Titan Robotics Club's `FtcTeleOp.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/FtcTeleOp.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 <MarkComplete
   lessonId="unit-04/arcade-drive-challenge"
   nextUnit="/docs/unit-04/mastery-coding-challenge"

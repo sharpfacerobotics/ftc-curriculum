@@ -115,6 +115,19 @@ Use the simulator below to practice protecting both directions with active-low u
 
 <Unit8Simulator lesson="linear-slide-challenge" />
 
+## A Team Applies Limits Before Power
+
+BunyipsLib's holdable actuator supports lower and upper limits around its motor control. This lesson makes the decision visible in one method:
+
+```java
+double safePower = requestedPower;
+if (requestedPower > 0 && upperLimit.isPressed()) safePower = 0.0;
+if (requestedPower < 0 && lowerLimit.isPressed()) safePower = 0.0;
+motor.setPower(safePower);
+```
+
+The source's command and supplier layers were flattened, and the limit names were changed to match the simulator. The safety order remains: evaluate limits before writing motor power. Adapted from [BunyipsLib's `HoldableActuator.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/subsystems/HoldableActuator.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 <MarkComplete
   lessonId="unit-08/linear-slide-challenge"
   nextUnit="/docs/unit-08/mastery-coding-challenge"

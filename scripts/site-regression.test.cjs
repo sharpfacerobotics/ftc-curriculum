@@ -96,7 +96,7 @@ for (let unit = 2; unit <= 15; unit += 1) {
       .map((name) => `docs/unit-${String(unit).padStart(2, '0')}/${name}`)
       .find((name) => name.endsWith('mastery-coding-challenge.mdx')),
   );
-  assert.match(masteryLesson, new RegExp(`<MasterySimulator unit=\\{${unit}\\} />`));
+  assert.match(masteryLesson, new RegExp(`<MasterySimulator unit=\\{${unit}\\}(?: project)? />`));
   assert.match(read(`static/simulator/unit${unit}.mastery.html`), /mastery_motion\.js/);
   assert.ok(
     masteryLesson.includes(`completesUnit="unit-${String(unit).padStart(2, '0')}"`),

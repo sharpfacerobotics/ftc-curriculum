@@ -26,9 +26,10 @@ const legacyLessonFiles = new Set([
   'unit8.5.html',
   'unit9.1.html',
 ]);
+const cumulativeProjectFiles = new Set(['unit13.project.html', 'unit15.5.html']);
 
-assert.equal(htmlFiles.length, 61, 'Expected 61 simulator HTML pages');
-assert.equal(lessonFiles.length, 60, 'Expected 60 lesson simulator pages');
+assert.equal(htmlFiles.length, 62, 'Expected 62 simulator HTML pages');
+assert.equal(lessonFiles.length, 61, 'Expected 61 lesson simulator pages');
 
 const masteryRuntimeSource = fs.readFileSync(
   path.join(simulatorRoot, 'mastery_challenge.js'),
@@ -89,7 +90,7 @@ for (const name of htmlFiles) {
 
   if (/^unit\d/.test(name)) {
     assert.match(source, /telemark-editor\.js/, `${name} must load the shared editor behavior`);
-    const supportsProjects = legacyLessonFiles.has(name) || masteryFiles.has(name) || /^unit(?:9\.[2-5]|10\.[1-5]|12\.[24])\.html$/.test(name);
+    const supportsProjects = legacyLessonFiles.has(name) || masteryFiles.has(name) || cumulativeProjectFiles.has(name) || /^unit(?:9\.[2-5]|10\.[1-5]|12\.[24])\.html$/.test(name);
     assert.equal(/telemark-project\.js/.test(source), supportsProjects, `${name} project controls must match its runtime capability`);
     const usesSharedBase = /<script\b[^>]*\bsrc\s*=\s*["'][^"']*simulator_base\.js["']/i.test(source);
     assert.equal(usesSharedBase, true, `${name} must load simulator_base.js`);
@@ -105,6 +106,7 @@ for (const name of htmlFiles) {
       || /\btranspileAndRun\s*\(/.test(source)
       || /\b_simTranspile\s*\(/.test(source)
       || (/\b(?:eval|new Function)\s*\(/.test(source) && /\b(?:transpil|compileStudent)/i.test(source))
+      || /unit13-project\.js/.test(source)
       || (masteryFiles.has(name) && /mastery_challenge\.js/.test(source));
     assert.equal(
       convertsAndExecutesJava,
@@ -158,7 +160,24 @@ for (const name of htmlFiles) {
   );
   const className = starter[1].match(/public\s+class\s+(\w+)/)?.[1];
   if (className) {
-    const project = TelemarkJava.compileProject([{name: className + '.java', source: starter[1]}]);
+    const projectFiles = [{name: className + '.java', source: starter[1]}];
+    if (name === 'unit15.5.html') {
+      projectFiles.push({
+        name: 'RobotHardware.java',
+        source: `package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+class Intake { void stop() {} void eject() {} }
+class Lift { void moveToScore() {} boolean isAtTarget() { return true; } }
+public class RobotHardware {
+  public final Intake intake = new Intake();
+  public final Lift lift = new Lift();
+  public void init(HardwareMap hardwareMap) {}
+  public void update() {}
+  public void stopAll() {}
+}`,
+      });
+    }
+    const project = TelemarkJava.compileProject(projectFiles);
     assert.equal(project.ok, true, `${name} project starter failed: ${project.diagnostics?.[0]?.message}`);
   }
 }

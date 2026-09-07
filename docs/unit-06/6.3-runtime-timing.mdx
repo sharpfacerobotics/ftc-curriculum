@@ -92,6 +92,23 @@ Use the simulator below to practice non-blocking timing with `getRuntime()` insi
 
 <Unit6Simulator lesson="runtime-timing" />
 
+## A Team Checks Time and Returns
+
+BunyipsLib's periodic task resets a timer once, checks whether its interval has passed, runs its action, and returns. Renamed for this lesson, the core looks like this:
+
+```java
+if (!timerStarted) {
+    timer.reset();
+    timerStarted = true;
+}
+if (timer.milliseconds() >= intervalMs) {
+    runScheduledAction();
+    timer.reset();
+}
+```
+
+The callback wrapper and zero-interval option were omitted. No line waits, so the OpMode can keep doing other work. Adapted from [BunyipsLib's `Periodic.java` at a pinned commit](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/src/main/java/au/edu/sa/mbhs/studentrobotics/bunyipslib/executables/Periodic.java) under the [MIT License](https://github.com/Murray-Bridge-Bunyips/BunyipsLib/blob/8e2e23df19e9f797923e3904a21fcb981e542b9f/LICENSE).
+
 <MarkComplete
   lessonId="unit-06/runtime-timing"
   nextUnit="/docs/unit-06/hardware-arrays"

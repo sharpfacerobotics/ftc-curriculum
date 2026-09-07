@@ -148,6 +148,24 @@ boolean scanForTag(int targetId) {
 
 </details>
 
+## A Team Filters Vision Results Behind One Method
+
+Titan Robotics Club's vision layer asks its AprilTag helper for the best match from a list of target IDs. It checks the result before reading the detected ID. Here is that flow with names matched to this lesson:
+
+```java
+TagResult findTag(int[] targetIds) {
+    TagResult result = aprilTagVision.findBestMatch(targetIds);
+
+    if (result != null) {
+        telemetry.addData("Tag ID", result.id);
+    }
+
+    return result;
+}
+```
+
+`TagResult`, `findBestMatch`, and `telemetry` are lesson-focused names. The team's source delegates to `getBestDetectedTargetInfo(aprilTagIds, null)`, checks for `null`, and then reads the detection ID. Camera selection, dashboard output, and pose conversion were omitted so the example stays focused on safe result handling. Adapted from [Team 3543 Titan Robotics Club's `Vision.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/vision/Vision.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 <MarkComplete
   lessonId="unit-14/apriltag-detection"
   nextUnit="/docs/unit-14/pose-data"

@@ -121,6 +121,23 @@ All tabs compile and run together, including when a helper tab is open. The **+*
 
 <Unit7Simulator lesson="mechanism-classes" />
 
+## A Team Gives Hardware One Owner
+
+Titan Robotics Club constructs an actuator inside its subsystem and reads the device name from `RobotParams`. This direct SDK adaptation uses the same boundary:
+
+```java
+public class LinearSlide {
+    private DcMotor motor;
+
+    public void init(HardwareMap hardwareMap) {
+        motor = hardwareMap.get(
+            DcMotor.class, RobotConfig.SLIDE_NAME);
+    }
+}
+```
+
+The framework actuator and its parameter builder were replaced with `DcMotor`. The subsystem still owns the mapping, while configuration owns the name. Adapted from [Team 3543 Titan Robotics Club's subsystem guide at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/README.md) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 <MarkComplete
   lessonId="unit-07/mechanism-classes"
   nextUnit="/docs/unit-07/mastery-coding-challenge"

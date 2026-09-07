@@ -18,6 +18,15 @@ function unitCorpus(unit) {
     .join('\n');
 }
 
+function attributedLessonFiles(unit) {
+  const directory = path.join(root, `docs/unit-${String(unit).padStart(2, '0')}`);
+  return fs.readdirSync(directory)
+    .filter((name) => name.endsWith('.mdx'))
+    .filter((name) => approvedPins.some((pin) => (
+      fs.readFileSync(path.join(directory, name), 'utf8').includes(pin)
+    )));
+}
+
 const allLessons = [];
 for (let unit = 2; unit <= 15; unit += 1) {
   const corpus = unitCorpus(unit);
@@ -25,6 +34,10 @@ for (let unit = 2; unit <= 15; unit += 1) {
   assert.ok(
     approvedPins.some((pin) => corpus.includes(pin)),
     `Unit ${unit} needs a contextual excerpt linked to an approved pinned source`,
+  );
+  assert.ok(
+    attributedLessonFiles(unit).length >= 2,
+    `Unit ${unit} needs attributed professional examples in at least two lesson files`,
   );
 }
 
@@ -51,4 +64,4 @@ assert.match(notices, /Copyright \(c\) 2025 Titan Robotics Club/);
 assert.match(notices, /Copyright \(c\) 2026 Lucas Bubner, Murray Bridge High School Student Robotics Club/);
 assert.match(notices, /Commercial use of the Software is not permitted/);
 
-console.log('Approved team-code excerpt and license checks passed for Units 2-15');
+console.log('Two approved team-code examples and license checks passed for every Unit 2-15');

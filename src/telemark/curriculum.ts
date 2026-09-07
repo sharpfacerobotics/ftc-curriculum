@@ -31,21 +31,21 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     id: 'UNIT_00',
     label: 'Unit 0',
     title: 'Objects, Classes, and Java',
-    desc: 'Learn how classes define reusable objects without scattering the same rules across robot code.',
+    desc: 'Build a clear mental model of classes, objects, references, composition, and shared members before using the FTC SDK.',
     tier: 'Beginner',
     slug: 'unit-00',
     overviewPath: '/docs/unit-00',
     startPath: '/docs/unit-00/classes-and-objects',
     nextPath: '/docs/unit-01',
     nextLabel: 'Unit 1: Environment Setup',
-    lessonCount: 2,
+    lessonCount: 5,
     overview:
-      'Two robot arms can be built from the same design while using separate names, power levels, and roles. Java classes and objects follow a similar pattern.',
+      'A house blueprint can produce separate houses with the same design. Java classes define objects in the same way, while each object keeps its own identity and state.',
     outcomes: [
-      'Tell a class from an object, and see where fields, methods, and constructors fit.',
-      'Follow object creation, references, and method calls while Java runs.',
-      'Read common Java words such as class, new, this, extends, public, private, static, void, return, and @Override.',
-      'Give shared robot behavior one home instead of copying it from OpMode to OpMode.',
+      'Connect classes, objects, fields, constructors, and methods to concrete robot code.',
+      'Trace object identity, shared references, null references, and calls across several objects.',
+      'Distinguish instance state from static members and static final constants.',
+      'Recognize nested classes and use separate top-level files in the Telemark simulator.',
     ],
   },
   {
@@ -100,7 +100,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-03/string-literals',
     nextPath: '/docs/unit-04',
     nextLabel: 'Unit 4: Gamepad Input',
-    lessonCount: 6,
+    lessonCount: 10,
     overview:
       'Use the Java data types that appear throughout FTC code, including hardware names, sensor readings, control values, and counters.',
     outcomes: [
@@ -300,13 +300,13 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     startPath: '/docs/unit-13/encapsulation',
     nextPath: '/docs/unit-14',
     nextLabel: 'Unit 14: Computer Vision',
-    lessonCount: 6,
+    lessonCount: 10,
     overview:
       'Structure competition code with encapsulation, inheritance, and composition so mechanisms can be reused and hardware changes stay contained.',
     outcomes: [
       'Encapsulate mechanism hardware and logic into private-member classes with clean public interfaces, eliminating duplicated code across OpModes.',
       'Apply inheritance and @Override to build a family of specialized mechanisms from a shared parent, with the compiler enforcing correct implementation.',
-      'Architect a master robot class using composition so that every OpMode initializes and controls the entire robot through a single object.',
+      'Build Intake, Lift, RobotHardware, and CompetitionTeleOp as a reusable multi-file project for TeleOp and autonomous.',
     ],
   },
   {
@@ -354,8 +354,8 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
 export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   {
     id: 'unit-00/classes-and-objects',
-    label: '0.1 · Classes, Objects & DRY Code',
-    title: 'Lesson 0.1: Classes, Objects, and DRY Code',
+    label: '0.1 · Classes & Objects',
+    title: 'Lesson 0.1: Blueprints, Houses, Classes, and Objects',
     path: '/docs/unit-00/classes-and-objects',
     unitSlug: 'unit-00',
     unitLabel: 'Unit 0',
@@ -363,9 +363,36 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
   },
   {
     id: 'unit-00/how-java-runs',
-    label: '0.2 · How Java Runs',
-    title: 'Lesson 0.2: How Java Runs',
-    path: '/docs/unit-00/how-java-runs',
+    label: '0.2 · Fields, Constructors & Methods',
+    title: 'Lesson 0.2: Fields, Constructors, and Methods',
+    path: '/docs/unit-00/fields-constructors-methods',
+    unitSlug: 'unit-00',
+    unitLabel: 'Unit 0',
+    unitTitle: 'Objects, Classes, and Java',
+  },
+  {
+    id: 'unit-00/references-and-identity',
+    label: '0.3 · References & Identity',
+    title: 'Lesson 0.3: References and Object Identity',
+    path: '/docs/unit-00/references-and-identity',
+    unitSlug: 'unit-00',
+    unitLabel: 'Unit 0',
+    unitTitle: 'Objects, Classes, and Java',
+  },
+  {
+    id: 'unit-00/objects-working-together',
+    label: '0.4 · Objects Working Together',
+    title: 'Lesson 0.4: How Objects Work Together',
+    path: '/docs/unit-00/objects-working-together',
+    unitSlug: 'unit-00',
+    unitLabel: 'Unit 0',
+    unitTitle: 'Objects, Classes, and Java',
+  },
+  {
+    id: 'unit-00/static-and-nested-members',
+    label: '0.5 · Instance, Static & Nested',
+    title: 'Lesson 0.5: Instance, Static, and Nested Members',
+    path: '/docs/unit-00/static-and-nested-members',
     unitSlug: 'unit-00',
     unitLabel: 'Unit 0',
     unitTitle: 'Objects, Classes, and Java',
@@ -1109,6 +1136,42 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
     unitTitle: 'OOP & Inheritance',
   },
   {
+    id: 'unit-13/build-intake',
+    label: '13.6 · Build Intake',
+    title: 'Lesson 13.6: Build RobotConfig.java and Intake.java',
+    path: '/docs/unit-13/build-intake',
+    unitSlug: 'unit-13',
+    unitLabel: 'Unit 13',
+    unitTitle: 'OOP & Inheritance',
+  },
+  {
+    id: 'unit-13/build-lift',
+    label: '13.7 · Build Lift',
+    title: 'Lesson 13.7: Build MotorMechanism.java and Lift.java',
+    path: '/docs/unit-13/build-lift',
+    unitSlug: 'unit-13',
+    unitLabel: 'Unit 13',
+    unitTitle: 'OOP & Inheritance',
+  },
+  {
+    id: 'unit-13/build-robot-hardware',
+    label: '13.8 · Build RobotHardware',
+    title: 'Lesson 13.8: Build RobotHardware.java',
+    path: '/docs/unit-13/build-robot-hardware',
+    unitSlug: 'unit-13',
+    unitLabel: 'Unit 13',
+    unitTitle: 'OOP & Inheritance',
+  },
+  {
+    id: 'unit-13/competition-teleop',
+    label: '13.9 · Complete TeleOp',
+    title: 'Lesson 13.9: Complete CompetitionTeleOp.java',
+    path: '/docs/unit-13/competition-teleop',
+    unitSlug: 'unit-13',
+    unitLabel: 'Unit 13',
+    unitTitle: 'OOP & Inheritance',
+  },
+  {
     id: 'unit-13/mastery-coding-challenge',
     label: 'Unit 13 · Coding Challenge',
     title: 'Unit 13 Comprehensive Coding Challenge: Modular Robot Architecture',
@@ -1228,7 +1291,8 @@ export const CURRICULUM_LESSONS: CurriculumLesson[] = [
 ];
 
 export const CURRICULUM_UNIT_COUNT = CURRICULUM_UNITS.length;
-export const CURRICULUM_LESSON_COUNT = CURRICULUM_LESSONS.length;
+// Public course metadata also counts the Unit 2-15 overview lessons.
+export const CURRICULUM_LESSON_COUNT = CURRICULUM_LESSONS.length + 14;
 
 export function getUnitBySlug(unitSlug: string): CurriculumUnit | undefined {
   return CURRICULUM_UNITS.find((unit) => unit.slug === unitSlug);

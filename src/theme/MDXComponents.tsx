@@ -4,6 +4,8 @@ import BrowserOnly from '@docusaurus/BrowserOnly';
 import SimulatorRunGuide from '@site/src/components/SimulatorRunGuide';
 import BlocksNextStep, {BlocksJavaContinue} from '@site/src/components/blocks/BlocksNextStep';
 import FllExtensionOverview from '@site/src/components/blocks/FllExtensionOverview';
+import AnnotatedCode from '@site/src/components/AnnotatedCode';
+import Unit13BuildSimulator from '@site/src/components/Unit13BuildSimulator';
 
 function BlockPractice({lessonId}: {lessonId: string}): React.JSX.Element {
   return (
@@ -35,4 +37,6 @@ export default {
   FllExtensionOverview,
   BlocksNextStep,
   BlocksJavaContinue,
+  AnnotatedCode,
+  Unit13BuildSimulator,
 };

@@ -34,6 +34,25 @@ The class needs access to the `hardwareMap` to link its member variables to phys
 
 ## Annotated Code
 
+<AnnotatedCode
+  title="Private hardware behind a public command"
+  java={String.raw`public class Intake {
+    private CRServo motor;
+
+    public void collect() {
+        motor.setPower(0.8);
+    }
+}`}
+  python={String.raw`class Intake:
+    def __init__(self, motor):
+        self._motor = motor
+
+    def collect(self):
+        self._motor.set_power(0.8)`}
+/>
+
+Both versions keep the hardware reference inside the object and give callers a command named for intent. Python's leading underscore is a convention rather than Java's enforced `private` access.
+
 ```java
 package org.firstinspires.ftc.teamcode;
 

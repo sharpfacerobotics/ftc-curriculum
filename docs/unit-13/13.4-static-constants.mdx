@@ -40,6 +40,21 @@ When the hardware changes, you open `RobotConfig.java`, change one string, rebui
 
 ## Annotated Code
 
+<AnnotatedCode
+  title="One shared configuration value"
+  java={String.raw`public final class RobotConfig {
+    public static final String LIFT_NAME = "lift";
+    public static final double LIFT_POWER = 0.75;
+
+    private RobotConfig() {}
+}`}
+  python={String.raw`class RobotConfig:
+    LIFT_NAME = "lift"
+    LIFT_POWER = 0.75`}
+/>
+
+Python class attributes provide a similar shared lookup. Python does not enforce `final`, so the all-caps names communicate that callers should treat these values as constants.
+
 ```java
 package org.firstinspires.ftc.teamcode;
 

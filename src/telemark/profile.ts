@@ -60,7 +60,11 @@ export function normalizeLearnerProfile(value: unknown): LearnerProfile | null {
 
 export function profileDestination(profile: LearnerProfile): string {
   if (profile.selectedTracks.includes('software')) {
-    return profile.softwareLevel === 'complete_beginner' ? '/blocks' : '/docs';
+    if (profile.softwareLevel === 'complete_beginner') return '/blocks';
+    if (profile.softwareLevel === 'block_experience' && profile.postBlocksChoice === 'python') {
+      return '/blocks/python-resources';
+    }
+    return '/docs';
   }
   return '/mechanical';
 }

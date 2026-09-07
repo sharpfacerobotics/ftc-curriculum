@@ -104,6 +104,19 @@ public void loop() {
 
 </details>
 
+## A Team Loop Keeps Coordination Short
+
+Titan Robotics Club's TeleOp passes driver input to its robot layer during each periodic call. Here is that pattern renamed to match this lesson:
+
+```java
+public void loop() {
+    robot.driveWith(gamepad1);
+    robot.updateStatus();
+}
+```
+
+The framework callback and dashboard details were removed. The two remaining calls show the lesson's point: read controls and update the robot once per loop. Adapted from [Team 3543 Titan Robotics Club's `FtcTeleOp.java` at a pinned commit](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/TeamCode/src/main/java/teamcode/FtcTeleOp.java) under the [MIT License](https://github.com/trc492/FtcTemplate/blob/0680f02e5a8281264c16558c9a953aa15f0cd362/LICENSE).
+
 <MarkComplete
   lessonId="unit-02/loop-lifecycle"
   nextUnit="/docs/unit-02/start-and-stop"

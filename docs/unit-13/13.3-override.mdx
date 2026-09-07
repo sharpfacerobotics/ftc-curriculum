@@ -40,6 +40,23 @@ In FTC, abstract classes are useful for defining a common interface for a family
 
 ## Annotated Code
 
+<AnnotatedCode
+  title="Replace inherited behavior safely"
+  java={String.raw`class SafetySlide extends MotorMechanism {
+    @Override
+    public void move(double power) {
+        double safe = Math.min(0.5, Math.abs(power));
+        motor.setPower(safe * Math.signum(power));
+    }
+}`}
+  python={String.raw`class SafetySlide(MotorMechanism):
+    def move(self, power):
+        safe = min(0.5, abs(power))
+        self.motor.set_power(safe * sign(power))`}
+/>
+
+Python overrides a method by defining the same name in the child class. Java adds `@Override` so the compiler can verify the relationship.
+
 ```java
 package org.firstinspires.ftc.teamcode;
 

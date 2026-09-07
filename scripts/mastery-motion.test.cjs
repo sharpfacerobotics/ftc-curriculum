@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const MasteryMotion = require('../static/simulator/mastery_motion.js');
 const TelemarkJava = require('../static/simulator/telemark-java.js');
 
@@ -381,6 +383,23 @@ function testServosVisionAndPaths() {
   assert.ok(pathing.snapshot().pathProgress > 0, 'Unit 15 robot should advance when the follower runs');
 }
 
+function testGeneratedChallengeMotionIsObservable() {
+  const modular = MasteryMotion.create(13);
+  const start = modular.snapshot();
+  modular.setCRServoPower('intake', 0.8);
+  modular.setMotorPower('lift', 0.75);
+  modular.step(0.1);
+  const moved = modular.snapshot();
+  assert.notEqual(moved.primaryAngle, start.primaryAngle, 'Unit 13 intake needs visible rotor motion state');
+  assert.notEqual(moved.armAngle, start.armAngle, 'Unit 13 lift needs visible carriage motion state');
+
+  const visualSource = fs.readFileSync(path.resolve(__dirname, '../static/simulator/mastery_challenge.js'), 'utf8');
+  for (const token of ['visibleRoller', 'mechanismLever', 'intakeSample', 'sensedSample', 'liftCarriage', 'mastery-motion-readout']) {
+    assert.ok(visualSource.includes(token), `Generated challenge visuals are missing ${token}`);
+  }
+  assert.match(visualSource, /animation\(currentTime, dt\)/, 'visible game-piece motion must use frame time');
+}
+
 function testMecanumDrive() {
   const motion = MasteryMotion.create(12);
   motion.setMotorPower('frontLeft', 1);
@@ -458,6 +477,7 @@ testImportedRobotOutputReadouts();
 testUnit5StudentProgramDrivesIntakeAndTelemetry();
 testMechanismsHoldAndReverse();
 testServosVisionAndPaths();
+testGeneratedChallengeMotionIsObservable();
 testMecanumDrive();
 testMecanumPhysicsBeginsAfterUnitEightLesson();
 testChallengeSdkMocks();
