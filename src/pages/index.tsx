@@ -562,8 +562,8 @@ export default function Home(): React.JSX.Element {
       <main className={styles.lp}>
         <HeroSection />
 
-        {/* Floats above the homepage until the reader dismisses this release.
-            Closing the tab does not count as a dismissal. */}
+        {/* Loads after the current release artwork is ready, unless this
+            browser has already dismissed it. */}
         <WhatsNew />
 
         {/* Sections sit on alternating grounds rather than being separated by

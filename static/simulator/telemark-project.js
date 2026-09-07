@@ -32,11 +32,14 @@
       source: movedClasses.reduce((source, qualifiedName) => source.replace(new RegExp('^\\s*import\\s+' + qualifiedName.replace(/\./g, '\\.') + '\\s*;\\s*\\n?', 'm'), ''), file.source),
     })));
   }
-  function attach(editor, refresh) {
+  function attach(editor, refresh, options) {
     if (editor.__telemarkProject) return editor.__telemarkProject;
+    options = options || {};
     const key = global.TelemarkEditor.draftKey(editor) + ':project';
     const mainName = mainFilename(editor.value);
-    let files = normalizeProjectFiles([{name: mainName, source: editor.value}]);
+    let files = options.initialFiles
+      ? normalizeProjectFiles(options.initialFiles)
+      : normalizeProjectFiles([{name: mainName, source: editor.value}]);
     let active = 0;
     let entry = '';
     let lesson = null;

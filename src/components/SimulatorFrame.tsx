@@ -33,9 +33,18 @@ export default function SimulatorFrame({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const launchTrackedRef = useRef(false);
 
+  const sendFullscreenState = (fullscreen = document.fullscreenElement === shellRef.current) => {
+    iframeRef.current?.contentWindow?.postMessage(
+      {type: 'telemark:simulator-fullscreen-state', fullscreen},
+      window.location.origin,
+    );
+  };
+
   useEffect(() => {
     const onFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === shellRef.current);
+      const fullscreen = document.fullscreenElement === shellRef.current;
+      setIsFullscreen(fullscreen);
+      sendFullscreenState(fullscreen);
     };
     document.addEventListener('fullscreenchange', onFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
@@ -47,6 +56,7 @@ export default function SimulatorFrame({
       window.location.origin,
     );
     sendLessonState();
+    sendFullscreenState();
   };
 
   const sendLessonState = () => {

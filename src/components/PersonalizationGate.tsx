@@ -8,6 +8,7 @@ import {auth} from '@site/src/telemark/firebase';
 import styles from './PersonalizationGate.module.css';
 
 const EXEMPT_ROUTES = ['/admin', '/login', '/personalize'];
+const CURRICULUM_ROUTES = ['/docs', '/blocks', '/mechanical', '/simulator', '/dashboard'];
 
 function withoutTrailingSlash(pathname: string): string {
   return pathname.replace(/\/+$/, '') || '/';
@@ -15,6 +16,17 @@ function withoutTrailingSlash(pathname: string): string {
 
 export function personalizationBypassKey(uid: string): string {
   return `telemark:profile-bypass:${uid}`;
+}
+
+export function isCurriculumRoute(pathname: string, baseRoot: string): boolean {
+  const path = withoutTrailingSlash(pathname);
+  const root = withoutTrailingSlash(baseRoot);
+  const relativePath = root !== '/' && (path === root || path.startsWith(`${root}/`))
+    ? path.slice(root.length) || '/'
+    : path;
+  return CURRICULUM_ROUTES.some((route) =>
+    relativePath === route || relativePath.startsWith(`${route}/`),
+  );
 }
 
 export default function PersonalizationGate({children}: {children: ReactNode}): React.JSX.Element {
@@ -29,6 +41,7 @@ export default function PersonalizationGate({children}: {children: ReactNode}): 
     if (authLoading || !user || status !== 'absent') return;
     if (withoutTrailingSlash(location.pathname) === withoutTrailingSlash(basePath('/'))) return;
     if (EXEMPT_ROUTES.some((route) => location.pathname.endsWith(route))) return;
+    if (!isCurriculumRoute(location.pathname, basePath('/'))) return;
     if (window.sessionStorage.getItem(personalizationBypassKey(user.uid)) === '1') return;
     const next = `${location.pathname}${location.search}${location.hash}`;
     history.replace(basePath(`/personalize?next=${encodeURIComponent(next)}`));

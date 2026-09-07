@@ -61,6 +61,14 @@ assert.match(
   /withoutTrailingSlash\(location\.pathname\) === withoutTrailingSlash\(basePath\('\/'\)\)/,
   'the homepage waits for a learner to choose a track before starting personalization',
 );
+assert.match(gateSource, /isCurriculumRoute\(location\.pathname, basePath\('\/'\)\)/);
+const curriculumRoutes = gateSource.match(/const CURRICULUM_ROUTES = \[([^\]]+)\]/)?.[1] || '';
+for (const route of ['/docs', '/blocks', '/mechanical', '/simulator', '/dashboard']) {
+  assert.ok(curriculumRoutes.includes(`'${route}'`), `${route} starts curriculum personalization`);
+}
+assert.ok(!curriculumRoutes.includes('changelog'), 'the changelog never starts curriculum personalization');
+const loginSource = fs.readFileSync(path.join(root, 'src/pages/login.tsx'), 'utf8');
+assert.match(loginSource, /profileStatus === 'absent' \? '\/' : '\/dashboard'/, 'sign-in alone does not start personalization');
 
 const rules = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
 assert.match(rules, /request\.auth\.uid == userId/);

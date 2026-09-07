@@ -315,7 +315,11 @@
           if (qualified) {
             if (!qualified.public && qualified.unit.packageName !== u.packageName) throw new TelemarkJavaError(qualified.qualifiedName + ' is not public.', token);
             const end = token.start + qualified.qualifiedName.length;
-            replacements.push({start: token.start, end, value: qualified.runtimeName});
+            // Class literals are converted to user-facing type names by the
+            // transpiler. Do not leak the linker's TMProjectClass* aliases into
+            // hardwareMap validation or diagnostics.
+            const classLiteral = /^\s*\.\s*class\b/.test(u.file.source.slice(end));
+            replacements.push({start: token.start, end, value: classLiteral ? qualified.name : qualified.runtimeName});
             while (u.tokens[i + 1]?.start < end) i++;
             continue;
           }
@@ -330,7 +334,9 @@
           const found = imported.get(token.value) || samePackage || (wildcardMatches.length === 1 ? wildcardMatches[0] : null);
           if (!found) throw new TelemarkJavaError(wildcardMatches.length > 1 ? 'Ambiguous class ' + token.value + '; use an explicit import.' : 'Cannot resolve ' + token.value + '. Add import ' + candidates[0].qualifiedName + '; (or use its fully qualified name).', token);
           if (!found.public && found.unit !== u && found.unit.packageName !== u.packageName) throw new TelemarkJavaError(found.qualifiedName + ' is not public.', token);
-          replacements.push({start: token.start, end: token.end, value: found.runtimeName});
+          if (!(u.tokens[i + 1]?.value === '.' && u.tokens[i + 2]?.value === 'class')) {
+            replacements.push({start: token.start, end: token.end, value: found.runtimeName});
+          }
         }
         let result = u.file.source;
         for (const r of replacements.reverse()) result = result.slice(0, r.start) + r.value + result.slice(r.end);

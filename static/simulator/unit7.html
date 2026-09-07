@@ -52,6 +52,7 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--
 .port-device input:focus{border-color:var(--accent);outline:none}
 .port-device input::placeholder{color:#444;font-style:italic}
 #robot-canvas{display:block;width:100%;height:220px;border-radius:6px;background:#0a0a0a;cursor:grab}
+body.telemark-host-fullscreen #robot-canvas{height:clamp(300px,46vh,560px)}
 #robot-canvas:active{cursor:grabbing}
 /* DS controls */
 .ds-controls{display:flex;gap:8px;flex-shrink:0;padding:8px 10px;border-top:1px solid var(--border);background:var(--panel)}
@@ -251,6 +252,11 @@ var robotConfig = null;
 var robotConfigInitialized = false;
 var urlParams = new URLSearchParams(window.location.search);
 var customCode = urlParams.get('code');
+var customProjectFiles = null;
+try {
+  var customProject = JSON.parse(urlParams.get('project') || 'null');
+  if (Array.isArray(customProject) && customProject.length) customProjectFiles = customProject;
+} catch (_) { /* Ignore malformed project URLs and use the normal starter. */ }
 
 // UI & Editor Helpers
 function updateCode(t){
@@ -544,6 +550,10 @@ function createHardwareRuntime() {
   var baseGet=runtime.hardwareMap.get.bind(runtime.hardwareMap);
   runtime.hardwareMap.get=function(type,name){
     type=String(type);name=String(name);
+    var sdkHardwareTypes=['DcMotor','DcMotorEx','Servo','CRServo','IMU','ColorSensor','DistanceSensor','TouchSensor','DigitalChannel','AnalogInput','WebcamName','Limelight3A'];
+    if(sdkHardwareTypes.indexOf(type)===-1){
+      throw new Error(type+' is a Java helper class, not configured robot hardware. Create it with new '+type+'(), then pass hardwareMap to its init() method.');
+    }
     if(robotConfig){
       if(!robotConfig[name])throw new Error('No configured '+type+' named "'+name+'"');
       if(robotConfig[name]!==type)throw new Error('Hardware "'+name+'" is configured as '+robotConfig[name]+', not '+type);
@@ -769,7 +779,7 @@ function initRobot3D() {
   camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
   updateCameraFromOrbit();
   renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-  renderer.setSize(w, h);
+  renderer.setSize(w, h, false);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
   scene.add(new THREE.AmbientLight(0x444444));
@@ -835,6 +845,23 @@ function initRobot3D() {
   if (window.TelemarkSimulatorBase) window.TelemarkSimulatorBase.themeThreeScene(scene);
   renderer.render(scene, camera);
 }
+
+function resizeRobot3D() {
+  if (!renderer || !camera) return;
+  var canvas = document.getElementById('robot-canvas');
+  var w = canvas.clientWidth, h = canvas.clientHeight;
+  if (!w || !h) return;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+}
+
+window.addEventListener('resize', resizeRobot3D);
+window.addEventListener('message', function(event) {
+  if (event.origin !== window.location.origin || event.source !== window.parent || event.data?.type !== 'telemark:simulator-fullscreen-state') return;
+  document.body.classList.toggle('telemark-host-fullscreen', Boolean(event.data.fullscreen));
+  requestAnimationFrame(resizeRobot3D);
+});
 
 function updateCameraFromOrbit() {
   if (!camera) return;
@@ -1044,10 +1071,12 @@ window.addEventListener('blur',function(){Object.values(sticks).forEach(resetSti
 
 // Boot Sequence
 window.addEventListener('load', function() {
-  if (customCode) {
+  if (customProjectFiles) {
+    codeEditor.value = customProjectFiles[0].source;
+  } else if (customCode) {
     codeEditor.value = customCode;
   }
-  TelemarkProject.attach(codeEditor, onCodeChange);
+  TelemarkProject.attach(codeEditor, onCodeChange, {initialFiles: customProjectFiles});
   updateCode(codeEditor.value);
   initRobot3D();
   animateRobot();

@@ -63,7 +63,7 @@ assert.deepEqual(evaluate(localConstants), Array(10).fill(true), 'unqualified me
 assert.deepEqual(evaluate(source.replace('!limit.getState()', '!limit.getState() && power > 0')), Array(10).fill(true), 'directional limits allow retreat');
 
 const {JSDOM} = require('jsdom');
-function editorPage(saved) {
+function editorPage(saved, initialFiles) {
   const dom = new JSDOM('<div><div><textarea id="code-editor"></textarea></div></div>', {url: 'https://example.test/unit7', runScripts: 'outside-only'});
   const w = dom.window;
   w.TelemarkJava = java;
@@ -72,7 +72,7 @@ function editorPage(saved) {
   if (saved) for (const [key, value] of saved) w.localStorage.setItem(key, value);
   const editor = w.document.querySelector('textarea');
   editor.value = files[0];
-  const project = w.TelemarkProject.attach(editor, () => {});
+  const project = w.TelemarkProject.attach(editor, () => {}, {initialFiles});
   return {w, editor, project};
 }
 const page = editorPage();
@@ -119,5 +119,18 @@ assert.ok(restored.project.source().includes(files[0]));
 restored.project.reset(files[0]);
 assert.ok(!restored.project.source().includes('public class LinearSlide'));
 assert.equal(restored.w.document.querySelectorAll('.telemark-project-tab').length, 1);
-page.w.close(); restored.w.close();
+const supplied = editorPage(null, [
+  {name: 'Test.java', source: files[0]},
+  {name: 'LinearSlide.java', source: files[1]},
+]);
+assert.deepEqual(
+  [...supplied.w.document.querySelectorAll('.telemark-project-tab')].map(tab => tab.textContent),
+  ['Test.java', 'LinearSlide.java'],
+  'a lesson can reveal supplied helper files as tabs on first load',
+);
+const unit7Source = fs.readFileSync('static/simulator/unit7.html', 'utf8');
+assert.match(unit7Source, /telemark-host-fullscreen #robot-canvas\{height:clamp/);
+assert.match(unit7Source, /camera\.updateProjectionMatrix\(\);\s*renderer\.setSize\(w, h, false\)/);
+assert.match(unit7Source, /telemark:simulator-fullscreen-state/);
+page.w.close(); restored.w.close(); supplied.w.close();
 console.log('Unit 7 multi-file editing and recovery tests passed.');

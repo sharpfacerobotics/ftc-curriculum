@@ -69,4 +69,15 @@ assert.equal(run(compile(entries,{entry:'One'})).scope.result,1);
 assert.equal(compile(entries,{entry:'Missing'}).ok,false,'invalid entry cannot silently run a different OpMode');
 assert.equal(run(compile([{name:'Main.java',source:'public class Main extends OpMode {static final int LIMIT=2;int result;void loop(){if(LIMIT<5){result=1;}}}'}])).scope.result,1,'capitalized constants in comparisons are not generic declarations');
 assert.equal(compile([{name:'Main.java',source:'import java.util.ArrayList;public class Main extends OpMode {ArrayList<String> list;void loop(){}}'}]).ok,false,'unsupported generics produce a compile diagnostic');
+const classLiteralFiles = [
+  {name:'Main.java',source:'package robot; import robot.mechanisms.LinearSlide; public class Main extends OpMode { LinearSlide slide; void init(){slide=hardwareMap.get(LinearSlide.class,"slide");} void loop(){} }'},
+  {name:'LinearSlide.java',source:'package robot.mechanisms; public class LinearSlide {}'},
+];
+const requestedTypes = [];
+const classLiteralRuntime = java.createRuntime();
+const classLiteralGet = classLiteralRuntime.hardwareMap.get.bind(classLiteralRuntime.hardwareMap);
+classLiteralRuntime.hardwareMap.get = (type, name) => { requestedTypes.push(type); return classLiteralGet(type, name); };
+const classLiteralProgram = java.compileProject(classLiteralFiles, classLiteralRuntime);
+run(classLiteralProgram);
+assert.deepEqual(requestedTypes, ['LinearSlide'], 'linked class literals keep their Java name in hardware diagnostics');
 console.log('Java package linking and shared class runtime tests passed.');

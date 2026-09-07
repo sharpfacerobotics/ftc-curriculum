@@ -26,9 +26,7 @@ function rememberDismissal(version: string): void {
 
 export default function WhatsNew(): React.JSX.Element | null {
   const {colorMode} = useColorMode();
-  // Render open on the first pass so an unseen announcement is part of the
-  // page's initial paint instead of appearing after the homepage has flashed.
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
   const dialogRef = React.useRef<HTMLElement>(null);
   const dismissRef = React.useRef<HTMLButtonElement>(null);
   const lightImageSrc = useBaseUrl(LATEST_RELEASE.image ?? '/img/releases/1.9.png');
@@ -40,9 +38,25 @@ export default function WhatsNew(): React.JSX.Element | null {
   const imageSrc = colorMode === 'light' ? lightImageSrc : darkImageSrc;
   const changelogHref = useBaseUrl('/changelog');
 
-  React.useLayoutEffect(() => {
-    setIsOpen(readDismissedVersion() !== LATEST_RELEASE.version);
-  }, []);
+  React.useEffect(() => {
+    // Check dismissal before loading anything. Returning users who already
+    // closed this release should never see a modal flash or fetch its artwork.
+    if (readDismissedVersion() === LATEST_RELEASE.version) return undefined;
+
+    let cancelled = false;
+    const image = new Image();
+    image.onload = () => {
+      if (!cancelled && readDismissedVersion() !== LATEST_RELEASE.version) {
+        setIsOpen(true);
+      }
+    };
+    image.src = imageSrc;
+
+    return () => {
+      cancelled = true;
+      image.onload = null;
+    };
+  }, [imageSrc]);
 
   React.useEffect(() => {
     if (!isOpen) return undefined;

@@ -15,10 +15,11 @@ export default function LoginPage(): React.JSX.Element {
   const history           = useHistory();
   const basePath = useBasePath();
 
-  // Redirect to dashboard if already signed in
+  // A new account stays on the general site until the learner chooses a
+  // curriculum destination. That click is what starts personalization.
   useEffect(() => {
     if (!loading && user && ['absent', 'ready', 'error'].includes(profileStatus)) {
-      history.push(basePath(profileStatus === 'absent' ? '/personalize' : '/dashboard'));
+      history.push(basePath(profileStatus === 'absent' ? '/' : '/dashboard'));
     }
   }, [user, loading, profileStatus, history, basePath]);
 

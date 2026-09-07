@@ -10,6 +10,11 @@ type LessonKey =
   | 'name-mismatches'
   | 'mechanism-classes';
 
+type ProjectFile = {
+  name: string;
+  source: string;
+};
+
 const LESSON_CODE: Record<LessonKey, string> = {
   'hardware-map-object': `
 package org.firstinspires.ftc.teamcode;
@@ -133,8 +138,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @TeleOp(name="Slide_TeleOp_Challenge")
 public class SlideTeleOp extends OpMode {
@@ -153,8 +156,16 @@ public class SlideTeleOp extends OpMode {
         // INSERT CODE HERE
     }
 }
+  `.trim(),
+};
 
-class LinearSlide {
+const MECHANISM_CLASS = `
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class LinearSlide {
 
     private DcMotor slideMotor;
 
@@ -168,7 +179,13 @@ class LinearSlide {
         // INSERT CODE HERE
     }
 }
-  `.trim(),
+`.trim();
+
+const LESSON_PROJECT: Partial<Record<LessonKey, ProjectFile[]>> = {
+  'mechanism-classes': [
+    {name: 'SlideTeleOp.java', source: LESSON_CODE['mechanism-classes']},
+    {name: 'LinearSlide.java', source: MECHANISM_CLASS},
+  ],
 };
 
 type Unit7SimulatorProps = {
@@ -176,9 +193,11 @@ type Unit7SimulatorProps = {
 };
 
 export default function Unit7Simulator({lesson}: Unit7SimulatorProps): React.JSX.Element {
+  const project = LESSON_PROJECT[lesson];
   const params = new URLSearchParams({
     code: LESSON_CODE[lesson],
   });
+  if (project) params.set('project', JSON.stringify(project));
   const simulatorSrc = `${useBaseUrl('/simulator/unit7.html')}?${params.toString()}`;
   const simulatorTitle = 'Telemark Unit 7 Simulator';
 

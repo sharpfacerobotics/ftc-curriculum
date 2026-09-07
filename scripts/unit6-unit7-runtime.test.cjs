@@ -279,6 +279,25 @@ function testUnit7CompiledLifecycle() {
   assert.equal(multi.compiledRuntime.devices.get('DcMotor:slide_motor').getPower(), 0.6);
   multi.handleStopButton();
 
+  const classLiteralPage = createPageHarness('static/simulator/unit7.html');
+  const classLiteral = classLiteralPage.context;
+  const classLiteralFiles = [
+    {name: 'SlideTeleOp.java', source: 'public class SlideTeleOp extends OpMode { LinearSlide slide; public void init() { slide = hardwareMap.get(LinearSlide.class, "slide"); } public void loop() {} }'},
+    {name: 'LinearSlide.java', source: 'public class LinearSlide {}'},
+  ];
+  classLiteral.codeEditor.value = classLiteralFiles[0].source;
+  classLiteral.codeEditor.__telemarkProject = {
+    source: () => classLiteral.TelemarkJava.serializeProject(classLiteralFiles),
+  };
+  classLiteral.handleMainButton();
+  assert.equal(
+    classLiteral.currentState,
+    'STOPPED',
+    'a mechanism class cannot be mapped as Robot Controller hardware',
+  );
+  assert.match(classLiteralPage.elements.get('telemetry-log').innerHTML, /Create it with new LinearSlide\(\)/);
+  assert.doesNotMatch(classLiteralPage.elements.get('telemetry-log').innerHTML, /TMProjectClass/);
+
   const starterPage = createPageHarness('static/simulator/unit7.html');
   const starter = starterPage.context;
   starter.codeEditor.value = initialEditorSource(path.join(repoRoot, 'static/simulator/unit7.html'));
