@@ -82,6 +82,8 @@ const cardSource = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.t
 const cardCss = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.module.css'), 'utf8');
 assert.match(cardSource, /telemark\.whatsNew\.dismissedVersion/);
 assert.match(cardSource, /readDismissedVersion\(\) !== LATEST_RELEASE\.version/);
+assert.match(cardSource, /useState\(true\)/, 'an unseen announcement is present on the initial paint');
+assert.match(cardSource, /useLayoutEffect\(\(\) => \{\s*setIsOpen\(readDismissedVersion\(\) !== LATEST_RELEASE\.version\)/s);
 assert.equal(
   (cardSource.match(/localStorage\.setItem/g) || []).length,
   1,

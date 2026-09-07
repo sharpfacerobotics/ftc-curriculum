@@ -26,7 +26,9 @@ function rememberDismissal(version: string): void {
 
 export default function WhatsNew(): React.JSX.Element | null {
   const {colorMode} = useColorMode();
-  const [isOpen, setIsOpen] = React.useState(false);
+  // Render open on the first pass so an unseen announcement is part of the
+  // page's initial paint instead of appearing after the homepage has flashed.
+  const [isOpen, setIsOpen] = React.useState(true);
   const dialogRef = React.useRef<HTMLElement>(null);
   const dismissRef = React.useRef<HTMLButtonElement>(null);
   const lightImageSrc = useBaseUrl(LATEST_RELEASE.image ?? '/img/releases/1.9.png');
@@ -38,7 +40,7 @@ export default function WhatsNew(): React.JSX.Element | null {
   const imageSrc = colorMode === 'light' ? lightImageSrc : darkImageSrc;
   const changelogHref = useBaseUrl('/changelog');
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     setIsOpen(readDismissedVersion() !== LATEST_RELEASE.version);
   }, []);
 

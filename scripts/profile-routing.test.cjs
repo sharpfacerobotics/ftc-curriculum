@@ -55,6 +55,13 @@ const authSource = fs.readFileSync(path.join(root, 'src/telemark/googleAuth.ts')
 assert.ok(authSource.indexOf('!result.user.emailVerified') < authSource.indexOf('syncLocalProgressWithUser(result.user)'));
 assert.match(authSource, /await signOut\(auth\)/);
 
+const gateSource = fs.readFileSync(path.join(root, 'src/components/PersonalizationGate.tsx'), 'utf8');
+assert.match(
+  gateSource,
+  /withoutTrailingSlash\(location\.pathname\) === withoutTrailingSlash\(basePath\('\/'\)\)/,
+  'the homepage waits for a learner to choose a track before starting personalization',
+);
+
 const rules = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
 assert.match(rules, /request\.auth\.uid == userId/);
 assert.match(rules, /request\.auth\.token\.email_verified == true/);

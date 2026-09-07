@@ -9,6 +9,10 @@ import styles from './PersonalizationGate.module.css';
 
 const EXEMPT_ROUTES = ['/admin', '/login', '/personalize'];
 
+function withoutTrailingSlash(pathname: string): string {
+  return pathname.replace(/\/+$/, '') || '/';
+}
+
 export function personalizationBypassKey(uid: string): string {
   return `telemark:profile-bypass:${uid}`;
 }
@@ -23,6 +27,7 @@ export default function PersonalizationGate({children}: {children: ReactNode}): 
 
   useEffect(() => {
     if (authLoading || !user || status !== 'absent') return;
+    if (withoutTrailingSlash(location.pathname) === withoutTrailingSlash(basePath('/'))) return;
     if (EXEMPT_ROUTES.some((route) => location.pathname.endsWith(route))) return;
     if (window.sessionStorage.getItem(personalizationBypassKey(user.uid)) === '1') return;
     const next = `${location.pathname}${location.search}${location.hash}`;
