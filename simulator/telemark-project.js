@@ -35,11 +35,12 @@
   function attach(editor, refresh, options) {
     if (editor.__telemarkProject) return editor.__telemarkProject;
     options = options || {};
-    const key = global.TelemarkEditor.draftKey(editor) + ':project';
+    const key = options.key || global.TelemarkEditor.draftKey(editor) + ':project';
     const mainName = mainFilename(editor.value);
-    let files = options.initialFiles
+    const suppliedFiles = options.initialFiles
       ? normalizeProjectFiles(options.initialFiles)
       : normalizeProjectFiles([{name: mainName, source: editor.value}]);
+    let files = suppliedFiles;
     let active = 0;
     let entry = '';
     let lesson = null;
@@ -48,6 +49,10 @@
       const saved = JSON.parse(global.localStorage.getItem(key));
       if (saved) {
         files = normalizeProjectFiles(saved.files);
+        if (options.addMissingInitialFiles) {
+          const existingNames = new Set(files.map(file => file.name));
+          files = validateFiles(files.concat(suppliedFiles.filter(file => !existingNames.has(file.name))));
+        }
         entry = saved.entry || '';
         active = Number.isInteger(saved.active) ? Math.max(0, Math.min(saved.active, files.length - 1)) : 0;
       }

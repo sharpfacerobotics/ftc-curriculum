@@ -265,7 +265,7 @@
     },
     13: {
       title: "Unit 13 Coding Challenge: Modular Robot Architecture",
-      scenario: "Build a complete TeleOp architecture with encapsulated subsystem state, inherited behavior, an override, shared constants, and one composed Robot object.",
+      scenario: "Complete a six-file TeleOp project with shared configuration, encapsulated intake and lift hardware, inherited behavior, one composed RobotHardware object, and no raw mechanism control in the OpMode.",
       starter: shell([
         "import com.qualcomm.robotcore.eventloop.opmode.OpMode;",
         "import com.qualcomm.robotcore.eventloop.opmode.TeleOp;",
@@ -273,17 +273,29 @@
         "import com.qualcomm.robotcore.hardware.Servo;",
         "import com.qualcomm.robotcore.hardware.HardwareMap;"
       ], "@TeleOp(name=\"Unit_13_Mastery\")", "Unit13Mastery", "OpMode"),
+      starterFiles: [
+        {name: "Unit13Mastery.java", source: shell([
+          "import com.qualcomm.robotcore.eventloop.opmode.OpMode;",
+          "import com.qualcomm.robotcore.eventloop.opmode.TeleOp;"
+        ], "@TeleOp(name=\"Unit_13_Mastery\")", "Unit13Mastery", "OpMode")},
+        {name: "RobotConfig.java", source: "package org.firstinspires.ftc.teamcode;\n\npublic final class RobotConfig {\n    // Add static final hardware names and calibration values.\n}\n"},
+        {name: "Intake.java", source: "package org.firstinspires.ftc.teamcode;\n\nimport com.qualcomm.robotcore.hardware.CRServo;\nimport com.qualcomm.robotcore.hardware.HardwareMap;\n\npublic class Intake {\n    // Encapsulate intake hardware and commands.\n}\n"},
+        {name: "MotorMechanism.java", source: "package org.firstinspires.ftc.teamcode;\n\nimport com.qualcomm.robotcore.hardware.DcMotor;\nimport com.qualcomm.robotcore.hardware.HardwareMap;\n\npublic class MotorMechanism {\n    // Add protected motor state and shared behavior.\n}\n"},
+        {name: "Lift.java", source: "package org.firstinspires.ftc.teamcode;\n\nimport com.qualcomm.robotcore.hardware.HardwareMap;\n\npublic class Lift extends MotorMechanism {\n    // Add non-blocking lift behavior and override stop().\n}\n"},
+        {name: "RobotHardware.java", source: "package org.firstinspires.ftc.teamcode;\n\nimport com.qualcomm.robotcore.hardware.HardwareMap;\n\npublic class RobotHardware {\n    // Compose, initialize, update, and stop the subsystems.\n}\n"}
+      ],
       inputs: ["a", "left_stick_y"],
       checks: [
-        ["Encapsulate subsystem hardware in private fields", /class\s+\w*(?:Mechanism|Subsystem)[\s\S]*?private\s+(?:DcMotor|Servo)\s+\w+/],
-        ["Create a reusable parent mechanism class", /class\s+(?:Base|Abstract)\w+/],
-        ["Create a child subsystem with extends", /class\s+\w+\s+extends\s+(?:Base|Abstract)\w+/],
-        ["Override specialized behavior with @Override", /@Override[\s\S]*?(?:void|double|boolean|int)\s+\w+\s*\(/],
-        ["Store shared configuration as static final constants", /static\s+final\s+(?:String|double|int)\s+\w+\s*=/],
-        ["Compose subsystems inside a Robot class", /class\s+\w*Robot\b[\s\S]*?(?:Mechanism|Subsystem)\s+\w+/],
-        ["Initialize the composed Robot with HardwareMap", /class\s+\w*Robot\b[\s\S]*?\bvoid\s+init\s*\(\s*HardwareMap\s+\w+\s*\)/],
-        ["Use the Robot object from OpMode init() and loop()", /\bvoid\s+init\s*\(\s*\)[\s\S]*?\.\s*init\s*\(\s*hardwareMap\s*\)/, /\bvoid\s+loop\s*\(\s*\)[\s\S]*?robot\s*\./i],
-        ["Provide a cleanup path that stops powered hardware", /\b(?:stop|shutdown|close)\s*\(\s*\)[\s\S]*?setPower\s*\(\s*0(?:\.0+)?\s*\)/]
+        ["Keep intake hardware private inside Intake", /class\s+Intake[\s\S]*?private\s+CRServo\s+\w+/],
+        ["Put shared motor setup in MotorMechanism", /class\s+MotorMechanism[\s\S]*?protected\s+DcMotor\s+\w+[\s\S]*?void\s+init\s*\(\s*HardwareMap/],
+        ["Make Lift extend MotorMechanism", /class\s+Lift\s+extends\s+MotorMechanism/],
+        ["Override Lift stop behavior", /class\s+Lift[\s\S]*?@Override[\s\S]*?void\s+stop\s*\(/],
+        ["Store hardware names and powers as static final configuration", /class\s+RobotConfig[\s\S]*?static\s+final\s+String\s+INTAKE_NAME[\s\S]*?static\s+final\s+(?:double|int)\s+\w+\s*=/],
+        ["Compose Intake and Lift inside RobotHardware", /class\s+RobotHardware[\s\S]*?new\s+Intake\s*\([\s\S]*?new\s+Lift\s*\(/],
+        ["Initialize and update both subsystems through RobotHardware", /class\s+RobotHardware[\s\S]*?intake\s*\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?lift\s*\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?lift\s*\.\s*update\s*\(/],
+        ["Delegate TeleOp controls through subsystem public methods", /class\s+Unit13Mastery[\s\S]*?robot\s*\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?robot\s*\.\s*update\s*\([\s\S]*?robot\s*\.\s*(?:intake|lift)\s*\./],
+        ["Stop all hardware through robot.stopAll()", /class\s+Unit13Mastery[\s\S]*?void\s+stop\s*\([\s\S]*?robot\s*\.\s*stopAll\s*\(/],
+        ["Keep raw intake and lift hardware access out of the OpMode", /class\s+Unit13Mastery/]
       ]
     },
     14: {
@@ -313,13 +325,12 @@
     },
     15: {
       title: "Unit 15 Coding Challenge: Full Sensor-Fused Autonomous",
-      scenario: "Build a non-blocking autonomous that combines Limelight validation, Pedro Pathing updates, Bézier paths, absolute pose correction, and a timed mechanism state machine.",
+      scenario: "Build a non-blocking autonomous that combines Limelight validation, Pedro Pathing updates, Bézier paths, absolute pose correction, and the RobotHardware project from Unit 13.",
       starter: shell([
         "import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;",
         "import com.qualcomm.robotcore.eventloop.opmode.Autonomous;",
         "import com.qualcomm.hardware.limelightvision.Limelight3A;",
         "import com.qualcomm.hardware.limelightvision.LLResult;",
-        "import com.qualcomm.robotcore.hardware.Servo;",
         "import com.pedropathing.follower.Follower;",
         "import com.pedropathing.localization.Pose;",
         "import com.pedropathing.pathgen.BezierCurve;",
@@ -336,8 +347,10 @@
         ["Call follower.update() every active loop", /while\s*\([^)]*opModeIsActive[\s\S]*?follower\s*\.\s*update\s*\(/],
         ["Validate LLResult before reading target data", /getLatestResult\s*\(/, /\.\s*isValid\s*\(\s*\)/],
         ["Fuse a valid vision pose back into the Follower", /getBotpose\s*\(/, /follower\s*\.\s*setPose\s*\(/],
-        ["Coordinate a Servo without blocking path updates", /Servo\.class/, /\.\s*setPosition\s*\(/, /getRuntime\s*\(/],
-        ["Stop the Limelight and report final state", /limelight\s*\.\s*stop\s*\(/i, /telemetry\s*\.\s*addData\s*\(/]
+        ["Create and initialize one RobotHardware object", /new\s+RobotHardware\s*\(/, /robot\s*\.\s*init\s*\(\s*hardwareMap\s*\)/],
+        ["Coordinate lift and intake without blocking updates", /robot\s*\.\s*update\s*\(/, /robot\s*\.\s*lift\s*\./, /robot\s*\.\s*intake\s*\./, /getRuntime\s*\(/],
+        ["Stop RobotHardware and Limelight, then report final state", /robot\s*\.\s*stopAll\s*\(/, /limelight\s*\.\s*stop\s*\(/i, /telemetry\s*\.\s*addData\s*\(/],
+        ["Keep raw intake and lift hardware access out of the OpMode", /class\s+Unit15Mastery/]
       ],
       forbidden: [["Do not block follower updates with sleep()", /\bsleep\s*\(/]]
     }
@@ -460,9 +473,9 @@
       {label: "Distance sensor", name: "intake_range"}
     ],
     12: DRIVE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
-    13: [{label: "Arm motor", name: "arm"}, {label: "Claw servo", name: "claw"}],
+    13: [{label: "Intake servo", name: "intake"}, {label: "Lift motor", name: "lift"}],
     14: [{label: "Camera", name: "Webcam 1"}],
-    15: [{label: "Scoring servo", name: "scoringArm"}, {label: "Vision", name: "limelight"}]
+    15: [{label: "Intake servo", name: "intake"}, {label: "Lift motor", name: "lift"}, {label: "Vision", name: "limelight"}]
   });
 
   const CAD_WHEEL_ORDER = Object.freeze(["left-front", "left-back", "right-front", "right-back"]);
@@ -778,6 +791,23 @@
       return mesh(new THREE.SphereGeometry(radius, 18, 12), meshMaterial, position, null, parent);
     }
 
+    function visibleRoller(radius, depth, position, meshMaterial, rotation, parent) {
+      const mount = new THREE.Group();
+      mount.position.set(position[0], position[1], position[2]);
+      const rxyz = rotation || [0, 0, 0];
+      mount.rotation.set(rxyz[0], rxyz[1], rxyz[2]);
+      (parent || robot).add(mount);
+      const rotor = new THREE.Group();
+      mount.add(rotor);
+      mesh(new THREE.CylinderGeometry(radius, radius, depth, 24), meshMaterial, [0, 0, 0], null, rotor);
+      for (let index = 0; index < 4; index += 1) {
+        const angle = index * Math.PI / 2;
+        const vane = box([0.055, depth * 1.04, 0.09], [Math.cos(angle) * radius * 1.03, 0, Math.sin(angle) * radius * 1.03], darkMat, rotor);
+        vane.rotation.y = -angle;
+      }
+      return rotor;
+    }
+
     function rigCadMechanism(model, pivotFractions) {
       const part = model.getObjectByName && model.getObjectByName("telemark-cad-mechanism");
       if (!part) {
@@ -952,6 +982,23 @@
     }
 
     let animation = null;
+    let motionReadout = null;
+
+    function generatedMotionText() {
+      const power = Number(motion.state.primaryPower || 0);
+      const direction = power > 0.02 ? "forward" : power < -0.02 ? "reverse" : "stopped";
+      if (unit === 7) return "Mechanism " + direction + " · power " + power.toFixed(2);
+      if (unit === 9) {
+        const position = motion.servoValues()[0];
+        return "Intake " + direction + " · gripper " + (position == null ? "waiting" : Math.round(position * 100) + "%");
+      }
+      if (unit === 11) return "Intake " + direction + " · power " + power.toFixed(2);
+      if (unit === 13) {
+        const lift = Math.round(THREE.MathUtils.clamp((motion.state.armAngle + 0.55) / 1.1, 0, 1) * 100);
+        return "Intake " + direction + " · lift " + lift + "%";
+      }
+      return "Student hardware output drives this model";
+    }
 
     function applyDriveState() {
       const driveYaw = profile.driveYaw || 0;
@@ -1013,13 +1060,19 @@
       };
     } else if (unit === 7) {
       box([0.48, 0.58, 0.48], [-0.45, 0.92, 0.12], accentMat);
-      const subsystemMotor = cylinder(0.18, 0.42, [0.42, 0.87, 0.14], darkMat, [Math.PI / 2, 0, 0]);
+      const subsystemMotor = visibleRoller(0.18, 0.42, [0.42, 0.87, 0.14], warningMat, [Math.PI / 2, 0, 0]);
       box([0.18, 0.18, 0.18], [0.66, 0.68, -0.18], warningMat);
       sphere(0.12, [0.52, 1.16, -0.12], sensorMat);
       box([0.08, 0.65, 0.08], [0.08, 0.96, 0.12], frameMat);
+      const mechanismLever = new THREE.Group();
+      mechanismLever.position.set(0.42, 0.88, 0.14);
+      robot.add(mechanismLever);
+      box([0.09, 0.78, 0.09], [0, 0.36, 0], accentMat, mechanismLever);
+      sphere(0.11, [0, 0.78, 0], warningMat, mechanismLever);
       animation = function () {
         applyDriveState();
         subsystemMotor.rotation.y = motion.state.primaryAngle;
+        mechanismLever.rotation.z = motion.state.primaryPosition;
       };
     } else if (unit === 8) {
       [-0.34, 0.34].forEach(function (x) {
@@ -1043,15 +1096,21 @@
       box([0.13, 0.64, 0.16], [0, -0.28, -0.18], frameMat, leftFinger, [0.22, 0, 0]);
       box([0.28, 0.25, 0.28], [0, 0, 0], accentMat, rightFinger);
       box([0.13, 0.64, 0.16], [0, -0.28, -0.18], frameMat, rightFinger, [0.22, 0, 0]);
-      const intake = cylinder(0.15, 0.9, [0, 0.38, -0.82], warningMat, [0, 0, Math.PI / 2]);
-      animation = function () {
+      const intake = visibleRoller(0.15, 0.9, [0, 0.38, -0.82], warningMat, [0, 0, Math.PI / 2]);
+      const intakeSample = sphere(0.16, [0, 0.22, -1.38], blueMat);
+      animation = function (_time, dt) {
         applyDriveState();
         const positions = motion.servoValues();
         const left = positions[0] == null ? 0 : positions[0];
         const right = positions[1] == null ? left : positions[1];
         leftFinger.rotation.z = -(0.08 + left * 0.44);
         rightFinger.rotation.z = 0.08 + right * 0.44;
-        intake.rotation.x = motion.state.primaryAngle;
+        intake.rotation.y = motion.state.primaryAngle;
+        intakeSample.position.z = THREE.MathUtils.clamp(
+          intakeSample.position.z + motion.state.primaryPower * dt * 0.95,
+          -1.48,
+          -0.48
+        );
       };
     } else if (unit === 10) {
       wheels.forEach(function (wheel) {
@@ -1061,15 +1120,25 @@
       box([0.08, 0.42, 0.08], [0, 0.74, -0.45], warningMat, null, [Math.PI / 4, 0, 0]);
       animation = applyDriveState;
     } else if (unit === 11) {
-      const intake = cylinder(0.18, 1.25, [0, 0.35, -0.86], warningMat, [0, 0, Math.PI / 2]);
+      const intake = visibleRoller(0.18, 1.25, [0, 0.35, -0.86], warningMat, [0, 0, Math.PI / 2]);
       box([0.15, 0.15, 0.15], [-0.56, 0.62, -0.64], redMat);
       box([0.15, 0.15, 0.15], [-0.2, 0.62, -0.64], greenMat);
       box([0.15, 0.15, 0.15], [0.2, 0.62, -0.64], blueMat);
       sphere(0.11, [0.56, 0.62, -0.64], sensorMat);
       cylinder(0.09, 0.38, [0.72, 0.82, 0.12], accentMat, [Math.PI / 2, 0, 0]);
-      animation = function () {
+      const sensedSampleMaterial = material(0xef4444, {emissive: 0x5f1111, emissiveIntensity: 0.2});
+      const sensedSample = sphere(0.18, [0, 0.22, -1.52], sensedSampleMaterial);
+      animation = function (_time, dt) {
         applyDriveState();
-        intake.rotation.x = motion.state.primaryAngle;
+        intake.rotation.y = motion.state.primaryAngle;
+        sensedSample.position.z = THREE.MathUtils.clamp(
+          sensedSample.position.z + motion.state.primaryPower * dt * 0.95,
+          -1.58,
+          -0.5
+        );
+        const colorSensor = global.hardwareMap && global.hardwareMap._devices && global.hardwareMap._devices.intake_color;
+        if (colorSensor && colorSensor.blue() > colorSensor.red()) sensedSampleMaterial.color.setHex(0x3b82f6);
+        else sensedSampleMaterial.color.setHex(0xef4444);
       };
     } else if (unit === 12) {
       box([0.38, 0.24, 0.38], [0, 0.87, 0.1], accentMat);
@@ -1081,24 +1150,24 @@
       });
       animation = applyDriveState;
     } else if (unit === 13) {
-      box([0.56, 0.38, 0.5], [-0.5, 0.84, 0.1], blueMat);
-      box([0.56, 0.58, 0.5], [0.12, 0.94, 0.1], accentMat);
-      box([0.46, 0.3, 0.5], [0.65, 0.8, 0.1], greenMat);
-      const arm = new THREE.Group();
-      arm.position.set(0.12, 1.18, 0.1);
-      robot.add(arm);
-      box([0.14, 0.82, 0.14], [0, 0.34, 0], frameMat, arm, [0, 0, -0.35]);
-      const claw = new THREE.Group();
-      claw.position.set(0.32, 1.66, 0.1);
-      robot.add(claw);
-      const clawLeft = box([0.08, 0.34, 0.12], [-0.12, 0, 0], frameMat, claw);
-      const clawRight = box([0.08, 0.34, 0.12], [0.12, 0, 0], frameMat, claw);
-      animation = function () {
+      box([0.52, 0.34, 0.46], [-0.58, 0.77, 0.12], blueMat);
+      box([0.52, 0.34, 0.46], [0.58, 0.77, 0.12], greenMat);
+      [-0.36, 0.36].forEach(function (x) {
+        box([0.1, 1.72, 0.12], [x, 1.35, 0.28], frameMat);
+      });
+      const liftCarriage = box([0.94, 0.22, 0.48], [0, 0.72, 0.28], accentMat);
+      const intake = visibleRoller(0.17, 1.38, [0, 0.33, -0.79], warningMat, [0, 0, Math.PI / 2]);
+      const intakeSample = sphere(0.16, [0, 0.2, -1.48], blueMat);
+      animation = function (_time, dt) {
         applyDriveState();
-        const position = motion.servoValues()[0] || 0;
-        arm.rotation.z = motion.state.armAngle;
-        clawLeft.rotation.z = -position * 0.55;
-        clawRight.rotation.z = position * 0.55;
+        intake.rotation.y = motion.state.primaryAngle;
+        intakeSample.position.z = THREE.MathUtils.clamp(
+          intakeSample.position.z + motion.state.primaryPower * dt * 0.95,
+          -1.55,
+          -0.48
+        );
+        const liftProgress = THREE.MathUtils.clamp((motion.state.armAngle + 0.55) / 1.1, 0, 1);
+        liftCarriage.position.y = 0.72 + liftProgress * 1.42;
       };
     } else if (unit === 14) {
       box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
@@ -1167,6 +1236,12 @@
       detail.className = "mastery-robot-status";
       detail.textContent = profile.detail;
       label.appendChild(detail);
+      if (!cadSourceUnit) {
+        motionReadout = document.createElement("span");
+        motionReadout.className = "mastery-motion-readout";
+        motionReadout.textContent = generatedMotionText();
+        label.appendChild(motionReadout);
+      }
       if (profile.sourceUrl && profile.sourceLabel) {
         const source = document.createElement("a");
         source.className = "mastery-robot-source";
@@ -1204,7 +1279,8 @@
           global.hardwareMap.tick(dt);
         }
         motion.step(dt);
-        animation(currentTime);
+        animation(currentTime, dt);
+        if (motionReadout) motionReadout.textContent = generatedMotionText();
       });
     }
     visual.userData.challengeMotion = motion;
@@ -1316,15 +1392,43 @@
     return results;
   }
 
+  function namedClassBody(code, className) {
+    const classPattern = new RegExp("\\bclass\\s+" + className + "\\b");
+    const classStart = code.search(classPattern);
+    const openBrace = classStart >= 0 ? code.indexOf("{", classStart) : -1;
+    if (openBrace < 0) return "";
+    let depth = 1;
+    for (let index = openBrace + 1; index < code.length; index += 1) {
+      if (code[index] === "{") depth += 1;
+      if (code[index] === "}") depth -= 1;
+      if (depth === 0) return code.slice(openBrace + 1, index);
+    }
+    return "";
+  }
+
+  function hasNoRawMechanismAccess(opModeBody) {
+    return Boolean(opModeBody)
+      && /\bRobotHardware\b/.test(opModeBody)
+      && !/hardwareMap\s*\.\s*get\s*\(\s*(?:DcMotor|CRServo|Servo)\s*\.\s*class/.test(opModeBody)
+      && !/\b(?:DcMotor|CRServo|Servo)\s+\w+/.test(opModeBody);
+  }
+
   function evaluate(unit, source) {
     if (unit === 7) return evaluateHardwareProject(source);
     const code = sourceWithoutComments(source);
-    return checksForUnit(unit).map(function (check) {
+    const results = checksForUnit(unit).map(function (check) {
       return check.slice(1).every(function (pattern) {
         pattern.lastIndex = 0;
         return pattern.test(code);
       });
     });
+    if (unit === 13) {
+      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "Unit13Mastery"));
+    }
+    if (unit === 15) {
+      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "Unit15Mastery"));
+    }
+    return results;
   }
 
   function injectChallengeStyles() {
@@ -1344,11 +1448,23 @@
       + ".mastery-sensor-tests button[aria-pressed='true']{border-color:var(--active);color:var(--active)}"
       + ".mastery-robot-label{position:absolute;left:12px;bottom:12px;z-index:3;max-width:calc(100% - 24px);padding:7px 10px;border:1px solid rgba(34,211,238,.35);border-radius:7px;background:rgba(5,8,13,.82);color:#effbff;font:600 .72rem/1.3 var(--font-code);letter-spacing:.03em;pointer-events:none;backdrop-filter:blur(7px)}"
       + ".mastery-robot-label span{display:block;margin-top:2px;color:rgba(221,241,249,.68);font-family:var(--font-ui);font-weight:400;letter-spacing:0}"
+      + ".mastery-robot-label .mastery-motion-readout{margin-top:5px;color:#fde68a;font-family:var(--font-code);font-weight:700}"
       + ".mastery-robot-label a{display:block;margin-top:3px;color:#67e8f9;font-family:var(--font-ui);font-weight:500;letter-spacing:0;pointer-events:auto;text-decoration:none}"
       + ".mastery-robot-label a:hover,.mastery-robot-label a:focus{text-decoration:underline}"
       + ":root[data-theme='light'] .mastery-robot-label,:root[data-telemark-theme='light'] .mastery-robot-label{background:rgba(255,255,255,.86);color:#102a36}"
-      + "#sim-scene-container{min-height:260px}";
+      + "#sim-scene-container{min-height:260px}"
+      + "@media(max-width:1000px){body{flex-direction:column!important}#sim-left-panel{width:100%!important;height:58%!important;min-height:0!important;border-right:0!important;border-bottom:1px solid var(--border)!important}#sim-resizer{display:none!important}.sim-challenge-card{flex:0 0 auto!important}#sim-right-panel{flex:1 1 auto!important;width:100%!important;height:42%!important;min-width:0!important;min-height:290px!important}#sim-right-panel #sim-scene-container{flex:1 1 auto!important;width:calc(100% - 16px)!important;min-height:230px!important;margin:8px!important;aspect-ratio:auto!important}.sim-gamepad-card{width:min(310px,calc(100vw - 16px))!important;right:8px!important;bottom:8px!important}}";
     document.head.appendChild(style);
+  }
+
+  function compactEmbeddedControls() {
+    if (global.innerWidth > 1000) return;
+    global.setTimeout(function () {
+      const challengeHeader = document.getElementById("sim-challenge-header");
+      if (challengeHeader && challengeHeader.classList.contains("open")) challengeHeader.click();
+      const gamepadCollapse = document.getElementById("sim-gp-collapse-btn");
+      if (gamepadCollapse && gamepadCollapse.getAttribute("aria-expanded") !== "false") gamepadCollapse.click();
+    }, 0);
   }
 
   function createHardwareMap(unit) {
@@ -1457,6 +1573,7 @@
         {iconClass: "fa-solid fa-robot", label: robotProfileForUnit(unit).name, active: true}
       ]);
       setActiveInputs(config.inputs || []);
+      compactEmbeddedControls();
       createHardwareMap(unit);
       const challengeVisual = createChallengeRobot(unit, challengeMotion);
 
@@ -1523,9 +1640,17 @@
         checks.forEach(function (_check, index) { setRequirement(index, false); });
       };
 
-      if (unit === 7 && global.TelemarkProject) {
+      if ((unit === 7 || unit === 13 || unit === 15) && global.TelemarkProject) {
         const editor = document.getElementById("sim-code-editor");
-        global.TelemarkProject.attach(editor);
+        const options = config.starterFiles
+          ? {
+              initialFiles: config.starterFiles.map(function (file, index) {
+                return index === 0 ? {name: file.name, source: editor.value} : file;
+              }),
+              addMissingInitialFiles: true
+            }
+          : undefined;
+        global.TelemarkProject.attach(editor, null, options);
       }
       clearHints();
       checks.forEach(function (_check, index) { setRequirement(index, false); });

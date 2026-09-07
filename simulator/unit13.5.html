@@ -59,16 +59,18 @@
     padding: 6px 9px;
     color: #22d3ee;
     font-size: 0.76rem;
+    transform: translate(-50%, -115%);
+    white-space: nowrap;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.42);
   }
 
   #sim-scene-container #u135-claw-label {
-    left: 52%;
-    top: 31%;
+    border-color: #22d3ee;
   }
 
   #sim-scene-container #u135-wrist-label {
-    left: 39%;
-    top: 42%;
+    color: #fde68a;
+    border-color: #a87818;
   }
 
   #sim-right-panel .u135-title {
@@ -225,6 +227,44 @@
     padding: 9px;
     font-weight: 700;
     font-size: 0.84rem;
+  }
+
+  @media (max-width: 1100px) {
+    body {
+      flex-direction: column !important;
+    }
+
+    #sim-left-panel {
+      width: 100% !important;
+      height: 57% !important;
+      min-height: 0 !important;
+      border-right: 0 !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+
+    #sim-resizer {
+      display: none !important;
+    }
+
+    #sim-right-panel {
+      flex: 1 1 auto !important;
+      width: 100% !important;
+      height: 43% !important;
+      min-width: 0 !important;
+      min-height: 300px !important;
+    }
+
+    #sim-right-panel .u135-panel {
+      display: none;
+    }
+
+    #sim-right-panel #sim-scene-container {
+      flex: 1 1 auto !important;
+      width: calc(100% - 16px) !important;
+      min-height: 260px !important;
+      margin: 8px !important;
+      aspect-ratio: auto !important;
+    }
   }
 </style>
 <script src="./simulator_base.js"></script>
@@ -395,6 +435,7 @@ public class RobotComposition extends OpMode {
     { iconClass: "fa-solid fa-gamepad", label: "Gamepad", active: true }
   ]);
   setActiveInputs(["a"]);
+  compactEmbeddedControls();
   wireAButtonFallback();
   window.setTimeout(wireAButtonFallback, 0);
 
@@ -474,6 +515,16 @@ public class RobotComposition extends OpMode {
   window.callClawOpen = callClawOpen;
   window.callClawClose = callClawClose;
   window.callWristMove = callWristMove;
+
+  function compactEmbeddedControls() {
+    if (window.innerWidth > 1100) return;
+    window.setTimeout(function () {
+      const challengeHeader = el("sim-challenge-header");
+      if (challengeHeader && challengeHeader.classList.contains("open")) challengeHeader.click();
+      const gamepadCollapse = el("sim-gp-collapse-btn");
+      if (gamepadCollapse && gamepadCollapse.getAttribute("aria-expanded") !== "false") gamepadCollapse.click();
+    }, 0);
+  }
 
   function createPanel() {
     const rightPanel = el("sim-right-panel");
@@ -700,11 +751,37 @@ public class RobotComposition extends OpMode {
       }
     }
 
+    positionMechanismLabels();
+
     if (robotMaterial) robotMaterial.emissive.setHex(state.pulse.robot > 0 ? 0x0b3d1d : state.pulse.stop > 0 ? 0x222222 : 0x000000);
     if (clawMaterial) clawMaterial.emissive.setHex(state.pulse.claw > 0 ? 0x0b3d1d : state.pulse.stop > 0 ? 0x222222 : 0x000000);
     if (wristMaterial) wristMaterial.emissive.setHex(state.pulse.wrist > 0 ? 0x0b3d1d : state.pulse.stop > 0 ? 0x222222 : 0x000000);
 
     updatePanel();
+  }
+
+  function positionMechanismLabels() {
+    if (!window.THREE || !window.camera || !window.scene) return;
+    const container = el("sim-scene-container");
+    if (!container) return;
+    window.scene.updateMatrixWorld(true);
+    placeMechanismLabel("u135-claw-label", clawGroup, 0, -18);
+    placeMechanismLabel("u135-wrist-label", wristGroup, -38, 22);
+  }
+
+  function placeMechanismLabel(id, object, offsetX, offsetY) {
+    const label = el(id);
+    if (!label || !object) return;
+    const point = new THREE.Vector3();
+    object.getWorldPosition(point);
+    point.project(window.camera);
+    const width = Math.max(1, el("sim-scene-container").clientWidth);
+    const height = Math.max(1, el("sim-scene-container").clientHeight);
+    const x = (point.x * 0.5 + 0.5) * width + offsetX;
+    const y = (-point.y * 0.5 + 0.5) * height + offsetY;
+    label.style.left = Math.max(78, Math.min(width - 78, x)) + "px";
+    label.style.top = Math.max(46, Math.min(height - 24, y)) + "px";
+    label.style.display = point.z >= -1 && point.z <= 1 ? "block" : "none";
   }
 
   function handleGamepadEdge() {
@@ -849,6 +926,11 @@ public class RobotComposition extends OpMode {
   }
 
   function updatePanel() {
+    const clawLabel = el("u135-claw-label");
+    if (clawLabel) clawLabel.textContent = "ClawMechanism · " + state.clawState;
+    const wristLabel = el("u135-wrist-label");
+    if (wristLabel) wristLabel.textContent = "WristMechanism · " + (Math.abs(state.wristPower) > 0.01 ? state.wristPower.toFixed(2) : "stopped");
+
     const sceneBadge = el("u135-scene-state");
     if (sceneBadge) {
       const icon = state.readyText === "READY" ? "fa-circle-check" : state.readyText === "ALL STOPPED" ? "fa-circle-stop" : "fa-circle-pause";

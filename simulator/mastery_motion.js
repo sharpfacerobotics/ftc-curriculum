@@ -32,7 +32,7 @@
       primaryAngle: 0,
       primaryPosition: 0,
       slidePosition: unit === 8 ? 0.72 : 1.25,
-      armAngle: 0,
+      armAngle: unit === 13 ? -0.55 : 0,
       cameraAngle: 0,
       pathProgress: 0,
       visionActive: false,
@@ -204,7 +204,10 @@
       if (unit === 5) {
         state.primaryPosition = clamp(state.primaryPosition + primaryPower * dt * 1.25, 0, 1);
       }
-      if (unit === 7 || unit === 11) state.primaryAngle += primaryPower * dt * 12;
+      if (unit === 7) {
+        state.primaryPosition = clamp(state.primaryPosition + primaryPower * dt * 0.9, -0.62, 0.62);
+      }
+      if (unit === 7 || unit === 11 || unit === 13) state.primaryAngle += primaryPower * dt * 12;
       if (unit === 6) {
         state.armAngle = clamp(state.armAngle + armPower * dt * 1.4, 0, 0.65);
       }
