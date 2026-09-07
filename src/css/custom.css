@@ -437,10 +437,29 @@ code {
 }
 
 /* ---- FOOTER ---- */
+.footer--dark {
+  --ifm-footer-background-color: var(--tm-bg);
+  --ifm-footer-color: var(--tm-text-muted);
+  --ifm-footer-link-color: var(--tm-text-soft);
+  --ifm-footer-title-color: var(--tm-text-strong);
+}
+
 .footer {
   border-top: 1px solid var(--tm-accent-a20);
   padding: 0.85rem 1.5rem;
   background: var(--tm-bg);
+}
+
+.footer__title {
+  color: var(--tm-text-strong);
+}
+
+.footer__link-item {
+  color: var(--tm-text-soft);
+}
+
+.footer__link-item:hover {
+  color: var(--tm-accent);
 }
 
 .footer .container {

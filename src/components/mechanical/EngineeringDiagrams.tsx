@@ -30,9 +30,9 @@ export function DesignCycleDiagram(): React.JSX.Element {
       viewBox="0 0 400 216"
       note="Refine feeds back into Define, because a real test usually shows that one of the original requirements was wrong. A process that ends after Test has nowhere to put that discovery."
     >
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(34,211,238,0.25)" strokeWidth="1.5" strokeDasharray="4 4" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--tm-accent-a35)" strokeWidth="1.5" strokeDasharray="4 4" />
       {!reducedMotion && (
-        <circle r="4.5" fill="#fbbf24" opacity="0.9">
+        <circle r="4.5" fill="var(--tm-warn)" opacity="0.9">
           <animateMotion dur="9s" repeatCount="indefinite" path={orbit} />
         </circle>
       )}
@@ -48,14 +48,14 @@ export function DesignCycleDiagram(): React.JSX.Element {
         const heading = (aNext * 180) / Math.PI + 90;
         return (
           <g key={step}>
-            <circle cx={x} cy={y} r="26" fill="#0d151e" stroke="#22d3ee" strokeWidth="1.6" />
+            <circle cx={x} cy={y} r="26" fill="var(--tm-surface-1)" stroke="var(--tm-accent)" strokeWidth="1.6" />
             <text className={s.pointLabel} x={x} y={y + 3} textAnchor="middle">
               {step}
             </text>
             <path
               d="M -4 -4 L 0 4 L 4 -4"
               fill="none"
-              stroke="#22d3ee"
+              stroke="var(--tm-accent)"
               strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"

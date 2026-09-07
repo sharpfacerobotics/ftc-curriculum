@@ -50,6 +50,17 @@ const masteryChallengeRuntime = read('static/simulator/mastery_challenge.js');
 const masteryMotionRuntime = read('static/simulator/mastery_motion.js');
 const curriculum = read('src/telemark/curriculum.ts');
 
+assert.match(
+  customCss,
+  /\.footer--dark\s*\{[\s\S]*--ifm-footer-title-color:\s*var\(--tm-text-strong\)/,
+  'the footer title must follow the active Telemark theme',
+);
+assert.match(
+  customCss,
+  /\.footer--dark\s*\{[\s\S]*--ifm-footer-link-color:\s*var\(--tm-text-soft\)/,
+  'footer links must remain legible in light mode',
+);
+
 const heroVideo = homepage.match(/<video\b[\s\S]*?<\/video>/)?.[0] ?? '';
 assert.ok(
   fs.existsSync(path.join(root, 'static/video/telemark-hero.mp4')),

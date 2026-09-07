@@ -562,10 +562,8 @@ export default function Home(): React.JSX.Element {
       <main className={styles.lp}>
         <HeroSection />
 
-        {/* Only renders for somebody who has been here before, and only when
-            something has changed since; a first visit shows nothing. It carries
-            its own ground rather than sitting in a Band, so the page does not
-            keep an empty tinted strip for everyone it has nothing to say to. */}
+        {/* Floats above the homepage until the reader dismisses this release.
+            Closing the tab does not count as a dismissal. */}
         <WhatsNew />
 
         {/* Sections sit on alternating grounds rather than being separated by

@@ -73,7 +73,7 @@
 }
 
 .tickLabel {
-  fill: var(--tm-text-faint);
+  fill: var(--tm-text-muted);
   font-family: var(--tm-font-mono);
   font-size: 10px;
 }

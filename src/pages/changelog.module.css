@@ -1,5 +1,5 @@
 .page {
-  max-width: 820px;
+  max-width: 880px;
   margin: 0 auto;
   padding: var(--tm-sp-7) 2rem var(--tm-sp-8);
 }
@@ -10,18 +10,8 @@
   border-bottom: 1px solid var(--tm-border);
 }
 
-.eyebrow {
-  margin: 0 0 0.6rem;
-  color: var(--tm-accent);
-  font-family: var(--tm-font-label);
-  font-size: var(--tm-fs-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
 .title {
-  margin: 0 0 0.75rem;
+  margin: 0;
   color: var(--tm-text-strong);
   font-family: var(--tm-font-display);
   font-size: clamp(28px, 4vw, 42px);
@@ -30,32 +20,34 @@
   line-height: var(--tm-lh-tight);
 }
 
-.blurb {
-  margin: 0;
-  color: var(--tm-text-muted);
-  line-height: var(--tm-lh-normal);
-}
-
 .list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* Date in its own column, so the eye can run down the dates alone. */
 .entry {
   display: grid;
-  gap: var(--tm-sp-4);
-  padding: var(--tm-sp-5) 0;
-  grid-template-columns: 150px minmax(0, 1fr);
+  gap: var(--tm-sp-5);
+  padding: var(--tm-sp-6) 0;
+  grid-template-columns: 160px minmax(0, 1fr);
   border-bottom: 1px solid var(--tm-border-hair);
 }
 
 .meta {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--tm-sp-2);
   align-items: flex-start;
+}
+
+.version {
+  margin: 0;
+  color: var(--tm-text-strong);
+  font-family: var(--tm-font-display);
+  font-size: var(--tm-fs-md);
+  font-weight: 700;
+  line-height: var(--tm-lh-tight);
 }
 
 .date {
@@ -74,9 +66,9 @@
 }
 
 .entryTitle {
-  margin: 0 0 0.4rem;
+  margin: 0 0 var(--tm-sp-2);
   color: var(--tm-text-strong);
-  font-size: var(--tm-fs-md);
+  font-size: var(--tm-fs-lg);
   font-weight: 600;
   line-height: var(--tm-lh-tight);
 }
@@ -87,21 +79,40 @@
   line-height: var(--tm-lh-normal);
 }
 
+.additions {
+  display: grid;
+  gap: var(--tm-sp-2);
+  margin: var(--tm-sp-4) 0 0;
+  padding-left: var(--tm-sp-5);
+  color: var(--tm-text);
+  font-size: var(--tm-fs-sm);
+  line-height: var(--tm-lh-normal);
+}
+
+.additions li::marker {
+  color: var(--tm-accent);
+}
+
 .go {
   display: inline-block;
-  margin-top: 0.6rem;
+  margin-top: var(--tm-sp-4);
   color: var(--tm-accent);
   font-size: var(--tm-fs-sm);
+  font-weight: 600;
 }
 
 @media (max-width: 640px) {
+  .page {
+    padding-inline: var(--tm-sp-4);
+  }
+
   .entry {
     grid-template-columns: 1fr;
   }
 
   .meta {
-    flex-direction: row;
+    flex-flow: row wrap;
     align-items: center;
-    gap: 0.7rem;
+    gap: var(--tm-sp-3);
   }
 }

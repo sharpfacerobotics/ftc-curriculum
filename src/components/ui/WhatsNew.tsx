@@ -1,128 +1,147 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import {
-  CHANGELOG,
-  LATEST_CHANGE,
-  changesSince,
-  hasUsedSiteBefore,
-  type ChangeEntry,
-} from '@site/src/telemark/changelog';
+import {useColorMode} from '@docusaurus/theme-common';
+import {LATEST_RELEASE} from '@site/src/telemark/changelog';
 import styles from './WhatsNew.module.css';
 
-const SEEN_KEY = 'telemark.lastSeenChange';
+export const DISMISSED_VERSION_KEY = 'telemark.whatsNew.dismissedVersion';
 
-function readSeen(): string | null {
+function readDismissedVersion(): string | null {
   try {
-    return window.localStorage.getItem(SEEN_KEY);
+    return window.localStorage.getItem(DISMISSED_VERSION_KEY);
   } catch {
-    // Private windows and blocked site data both throw here. A missing card is
-    // the correct outcome; a crashed homepage is not.
     return null;
   }
 }
 
-function writeSeen(value: string): void {
+function rememberDismissal(version: string): void {
   try {
-    window.localStorage.setItem(SEEN_KEY, value);
+    window.localStorage.setItem(DISMISSED_VERSION_KEY, version);
   } catch {
-    /* nothing to do: the card simply shows again next time */
+    // The modal still closes for this page view. It returns on the next visit
+    // because the browser did not allow a permanent dismissal to be stored.
   }
 }
 
-/**
- * A card for someone who has been here before.
- *
- * It answers the question a returning student actually has, which is not "what
- * is this site" but "what is different since I last looked". A first-time
- * visitor gets nothing at all: a list of changes is only meaningful against a
- * version of the site you already remember.
- *
- * The check runs after mount, never during render, because it reads storage
- * that does not exist on the server and would otherwise differ between the
- * HTML that is served and the HTML that hydrates.
- */
 export default function WhatsNew(): React.JSX.Element | null {
-  const [entries, setEntries] = React.useState<readonly ChangeEntry[]>([]);
+  const {colorMode} = useColorMode();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const dialogRef = React.useRef<HTMLElement>(null);
+  const dismissRef = React.useRef<HTMLButtonElement>(null);
+  const lightImageSrc = useBaseUrl(LATEST_RELEASE.image ?? '/img/releases/1.9.png');
+  const darkImageSrc = useBaseUrl(
+    LATEST_RELEASE.darkImage
+      ?? LATEST_RELEASE.image
+      ?? '/img/releases/1.9(black).png',
+  );
+  const imageSrc = colorMode === 'light' ? lightImageSrc : darkImageSrc;
   const changelogHref = useBaseUrl('/changelog');
 
   React.useEffect(() => {
-    const seen = readSeen();
-    if (seen) {
-      setEntries(changesSince(seen));
-      return;
-    }
-
-    // No record of a previous visit. That is either a genuinely new reader or
-    // somebody who was using the site before this card existed, and the two
-    // look identical from the date alone. Saved progress or a saved draft
-    // tells them apart, and without this check every reader the site already
-    // had was told nothing had changed.
-    let storage: Storage | null = null;
-    try {
-      storage = window.localStorage;
-    } catch {
-      storage = null;
-    }
-    if (hasUsedSiteBefore(storage)) {
-      setEntries(CHANGELOG.slice(0, 4));
-      return;
-    }
-
-    // A genuinely new reader. Record where they came in and show nothing: a
-    // list of changes means nothing without a version of the site to compare
-    // it against.
-    writeSeen(LATEST_CHANGE);
+    setIsOpen(readDismissedVersion() !== LATEST_RELEASE.version);
   }, []);
 
-  if (entries.length === 0) return null;
+  React.useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const previousFocus = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dismissRef.current?.focus();
+
+    const keepFocusInDialog = (event: KeyboardEvent): void => {
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const controls = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (controls.length === 0) return;
+
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', keepFocusInDialog);
+    return () => {
+      document.removeEventListener('keydown', keepFocusInDialog);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const dismiss = (): void => {
-    writeSeen(LATEST_CHANGE);
-    setEntries([]);
+    rememberDismissal(LATEST_RELEASE.version);
+    setIsOpen(false);
   };
 
   return (
-    <aside className={styles.card} aria-labelledby="whats-new-heading">
-      <div className={styles.head}>
-        <p className={styles.eyebrow} id="whats-new-heading">
-          New since you were last here
-        </p>
+    <div className={styles.backdrop}>
+      <section
+        ref={dialogRef}
+        className={styles.card}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="whats-new-heading"
+        aria-describedby="whats-new-summary"
+      >
         <button
+          ref={dismissRef}
           type="button"
           className={styles.dismiss}
           onClick={dismiss}
-          aria-label="Dismiss what is new"
+          aria-label={`Dismiss Telemark version ${LATEST_RELEASE.version} announcement`}
         >
-          Got it
+          <span aria-hidden="true">×</span>
         </button>
-      </div>
 
-      <ul className={styles.list}>
-        {entries.slice(0, 4).map((entry) => (
-          <li key={entry.date + entry.title} className={styles.item}>
-            <span className={styles.kind} data-kind={entry.kind}>
-              {entry.kind}
-            </span>
-            <div>
-              <p className={styles.title}>
-                {entry.href ? (
-                  <Link to={entry.href}>{entry.title}</Link>
-                ) : (
-                  entry.title
-                )}
-              </p>
-              <p className={styles.body}>{entry.body}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+        <div className={styles.content}>
+          <p className={styles.eyebrow}>New in Telemark {LATEST_RELEASE.version}</p>
+          <h2 className={styles.title} id="whats-new-heading">
+            {LATEST_RELEASE.title}
+          </h2>
+          <p className={styles.body} id="whats-new-summary">
+            {LATEST_RELEASE.body}
+          </p>
 
-      {(entries.length > 4 || CHANGELOG.length > entries.length) && (
-        <Link className={styles.all} to={changelogHref}>
-          Everything that has changed →
-        </Link>
-      )}
-    </aside>
+          <ul className={styles.list}>
+            {LATEST_RELEASE.additions.map((addition) => (
+              <li key={addition}>{addition}</li>
+            ))}
+          </ul>
+
+          <div className={styles.actions}>
+            {LATEST_RELEASE.href && (
+              <Link className={styles.primary} to={LATEST_RELEASE.href}>
+                Try multi-file projects
+              </Link>
+            )}
+            <Link className={styles.all} to={changelogHref}>
+              See all changes
+            </Link>
+          </div>
+        </div>
+
+        <div className={styles.visual}>
+          <img
+            className={styles.image}
+            src={imageSrc}
+            alt={LATEST_RELEASE.imageAlt ?? ''}
+          />
+        </div>
+      </section>
+    </div>
   );
 }

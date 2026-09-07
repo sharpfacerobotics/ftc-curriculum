@@ -3,14 +3,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const ts = require('typescript');
 
-/**
- * Tests for the changelog and the card built on it.
- *
- * The card is shown to returning readers only, so the failures worth guarding
- * are showing it to somebody who has never been here, showing it when nothing
- * has changed, and letting the entries fall out of order, which would silently
- * hide a change from everyone whose last visit sits between two entries.
- */
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'src/telemark/changelog.ts'), 'utf8');
 const {outputText} = ts.transpileModule(source, {
@@ -19,102 +11,97 @@ const {outputText} = ts.transpileModule(source, {
 const mod = {};
 new Function('exports', 'require', 'module', outputText)(mod, require, {exports: mod});
 
-const {
-  CHANGELOG, LATEST_CHANGE, changesSince, formatChangeDate,
-  hasUsedSiteBefore, PRIOR_USE_KEY, PRIOR_USE_PREFIX,
-} = mod;
+const {CHANGELOG, LATEST_RELEASE, formatChangeDate} = mod;
 
-assert.ok(CHANGELOG.length > 0, 'there is a changelog');
+assert.equal(CHANGELOG.length, 10, 'versions 1.0 through 1.9 are present');
+assert.deepEqual(
+  CHANGELOG.map((entry) => entry.version),
+  ['1.9', '1.8', '1.7', '1.6', '1.5', '1.4', '1.3', '1.2', '1.1', '1.0'],
+  'versions count down from the current release',
+);
+assert.equal(LATEST_RELEASE, CHANGELOG[0]);
+assert.equal(LATEST_RELEASE.version, '1.9');
+assert.equal(LATEST_RELEASE.date, '2026-09-06');
 
-// Newest first, and every date real. Out of order, a reader whose last visit
-// falls between two entries silently misses one.
-const dates = CHANGELOG.map((e) => e.date);
-assert.deepEqual([...dates].sort().reverse(), dates, 'entries run newest first');
+const dates = CHANGELOG.map((entry) => entry.date);
+assert.deepEqual([...dates].sort().reverse(), dates, 'release dates run newest first');
 dates.forEach((date) => {
   assert.match(date, /^\d{4}-\d{2}-\d{2}$/, `${date} is an ISO date`);
   assert.ok(!Number.isNaN(new Date(`${date}T00:00:00Z`).getTime()), `${date} is real`);
 });
-assert.equal(LATEST_CHANGE, dates[0]);
 
-// Every entry says something, and any link is site-relative.
 CHANGELOG.forEach((entry) => {
-  assert.ok(entry.title && entry.title.length > 4, 'a title');
-  assert.ok(entry.body && entry.body.length > 20, `${entry.title} has a body`);
+  assert.ok(entry.title.length > 4, `version ${entry.version} has a title`);
+  assert.ok(entry.body.length > 20, `version ${entry.version} has a summary`);
+  assert.ok(entry.additions.length > 0, `version ${entry.version} lists additions`);
+  assert.ok(entry.additions.every((addition) => addition.length > 15));
   assert.ok(
     ['curriculum', 'simulator', 'tools', 'site'].includes(entry.kind),
-    `${entry.title} has a known kind`,
+    `version ${entry.version} has a known kind`,
   );
-  if (entry.href) {
-    assert.ok(entry.href.startsWith('/'), `${entry.title} links within the site`);
-  }
+  if (entry.href) assert.ok(entry.href.startsWith('/'), `${entry.title} links within the site`);
 });
 
-// ── Who sees it ─────────────────────────────────────────────────────────────
-// Never been here: nothing. A list of changes means nothing without a version
-// of the site to compare it against.
-assert.deepEqual(changesSince(null), []);
-assert.deepEqual(changesSince(''), []);
+const releaseCopy = CHANGELOG
+  .flatMap((entry) => [entry.title, entry.body, ...entry.additions])
+  .join(' ');
+assert.doesNotMatch(
+  releaseCopy,
+  /\b(?:bug|fix|fixed|repair|repaired|regression)\b/i,
+  'the changelog reports additions only',
+);
 
-// Up to date: nothing.
-assert.deepEqual(changesSince(LATEST_CHANGE), []);
+assert.deepEqual(
+  [...CHANGELOG].reverse().slice(0, 3).map((entry) => entry.title),
+  ['Mechanical curriculum', 'Sharp AI in every lesson', 'An interactive gallery'],
+  'the first three releases follow deployed history',
+);
 
-// Came back after everything: all of it.
-assert.equal(changesSince('2000-01-01').length, CHANGELOG.length);
+assert.ok(LATEST_RELEASE.body.toLowerCase().includes('teamcode'));
+assert.ok(LATEST_RELEASE.additions[0].toLowerCase().includes('java files'));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('highlighted')));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('case-sensitive')));
 
-// Came back mid-way: only what landed after.
-const middle = dates[Math.floor(dates.length / 2)];
-const after = changesSince(middle);
-assert.ok(after.length > 0 && after.length < CHANGELOG.length);
-assert.ok(after.every((entry) => entry.date > middle));
-
-// A stored date from the future does not resurface old entries.
-assert.deepEqual(changesSince('2999-01-01'), []);
-
-// ── Dates ───────────────────────────────────────────────────────────────────
-// Read in UTC, so a reader west of Greenwich does not see the day before.
-assert.equal(formatChangeDate('2026-08-27'), 'August 27, 2026');
+assert.equal(formatChangeDate('2026-09-06'), 'September 6, 2026');
 assert.equal(formatChangeDate('not-a-date'), 'not-a-date');
 
-// ── Telling a new reader from an old one ────────────────────────────────────
-// The card stores the date of a first visit, so every reader the site already
-// had has no record and looks new. Judged on that alone, nobody who was
-// already using Telemark would ever be shown a change, which is backwards.
-const fakeStorage = (entries) => {
-  const keys = Object.keys(entries);
-  return {
-    length: keys.length,
-    getItem: (key) => (key in entries ? entries[key] : null),
-    key: (index) => keys[index] ?? null,
-  };
-};
+assert.ok(LATEST_RELEASE.image, 'the current release has an image');
+assert.ok(
+  fs.existsSync(path.join(root, 'static', LATEST_RELEASE.image)),
+  'the current release light image exists',
+);
+assert.ok(LATEST_RELEASE.darkImage, 'the current release has a dark image');
+assert.ok(
+  fs.existsSync(path.join(root, 'static', LATEST_RELEASE.darkImage)),
+  'the current release dark image exists',
+);
+assert.equal(LATEST_RELEASE.image, '/img/releases/1.9.png');
+assert.equal(LATEST_RELEASE.darkImage, '/img/releases/1.9(black).png');
 
-assert.equal(hasUsedSiteBefore(null), false, 'no storage is not evidence');
-assert.equal(hasUsedSiteBefore(fakeStorage({})), false, 'an empty browser is a new reader');
+const cardSource = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.tsx'), 'utf8');
+const cardCss = fs.readFileSync(path.join(root, 'src/components/ui/WhatsNew.module.css'), 'utf8');
+assert.match(cardSource, /telemark\.whatsNew\.dismissedVersion/);
+assert.match(cardSource, /readDismissedVersion\(\) !== LATEST_RELEASE\.version/);
 assert.equal(
-  hasUsedSiteBefore(fakeStorage({[PRIOR_USE_KEY]: '{"lessons":{}}'})),
-  true,
-  'saved progress means they have been here',
+  (cardSource.match(/localStorage\.setItem/g) || []).length,
+  1,
+  'only the close action stores a dismissal',
 );
-assert.equal(
-  hasUsedSiteBefore(fakeStorage({[PRIOR_USE_PREFIX + 'abc:code-editor']: '{}'})),
-  true,
-  'a saved draft means they have been here',
-);
-assert.equal(
-  hasUsedSiteBefore(fakeStorage({theme: 'dark', 'some.other.key': '1'})),
-  false,
-  'unrelated keys are not evidence',
-);
+assert.doesNotMatch(cardSource, /beforeunload|pagehide|visibilitychange/);
+assert.doesNotMatch(cardSource, /telemark\.lastSeenChange/);
+assert.match(cardSource, /aria-label=.*Dismiss Telemark version/s);
+assert.match(cardSource, />×<\/span>/);
+assert.match(cardSource, /role="dialog"/);
+assert.match(cardSource, /aria-modal="true"/);
+assert.match(cardSource, /colorMode === 'light' \? lightImageSrc : darkImageSrc/);
+assert.match(cardCss, /position:\s*fixed/);
+assert.match(cardCss, /place-items:\s*center/);
+assert.match(cardCss, /grid-template-columns:\s*minmax\(0, 1\.08fr\)/);
+assert.match(cardCss, /background:\s*rgba\(0, 0, 0, 0\.76\)/);
 
-// Storage that throws on access is treated as a new reader, not a crash.
-assert.equal(
-  hasUsedSiteBefore({
-    get length() { throw new Error('blocked'); },
-    getItem() { throw new Error('blocked'); },
-    key() { throw new Error('blocked'); },
-  }),
-  false,
-  'blocked site data does not throw',
-);
+const changelogPage = fs.readFileSync(path.join(root, 'src/pages/changelog.tsx'), 'utf8');
+assert.equal((changelogPage.match(/<h1/g) || []).length, 1);
+assert.match(changelogPage, />Changelog<\/h1>/);
+assert.doesNotMatch(changelogPage, /What Telemark added|Only additions are listed/);
 
-console.log('Changelog tests passed (%d cases)', 22);
+console.log('Changelog and release-card tests passed');

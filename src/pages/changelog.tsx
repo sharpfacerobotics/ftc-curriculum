@@ -4,42 +4,39 @@ import Link from '@docusaurus/Link';
 import {CHANGELOG, formatChangeDate} from '@site/src/telemark/changelog';
 import styles from './changelog.module.css';
 
-/**
- * Everything that has changed, in full.
- *
- * The homepage card only carries what is new to one reader; this is the whole
- * record, so a returning student can find the thing they half remember.
- */
 export default function Changelog(): React.JSX.Element {
   return (
     <Layout
       title="Changelog"
-      description="What has changed on Telemark: the curriculum, the simulators, and the design tools."
+      description="Additions to the Telemark curriculum, simulators, and learning tools."
     >
       <main className={styles.page}>
         <header className={styles.head}>
-          <p className={styles.eyebrow}>Changelog</p>
-          <h1 className={styles.title}>What has changed</h1>
-          <p className={styles.blurb}>
-            Only changes that alter what you can do. Newest first.
-          </p>
+          <h1 className={styles.title}>Changelog</h1>
         </header>
 
         <ol className={styles.list}>
           {CHANGELOG.map((entry) => (
-            <li key={entry.date + entry.title} className={styles.entry}>
+            <li key={entry.version} className={styles.entry}>
               <div className={styles.meta}>
+                <p className={styles.version}>Version {entry.version}</p>
                 <time dateTime={entry.date} className={styles.date}>
                   {formatChangeDate(entry.date)}
                 </time>
                 <span className={styles.kind}>{entry.kind}</span>
               </div>
+
               <div>
                 <h2 className={styles.entryTitle}>{entry.title}</h2>
                 <p className={styles.body}>{entry.body}</p>
+                <ul className={styles.additions}>
+                  {entry.additions.map((addition) => (
+                    <li key={addition}>{addition}</li>
+                  ))}
+                </ul>
                 {entry.href && (
                   <Link className={styles.go} to={entry.href}>
-                    Try it →
+                    Open this addition
                   </Link>
                 )}
               </div>

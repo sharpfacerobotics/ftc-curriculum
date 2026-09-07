@@ -162,6 +162,18 @@ for (const name of diagramNames) {
   assert.match(markup, /<figcaption/, `${name} is missing a caption`);
 }
 
+const designCycleMarkup = renderToStaticMarkup(React.createElement(diagrams.DesignCycleDiagram));
+assert.match(
+  designCycleMarkup,
+  /fill="var\(--tm-surface-1\)"/,
+  'DesignCycleDiagram stage labels need a theme-aware background',
+);
+assert.match(
+  designCycleMarkup,
+  /stroke="var\(--tm-accent\)"/,
+  'DesignCycleDiagram needs a theme-aware outline',
+);
+
 // ── Quizzes and exercises ───────────────────────────────────────────────────
 
 const {MASTERY_QUESTIONS} = require(path.join(root, 'src/telemark/mechanicalQuizzes.ts'));
@@ -312,12 +324,13 @@ const revealSource = fs.readFileSync(path.join(uiDir, 'useReveal.ts'), 'utf8');
 assert.match(revealSource, /usePrefersReducedMotion/, 'reveal must honour reduced motion');
 assert.match(revealSource, /observer\.disconnect\(\)/, 'reveal must stop observing after firing');
 
-// The reading progress bar is meaningless off a lesson, and must expose its
-// value to assistive technology rather than being a decorative stripe.
-const progressSource = fs.readFileSync(path.join(uiDir, 'ReadingProgress.tsx'), 'utf8');
-assert.match(progressSource, /role="progressbar"/, 'progress bar needs a progressbar role');
-assert.match(progressSource, /aria-valuenow/, 'progress bar must report its value');
-assert.match(progressSource, /docs\|engineering/, 'progress bar must only render on lesson routes');
+const rootSource = fs.readFileSync(path.join(root, 'src/theme/Root.tsx'), 'utf8');
+assert.doesNotMatch(rootSource, /ReadingProgress/, 'lesson pages must not render a scroll progress bar');
+assert.equal(
+  fs.existsSync(path.join(uiDir, 'ReadingProgress.tsx')),
+  false,
+  'the removed scroll progress component must not return',
+);
 
 const CadExercise = require(path.join(root, 'src/components/mechanical/CadExercise.tsx')).default;
 renders(

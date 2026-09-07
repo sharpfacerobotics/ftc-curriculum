@@ -237,9 +237,6 @@ component.
   already builds rather than shipping a second one. Arrow keys move, Enter
   opens, Escape closes. It exists because 130 lessons across two sidebars meant
   finding one required knowing which track it lived in.
-- **Reading progress** (`ReadingProgress.tsx`), a bar showing position through a
-  lesson. Rendered only on lesson routes and exposed as a real `progressbar`
-  with `aria-valuenow`.
 - **Reveal and count-up** (`useReveal.ts`), scroll-triggered entrance animation
   and animated statistics. The observer disconnects after firing, so nothing
   re-animates on every scroll past.
