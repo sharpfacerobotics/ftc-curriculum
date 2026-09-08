@@ -58,6 +58,13 @@ public class ArmTeleOp extends OpMode {
 }
 ```
 
+Two special parts of this example describe its relationship to the FTC SDK:
+
+| Word | Meaning here |
+|---|---|
+| `extends` | Declare that `ArmTeleOp` is a more specific kind of `OpMode` and receives its available members. |
+| `@Override` | Ask Java to check that this method replaces a method defined by `OpMode`. It is an annotation, not a keyword. |
+
 When `loop()` reaches the final line:
 
 1. The OpMode reads its `robot` field.

@@ -59,6 +59,8 @@ limit = RobotArm.MAX_POWER`}
 
 `MAX_POWER` belongs to `RobotArm`, not to one arm object. Java code reads it through the class name. `final` prevents reassignment after initialization.
 
+Both `static` and `final` are Java keywords. In this example, `static` makes one value belong to the class, while `final` prevents code from assigning a different value later. Teams commonly combine them for constants.
+
 Avoid making robot hardware fields static. A static motor reference becomes shared program state, which hides ownership and complicates testing. Unit 13 uses static fields for constants and instance fields for hardware.
 
 ## Nested Classes
@@ -73,6 +75,8 @@ public class RobotStatus {
     }
 }
 ```
+
+`boolean` is a Java keyword and primitive type. A `boolean` value can only be `true` or `false`, so `intakeRunning` records a two-state condition.
 
 A **static nested class** belongs to the outer class as a named type. It does not require a `RobotStatus` object.
 

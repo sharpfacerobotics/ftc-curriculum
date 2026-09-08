@@ -48,6 +48,14 @@ unit0Files.forEach((file, index) => {
 });
 assert.match(read(unit0Files[0]), /blueprint/i);
 assert.match(read(unit0Files[0]), /house/i);
+for (const word of ['class', 'public', 'private', 'double', 'void', 'new', 'this', 'return']) {
+  assert.match(read(unit0Files[0]), new RegExp('\\| `' + word + '` \\|'), `Unit 0.1 must explain ${word}`);
+}
+assert.match(read(unit0Files[0]), /String.*not keywords/s);
+assert.match(read(unit0Files[2]), /null.*Java keyword/s);
+assert.match(read(unit0Files[3]), /extends[\s\S]*@Override[\s\S]*annotation, not a keyword/);
+assert.match(read(unit0Files[4]), /static.*final.*Java keywords/s);
+assert.match(read(unit0Files[4]), /boolean.*Java keyword and primitive type/s);
 assert.match(read(unit0Files[4]), /does not support nested classes/i);
 assert.match(read(unit0Files[4]), /top-level files/i);
 

@@ -61,6 +61,7 @@ assert.ok(LATEST_RELEASE.body.toLowerCase().includes('teamcode'));
 assert.ok(LATEST_RELEASE.additions[0].toLowerCase().includes('java files'));
 assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('highlighted')));
 assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('case-sensitive')));
+assert.ok(LATEST_RELEASE.additions.some((item) => item.includes('Java keywords')));
 
 assert.equal(formatChangeDate('2026-09-06'), 'September 6, 2026');
 assert.equal(formatChangeDate('not-a-date'), 'not-a-date');

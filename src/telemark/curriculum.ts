@@ -31,7 +31,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     id: 'UNIT_00',
     label: 'Unit 0',
     title: 'Objects, Classes, and Java',
-    desc: 'Build a clear mental model of classes, objects, references, composition, and shared members before using the FTC SDK.',
+    desc: 'Learn the Java keywords, classes, objects, references, composition, and shared members you need before using the FTC SDK.',
     tier: 'Beginner',
     slug: 'unit-00',
     overviewPath: '/docs/unit-00',
@@ -42,6 +42,7 @@ export const CURRICULUM_UNITS: CurriculumUnit[] = [
     overview:
       'A house blueprint can produce separate houses with the same design. Java classes define objects in the same way, while each object keeps its own identity and state.',
     outcomes: [
+      'Read foundational Java keywords and distinguish them from types and programmer-chosen names.',
       'Connect classes, objects, fields, constructors, and methods to concrete robot code.',
       'Trace object identity, shared references, null references, and calls across several objects.',
       'Distinguish instance state from static members and static final constants.',

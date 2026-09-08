@@ -35,6 +35,7 @@ export const CHANGELOG: readonly ChangeEntry[] = [
       'Use packages, imports, helper classes, and shared constants across one project.',
       'See Java annotations highlighted and complete @TeleOp, @Autonomous, and @Override as you type.',
       'Get case-sensitive suggestions for FTC SDK types and the classes and methods you write.',
+      'Read plain-language definitions of foundational Java keywords in Unit 0.',
     ],
     href: '/docs/unit-07/mechanism-classes',
     image: '/img/releases/1.9.png',

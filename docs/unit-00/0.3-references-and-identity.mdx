@@ -53,6 +53,8 @@ arm.move(0.8); // NullPointerException at run time
 
 `null` means the variable does not currently refer to an object. Calling a method through that variable fails at run time.
 
+`null` is a Java keyword. It does not create an empty `RobotArm`, and it is not the number zero. It means "no object reference."
+
 FTC code often hits this error when an OpMode uses a mechanism or hardware field before `init()` assigns it. The declaration creates the variable. It does not create the object.
 
 ## Follow the Objects
