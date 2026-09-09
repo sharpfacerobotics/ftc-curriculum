@@ -123,7 +123,7 @@ for (let unit = 2; unit <= 15; unit += 1) {
 assert.match(masterySimulator, /<SimulatorFrame\b/);
 assert.match(masterySimulator, /unit\$\{unit\}\.mastery\.html/);
 assert.match(masterySimulator, /FTC SDK imports, correct OpMode annotation, and an empty class shell/);
-assert.match(masteryChallengeRuntime, /setCode\(config\.starter\)/, 'coding challenges must load their FTC SDK shell');
+assert.match(masteryChallengeRuntime, /setCode\(activeScaffold \? activeScaffold\.source : config\.starter\)/, 'coding challenges must load the active cumulative-project scaffold');
 assert.match(masteryChallengeRuntime, /setTelemetryStudentOnly\(true\)/);
 assert.match(masteryChallengeRuntime, /return transpileAndRun\(/, 'coding challenges must execute student telemetry');
 assert.doesNotMatch(masteryChallengeRuntime, /addTelemetry\("(?:Unit|Compiler|Objectives|Lifecycle|Driver test|Ready)"/);
@@ -160,19 +160,18 @@ assert.equal(
     'challenge robot profiles must be distinct',
   );
   for (let unit = 2; unit <= 15; unit += 1) {
-    const starter = challengeApi.configs[unit].starter;
-    const isAutonomous = [6, 10, 14, 15].includes(unit);
-    assert.match(starter, new RegExp(`@${isAutonomous ? 'Autonomous' : 'TeleOp'}\\(name="Unit_${unit}_Mastery"\\)`));
-    assert.match(starter, new RegExp(`public class Unit${unit}Mastery extends ${isAutonomous ? 'LinearOpMode' : 'OpMode'} \\{\\n\\n\\}$`));
-    assert.match(starter, /import java\.lang\.Math;/);
+    const config = challengeApi.configs[unit];
+    const project = challengeApi.decodeProjectOptions(unit, config);
+    const active = project.initialFiles.find((file) => file.name === config.activeFile);
+    assert.ok(active, `Unit ${unit} must open a real cumulative-project file`);
+    assert.doesNotMatch(active.name, /Unit\d+Mastery/);
+    assert.equal(project.preferredEntry.endsWith(unit === 15 ? '.FullAutonomous' : '.CompetitionTeleOp'), true);
     assert.equal(
       challengeApi.checksForUnit(unit).length,
-      challengeApi.configs[unit].checks.length + 1,
-      `Unit ${unit} must preserve its FTC shell and assess every unit objective`,
+      challengeApi.configs[unit].checks.length + (config.registration ? 1 : 0),
+      `Unit ${unit} must assess every stage objective and any required registration`,
     );
-    const starterResults = challengeApi.evaluate(unit, starter);
-    assert.equal(starterResults[0], true, `Unit ${unit} starter shell should be valid`);
-    assert.ok(starterResults.slice(1).every((result) => result === false));
+    assert.ok(challengeApi.checksForUnit(unit).length >= 4, `Unit ${unit} needs substantive checks`);
   }
 }
 assert.match(masteryChallengeRuntime, /challengeMotion\.connectHardwareMap\(global\.hardwareMap\)/);

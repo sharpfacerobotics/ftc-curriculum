@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 9 Comprehensive Coding Challenge: Coordinated Servo Mechanism"
+title: "Unit 9 Project Stage: Launcher Trigger Servo"
 sidebar_label: "Unit 9 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -8,25 +8,22 @@ sidebar_position: 6
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 9 Comprehensive Coding Challenge
+# Stage 8: Launcher Trigger Servo
 
-The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMode class, like Android Studio would. Write the gripper and intake control yourself. Passing every requirement demonstrates full mastery of Unit 9, so experienced students can take this challenge first and continue directly to Unit 10.
+Continue in `Launcher.java`. Add the positional servo that releases one ready artifact while preserving the non-blocking TeleOp lifecycle.
 
 ## Your Task
 
-1. Map positional servos `"left_claw"` and `"right_claw"`, then map CR servo `"intake_servo"`.
-2. Restrict both positional servos with safe `scaleRange()` values.
-3. Reverse one servo so mirrored hardware moves symmetrically.
-4. Use buttons to command coordinated open and closed positions.
-5. Use bumpers or another clear input pair to run the CRServo forward and reverse.
-6. Give the CRServo an explicit zero-power neutral branch.
-7. Report gripper position and intake direction through telemetry.
+1. Add and map a private `Servo` trigger.
+2. Put its rest and fire positions in `RobotConfig`.
+3. Detect the A-button rising edge and call `launcher.launch()` once.
+4. Return the trigger from `Launcher.update()` after a runtime deadline.
 
 The positional servos should behave as a synchronized pair while the CRServo remains speed-controlled.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={9} />
+<MasterySimulator unit={9} project />
 
 <MarkComplete
   lessonId="unit-09/mastery-coding-challenge"

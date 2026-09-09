@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 5 Comprehensive Coding Challenge: Red Alliance Sample Sorter"
+title: "Unit 5 Project Stage: Intake and Transfer Logic"
 sidebar_label: "Unit 5 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -8,31 +8,20 @@ sidebar_position: 6
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 5 Comprehensive Coding Challenge
+# Stage 4: Intake and Transfer Logic
 
-The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMode class, like Android Studio would. Write the complete decision system yourself. Passing every requirement demonstrates full mastery of Unit 5, so experienced students can take this challenge first and continue directly to Unit 6.
+The shared project adds `Intake.java` and `Transfer.java`. Each class owns its motor while `CompetitionTeleOp.java` decides which public command to call.
 
 ## Your Task
 
-Program a red-alliance sample sorter. Use these Robot Controller configuration names:
-
-- Intake motor: `"intake"`
-- Color sensor: `"intake_color"`
-- Distance sensor: `"intake_distance"`
-
-Read distance in centimeters and read both color channels once per loop. Then apply this decision order:
-
-1. If the sample is closer than 10 cm and `red > blue`, set intake power to `0.8` and report `COLLECT RED`.
-2. Otherwise, if the sample is closer than 10 cm and `blue > red`, set intake power to `-0.5` and report `EJECT BLUE`.
-3. Otherwise, set intake power to `0.0` and report `STOP`. This branch covers color ties and samples that are 10 cm away or farther.
-
-Use one `if` / `else if` / `else` chain. Report distance, red, blue, and the selected state through telemetry.
-
-Use the Red, Blue, and No sample controls above the robot view to test every branch after you run your code.
+1. Map private motors in each subsystem's `init(HardwareMap)` method.
+2. Give Intake `collect()`, `reverse()`, and `stop()` commands.
+3. Give Transfer `forward()`, `reverse()`, and `stop()` commands.
+4. In the TeleOp, use an `if` / `else if` / `else` chain: right bumper runs both forward, left bumper reverses both, and the neutral branch stops both.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={5} />
+<MasterySimulator unit={5} project />
 
 <MarkComplete
   lessonId="unit-05/mastery-coding-challenge"

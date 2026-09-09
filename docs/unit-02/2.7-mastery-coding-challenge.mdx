@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 2 Comprehensive Coding Challenge: Complete OpMode Lifecycle"
+title: "Unit 2 Project Stage: CompetitionTeleOp Lifecycle"
 sidebar_label: "Unit 2 · Coding Challenge"
 sidebar_position: 7
 ---
@@ -8,25 +8,24 @@ sidebar_position: 7
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 2 Comprehensive Coding Challenge
+# Stage 1: CompetitionTeleOp Lifecycle
 
-The editor provides the FTC SDK imports, registration annotation, and an empty OpMode class, like Android Studio would. Write the complete implementation inside that class. Passing every requirement demonstrates full mastery of Unit 2, so experienced students can take this challenge first and continue directly to Unit 3.
+This is the first stage of one browser-saved DECODE robot project. You will keep editing the same files through Unit 15. A passing stage saves a read-only snapshot you can preview, copy, or export later.
 
 ## Your Task
 
-Build a competition TeleOp that uses the complete iterative OpMode lifecycle:
+Complete `CompetitionTeleOp.java` as a registered iterative OpMode:
 
-1. Use `init()` for one-time setup and an initial status message.
-2. Use `init_loop()` to repeat a pre-match robot health check.
-3. Use `start()` to reset the runtime exactly when Play is pressed.
-4. Use `loop()` to read a gamepad value and report live runtime and input telemetry.
-5. Use `stop()` to report a clear shutdown state.
+1. Use `init()` for a one-time ready message.
+2. Use `start()` to reset the match clock.
+3. Use `loop()` to read `gamepad1` and publish live telemetry.
+4. Keep `stop()` as the one safe shutdown path.
 
-Your code must make the purpose of each lifecycle method visible through telemetry. Do not copy a previous lesson's completed class; reconstruct the lifecycle from memory.
+Later stages will delegate drivetrain and mechanism work through these lifecycle methods, so keep this file focused on coordination.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={2} />
+<MasterySimulator unit={2} project />
 
 <MarkComplete
   lessonId="unit-02/mastery-coding-challenge"

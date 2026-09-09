@@ -20,18 +20,211 @@
 
   const DECODE_PROJECT_KEY = "telemark:decode-project:v1";
   const TEAM_PACKAGE = "org.firstinspires.ftc.teamcode";
+  function decodeSource(body) {
+    return "package " + TEAM_PACKAGE + ";\n\n" + body.trim() + "\n";
+  }
+
   const DECODE_FILE_STAGES = Object.freeze([
-    {unit: 2, name: "CompetitionTeleOp.java", className: "CompetitionTeleOp"},
-    {unit: 3, name: "RobotConfig.java", className: "RobotConfig"},
-    {unit: 4, name: "Drivetrain.java", className: "Drivetrain"},
-    {unit: 5, name: "Intake.java", className: "Intake"},
-    {unit: 5, name: "Transfer.java", className: "Transfer"},
-    {unit: 7, name: "Launcher.java", className: "Launcher"},
-    {unit: 7, name: "ArtifactSensors.java", className: "ArtifactSensors"},
-    {unit: 13, name: "PoweredMechanism.java", className: "PoweredMechanism"},
-    {unit: 13, name: "RobotHardware.java", className: "RobotHardware"},
-    {unit: 14, name: "Vision.java", className: "Vision"},
-    {unit: 15, name: "FullAutonomous.java", className: "FullAutonomous"}
+    {
+      unit: 2,
+      name: "CompetitionTeleOp.java",
+      className: "CompetitionTeleOp",
+      methods: ["init", "start", "loop", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name="DECODE Competition TeleOp")
+public class CompetitionTeleOp extends OpMode {
+    @Override
+    public void init() {
+        // Report that the robot is ready.
+    }
+
+    @Override
+    public void start() {
+        // Reset match timing here.
+    }
+
+    @Override
+    public void loop() {
+        // Repeated driver-control code belongs here.
+    }
+
+    @Override
+    public void stop() {
+        // Leave every mechanism safe.
+    }
+}`)
+    },
+    {
+      unit: 3,
+      name: "RobotConfig.java",
+      className: "RobotConfig",
+      source: decodeSource(`
+public final class RobotConfig {
+    private RobotConfig() {}
+
+    // Add shared hardware names, powers, deadzones, and mechanism state here.
+}`)
+    },
+    {
+      unit: 4,
+      name: "Drivetrain.java",
+      className: "Drivetrain",
+      methods: ["init", "drive", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Drivetrain {
+    // Keep the four drive motors private.
+
+    public void init(HardwareMap hardwareMap) {}
+
+    public void drive(double forward, double strafe, double turn) {}
+
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 5,
+      name: "Intake.java",
+      className: "Intake",
+      methods: ["init", "collect", "reverse", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Intake {
+    private DcMotor motor;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void collect() {}
+    public void reverse() {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 5,
+      name: "Transfer.java",
+      className: "Transfer",
+      methods: ["init", "forward", "reverse", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Transfer {
+    private DcMotor motor;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void forward() {}
+    public void reverse() {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 7,
+      name: "Launcher.java",
+      className: "Launcher",
+      methods: ["init", "update", "launch", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Launcher {
+    private DcMotor flywheel;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void update(double nowSeconds) {}
+    public void launch(double nowSeconds) {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 7,
+      name: "ArtifactSensors.java",
+      className: "ArtifactSensors",
+      methods: ["init", "update", "hasCapacity"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class ArtifactSensors {
+    private int storedArtifacts;
+
+    public void init(HardwareMap hardwareMap) {}
+    public void update() {}
+    public boolean hasCapacity() { return storedArtifacts < 3; }
+}`)
+    },
+    {
+      unit: 13,
+      name: "PoweredMechanism.java",
+      className: "PoweredMechanism",
+      methods: ["init", "setPower", "stop"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class PoweredMechanism {
+    protected DcMotor motor;
+
+    public void init(HardwareMap hardwareMap, String hardwareName) {}
+    public void setPower(double power) {}
+    public void stop() {}
+}`)
+    },
+    {
+      unit: 13,
+      name: "RobotHardware.java",
+      className: "RobotHardware",
+      methods: ["init", "update", "stopAll"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class RobotHardware {
+    public final Drivetrain drivetrain = new Drivetrain();
+    public final Intake intake = new Intake();
+    public final Transfer transfer = new Transfer();
+    public final Launcher launcher = new Launcher();
+    public final ArtifactSensors sensors = new ArtifactSensors();
+
+    public void init(HardwareMap hardwareMap) {}
+    public void update(double nowSeconds) {}
+    public void stopAll() {}
+}`)
+    },
+    {
+      unit: 14,
+      name: "Vision.java",
+      className: "Vision",
+      methods: ["init", "update", "close"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+public class Vision {
+    public void init(HardwareMap hardwareMap) {}
+    public void update() {}
+    public void close() {}
+}`)
+    },
+    {
+      unit: 15,
+      name: "FullAutonomous.java",
+      className: "FullAutonomous",
+      methods: ["runOpMode"],
+      source: decodeSource(`
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+@Autonomous(name="DECODE Full Autonomous")
+public class FullAutonomous extends LinearOpMode {
+    @Override
+    public void runOpMode() {
+        // Coordinate vision, localization, paths, and robot subsystems here.
+    }
+}`)
+    }
   ]);
 
   function publicClassName(source) {
@@ -43,35 +236,29 @@
   function decodeScaffold(file) {
     return {
       name: file.name,
-      source: "package " + TEAM_PACKAGE + ";\n\npublic class " + file.className + " {\n    // This class is completed in a later mastery stage.\n}\n"
+      source: file.source
     };
   }
 
   function decodeProjectOptions(unit, config) {
-    const challengeFiles = (config.starterFiles || [{
-      name: publicClassName(config.starter) + ".java",
-      source: config.starter
-    }]).map(function (file) { return {name: file.name, source: file.source}; });
     const byName = new Map();
-    challengeFiles.forEach(function (file) { byName.set(file.name, file); });
     DECODE_FILE_STAGES.filter(function (file) { return file.unit <= unit; }).forEach(function (file) {
       if (!byName.has(file.name)) byName.set(file.name, decodeScaffold(file));
     });
-    const entryClass = publicClassName(challengeFiles[0].source);
     const stageId = "unit-" + String(unit).padStart(2, "0") + "/mastery-coding-challenge";
-    const stageFiles = new Set(challengeFiles.map(function (file) { return file.name; }));
+    const stageFiles = new Set(config.stageFiles || [config.activeFile]);
     DECODE_FILE_STAGES.filter(function (file) { return file.unit === unit; }).forEach(function (file) { stageFiles.add(file.name); });
     return {
       key: DECODE_PROJECT_KEY,
       initialFiles: Array.from(byName.values()),
-      preferredActiveFile: challengeFiles[0].name,
-      preferredEntry: TEAM_PACKAGE + "." + entryClass,
+      preferredActiveFile: config.activeFile,
+      preferredEntry: TEAM_PACKAGE + "." + (config.entryClass || "CompetitionTeleOp"),
       preserveProjectOnReset: true,
       snapshotsOnly: true,
       enableSnapshots: true,
       stage: {id: stageId, title: config.title, files: Array.from(stageFiles)},
       prerequisites: DECODE_FILE_STAGES.filter(function (file) { return file.unit < unit; }).map(function (file) {
-        return {file: file.name, className: file.className};
+        return {file: file.name, className: file.className, methods: file.methods || []};
       })
     };
   }
@@ -414,6 +601,248 @@
     }
   };
 
+  // Part 3 turns each mastery challenge into the next stage of one DECODE
+  // project. The earlier CONFIGS remain above as historical lesson fixtures;
+  // these stage definitions are the learner-facing cumulative progression.
+  const DECODE_STAGE_CONFIGS = {
+    2: {
+      title: "Stage 1 · CompetitionTeleOp Lifecycle",
+      scenario: "Start the shared DECODE project by turning CompetitionTeleOp.java into a registered iterative OpMode with a complete, safe lifecycle.",
+      activeFile: "CompetitionTeleOp.java",
+      entryClass: "CompetitionTeleOp",
+      registration: "teleop",
+      inputs: ["a"],
+      checks: [
+        ["Report robot status during init()", /void\s+init\s*\(\s*\)[\s\S]*?telemetry\s*\.\s*addData\s*\(/],
+        ["Reset match time in start()", /void\s+start\s*\(\s*\)[\s\S]*?resetRuntime\s*\(/],
+        ["Read gamepad1 and update telemetry in loop()", /void\s+loop\s*\(\s*\)[\s\S]*?gamepad1\s*\.[\s\S]*?telemetry\s*\.\s*(?:addData|update)\s*\(/],
+        ["Provide a stop() safety lifecycle method", /void\s+stop\s*\(\s*\)/]
+      ]
+    },
+    3: {
+      title: "Stage 2 · Shared Robot Configuration",
+      scenario: "Add RobotConfig.java and centralize the names, constants, primitive values, and mechanism state that later DECODE subsystems will share.",
+      activeFile: "RobotConfig.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["RobotConfig.java", "CompetitionTeleOp.java"],
+      inputs: ["a", "left_bumper", "left_stick_y"],
+      checks: [
+        ["Make RobotConfig a non-instantiable final class", /final\s+class\s+RobotConfig[\s\S]*?private\s+RobotConfig\s*\(\s*\)/],
+        ["Define shared String hardware names", /class\s+RobotConfig[\s\S]*?static\s+final\s+String\s+\w+\s*=\s*"[^"]+"/],
+        ["Define double power, deadzone, and launcher values", /static\s+final\s+double\s+\w*(?:POWER|SPEED)\w*\s*=/i, /static\s+final\s+double\s+\w*DEADZONE\w*\s*=/i, /static\s+final\s+double\s+\w*(?:VELOCITY|FLYWHEEL)\w*\s*=/i],
+        ["Track mechanism state with boolean and int values", /\bboolean\s+\w+\s*=/, /\bint\s+\w+\s*=/],
+        ["Use a RobotConfig value outside RobotConfig.java", /class\s+(?!RobotConfig)\w+[\s\S]*?RobotConfig\s*\.\s*\w+/]
+      ]
+    },
+    4: {
+      title: "Stage 3 · Mecanum Drivetrain",
+      scenario: "Build Drivetrain.java with four mapped motors, joystick deadzones, normalized mecanum math, and one-gamepad control delegated by CompetitionTeleOp.",
+      activeFile: "Drivetrain.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "CompetitionTeleOp.java"],
+      inputs: ["left_stick_x", "left_stick_y", "right_stick_x"],
+      checks: [
+        ["Keep and map four drivetrain motors", /class\s+Drivetrain[\s\S]*?(?:DcMotor\s+\w+[\s\S]*?){4}/, /class\s+Drivetrain[\s\S]*?(?:hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class[\s\S]*?){4}/],
+        ["Apply a joystick deadzone", /Math\s*\.\s*abs\s*\([^)]*\)\s*[<>]=?\s*(?:0?\.\d+|(?:RobotConfig\s*\.\s*)?[A-Z][A-Z0-9_]*)/],
+        ["Calculate four mecanum wheel values", /(?:frontLeft|leftFront)\s*=\s*[^;]+/, /(?:frontRight|rightFront)\s*=\s*[^;]+/, /(?:backLeft|leftBack)\s*=\s*[^;]+/, /(?:backRight|rightBack)\s*=\s*[^;]+/],
+        ["Normalize wheel power to the available range", /Math\s*\.\s*max\s*\(/, /Math\s*\.\s*abs\s*\(/],
+        ["Send power to all four motors", /setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\(/],
+        ["Delegate gamepad1 drive axes from CompetitionTeleOp", /class\s+CompetitionTeleOp[\s\S]*?drivetrain\s*\.\s*drive\s*\([^;]*gamepad1\s*\.\s*left_stick_y[^;]*gamepad1\s*\.\s*left_stick_x[^;]*gamepad1\s*\.\s*right_stick_x/]
+      ]
+    },
+    5: {
+      title: "Stage 4 · Intake and Transfer Logic",
+      scenario: "Complete Intake.java and Transfer.java, then use clear conditional driver controls to collect, feed, reverse, and stop them safely.",
+      activeFile: "Intake.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Intake.java", "Transfer.java", "CompetitionTeleOp.java"],
+      inputs: ["right_bumper", "left_bumper"],
+      checks: [
+        ["Map private intake and transfer motors in init(HMap)", /class\s+Intake[\s\S]*?private\s+DcMotor[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class/, /class\s+Transfer[\s\S]*?private\s+DcMotor[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class/],
+        ["Give Intake collect, reverse, and stop commands", /class\s+Intake[\s\S]*?void\s+collect\s*\(/, /class\s+Intake[\s\S]*?void\s+reverse\s*\(/, /class\s+Intake[\s\S]*?void\s+stop\s*\(/],
+        ["Give Transfer forward, reverse, and stop commands", /class\s+Transfer[\s\S]*?void\s+forward\s*\(/, /class\s+Transfer[\s\S]*?void\s+reverse\s*\(/, /class\s+Transfer[\s\S]*?void\s+stop\s*\(/],
+        ["Use an if / else-if / else control chain", /\bif\s*\(/, /\belse\s+if\s*\(/, /\belse\b/],
+        ["Run both mechanisms forward and reverse from the bumpers", /gamepad1\s*\.\s*right_bumper[\s\S]*?(?:intake|transfer)\s*\./, /gamepad1\s*\.\s*left_bumper[\s\S]*?(?:reverse|stop)/]
+      ]
+    },
+    6: {
+      title: "Stage 5 · Arrays and Non-Blocking Launch Timing",
+      scenario: "Use motor collections and loops to keep repeated setup concise, then add a launch sequence that advances by timestamps without blocking TeleOp updates.",
+      activeFile: "CompetitionTeleOp.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["CompetitionTeleOp.java", "Drivetrain.java"],
+      inputs: ["a"],
+      checks: [
+        ["Store related drive motors in an array", /DcMotor\s*\[\s*\]\s+\w+/],
+        ["Use a loop to configure or stop the motor array", /for\s*\([^)]*(?:;|:)\s*[^)]*\)[\s\S]*?\w+\s*\.\s*(?:setMode|setZeroPowerBehavior|setPower)\s*\(/],
+        ["Start launch timing on an A-button rising edge", /gamepad1\s*\.\s*a\s*&&\s*!\s*\w+/],
+        ["Advance launch state with a getRuntime() deadline", /getRuntime\s*\(\s*\)\s*\+\s*[^;]+/, /getRuntime\s*\(\s*\)\s*[<>]=?\s*\w+/],
+        ["Keep stop() responsible for safe shutdown", /void\s+stop\s*\(\s*\)[\s\S]*?(?:stop|setPower\s*\(\s*0)/]
+      ],
+      forbidden: [
+        ["Do not block TeleOp with sleep()", /\bsleep\s*\(/],
+        ["Do not add an unbounded while(true) loop", /while\s*\(\s*true\s*\)/]
+      ]
+    },
+    7: {
+      title: "Stage 6 · Subsystem Hardware Mapping",
+      scenario: "Move every hardware lookup into subsystem init(HardwareMap) methods and add the Launcher and ArtifactSensors scaffolds without exposing raw hardware in CompetitionTeleOp.",
+      activeFile: "Launcher.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "Intake.java", "Transfer.java", "Launcher.java", "ArtifactSensors.java", "CompetitionTeleOp.java"],
+      inputs: ["a", "right_bumper"],
+      checks: [
+        ["Give all five subsystems init(HardwareMap)", /class\s+Drivetrain[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+Intake[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+Transfer[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+Launcher[\s\S]*?init\s*\(\s*HardwareMap/, /class\s+ArtifactSensors[\s\S]*?init\s*\(\s*HardwareMap/],
+        ["Map hardware inside subsystem classes", /class\s+(?:Drivetrain|Intake|Transfer|Launcher|ArtifactSensors)[\s\S]*?hardwareMap\s*\.\s*get\s*\(/],
+        ["Keep Launcher flywheel hardware private", /class\s+Launcher[\s\S]*?private\s+DcMotor\s+\w+/],
+        ["Give ArtifactSensors stored-artifact state", /class\s+ArtifactSensors[\s\S]*?\bint\s+\w+/, /class\s+ArtifactSensors[\s\S]*?boolean\s+hasCapacity\s*\(/],
+        ["Initialize and command subsystems from CompetitionTeleOp", /class\s+CompetitionTeleOp[\s\S]*?\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?gamepad1\s*\./],
+        ["Keep raw hardwareMap.get calls out of CompetitionTeleOp", /class\s+CompetitionTeleOp/]
+      ]
+    },
+    8: {
+      title: "Stage 7 · Safe Motor Configuration",
+      scenario: "Configure drivetrain and mechanism direction, encoder modes, braking, and reliable zero-power shutdown inside their subsystem classes.",
+      activeFile: "Drivetrain.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "Intake.java", "Transfer.java", "Launcher.java"],
+      inputs: ["left_stick_y"],
+      checks: [
+        ["Set the required motor directions", /setDirection\s*\([^)]*Direction\.REVERSE/],
+        ["Configure RUN_USING_ENCODER", /setMode\s*\(\s*DcMotor\.RunMode\.RUN_USING_ENCODER\s*\)/],
+        ["Configure BRAKE at zero power", /setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE\s*\)/],
+        ["Stop every powered subsystem at zero", /class\s+Drivetrain[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/, /class\s+Intake[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/, /class\s+Transfer[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/, /class\s+Launcher[\s\S]*?void\s+stop\s*\([^)]*\)[\s\S]*?setPower\s*\(\s*0/]
+      ]
+    },
+    9: {
+      title: "Stage 8 · Launcher Trigger Servo",
+      scenario: "Add a positional trigger Servo to Launcher and release exactly one artifact from an A-button press without pausing the OpMode loop.",
+      activeFile: "Launcher.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Launcher.java", "CompetitionTeleOp.java", "RobotConfig.java"],
+      inputs: ["a", "right_trigger"],
+      checks: [
+        ["Map a private positional Servo trigger", /class\s+Launcher[\s\S]*?private\s+Servo\s+\w+[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*Servo\.class/],
+        ["Configure fire and rest positions", /(?:static\s+final\s+double|RobotConfig\s*\.\s*\w+)[\s\S]*?setPosition\s*\([^)]*\)[\s\S]*?setPosition\s*\([^)]*\)/],
+        ["Launch on the A-button rising edge", /gamepad1\s*\.\s*a\s*&&\s*!\s*\w+[\s\S]*?launcher\s*\.\s*launch\s*\(/],
+        ["Return the trigger using non-blocking timing", /class\s+Launcher[\s\S]*?void\s+update\s*\([^)]*\)[\s\S]*?(?:deadline|return|release|trigger)[\s\S]*?setPosition\s*\(/i]
+      ],
+      forbidden: [["Do not block trigger timing with sleep()", /\bsleep\s*\(/]]
+    },
+    10: {
+      title: "Stage 9 · Closed-Loop Flywheel Velocity",
+      scenario: "Convert Launcher to DcMotorEx, command velocity, measure it, and tune PIDF so the flywheel can resist battery-related speed loss.",
+      activeFile: "Launcher.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Launcher.java", "CompetitionTeleOp.java"],
+      inputs: ["right_trigger", "a"],
+      checks: [
+        ["Use DcMotorEx for the flywheel", /class\s+Launcher[\s\S]*?DcMotorEx\s+\w+[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DcMotorEx\.class/],
+        ["Run the flywheel with encoders", /setMode\s*\(\s*DcMotor\.RunMode\.RUN_USING_ENCODER\s*\)/],
+        ["Set PIDF coefficients", /setVelocityPIDFCoefficients\s*\(/],
+        ["Command proportional target velocity", /gamepad1\s*\.\s*right_trigger[\s\S]*?setVelocity\s*\(/],
+        ["Read measured velocity", /getVelocity\s*\(\s*\)/],
+        ["Report target and measured velocity", /telemetry\s*\.\s*addData\s*\([^)]*(?:target|command)/i, /telemetry\s*\.\s*addData\s*\([^)]*(?:measured|actual|velocity)/i]
+      ]
+    },
+    11: {
+      title: "Stage 10 · Artifact Capacity and Interlocks",
+      scenario: "Finish ArtifactSensors and prevent intake, transfer, or launch actions that would violate the three-artifact capacity or mechanism state.",
+      activeFile: "ArtifactSensors.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["ArtifactSensors.java", "Intake.java", "Transfer.java", "Launcher.java", "CompetitionTeleOp.java"],
+      inputs: ["right_bumper", "left_bumper", "a"],
+      checks: [
+        ["Map and read artifact sensors", /class\s+ArtifactSensors[\s\S]*?hardwareMap\s*\.\s*get\s*\([^;]+[\s\S]*?(?:getState|getDistance)\s*\(/],
+        ["Track a maximum capacity of three", /class\s+ArtifactSensors[\s\S]*?(?:<\s*3|MAX\w*\s*=\s*3)/],
+        ["Update stored count from sensor transitions", /class\s+ArtifactSensors[\s\S]*?void\s+update\s*\([^)]*\)[\s\S]*?(?:\+\+|--|\+=|-=)/],
+        ["Expose storage and capacity state", /class\s+ArtifactSensors[\s\S]*?boolean\s+hasCapacity\s*\(/],
+        ["Interlock intake or transfer when storage is full", /hasCapacity\s*\(\s*\)[\s\S]*?(?:intake|transfer)\s*\./],
+        ["Launch only when an artifact is ready", /(?:hasArtifact|isReady|readyToLaunch|storedArtifacts\s*>\s*0)[\s\S]*?launcher\s*\.\s*launch\s*\(/]
+      ]
+    },
+    12: {
+      title: "Stage 11 · IMU Field-Centric Drive",
+      scenario: "Upgrade Drivetrain to field-centric mecanum control with IMU heading, heading reset, rotated joystick vectors, and normalized output.",
+      activeFile: "Drivetrain.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Drivetrain.java", "CompetitionTeleOp.java"],
+      inputs: ["x", "left_stick_x", "left_stick_y", "right_stick_x"],
+      checks: [
+        ["Map and initialize the IMU", /hardwareMap\s*\.\s*get\s*\(\s*IMU\.class/, /new\s+RevHubOrientationOnRobot\s*\(/, /imu\s*\.\s*initialize\s*\(/],
+        ["Read robot yaw in radians", /getRobotYawPitchRollAngles\s*\(\s*\)[\s\S]*?getYaw\s*\(\s*AngleUnit\.RADIANS\s*\)/],
+        ["Reset heading from the X button", /gamepad1\s*\.\s*x[\s\S]*?(?:resetYaw|resetHeading)\s*\(/],
+        ["Rotate field input with sine and cosine", /Math\s*\.\s*cos\s*\(/, /Math\s*\.\s*sin\s*\(/],
+        ["Normalize and command four mecanum powers", /Math\s*\.\s*max\s*\(/, /setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\(/]
+      ]
+    },
+    13: {
+      title: "Stage 12 · Complete Modular TeleOp",
+      scenario: "Add PoweredMechanism and RobotHardware, compose every DECODE subsystem, and finish CompetitionTeleOp as coordination-only code with no raw hardware access.",
+      activeFile: "RobotHardware.java",
+      entryClass: "CompetitionTeleOp",
+      registration: "teleop",
+      stageFiles: ["PoweredMechanism.java", "RobotHardware.java", "CompetitionTeleOp.java", "Intake.java", "Transfer.java", "Launcher.java"],
+      inputs: ["a", "x", "y", "left_bumper", "right_bumper", "left_stick_x", "left_stick_y", "right_stick_x", "right_trigger"],
+      checks: [
+        ["Put shared powered behavior in PoweredMechanism", /class\s+PoweredMechanism[\s\S]*?protected\s+DcMotor\s+\w+[\s\S]*?void\s+setPower\s*\([^)]*\)[\s\S]*?void\s+stop\s*\(/],
+        ["Reuse PoweredMechanism in powered subsystems", /class\s+(?:Intake|Transfer|Launcher)\s+extends\s+PoweredMechanism/],
+        ["Compose every subsystem in RobotHardware", /class\s+RobotHardware[\s\S]*?new\s+Drivetrain\s*\([\s\S]*?new\s+Intake\s*\([\s\S]*?new\s+Transfer\s*\([\s\S]*?new\s+Launcher\s*\([\s\S]*?new\s+ArtifactSensors\s*\(/],
+        ["Initialize every subsystem through RobotHardware", /class\s+RobotHardware[\s\S]*?void\s+init\s*\(\s*HardwareMap[\s\S]*?drivetrain\s*\.\s*init[\s\S]*?intake\s*\.\s*init[\s\S]*?transfer\s*\.\s*init[\s\S]*?launcher\s*\.\s*init[\s\S]*?sensors\s*\.\s*init/],
+        ["Update mechanisms without blocking", /class\s+RobotHardware[\s\S]*?void\s+update\s*\([^)]*\)[\s\S]*?(?:launcher|sensors)\s*\.\s*update/],
+        ["Stop every subsystem through stopAll()", /class\s+RobotHardware[\s\S]*?void\s+stopAll\s*\([^)]*\)[\s\S]*?drivetrain\s*\.\s*stop[\s\S]*?intake\s*\.\s*stop[\s\S]*?transfer\s*\.\s*stop[\s\S]*?launcher\s*\.\s*stop/],
+        ["Delegate TeleOp init, loop, and stop to RobotHardware", /class\s+CompetitionTeleOp[\s\S]*?robot\s*\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?robot\s*\.\s*update\s*\([\s\S]*?robot\s*\.\s*stopAll\s*\(/],
+        ["Keep raw hardware access out of CompetitionTeleOp", /class\s+CompetitionTeleOp/]
+      ],
+      forbidden: [["Do not block TeleOp updates with sleep()", /\bsleep\s*\(/]]
+    },
+    14: {
+      title: "Stage 13 · Vision Subsystem",
+      scenario: "Add Vision.java beside the finished TeleOp, own the camera pipeline there, and let RobotHardware initialize, update, and close it without replacing driver control.",
+      activeFile: "Vision.java",
+      entryClass: "CompetitionTeleOp",
+      stageFiles: ["Vision.java", "RobotHardware.java", "CompetitionTeleOp.java"],
+      inputs: [],
+      checks: [
+        ["Map the configured camera inside Vision", /class\s+Vision[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*WebcamName\.class/],
+        ["Build an AprilTag processor and VisionPortal", /class\s+Vision[\s\S]*?AprilTagProcessor[\s\S]*?VisionPortal/],
+        ["Inspect current detections safely", /getDetections\s*\(\s*\)/, /for\s*\(\s*AprilTagDetection\s+\w+\s*:/, /metadata\s*!=\s*null/],
+        ["Classify left, center, and right zones", /(?:LEFT|CENTER|RIGHT)[\s\S]*?(?:LEFT|CENTER|RIGHT)[\s\S]*?(?:LEFT|CENTER|RIGHT)/],
+        ["Initialize and update Vision through RobotHardware", /class\s+RobotHardware[\s\S]*?vision\s*\.\s*init\s*\(\s*hardwareMap\s*\)[\s\S]*?vision\s*\.\s*update\s*\(/],
+        ["Close camera resources during shutdown", /class\s+Vision[\s\S]*?void\s+close\s*\([^)]*\)[\s\S]*?\.\s*close\s*\(/]
+      ]
+    },
+    15: {
+      title: "Stage 14 · Full Sensor-Fused Autonomous",
+      scenario: "Add FullAutonomous.java to the same robot project and coordinate Limelight validation, localization correction, Bézier paths, non-blocking subsystem updates, and clean shutdown.",
+      activeFile: "FullAutonomous.java",
+      entryClass: "FullAutonomous",
+      registration: "autonomous",
+      stageFiles: ["FullAutonomous.java", "RobotHardware.java", "Vision.java"],
+      inputs: [],
+      checks: [
+        ["Map, select, and start the Limelight pipeline", /hardwareMap\s*\.\s*get\s*\(\s*Limelight3A\.class/, /pipelineSwitch\s*\(/, /limelight\s*\.\s*start\s*\(/],
+        ["Create a Follower with a starting Pose", /new\s+Follower\s*\(/, /setStartingPose\s*\(\s*new\s+Pose\s*\(/],
+        ["Build a Bézier line and curve PathChain", /new\s+BezierLine\s*\(/, /new\s+BezierCurve\s*\(/, /PathChain/],
+        ["Use a named autonomous state machine", /enum\s+\w*State/, /switch\s*\(/, /case\s+\w+\s*:/],
+        ["Keep follower and robot updates non-blocking", /while\s*\([^)]*opModeIsActive[\s\S]*?follower\s*\.\s*update\s*\([\s\S]*?robot\s*\.\s*update\s*\(/],
+        ["Validate Limelight results before reading pose", /getLatestResult\s*\(/, /\.\s*isValid\s*\(\s*\)/],
+        ["Correct localization from a valid vision pose", /getBotpose\s*\(/, /follower\s*\.\s*setPose\s*\(/],
+        ["Initialize the existing RobotHardware project", /new\s+RobotHardware\s*\(/, /robot\s*\.\s*init\s*\(\s*hardwareMap\s*\)/],
+        ["Coordinate launcher, transfer, and intake through subsystems", /robot\s*\.\s*launcher\s*\./, /robot\s*\.\s*transfer\s*\./, /robot\s*\.\s*intake\s*\./],
+        ["Stop robot, vision, and Limelight cleanly", /robot\s*\.\s*stopAll\s*\(/, /vision\s*\.\s*close\s*\(/, /limelight\s*\.\s*stop\s*\(/],
+        ["Keep raw hardware access out of FullAutonomous", /class\s+FullAutonomous/]
+      ],
+      forbidden: [["Do not block follower updates with sleep()", /\bsleep\s*\(/]]
+    }
+  };
+
+  Object.keys(DECODE_STAGE_CONFIGS).forEach(function (unit) {
+    Object.assign(CONFIGS[unit], DECODE_STAGE_CONFIGS[unit]);
+    delete CONFIGS[unit].starter;
+    delete CONFIGS[unit].starterFiles;
+  });
+
   const ROBOT_PROFILES = Object.freeze({
     2: {name: "KG-SFR competition robot", detail: "Team CAD model driven by student motor commands", accent: 0x22d3ee, driveYaw: 0},
     3: {
@@ -466,7 +895,7 @@
     10: {name: "Encoder distance robot", detail: "Marked drive wheels for measured RUN_TO_POSITION travel", accent: 0x4ade80},
     11: {name: "Multi-sensor intake robot", detail: "Touch, potentiometer, color, and distance sensing around the intake", accent: 0xfbbf24},
     12: {name: "Field-centric mecanum robot", detail: "Four-wheel drive with a visible Control Hub IMU and orientation axes", accent: 0x818cf8},
-    13: {name: "Modular architecture robot", detail: "Color-coded drive, lift, and gripper subsystems composed together", accent: 0xc084fc},
+    13: {name: "Modular DECODE robot", detail: "Drive, intake, transfer, launcher, and artifact sensing composed together", accent: 0xc084fc},
     14: {name: "Vision-guided robot", detail: "Camera mast facing three autonomous analysis zones", accent: 0x22c55e},
     15: {name: "Sensor-fused autonomous robot", detail: "Limelight, path follower, and timed scoring arm on one platform", accent: 0x06b6d4}
   });
@@ -494,6 +923,15 @@
     {label: "RF", name: "rightFront"},
     {label: "RB", name: "rightBack"}
   ]);
+  const DECODE_MECHANISM_HARDWARE = Object.freeze([
+    {label: "Intake", name: "intake"},
+    {label: "Transfer", name: "transfer"},
+    {label: "Flywheel", name: "launcher"},
+    {label: "Trigger", name: "launcher_trigger"},
+    {label: "Intake sensor", name: "intake_sensor"},
+    {label: "Storage sensor", name: "storage_sensor"}
+  ]);
+  const DECODE_HARDWARE = Object.freeze(DRIVE_HARDWARE.concat(DECODE_MECHANISM_HARDWARE));
   const HARDWARE_PROFILES = Object.freeze({
     2: [],
     3: [{label: "Front slide motor", name: "intake_slide"}],
@@ -531,9 +969,9 @@
       {label: "Distance sensor", name: "intake_range"}
     ],
     12: DRIVE_HARDWARE.concat([{label: "IMU", name: "imu"}]),
-    13: [{label: "Intake servo", name: "intake"}, {label: "Lift motor", name: "lift"}],
+    13: DECODE_HARDWARE,
     14: [{label: "Camera", name: "Webcam 1"}],
-    15: [{label: "Intake servo", name: "intake"}, {label: "Lift motor", name: "lift"}, {label: "Vision", name: "limelight"}]
+    15: DECODE_HARDWARE.concat([{label: "Vision", name: "limelight"}])
   });
 
   const CAD_WHEEL_ORDER = Object.freeze(["left-front", "left-back", "right-front", "right-back"]);
@@ -1052,8 +1490,7 @@
       }
       if (unit === 11) return "Intake " + direction + " · power " + power.toFixed(2);
       if (unit === 13) {
-        const lift = Math.round(THREE.MathUtils.clamp((motion.state.armAngle + 0.55) / 1.1, 0, 1) * 100);
-        return "Intake " + direction + " · lift " + lift + "%";
+        return "DECODE mechanisms " + direction + " · coordinated by RobotHardware";
       }
       return "Student hardware output drives this model";
     }
@@ -1210,22 +1647,20 @@
     } else if (unit === 13) {
       box([0.52, 0.34, 0.46], [-0.58, 0.77, 0.12], blueMat);
       box([0.52, 0.34, 0.46], [0.58, 0.77, 0.12], greenMat);
-      [-0.36, 0.36].forEach(function (x) {
-        box([0.1, 1.72, 0.12], [x, 1.35, 0.28], frameMat);
-      });
-      const liftCarriage = box([0.94, 0.22, 0.48], [0, 0.72, 0.28], accentMat);
       const intake = visibleRoller(0.17, 1.38, [0, 0.33, -0.79], warningMat, [0, 0, Math.PI / 2]);
+      const transfer = visibleRoller(0.15, 0.82, [0, 0.61, -0.12], accentMat, [0, 0, Math.PI / 2]);
+      const flywheel = visibleRoller(0.3, 0.38, [0, 0.94, 0.58], greenMat, [Math.PI / 2, 0, 0]);
       const intakeSample = sphere(0.16, [0, 0.2, -1.48], blueMat);
       animation = function (_time, dt) {
         applyDriveState();
         intake.rotation.y = motion.state.primaryAngle;
+        transfer.rotation.y = motion.state.primaryAngle * 0.8;
+        flywheel.rotation.x = motion.state.primaryAngle * 1.7;
         intakeSample.position.z = THREE.MathUtils.clamp(
           intakeSample.position.z + motion.state.primaryPower * dt * 0.95,
           -1.55,
           -0.48
         );
-        const liftProgress = THREE.MathUtils.clamp((motion.state.armAngle + 0.55) / 1.1, 0, 1);
-        liftCarriage.position.y = 0.72 + liftProgress * 1.42;
       };
     } else if (unit === 14) {
       box([0.1, 0.92, 0.1], [0, 1.08, -0.12], frameMat);
@@ -1354,21 +1789,21 @@
   function checksForUnit(unit) {
     const config = CONFIGS[unit];
     if (!config) return [];
-    const isAutonomous = [6, 10, 14, 15].indexOf(unit) >= 0;
-    const registrationCheck = isAutonomous
+    if (!config.registration) return config.checks.slice();
+    const registrationCheck = config.registration === "autonomous"
       ? [
-          "Keep the supplied FTC SDK autonomous class shell intact",
+          "Keep FullAutonomous registered as an FTC autonomous OpMode",
           /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:LinearOpMode|\*)\s*;/,
           /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:Autonomous|\*)\s*;/,
           /@Autonomous\s*\([^)]*\)/,
-          /\bclass\s+\w+\s+extends\s+LinearOpMode\b/,
+          /\bclass\s+FullAutonomous\s+extends\s+LinearOpMode\b/,
         ]
       : [
-          "Keep the supplied FTC SDK TeleOp class shell intact",
+          "Keep CompetitionTeleOp registered as an iterative FTC TeleOp",
           /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:OpMode|\*)\s*;/,
           /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:TeleOp|\*)\s*;/,
           /@TeleOp\s*\([^)]*\)/,
-          /\bclass\s+\w+\s+extends\s+OpMode\b/,
+          /\bclass\s+CompetitionTeleOp\s+extends\s+OpMode\b/,
         ];
     return [registrationCheck].concat(config.checks);
   }
@@ -1467,12 +1902,11 @@
   function hasNoRawMechanismAccess(opModeBody) {
     return Boolean(opModeBody)
       && /\bRobotHardware\b/.test(opModeBody)
-      && !/hardwareMap\s*\.\s*get\s*\(\s*(?:DcMotor|CRServo|Servo)\s*\.\s*class/.test(opModeBody)
-      && !/\b(?:DcMotor|CRServo|Servo)\s+\w+/.test(opModeBody);
+      && !/hardwareMap\s*\.\s*get\s*\(\s*(?:DcMotor|DcMotorEx|CRServo|Servo|IMU)\s*\.\s*class/.test(opModeBody)
+      && !/\b(?:DcMotor|DcMotorEx|CRServo|Servo|IMU)\s+\w+/.test(opModeBody);
   }
 
   function evaluate(unit, source) {
-    if (unit === 7) return evaluateHardwareProject(source);
     const code = sourceWithoutComments(source);
     const results = checksForUnit(unit).map(function (check) {
       return check.slice(1).every(function (pattern) {
@@ -1480,11 +1914,14 @@
         return pattern.test(code);
       });
     });
+    if (unit === 7) {
+      results[results.length - 1] = !/hardwareMap\s*\.\s*get\s*\(/.test(namedClassBody(code, "CompetitionTeleOp"));
+    }
     if (unit === 13) {
-      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "Unit13Mastery"));
+      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "CompetitionTeleOp"));
     }
     if (unit === 15) {
-      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "Unit15Mastery"));
+      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "FullAutonomous"));
     }
     return results;
   }
@@ -1619,7 +2056,10 @@
       global.__telemarkMasteryMotion = challengeMotion;
       injectChallengeStyles();
       setTelemetryStudentOnly(true);
-      setCode(config.starter);
+      const activeScaffold = projectOptions.initialFiles.find(function (file) {
+        return file.name === projectOptions.preferredActiveFile;
+      });
+      setCode(activeScaffold ? activeScaffold.source : config.starter);
       setChallenge({
         title: config.title,
         scenario: config.scenario,

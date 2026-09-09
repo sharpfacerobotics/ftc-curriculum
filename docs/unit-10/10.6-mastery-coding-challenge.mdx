@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 10 Comprehensive Coding Challenge: Encoder Distance Autonomous"
+title: "Unit 10 Project Stage: Closed-Loop Flywheel Velocity"
 sidebar_label: "Unit 10 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -8,26 +8,22 @@ sidebar_position: 6
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 10 Comprehensive Coding Challenge
+# Stage 9: Closed-Loop Flywheel Velocity
 
-The editor provides the FTC SDK imports, autonomous registration, and an empty `LinearOpMode` class, like Android Studio would. Write the full encoder-based move yourself. Passing every requirement demonstrates full mastery of Unit 10, so experienced students can take this challenge first and continue directly to Unit 11.
+Apply encoder feedback in `Launcher.java`. `setPower()` is still useful for many mechanisms, but a flywheel needs a measured velocity target that stays consistent as conditions change.
 
 ## Your Task
 
-1. Declare shared constants for ticks per revolution and wheel diameter or circumference.
-2. Convert a requested travel distance into encoder ticks.
-3. Map `"left_drive"` and `"right_drive"`, then reset their encoders.
-4. Assign target positions and select `RUN_TO_POSITION`.
-5. Apply power only after the targets and run mode are configured.
-6. Continue while the OpMode is active and the motors are busy.
-7. Report current positions and target error through telemetry.
-8. Stop both motors and restore `RUN_USING_ENCODER` when the move ends.
+1. Change the flywheel to `DcMotorEx` and map it with the exact configured launcher name.
+2. Select `RUN_USING_ENCODER` and set reasonable velocity PIDF coefficients.
+3. Scale the right trigger into a target velocity and call `setVelocity()`.
+4. Read `getVelocity()` and report both target and measured values through telemetry.
 
 Make the conversion readable enough that a teammate can change wheel size without rewriting the routine.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={10} />
+<MasterySimulator unit={10} project />
 
 <MarkComplete
   lessonId="unit-10/mastery-coding-challenge"

@@ -27,12 +27,14 @@ export const CHANGELOG: readonly ChangeEntry[] = [
     version: '1.9',
     date: '2026-09-06',
     kind: 'simulator',
-    title: 'Multi-file Java projects',
+    title: 'Cumulative Java robot projects',
     body:
-      'Build simulator projects the same way you structure TeamCode, with supporting classes kept in separate files and compiled together in the browser.',
+      'Build one TeamCode-style DECODE robot from its first TeleOp lifecycle through modular subsystems, vision, and a full autonomous, with supporting classes compiled together in the browser.',
     additions: [
       'Create and switch between Java files inside supported simulators.',
       'Use packages, imports, helper classes, and shared constants across one project.',
+      'Carry the same CompetitionTeleOp and subsystem code through every mastery stage from Unit 2 to Unit 15.',
+      'Preview, copy, and export read-only snapshots from earlier passing stages.',
       'See Java annotations highlighted and complete @TeleOp, @Autonomous, and @Override as you type.',
       'Get case-sensitive suggestions for FTC SDK types and the classes and methods you write.',
       'Read plain-language definitions of foundational Java keywords in Unit 0.',

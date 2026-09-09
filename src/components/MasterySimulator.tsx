@@ -25,9 +25,9 @@ export default function MasterySimulator({unit, project = false}: MasterySimulat
       />
 
       <Admonition type="info" title={simulatorTitle}>
-        <div>{project ? 'The editor begins with separate Java files for the OpMode, configuration, and subsystems.' : 'The editor begins with the FTC SDK imports, correct OpMode annotation, and an empty class shell, just as it would in Android Studio.'}</div>
+        <div>{project ? 'The editor opens your saved cumulative DECODE project and adds only the files introduced by this stage.' : 'The editor begins with the FTC SDK imports, correct OpMode annotation, and an empty class shell, just as it would in Android Studio.'}</div>
         <div>Use Init and Start to check every unit objective. Passing every check demonstrates full unit mastery.</div>
-        <div>{project ? 'Complete the project across its file tabs. The requirement panel checks the compiled project.' : 'Write the complete implementation inside the class. The requirement panel identifies missing behaviors without supplying method scaffolding or a finished solution.'}</div>
+        <div>{project ? 'Complete the stage across its file tabs. The requirement panel checks the compiled project, and a passing stage saves a read-only snapshot.' : 'Write the complete implementation inside the class. The requirement panel identifies missing behaviors without supplying method scaffolding or a finished solution.'}</div>
       </Admonition>
     </>
   );

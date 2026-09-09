@@ -39,28 +39,19 @@ public class Config {
 }`];
 const source = files.join('\n');
 const evaluate = code => Array.from(context.TelemarkMasteryChallenge.evaluate(7, code));
-assert.deepEqual(evaluate(source), Array(10).fill(true), 'separate helper and qualified config constants pass');
 const projectFiles=files.map((source,i)=>({name:['Test.java','LinearSlide.java','Config.java'][i],source}));
-assert.deepEqual(evaluate(java.serializeProject(projectFiles)), Array(10).fill(true), 'serialized editor project passes behavioral checks');
-const packaged=projectFiles.map((f,i)=>({...f,source:i===1 ? f.source.replace('package org.firstinspires.ftc.teamcode;', 'package robot.mechanisms; import org.firstinspires.ftc.teamcode.Config;') : f.source}));
-assert.ok(!evaluate(java.serializeProject(packaged)).every(Boolean), 'missing cross-package import cannot pass the auto-check');
-packaged[0].source=packaged[0].source.replace('import com.qualcomm.robotcore.eventloop.opmode.OpMode;', 'import com.qualcomm.robotcore.eventloop.opmode.OpMode; import robot.mechanisms.LinearSlide;');
-assert.deepEqual(evaluate(java.serializeProject(packaged)), Array(10).fill(true), 'imported helpers pass the same behavioral checks');
-for (const [label, code] of [
-  ['mutable names', source.replaceAll('static final String', 'static String')],
-  ['missing initialization', source.replace('slide.init(hardwareMap);', '')],
-  ['unused helper', source.replace('slide.move(gamepad1.left_stick_y);', '')],
-  ['wrong name', source.replace('"mechanism"', '"wrong"')],
-  ['unsafe limit', source.replace('!limit.getState()', 'false')],
-  ['always stopped', source.replace('motor.setPower(power)', 'motor.setPower(0)')],
-  ['syntax error in helper', source.replace('double voltage = pot.getVoltage();', 'double voltage = ;')],
-  ['mapping every loop', source.replace('slide.move(gamepad1', 'slide.init(hardwareMap); slide.move(gamepad1')],
-  ['comment-only solution', '/*' + source + '*/'],
-]) assert.ok(!evaluate(code).every(Boolean), label);
-console.log('Unit 7 project checks passed.');
-const localConstants = source.replaceAll('Config.', '').replace('public class LinearSlide {', 'public class LinearSlide {\n' + files[2].match(/public class Config \{([\s\S]*)\}/)[1]);
-assert.deepEqual(evaluate(localConstants), Array(10).fill(true), 'unqualified mechanism constants pass');
-assert.deepEqual(evaluate(source.replace('!limit.getState()', '!limit.getState() && power > 0')), Array(10).fill(true), 'directional limits allow retreat');
+const stage7Source = `
+class Drivetrain { void init(HardwareMap hardwareMap) { hardwareMap.get(DcMotor.class, "leftFront"); } }
+class Intake { void init(HardwareMap hardwareMap) { hardwareMap.get(DcMotor.class, "intake"); } }
+class Transfer { void init(HardwareMap hardwareMap) { hardwareMap.get(DcMotor.class, "transfer"); } }
+class Launcher { private DcMotor flywheel; void init(HardwareMap hardwareMap) { flywheel = hardwareMap.get(DcMotor.class, "launcher"); } }
+class ArtifactSensors { private int storedArtifacts; void init(HardwareMap hardwareMap) { hardwareMap.get(DigitalChannel.class, "artifact_entry"); } boolean hasCapacity() { return storedArtifacts < 3; } }
+class CompetitionTeleOp { Drivetrain drivetrain = new Drivetrain(); void init() { drivetrain.init(hardwareMap); } void loop() { if (gamepad1.right_bumper) drivetrain.drive(); } }
+`;
+assert.deepEqual(evaluate(stage7Source), Array(6).fill(true), 'all DECODE subsystems own their Unit 7 hardware mapping');
+assert.equal(evaluate(stage7Source.replace('drivetrain.init(hardwareMap);', 'hardwareMap.get(DcMotor.class, "leftFront");'))[5], false, 'CompetitionTeleOp cannot map raw hardware');
+assert.ok(!evaluate('/*' + stage7Source + '*/').every(Boolean), 'comments cannot satisfy project criteria');
+console.log('Unit 7 cumulative subsystem checks passed.');
 
 const {JSDOM} = require('jsdom');
 function editorPage(saved, initialFiles) {

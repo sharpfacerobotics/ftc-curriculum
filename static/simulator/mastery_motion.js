@@ -207,7 +207,7 @@
       if (unit === 7) {
         state.primaryPosition = clamp(state.primaryPosition + primaryPower * dt * 0.9, -0.62, 0.62);
       }
-      if (unit === 7 || unit === 11 || unit === 13) state.primaryAngle += primaryPower * dt * 12;
+      if (unit === 7 || unit === 11 || unit === 13) state.primaryAngle += state.primaryPower * dt * 12;
       if (unit === 6) {
         state.armAngle = clamp(state.armAngle + armPower * dt * 1.4, 0, 0.65);
       }

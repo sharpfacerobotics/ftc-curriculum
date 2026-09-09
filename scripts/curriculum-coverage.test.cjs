@@ -4,203 +4,51 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
-const challengeSource = fs.readFileSync(
-  path.join(root, 'static/simulator/mastery_challenge.js'),
-  'utf8',
-);
+const challengeSource = fs.readFileSync(path.join(root, 'static/simulator/mastery_challenge.js'), 'utf8');
 const context = {window: {}, document: {currentScript: {dataset: {unit: '0'}}}};
 vm.runInNewContext(challengeSource, context, {filename: 'mastery_challenge.js'});
-const configs = context.window.TelemarkMasteryChallenge.configs;
+const mastery = context.window.TelemarkMasteryChallenge;
 
-function lessonCorpus(unit) {
+function unitCorpus(unit) {
   const directory = path.join(root, `docs/unit-${String(unit).padStart(2, '0')}`);
   return fs.readdirSync(directory)
-    .filter((name) => name.endsWith('.mdx'))
-    .filter((name) => !name.includes('overview') && !name.includes('mastery-coding-challenge'))
+    .filter((name) => name.endsWith('.mdx') && !name.includes('overview'))
     .sort()
     .map((name) => fs.readFileSync(path.join(directory, name), 'utf8'))
     .join('\n');
 }
 
-// Entries align with CONFIGS[unit].checks followed by CONFIGS[unit].forbidden.
-// An array means every listed detail must be taught somewhere before mastery.
 const coverage = {
-  2: [
-    [/void\s+init\s*\(/, /telemetry\.addData/],
-    [/void\s+init_loop\s*\(/, /telemetry\.addData/],
-    [/void\s+start\s*\(/, /resetRuntime\s*\(/],
-    /void\s+loop\s*\(/,
-    [/getRuntime\s*\(/, /gamepad1\./, /telemetry\.addData/],
-    [/void\s+stop\s*\(/, /telemetry\.addData/],
-  ],
-  3: [
-    [/\bString\b/, /hardwareMap\.get/],
-    /\bdouble\b/,
-    /\bboolean\b/,
-    [/\bint\b/, /(?:\+\+|\+=)/],
-    [/gamepad1\./, /[*/+-]/],
-    /\.setPower\s*\(/,
-    /telemetry\.addData\s*\(/,
-  ],
-  4: [
-    [/leftDrive/, /rightDrive/, /hardwareMap\.get\s*\(DcMotor\.class/],
-    [/left_stick_y/, /right_stick_x/],
-    /Math\.abs\s*\(/,
-    /right_trigger/,
-    [/double\s+squareInputWithSign\s*\(/, /squareInputWithSign\s*\(forward\)/],
-    [/gamepad1\.a\s*&&\s*!previousA/, /previousA\s*=\s*gamepad1\.a/],
-    [/forward\s*\+\s*turn/, /forward\s*-\s*turn/, /Range\.clip\s*\(/],
-    [/leftDrive\.setPower/, /rightDrive\.setPower/],
-    [/Left Power/, /Right Power/, /telemetry\.addData/],
-  ],
-  5: [
-    [/hardwareMap\.get\s*\(DcMotor\.class\s*,\s*"intake"/, /DcMotor\.class/],
-    [/hardwareMap\.get\s*\(ColorSensor\.class\s*,\s*"intake_color"/],
-    [/hardwareMap\.get\s*\(DistanceSensor\.class\s*,\s*"intake_distance"/],
-    [/getDistance\s*\(DistanceUnit\.CM/, /\.red\s*\(\)/, /\.blue\s*\(\)/],
-    [/\bif\s*\(/, /\belse\s+if\s*\(/, /\belse\b/],
-    [/<\s*10(?:\.0+)?/, /&&/, /redValue\s*>\s*blueValue/, /blueValue\s*>\s*redValue/],
-    [/setPower\s*\(\s*0\.8(?:0*)?\s*\)/, /setPower\s*\(\s*-0\.5(?:0*)?\s*\)/],
-    [/\belse\b/, /setPower\s*\(\s*0(?:\.0+)?\s*\)/],
-    [/telemetry\.addData\s*\(/, /Distance \(cm\)/, /Red \/ Blue/, /State/],
-  ],
-  6: [
-    [/void\s+runOpMode\s*\(/, /waitForStart\s*\(/],
-    [/DcMotor\s*\[\s*\]/, /hardwareMap\.get\s*\(DcMotor\.class/],
-    /for\s*\(\s*int\s+\w+\s*=/,
-    /for\s*\(\s*DcMotor\s+\w+\s*:/,
-    /while\s*\([^)]*opModeIsActive\s*\(\s*\)/,
-    [/getRuntime\s*\(\s*\)\s*\+/, /getRuntime\s*\(\s*\)\s*[<>]/],
-    [/while\s*\([^)]*opModeIsActive/, /telemetry\.update\s*\(/],
-    /setPower\s*\(\s*0(?:\.0+)?\s*\)/,
-    [/sleep\s*\(/, /blocks|blocking/],
-    [/while\s*\(\s*true\s*\)/, /unbounded loop/],
-  ],
-  7: [
-    [/static\s+final\s+String/, /hardwareMap\.get/],
-    /class\s+\w*(?:Mechanism|Subsystem|System)\b/,
-    /void\s+init\s*\(\s*HardwareMap/,
-    /\.get\s*\(\s*DcMotor\.class/,
-    [/DigitalChannel\.class/, /DigitalChannel\.Mode\.INPUT/],
-    [/AnalogInput\.class/, /getVoltage\s*\(/],
-    /\.init\s*\(\s*hardwareMap\s*\)/,
-    [/gamepad1\./, /setIntakePower\s*\(/],
-    [/getState\s*\(\s*\)/, /setPower\s*\(\s*0(?:\.0+)?\s*\)/],
-  ],
-  8: [
-    [/DcMotor\.class/, /limit_upper/, /limit_lower/],
-    [/upperLimit\.setMode/, /lowerLimit\.setMode/, /DigitalChannel\.Mode\.INPUT/],
-    /setDirection\s*\([^)]*Direction\.REVERSE/,
-    /setZeroPowerBehavior\s*\(\s*DcMotor\.ZeroPowerBehavior\.BRAKE/,
-    /gamepad1\.left_stick_y/,
-    [/upperLimit\.getState/, /lowerLimit\.getState/, /requestedPower\s*>\s*0/, /requestedPower\s*<\s*0/],
-    [/appliedPower\s*=\s*requestedPower/, /slideMotor\.setPower/],
-    /appliedPower\s*=\s*0(?:\.0+)?/,
-    [/At Upper Limit/, /At Lower Limit/, /Slide Power/],
-  ],
-  9: [
-    [/Servo\.class/, /CRServo\.class/],
-    /scaleRange\s*\(/,
-    /setDirection\s*\(\s*Servo\.Direction\.REVERSE/,
-    [/gamepad1\.a/, /gamepad1\.b/, /setPosition\s*\(/],
-    [/leftClaw\.setPosition/, /rightClaw\.setPosition/],
-    [/setPower\s*\(\s*(?:1(?:\.0+)?|gamepad1)/, /setPower\s*\(\s*-/],
-    /setPower\s*\(\s*0(?:\.0+)?\s*\)/,
-    [/telemetry\.addData/, /(?:Gripper|Intake)/],
-  ],
-  10: [
-    [/(?:TICKS|COUNTS)_PER_REV/, /WHEEL_(?:DIAMETER|CIRCUMFERENCE)/],
-    [/Math\.PI/, /(?:ticks|counts)/i],
-    /STOP_AND_RESET_ENCODER/,
-    /setTargetPosition\s*\(/,
-    /RUN_TO_POSITION/,
-    [/opModeIsActive\s*\(\s*\)/, /isBusy\s*\(\s*\)/],
-    [/getCurrentPosition\s*\(/, /telemetry\.addData/],
-    [/setPower\s*\(\s*0(?:\.0+)?\s*\)/, /RUN_USING_ENCODER/],
-  ],
-  11: [
-    [/hardwareMap\.get\s*\(DcMotor\.class\s*,\s*"intake"/],
-    [/"storage_full"/, /"arm_pot"/, /"intake_color"/, /"intake_range"/],
-    [/DigitalChannel\.Mode\.INPUT/, /!\s*fullStop\.getState\s*\(/],
-    [/getVoltage\s*\(/, /Range\.scale\s*\([^;]*0(?:\.0+)?\s*,\s*3\.3\s*,\s*0(?:\.0+)?\s*,\s*180(?:\.0+)?\s*\)/],
-    [/\.red\s*\(\)/, /\.blue\s*\(\)/, /(?:\br\s*>\s*b\b|\bb\s*>\s*r\b|red\w*\s*[<>]\s*blue\w*|blue\w*\s*[<>]\s*red\w*)/i],
-    [/getDistance\s*\(\s*DistanceUnit\.CM/, /<\s*10(?:\.0+)?/],
-    [/&&[\s\S]*?&&[\s\S]*?&&/, /20(?:\.0+)?/, /160(?:\.0+)?/],
-    [/setPower\s*\(\s*0\.8(?:0*)?\s*\)/, /setPower\s*\(\s*-0\.5(?:0*)?\s*\)/],
-    [/\belse\b/, /setPower\s*\(\s*0(?:\.0+)?\s*\)/],
-    [/telemetry\.addData/, /Storage Full/, /Arm Angle/, /Distance \(cm\)/, /Red \/ Blue/, /Sorter State/],
-  ],
-  12: [
-    [/hardwareMap\.get\s*\(IMU\.class/, /RevHubOrientationOnRobot/, /imu\.initialize/],
-    /getRobotYawPitchRollAngles\s*\(/,
-    [/getYaw\s*\(\s*AngleUnit\./, /getPitch\s*\(\s*AngleUnit\./, /getRoll\s*\(\s*AngleUnit\./],
-    [/gamepad1\.[abxy]/, /resetYaw\s*\(/],
-    [/Math\.cos\s*\(/, /Math\.sin\s*\(/],
-    [/Math\.max\s*\(/, /leftFront\.setPower/, /rightFront\.setPower/, /leftBack\.setPower/, /rightBack\.setPower/],
-    [/Math\.abs\s*\([^)]*(?:pitch|roll)/i, /setPower\s*\(\s*0(?:\.0+)?\s*\)/],
-    [/(?:targetAngle|error|correction|heading)/i, /Range\.clip\s*\(/],
-    [/telemetry\.addData/, /(?:Yaw|Pitch|Roll|Heading)/],
-  ],
-  13: [
-    [/class\s+Intake/, /private\s+CRServo/],
-    [/class\s+MotorMechanism/, /protected\s+DcMotor/, /init\s*\(\s*HardwareMap/],
-    /class\s+Lift\s+extends\s+MotorMechanism/,
-    [/@Override/, /void\s+stop\s*\(/],
-    [/class\s+RobotConfig/, /static\s+final/],
-    [/class\s+RobotHardware/, /new\s+Intake\s*\(/, /new\s+Lift\s*\(/],
-    [/intake\.init\s*\(\s*hardwareMap\s*\)/, /lift\.init\s*\(\s*hardwareMap\s*\)/, /lift\.update\s*\(/],
-    [/class\s+CompetitionTeleOp/, /robot\.init\s*\(\s*hardwareMap\s*\)/, /robot\.update\s*\(/, /robot\.(?:intake|lift)\./],
-    [/void\s+stop\s*\(/, /robot\.stopAll\s*\(/],
-    /does not import `DcMotor` or `CRServo`/,
-  ],
-  14: [
-    /hardwareMap\.get\s*\(\s*WebcamName\.class/,
-    /AprilTagProcessor\.(?:easyCreateWithDefaults|Builder)/,
-    [/VisionPortal/, /(?:easyCreateWithDefaults|new\s+VisionPortal\.Builder)/],
-    [/getDetections\s*\(\)/, /for\s*\(\s*AprilTagDetection/],
-    [/\.id\b/, /ftcPose/, /metadata\s*!=\s*null/],
-    [/new\s+Rect\s*\(/, /ZONE_LEFT/, /ZONE_CENTER/, /ZONE_RIGHT/],
-    [/enum\s+SpikeLocation/, /LEFT/, /CENTER/, /RIGHT/],
-    [/while\s*\(\s*!isStarted\s*\(\)/, /telemetry\.addData/],
-    /visionPortal\.close\s*\(/,
-  ],
-  15: [
-    [/hardwareMap\.get\s*\(Limelight3A\.class/, /pipelineSwitch\s*\(/, /limelight\.start\s*\(/],
-    [/new\s+Follower\s*\(/, /setStartingPose\s*\(\s*new\s+Pose/],
-    [/new\s+BezierLine\s*\(/, /new\s+BezierCurve\s*\(/, /PathChain/],
-    [/enum\s+\w*State/, /switch\s*\(/, /case\s+\w+/],
-    [/while\s*\([^)]*opModeIsActive/, /follower\.update\s*\(/],
-    [/getLatestResult\s*\(/, /\.isValid\s*\(\s*\)/],
-    [/getBotpose\s*\(/, /follower\.setPose\s*\(/],
-    [/new\s+RobotHardware\s*\(/, /robot\.init\s*\(\s*hardwareMap\s*\)/],
-    [/robot\.update\s*\(/, /robot\.lift\./, /robot\.intake\./, /getRuntime\s*\(/],
-    [/robot\.stopAll\s*\(/, /limelight\.stop\s*\(/, /telemetry\.addData/],
-    /raw intake and lift hardware access inside their subsystem files/i,
-    [/sleep\s*\(/, /blocking|blocks/],
-  ],
+  2: [/CompetitionTeleOp\.java/, /iterative OpMode/, /init\(\)/, /start\(\)/, /loop\(\)/, /stop\(\)/],
+  3: [/RobotConfig/, /static final String/, /double/, /boolean/, /int/],
+  4: [/Drivetrain\.java/, /deadzone/i, /mecanum/i, /normalize/i, /gamepad1/],
+  5: [/Intake\.java/, /Transfer\.java/, /if.*else if.*else/is, /right bumper/i, /left bumper/i],
+  6: [/array/i, /for-each|for loop/i, /rising edge/i, /getRuntime\(\)/, /deadline/i, /sleep\(\)/],
+  7: [/Launcher\.java/, /ArtifactSensors\.java/, /init\(HardwareMap\)/, /hardware lookup|hardwareMap\.get/i],
+  8: [/setDirection\(\)/, /RUN_USING_ENCODER/, /BRAKE/, /setPower\(0\)/],
+  9: [/Launcher\.java/, /Servo/, /setPosition\(\)/, /rising edge/i, /deadline/i],
+  10: [/DcMotorEx/, /setVelocity\(\)/, /getVelocity\(\)/, /PIDF/, /RUN_USING_ENCODER/],
+  11: [/ArtifactSensors\.java/, /three artifacts/i, /sensor transitions/i, /hasCapacity\(\)/, /interlock/i],
+  12: [/Drivetrain\.java/, /IMU/, /radians/i, /sine and cosine/i, /field-centric/i],
+  13: [/PoweredMechanism\.java/, /RobotHardware\.java/, /Drivetrain, Intake, Transfer, Launcher, and ArtifactSensors/, /robot\.stopAll\(\)/],
+  14: [/Vision\.java/, /AprilTagProcessor/, /VisionPortal/, /left, center, and right/i, /close/i],
+  15: [/FullAutonomous\.java/, /Limelight/, /Follower/, /Bezier|Bézier/, /robot\.update\(\)/, /robot\.stopAll\(\)/],
 };
 
 let covered = 0;
 for (let unit = 2; unit <= 15; unit += 1) {
-  const requirements = [...configs[unit].checks, ...(configs[unit].forbidden || [])];
-  const specs = coverage[unit];
-  assert.equal(
-    specs.length,
-    requirements.length,
-    `Unit ${unit} coverage map must align with every challenge requirement`,
-  );
-  const corpus = lessonCorpus(unit);
-  requirements.forEach((requirement, index) => {
-    const patterns = Array.isArray(specs[index]) ? specs[index] : [specs[index]];
-    patterns.forEach((pattern) => {
-      assert.match(
-        corpus,
-        pattern,
-        `Unit ${unit} lessons do not cover challenge requirement: ${requirement[0]}`,
-      );
-    });
+  const config = mastery.configs[unit];
+  const options = mastery.decodeProjectOptions(unit, config);
+  const corpus = unitCorpus(unit);
+  assert.ok(config.activeFile, `Unit ${unit} needs an active project file`);
+  assert.ok(config.scenario.length > 40, `Unit ${unit} needs a clear project-stage scenario`);
+  assert.ok(corpus.includes(config.activeFile), `Unit ${unit} docs must name its active file`);
+  assert.ok(options.stage.files.includes(config.activeFile), `Unit ${unit} stage must snapshot its active file`);
+  assert.ok(config.checks.length >= 4, `Unit ${unit} needs clear behavioral requirements`);
+  coverage[unit].forEach((pattern) => {
+    assert.match(corpus, pattern, `Unit ${unit} does not teach ${pattern}`);
     covered += 1;
   });
 }
 
-console.log(`Curriculum coverage checks passed for ${covered} coding-challenge requirements`);
+console.log(`Curriculum progression checks passed for ${covered} stage concepts.`);

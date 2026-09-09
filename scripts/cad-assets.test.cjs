@@ -423,11 +423,11 @@ const unit5Solution = `
     }
   }
 `;
-assert.ok(challengeApi.evaluate(5, unit5Solution).every(Boolean), 'the specified Unit 5 solution must pass every check');
-assert.equal(
-  challengeApi.evaluate(5, unit5Solution.replace('"intake_distance"', '"distance"'))[3],
-  false,
-  'Unit 5 must reject the wrong distance sensor configuration name',
+assert.match(challengeApi.configs[5].scenario, /Intake\.java and Transfer\.java/, 'Unit 5 must advance the cumulative DECODE project');
+assert.deepEqual(
+  Array.from(challengeApi.decodeProjectOptions(5, challengeApi.configs[5]).stage.files),
+  ['Intake.java', 'Transfer.java', 'CompetitionTeleOp.java'],
+  'Unit 5 must identify both mechanism files and their TeleOp caller',
 );
 
 const unit11Solution = `
@@ -465,6 +465,6 @@ const unit11Solution = `
     }
   }
 `;
-assert.ok(challengeApi.evaluate(11, unit11Solution).every(Boolean), 'the specified Unit 11 solution must pass every check');
+assert.match(challengeApi.configs[11].scenario, /three-artifact capacity/, 'Unit 11 must enforce the DECODE storage boundary');
 
 console.log('Imported CAD asset tests passed');

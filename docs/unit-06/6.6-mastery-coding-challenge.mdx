@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 6 Comprehensive Coding Challenge: Non-Blocking Autonomous Loop"
+title: "Unit 6 Project Stage: Arrays and Non-Blocking Timing"
 sidebar_label: "Unit 6 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -8,27 +8,25 @@ sidebar_position: 6
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 6 Comprehensive Coding Challenge
+# Stage 5: Arrays and Non-Blocking Timing
 
-The editor provides the FTC SDK imports, autonomous registration, and an empty `LinearOpMode` class, like Android Studio would. Write the autonomous lifecycle and control flow yourself. Passing every requirement demonstrates full mastery of Unit 6, so experienced students can take this challenge first and continue directly to Unit 7.
+This stage keeps `CompetitionTeleOp.java` and improves it in place. Use the existing project files and earlier snapshots as references; no disposable autonomous file is created.
 
 ## Your Task
 
-Create an autonomous program that manages several motors without blocking:
+Reduce repeated motor work and prepare a responsive launch sequence:
 
-1. Implement `runOpMode()` and map a `DcMotor[]` array with `"leftFront"`, `"leftBack"`, `"rightFront"`, `"rightBack"`, and `"arm"`.
-2. Use a counted `for` loop for a fixed repeated setup or action.
-3. Use a for-each loop to configure every motor in the array consistently.
-4. Call `waitForStart()` before motion.
-5. Guard repeated work with `opModeIsActive()`.
-6. Create a deadline from `getRuntime()` and keep one mechanism timed while other work continues.
-7. Update telemetry during the active loop and stop every motor afterward.
+1. Put the four drive motors in an array.
+2. Use a counted or for-each loop for repeated configuration or shutdown.
+3. Detect the rising edge of the A button.
+4. Store a deadline based on `getRuntime()` and advance the launch state from later `loop()` calls.
+5. Keep `stop()` responsible for safe shutdown.
 
 Do not use `sleep()` or `while(true)`. The program must stay responsive to Stop.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={6} />
+<MasterySimulator unit={6} project />
 
 <MarkComplete
   lessonId="unit-06/mastery-coding-challenge"

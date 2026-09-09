@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 3 Comprehensive Coding Challenge: Robot State Variables"
+title: "Unit 3 Project Stage: Shared Robot Configuration"
 sidebar_label: "Unit 3 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -8,26 +8,25 @@ sidebar_position: 6
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 3 Comprehensive Coding Challenge
+# Stage 2: Shared Robot Configuration
 
-The editor provides the FTC SDK imports, registration annotation, and an empty OpMode class, like Android Studio would. Write the fields, lifecycle methods, and statements yourself. Passing every requirement demonstrates full mastery of Unit 3, so experienced students can take this challenge first and continue directly to Unit 4.
+Your saved DECODE project now adds `RobotConfig.java` without changing `CompetitionTeleOp.java`. Use the earlier passing snapshot when you need a lifecycle refresher.
 
 ## Your Task
 
-Build a motor-control TeleOp that demonstrates every variable type from this unit:
+Turn `RobotConfig` into the single source of truth for values later subsystems will share:
 
-1. Store the motor configuration name `"intake_slide"` in a `String` and use that variable in `hardwareMap.get()`.
-2. Use a `double` as a driver-power scale.
-3. Use a `boolean` to track whether precision mode is enabled.
-4. Use an `int` to count completed driver actions.
-5. Calculate final motor power from gamepad input and the current mode.
-6. Report all important values through telemetry so another programmer can debug the state.
+1. Make the utility class `final` with a private constructor.
+2. Add `static final String` hardware names.
+3. Add `double` constants for mechanism power, joystick deadzone, and target flywheel velocity.
+4. Represent mechanism state with appropriate `boolean` and `int` values.
+5. Read at least one configuration value from `CompetitionTeleOp` so the constant is actually used.
 
 Choose clear names and keep each value as a single source of truth.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={3} />
+<MasterySimulator unit={3} project />
 
 <MarkComplete
   lessonId="unit-03/mastery-coding-challenge"

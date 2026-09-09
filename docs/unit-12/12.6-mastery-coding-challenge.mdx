@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 12 Comprehensive Coding Challenge: IMU Field-Centric Drive"
+title: "Unit 12 Project Stage: IMU Field-Centric Drive"
 sidebar_label: "Unit 12 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -8,26 +8,23 @@ sidebar_position: 6
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 12 Comprehensive Coding Challenge
+# Stage 11: IMU Field-Centric Drive
 
-The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMode class, like Android Studio would. Write the IMU setup and drivetrain control yourself. Passing every requirement demonstrates full mastery of Unit 12, so experienced students can take this challenge first and continue directly to Unit 13.
+Upgrade the existing `Drivetrain.java`; do not create another OpMode. The TeleOp continues to delegate stick input while the subsystem owns heading and coordinate conversion.
 
 ## Your Task
 
 1. Map the IMU as `"imu"` and initialize it with the Control Hub's physical logo and USB orientation.
-2. Map `"leftFront"`, `"leftBack"`, `"rightFront"`, and `"rightBack"`, then make their directions consistent.
-3. Read yaw, pitch, and roll from `YawPitchRollAngles` in a named `AngleUnit`.
-4. Let the driver reset yaw with a button.
-5. Rotate joystick input with sine and cosine for field-centric control.
-6. Calculate and normalize four mecanum wheel powers.
-7. Detect a dangerous pitch or roll angle and stop or reduce motion.
-8. Include a target-heading error or correction term and report orientation through telemetry.
+2. Read yaw explicitly in radians.
+3. Let the X button reset heading.
+4. Rotate forward and strafe with sine and cosine.
+5. Reuse the normalized four-wheel mecanum output from Unit 4.
 
 Keep all angle units explicit. Degrees and radians must not be mixed accidentally.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={12} />
+<MasterySimulator unit={12} project />
 
 <MarkComplete
   lessonId="unit-12/mastery-coding-challenge"

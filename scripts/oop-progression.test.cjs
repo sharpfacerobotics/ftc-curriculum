@@ -153,22 +153,20 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
   if (lesson === 'teleop') unit13TeleopFiles = files;
 }
 
-unit13TeleopFiles[5] = {
-  name: 'Unit13Mastery.java',
-  source: unit13TeleopFiles[5].source
-    .replaceAll('CompetitionTeleOp', 'Unit13Mastery')
-    .replace('// Update the robot and add driver commands below.', 'robot.update();')
-    .replace('false && gamepad1.right_bumper', 'gamepad1.right_bumper'),
-};
 const masterySource = read('static/simulator/mastery_challenge.js');
 const masteryContext = {window: {}, document: {currentScript: {dataset: {unit: '0'}}}};
 vm.runInNewContext(masterySource, masteryContext, {filename: 'mastery_challenge.js'});
-const unit13ProjectSource = TelemarkJava.serializeProject(unit13TeleopFiles);
-assert.ok(masteryContext.window.TelemarkMasteryChallenge.evaluate(13, unit13ProjectSource).every(Boolean));
-const inlineHardware = unit13ProjectSource.replace(
-  'private final RobotHardware robot',
-  'private DcMotor duplicatedLift;\n    private final RobotHardware robot',
-);
+const cumulativeFiles = masteryContext.window.TelemarkMasteryChallenge
+  .decodeProjectOptions(13, masteryContext.window.TelemarkMasteryChallenge.configs[13])
+  .initialFiles.map((file) => file.name);
+assert.ok(cumulativeFiles.includes('PoweredMechanism.java'));
+assert.ok(cumulativeFiles.includes('RobotHardware.java'));
+assert.ok(cumulativeFiles.includes('CompetitionTeleOp.java'));
+assert.ok(!cumulativeFiles.includes('Lift.java'), 'the DECODE project remains lift-free');
+assert.ok(!cumulativeFiles.includes('MotorMechanism.java'), 'the DECODE parent is PoweredMechanism');
+const coordinationOnly = `class CompetitionTeleOp { private final RobotHardware robot = new RobotHardware(); }`;
+const inlineHardware = `class CompetitionTeleOp { private final RobotHardware robot = new RobotHardware(); private DcMotor duplicatedMotor; }`;
+assert.equal(masteryContext.window.TelemarkMasteryChallenge.evaluate(13, coordinationOnly).at(-1), true);
 assert.equal(masteryContext.window.TelemarkMasteryChallenge.evaluate(13, inlineHardware).at(-1), false);
 
 const finalAuto = read('docs/unit-15/15.5-full-autonomous.mdx');

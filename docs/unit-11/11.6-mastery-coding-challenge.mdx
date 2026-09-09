@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 11 Comprehensive Coding Challenge: Safe Red Sample Sorter"
+title: "Unit 11 Project Stage: Artifact Capacity and Interlocks"
 sidebar_label: "Unit 11 · Coding Challenge"
 sidebar_position: 6
 ---
@@ -8,35 +8,21 @@ sidebar_position: 6
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 11 Comprehensive Coding Challenge
+# Stage 10: Artifact Capacity and Interlocks
 
-The editor provides the FTC SDK imports, TeleOp registration, and an empty OpMode class, like Android Studio would. Write the complete multi-sensor controller yourself. Passing every requirement demonstrates full mastery of Unit 11, so experienced students can take this challenge first and continue directly to Unit 12.
+Finish `ArtifactSensors.java`, then use its state to coordinate Intake, Transfer, and Launcher. The robot may control at most three artifacts at once.
 
 ## Your Task
 
-Program a red-alliance sorter with four safety inputs. Use these Robot Controller configuration names:
-
-- Intake motor: `"intake"`
-- Active-low storage switch: `"storage_full"`
-- Arm potentiometer: `"arm_pot"`
-- Color sensor: `"intake_color"`
-- Distance sensor: `"intake_range"`
-
-Configure `storage_full` as a digital input. Its `getState()` value is `false` when storage is full. Scale the potentiometer from 0 to 3.3 V into 0 to 180 degrees with `Range.scale()`.
-
-Read every sensor once per loop. Then apply these rules:
-
-1. Set intake power to `0.8` only when storage is not full, the arm angle is from 20 through 160 degrees, the sample is closer than 10 cm, and `red > blue`.
-2. Otherwise, set intake power to `-0.5` when the same storage, angle, and distance checks pass and `blue > red`.
-3. Otherwise, set intake power to `0.0`.
-
-Report storage state, arm voltage or angle, distance in centimeters, red, blue, and the selected sorter state.
-
-Use the sample and safety controls above the robot view to test red collection, blue ejection, no sample, and a blocked mechanism.
+1. Map the storage sensors in `ArtifactSensors.init()` and read them in `update()`.
+2. Count sensor transitions rather than counting every loop where a sensor remains active.
+3. Clamp or guard the stored count from zero through three.
+4. Expose `hasCapacity()` and a ready-artifact query.
+5. Stop intake or transfer when storage is full, and launch only when an artifact is ready.
 
 ## Coding Challenge Simulator
 
-<MasterySimulator unit={11} />
+<MasterySimulator unit={11} project />
 
 <MarkComplete
   lessonId="unit-11/mastery-coding-challenge"

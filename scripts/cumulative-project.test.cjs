@@ -146,14 +146,30 @@ const expectedFiles = [
   'Transfer.java', 'Launcher.java', 'ArtifactSensors.java', 'PoweredMechanism.java',
   'RobotHardware.java', 'Vision.java', 'FullAutonomous.java',
 ];
+const activeFiles = {
+  2: 'CompetitionTeleOp.java', 3: 'RobotConfig.java', 4: 'Drivetrain.java',
+  5: 'Intake.java', 6: 'CompetitionTeleOp.java', 7: 'Launcher.java',
+  8: 'Drivetrain.java', 9: 'Launcher.java', 10: 'Launcher.java',
+  11: 'ArtifactSensors.java', 12: 'Drivetrain.java', 13: 'RobotHardware.java',
+  14: 'Vision.java', 15: 'FullAutonomous.java',
+};
 for (let unit = 2; unit <= 15; unit += 1) {
+  assert.equal(mastery.configs[unit].starter, undefined, `Unit ${unit} must not expose a throwaway mastery starter`);
+  assert.equal(mastery.configs[unit].starterFiles, undefined, `Unit ${unit} must not expose legacy mastery files`);
   const options = mastery.decodeProjectOptions(unit, mastery.configs[unit]);
   assert.equal(options.key, projectKey);
   assert.equal(options.stage.id, `unit-${String(unit).padStart(2, '0')}/mastery-coding-challenge`);
   assert.equal(options.preserveProjectOnReset, true);
   assert.equal(options.enableSnapshots, true);
+  assert.equal(options.preferredActiveFile, activeFiles[unit]);
+  assert.equal(options.preferredEntry, `org.firstinspires.ftc.teamcode.${unit === 15 ? 'FullAutonomous' : 'CompetitionTeleOp'}`);
+  assert.ok(options.stage.files.includes(activeFiles[unit]), `Unit ${unit} snapshot must include its active file`);
+  assert.ok(options.initialFiles.every(file => !/Unit\d+Mastery\.java/.test(file.name)));
+  const compilation = java.compileProject(Array.from(options.initialFiles));
+  assert.equal(compilation.ok, true, `Unit ${unit} starter project compiles: ${compilation.diagnostics?.[0]?.message || ''}`);
 }
-const finalNames = mastery.decodeProjectOptions(15, mastery.configs[15]).initialFiles.map(file => file.name);
+const finalNames = Array.from(mastery.decodeProjectOptions(15, mastery.configs[15]).initialFiles, file => file.name);
 expectedFiles.forEach(name => assert.ok(finalNames.includes(name), `Unit 15 cumulative project is missing ${name}`));
+assert.deepEqual(finalNames, expectedFiles, 'the DECODE project has the planned file set and no lift');
 
 console.log('Cumulative DECODE project persistence and snapshot checks passed.');

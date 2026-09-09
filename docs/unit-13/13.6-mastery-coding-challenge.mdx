@@ -1,6 +1,6 @@
 ---
 id: mastery-coding-challenge
-title: "Unit 13 Comprehensive Coding Challenge: Modular Robot Architecture"
+title: "Unit 13 Project Stage: Complete Modular TeleOp"
 sidebar_label: "Unit 13 · Coding Challenge"
 sidebar_position: 10
 ---
@@ -8,22 +8,20 @@ sidebar_position: 10
 import MarkComplete from '@site/src/components/HomepageFeatures/MarkComplete';
 import MasterySimulator from '@site/src/components/MasterySimulator';
 
-# Unit 13 Comprehensive Coding Challenge
+# Stage 12: Complete Modular TeleOp
 
-The editor provides separate project tabs for the configuration, intake, lift, robot hardware, and OpMode classes. Complete the architecture as one project. Passing every requirement demonstrates full mastery of Unit 13.
+The shared project adds `PoweredMechanism.java` and `RobotHardware.java`. This stage composes Drivetrain, Intake, Transfer, Launcher, and ArtifactSensors into the runnable DECODE TeleOp. Lift remains in the general lesson examples and is not part of this robot.
 
 ## Your Task
 
-1. Create a reusable parent mechanism class with encapsulated hardware state.
-2. Create at least one child subsystem with `extends` and specialized behavior.
-3. Use `@Override` for behavior that differs from the parent implementation.
-4. Centralize `"intake"`, `"lift"`, and calibration values as `static final` constants.
-5. Create a Robot class that composes multiple subsystem objects.
-6. Give the Robot class one `init(HardwareMap)` entry point.
-7. Instantiate the Robot in the OpMode, initialize it in `init()`, and control it from `loop()`.
-8. Provide one cleanup path that leaves powered mechanisms safe.
+1. Put shared motor state, setup, `setPower()`, and `stop()` behavior in `PoweredMechanism`.
+2. Reuse it from powered subsystem classes with `extends` and `@Override` where behavior differs.
+3. Compose every subsystem in `RobotHardware`.
+4. Initialize all subsystems through `robot.init(hardwareMap)` and update non-blocking state through `robot.update()`.
+5. Stop every subsystem through `robot.stopAll()`.
+6. Finish `CompetitionTeleOp` using only the RobotHardware public interface, with no raw motor, servo, or IMU access.
 
-The OpMode should read like coordination code. Hardware details belong inside the subsystem classes. Export the finished project so Lesson 15.5 can reuse it.
+The OpMode should read like coordination code. A passing snapshot becomes the reference that the advanced autonomous stage reuses.
 
 ## Coding Challenge Simulator
 
