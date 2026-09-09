@@ -2,6 +2,8 @@
 (function (global) {
   'use strict';
   const LIBRARY_KEY = 'telemark:java-library:v1';
+  const SNAPSHOT_KEY = 'telemark:java-snapshots:v1';
+  const CUMULATIVE_PROJECT_KEY = 'telemark:decode-project:v1';
   const TEAM_PACKAGE = 'org.firstinspires.ftc.teamcode';
   const validName = name => typeof name === 'string' && /^[\w$/.-]+\.java$/.test(name) && !name.split('/').includes('..');
   const packageName = source => (source.match(/^\s*package\s+([\w.]+)\s*;/m) || [null, ''])[1];
@@ -14,6 +16,9 @@
   }
   function readLibrary() {
     try { const data = JSON.parse(global.localStorage.getItem(LIBRARY_KEY)); return data && typeof data === 'object' && !Array.isArray(data) ? data : {}; } catch (_) { return {}; }
+  }
+  function readSnapshots() {
+    try { const data = JSON.parse(global.localStorage.getItem(SNAPSHOT_KEY)); return data && typeof data === 'object' && !Array.isArray(data) ? data : {}; } catch (_) { return {}; }
   }
   function validateFiles(files) {
     if (!Array.isArray(files) || !files.length || files.length > 40 || files.some(f => !f || !validName(f.name) || typeof f.source !== 'string') || JSON.stringify(files).length > 2000000) throw new Error('Choose up to 40 Java files, totaling at most 2 MB.');
@@ -43,20 +48,38 @@
     let files = suppliedFiles;
     let active = 0;
     let entry = '';
+    let appliedStages = [];
     let lesson = null;
     let completed = [];
     try {
       const saved = JSON.parse(global.localStorage.getItem(key));
       if (saved) {
         files = normalizeProjectFiles(saved.files);
-        if (options.addMissingInitialFiles) {
+        appliedStages = Array.isArray(saved.appliedStages)
+          ? saved.appliedStages.filter(id => typeof id === 'string')
+          : [];
+        const stageId = typeof options.stage?.id === 'string' ? options.stage.id : '';
+        const firstStageVisit = stageId && !appliedStages.includes(stageId);
+        if (options.addMissingInitialFiles || firstStageVisit) {
           const existingNames = new Set(files.map(file => file.name));
-          files = validateFiles(files.concat(suppliedFiles.filter(file => !existingNames.has(file.name))));
+          const stageNames = Array.isArray(options.stage?.files) ? new Set(options.stage.files) : null;
+          const additions = firstStageVisit && stageNames
+            ? suppliedFiles.filter(file => stageNames.has(file.name))
+            : suppliedFiles;
+          files = validateFiles(files.concat(additions.filter(file => !existingNames.has(file.name))));
         }
+        if (firstStageVisit) appliedStages.push(stageId);
         entry = saved.entry || '';
         active = Number.isInteger(saved.active) ? Math.max(0, Math.min(saved.active, files.length - 1)) : 0;
       }
     } catch (_) {}
+    const currentStageId = typeof options.stage?.id === 'string' ? options.stage.id : '';
+    if (currentStageId && !appliedStages.includes(currentStageId)) appliedStages.push(currentStageId);
+    if (typeof options.preferredActiveFile === 'string') {
+      const preferredActive = files.findIndex(file => file.name === options.preferredActiveFile);
+      if (preferredActive >= 0) active = preferredActive;
+    }
+    if (typeof options.preferredEntry === 'string') entry = options.preferredEntry;
     const bar = document.createElement('div');
     bar.className = 'telemark-project';
     bar.setAttribute('aria-label', 'Java project files');
@@ -68,8 +91,8 @@
     function save() {
       files[active].source = editor.value;
       try {
-        global.localStorage.setItem(key, JSON.stringify({files, active, entry}));
-        if (lesson) {
+        global.localStorage.setItem(key, JSON.stringify({files, active, entry, appliedStages}));
+        if (lesson && !options.snapshotsOnly) {
           const library = readLibrary();
           library[lesson.id] = {lesson, files, entry, savedAt: Date.now()};
           global.localStorage.setItem(LIBRARY_KEY, JSON.stringify(library));
@@ -233,6 +256,116 @@
       const rename = document.createElement('button'); rename.textContent = 'Rename current file'; rename.className = 'telemark-project-dialog-secondary'; rename.addEventListener('click', () => { const current = active; closeDialog(dialog); openRenameDialog(current); }); reuse.appendChild(rename);
       dialog.appendChild(reuse); buildCompletedLessonSelect(dialog); showDialog(dialog, input);
     }
+    function snapshotMetadata(metadata) {
+      const candidate = metadata || options.stage || lesson || {};
+      const id = typeof candidate.id === 'string' && candidate.id.trim()
+        ? candidate.id.trim()
+        : currentStageId;
+      if (!id) throw new Error('This project stage does not have a snapshot ID.');
+      return {
+        id,
+        title: typeof candidate.title === 'string' && candidate.title.trim()
+          ? candidate.title.trim()
+          : id,
+      };
+    }
+    function listSnapshots() {
+      return Object.values(readSnapshots())
+        .filter(item => item?.stage && Array.isArray(item.files))
+        .sort((left, right) => left.savedAt - right.savedAt)
+        .map(item => ({
+          ...item,
+          files: item.files.map(file => ({...file})),
+        }));
+    }
+    function saveSnapshot(metadata) {
+      save();
+      const stage = snapshotMetadata(metadata);
+      const snapshots = readSnapshots();
+      if (snapshots[stage.id]) return {saved: false, snapshot: snapshots[stage.id]};
+      const snapshot = {
+        stage,
+        files: files.map(file => ({...file})),
+        entry,
+        savedAt: Date.now(),
+      };
+      try {
+        global.localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({...snapshots, [stage.id]: snapshot}));
+        report('Saved a read-only snapshot for ' + stage.title + '.');
+        return {saved: true, snapshot};
+      } catch (_) {
+        report('Browser storage is full or unavailable. Export your project to keep a copy.');
+        return {saved: false, snapshot: null};
+      }
+    }
+    function downloadProject(snapshot, filename) {
+      const payload = {
+        format: 'telemark-java-project',
+        version: 1,
+        files: snapshot.files,
+        entry: snapshot.entry || '',
+      };
+      const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'}));
+      const link = document.createElement('a'); link.href = url; link.download = filename; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function openSnapshotsDialog() {
+      const snapshots = listSnapshots();
+      const dialog = document.createElement('dialog');
+      dialog.className = 'telemark-project-dialog telemark-project-snapshots';
+      dialog.setAttribute('aria-label', 'Completed project snapshots');
+      const heading = document.createElement('h3'); heading.textContent = 'Completed project snapshots'; dialog.appendChild(heading);
+      const hint = document.createElement('p'); hint.textContent = snapshots.length
+        ? 'These are copies of your own project when each stage first passed. Preview, copy, or export them without changing the current project.'
+        : 'A read-only copy of your project will appear here after a mastery stage passes.';
+      dialog.appendChild(hint);
+      if (!snapshots.length) {
+        const close = document.createElement('button'); close.textContent = 'Close'; close.addEventListener('click', () => closeDialog(dialog));
+        const actions = document.createElement('div'); actions.className = 'telemark-project-dialog-actions'; actions.appendChild(close); dialog.appendChild(actions);
+        showDialog(dialog, close);
+        return;
+      }
+      const stageLabel = document.createElement('label'); stageLabel.className = 'telemark-project-dialog-field'; stageLabel.textContent = 'Completed stage';
+      const stageSelect = document.createElement('select'); stageSelect.setAttribute('aria-label', 'Completed project stage');
+      snapshots.forEach((snapshot, index) => { const option = document.createElement('option'); option.value = String(index); option.textContent = snapshot.stage.title; stageSelect.appendChild(option); });
+      stageLabel.appendChild(stageSelect); dialog.appendChild(stageLabel);
+      const fileLabel = document.createElement('label'); fileLabel.className = 'telemark-project-dialog-field'; fileLabel.textContent = 'File';
+      const fileSelect = document.createElement('select'); fileSelect.setAttribute('aria-label', 'Snapshot Java file'); fileLabel.appendChild(fileSelect); dialog.appendChild(fileLabel);
+      const preview = document.createElement('pre'); preview.className = 'telemark-project-snapshot-preview'; preview.setAttribute('tabindex', '0'); dialog.appendChild(preview);
+      const feedback = document.createElement('p'); feedback.className = 'telemark-project-snapshot-status'; feedback.setAttribute('role', 'status'); dialog.appendChild(feedback);
+      function selectedSnapshot() { return snapshots[Number(stageSelect.value) || 0]; }
+      function selectedFile() { return selectedSnapshot().files[Number(fileSelect.value) || 0]; }
+      function showFile() { preview.textContent = selectedFile()?.source || ''; feedback.textContent = ''; }
+      function showStage() {
+        fileSelect.textContent = '';
+        selectedSnapshot().files.forEach((file, index) => { const option = document.createElement('option'); option.value = String(index); option.textContent = file.name; fileSelect.appendChild(option); });
+        showFile();
+      }
+      stageSelect.addEventListener('change', showStage);
+      fileSelect.addEventListener('change', showFile);
+      const actions = document.createElement('div'); actions.className = 'telemark-project-dialog-actions';
+      const close = document.createElement('button'); close.textContent = 'Close'; close.addEventListener('click', () => closeDialog(dialog));
+      const copy = document.createElement('button'); copy.textContent = 'Copy file'; copy.addEventListener('click', async () => {
+        const source = selectedFile()?.source || '';
+        try {
+          if (global.navigator.clipboard?.writeText) await global.navigator.clipboard.writeText(source);
+          else {
+            const temporary = document.createElement('textarea'); temporary.value = source; document.body.appendChild(temporary); temporary.select();
+            const copied = Boolean(document.execCommand && document.execCommand('copy'));
+            temporary.remove();
+            if (!copied) throw new Error('Copy is unavailable');
+          }
+          feedback.textContent = 'Copied ' + selectedFile().name + '.';
+        } catch (_) { feedback.textContent = 'Copy is unavailable in this browser. Select the preview text instead.'; }
+      });
+      const download = document.createElement('button'); download.textContent = 'Export snapshot'; download.className = 'telemark-project-dialog-primary'; download.addEventListener('click', () => {
+        const snapshot = selectedSnapshot();
+        const slug = snapshot.stage.id.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'stage';
+        downloadProject(snapshot, 'telemark-' + slug + '-snapshot.json');
+      });
+      actions.appendChild(close); actions.appendChild(copy); actions.appendChild(download); dialog.appendChild(actions);
+      showStage(); showDialog(dialog, stageSelect);
+    }
     function render() {
       bar.textContent = '';
       const upload = document.createElement('input'); upload.type = 'file'; upload.multiple = true; upload.accept = '.java,.json'; upload.hidden = true;
@@ -281,11 +414,15 @@
           select.addEventListener('change', () => { entry = select.value; save(); if (typeof refresh === 'function') refresh(); }); utility.appendChild(select);
         }
       } catch (_) { /* Incomplete source remains editable. */ }
+      if (options.enableSnapshots) {
+        const snapshots = document.createElement('button'); snapshots.type = 'button'; snapshots.textContent = 'Snapshots'; snapshots.className = 'telemark-project-tool';
+        snapshots.addEventListener('click', openSnapshotsDialog);
+        utility.appendChild(snapshots);
+      }
       const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Export'; download.className = 'telemark-project-tool';
       download.addEventListener('click', () => {
         save();
-        const url = URL.createObjectURL(new Blob([JSON.stringify({format: 'telemark-java-project', version: 1, files, entry}, null, 2)], {type: 'application/json'}));
-        const link = document.createElement('a'); link.href = url; link.download = 'telemark-project.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        downloadProject({files, entry}, 'telemark-project.json');
       });
       utility.appendChild(download);
       const note = document.createElement('p'); note.className = 'telemark-project-note'; note.textContent = 'Saved on this browser \u00b7 No sign-in needed. Export to move code to another device.'; bar.appendChild(note);
@@ -294,10 +431,36 @@
     editor.addEventListener('input', save);
     // Persist autocomplete edits too, which can be delivered as change events.
     editor.addEventListener('change', save);
+    function prerequisiteDiagnostics() {
+      const requirements = Array.isArray(options.prerequisites) ? options.prerequisites : [];
+      return requirements.flatMap(requirement => {
+        const file = files.find(candidate => candidate.name === requirement.file);
+        if (!file) return [{code: 'MISSING_PROJECT_FILE', file: requirement.file, message: 'This stage needs ' + requirement.file + ' from an earlier mastery challenge. Add or import that file without replacing your other work.'}];
+        let classNode = null;
+        try {
+          classNode = global.TelemarkJava?.parse(file.source)?.classes?.find(candidate => candidate.name === requirement.className) || null;
+        } catch (_) { return []; }
+        if (requirement.className && !classNode) return [{code: 'MISSING_PROJECT_CLASS', file: requirement.file, message: requirement.file + ' must declare class ' + requirement.className + '.'}];
+        const methods = Array.isArray(requirement.methods) ? requirement.methods : [];
+        if (!methods.length || !classNode) return [];
+        const existing = new Set(classNode.methods.map(method => method.name));
+        return methods.filter(method => !existing.has(method)).map(method => ({
+          code: 'MISSING_PROJECT_METHOD',
+          file: requirement.file,
+          message: requirement.className + ' needs ' + method + '() before this stage can use it.',
+        }));
+      });
+    }
     const project = {
       save,
       importFiles,
+      saveSnapshot,
+      listSnapshots,
+      prerequisiteDiagnostics,
+      key,
       files() { save(); return files.map(f => ({...f})); },
+      activeFile() { save(); return files[active] ? {...files[active]} : null; },
+      stages() { return appliedStages.slice(); },
       diagnosticLocation(line) {
         let start = 2;
         for (const file of files) {
@@ -308,7 +471,17 @@
         return files[files.length - 1].name;
       },
       source() { files[active].source = editor.value; return global.TelemarkJava.serializeProject(files, entry); },
-      reset(source) { files = [inTeamPackage({name: mainFilename(source), source})]; active = 0; entry = ''; show(true); save(); }
+      reset(source) {
+        if (options.preserveProjectOnReset) {
+          const currentName = files[active]?.name;
+          const supplied = suppliedFiles.find(file => file.name === currentName);
+          if (!supplied) { report('This file has no lesson starter. Delete or edit it manually if you no longer need it.'); return; }
+          files[active].source = supplied.source;
+          show(false); save(); report('Reset ' + currentName + ' without changing your other project files.');
+          return;
+        }
+        files = [inTeamPackage({name: mainFilename(source), source})]; active = 0; entry = ''; appliedStages = []; show(true); save();
+      }
     };
     editor.__telemarkProject = project;
     global.addEventListener('message', event => {
@@ -346,7 +519,16 @@
       try { frame('stop'); } finally { runtime.devices.forEach(device => { if (['DcMotor', 'DcMotorEx', 'CRServo'].includes(device._state.type)) device.setPower(0); }); }
     }};
   }
-  global.TelemarkProject = {attach, createRunner};
+  global.TelemarkProject = {
+    attach,
+    createRunner,
+    CUMULATIVE_PROJECT_KEY,
+    SNAPSHOT_KEY,
+    readSnapshots: () => Object.values(readSnapshots()).map(snapshot => ({
+      ...snapshot,
+      files: Array.isArray(snapshot.files) ? snapshot.files.map(file => ({...file})) : [],
+    })),
+  };
   global.addEventListener('load', () => setTimeout(() => {
     let editor = document.getElementById('code-editor');
     const cm = global.cmEditor;

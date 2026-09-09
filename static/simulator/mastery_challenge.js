@@ -18,6 +18,64 @@
       + "\npublic class " + className + " extends " + parent + " {\n\n}";
   }
 
+  const DECODE_PROJECT_KEY = "telemark:decode-project:v1";
+  const TEAM_PACKAGE = "org.firstinspires.ftc.teamcode";
+  const DECODE_FILE_STAGES = Object.freeze([
+    {unit: 2, name: "CompetitionTeleOp.java", className: "CompetitionTeleOp"},
+    {unit: 3, name: "RobotConfig.java", className: "RobotConfig"},
+    {unit: 4, name: "Drivetrain.java", className: "Drivetrain"},
+    {unit: 5, name: "Intake.java", className: "Intake"},
+    {unit: 5, name: "Transfer.java", className: "Transfer"},
+    {unit: 7, name: "Launcher.java", className: "Launcher"},
+    {unit: 7, name: "ArtifactSensors.java", className: "ArtifactSensors"},
+    {unit: 13, name: "PoweredMechanism.java", className: "PoweredMechanism"},
+    {unit: 13, name: "RobotHardware.java", className: "RobotHardware"},
+    {unit: 14, name: "Vision.java", className: "Vision"},
+    {unit: 15, name: "FullAutonomous.java", className: "FullAutonomous"}
+  ]);
+
+  function publicClassName(source) {
+    const match = String(source || "").match(/\bpublic\s+(?:final\s+|abstract\s+)?class\s+(\w+)/)
+      || String(source || "").match(/\bclass\s+(\w+)/);
+    return match ? match[1] : "Main";
+  }
+
+  function decodeScaffold(file) {
+    return {
+      name: file.name,
+      source: "package " + TEAM_PACKAGE + ";\n\npublic class " + file.className + " {\n    // This class is completed in a later mastery stage.\n}\n"
+    };
+  }
+
+  function decodeProjectOptions(unit, config) {
+    const challengeFiles = (config.starterFiles || [{
+      name: publicClassName(config.starter) + ".java",
+      source: config.starter
+    }]).map(function (file) { return {name: file.name, source: file.source}; });
+    const byName = new Map();
+    challengeFiles.forEach(function (file) { byName.set(file.name, file); });
+    DECODE_FILE_STAGES.filter(function (file) { return file.unit <= unit; }).forEach(function (file) {
+      if (!byName.has(file.name)) byName.set(file.name, decodeScaffold(file));
+    });
+    const entryClass = publicClassName(challengeFiles[0].source);
+    const stageId = "unit-" + String(unit).padStart(2, "0") + "/mastery-coding-challenge";
+    const stageFiles = new Set(challengeFiles.map(function (file) { return file.name; }));
+    DECODE_FILE_STAGES.filter(function (file) { return file.unit === unit; }).forEach(function (file) { stageFiles.add(file.name); });
+    return {
+      key: DECODE_PROJECT_KEY,
+      initialFiles: Array.from(byName.values()),
+      preferredActiveFile: challengeFiles[0].name,
+      preferredEntry: TEAM_PACKAGE + "." + entryClass,
+      preserveProjectOnReset: true,
+      snapshotsOnly: true,
+      enableSnapshots: true,
+      stage: {id: stageId, title: config.title, files: Array.from(stageFiles)},
+      prerequisites: DECODE_FILE_STAGES.filter(function (file) { return file.unit < unit; }).map(function (file) {
+        return {file: file.name, className: file.className};
+      })
+    };
+  }
+
   const CONFIGS = {
     2: {
       title: "Unit 2 Coding Challenge: Complete OpMode Lifecycle",
@@ -1548,6 +1606,8 @@
     if (!config) throw new Error("Unknown mastery simulator unit: " + unit);
     const checks = checksForUnit(unit);
     let challengeMotion = null;
+    let cumulativeProject = null;
+    const projectOptions = decodeProjectOptions(unit, config);
 
     global.onSimulatorReady = function () {
       if (!global.TelemarkMasteryMotion) {
@@ -1585,6 +1645,11 @@
           const diagnostic = compilation.diagnostics[0] || {};
           const message = String(diagnostic.message || "Unable to compile Java").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
           addHint("Java compile error: " + message, "error");
+        }
+        if (cumulativeProject) {
+          cumulativeProject.prerequisiteDiagnostics().forEach(function (diagnostic) {
+            addHint("<i class=\"fa-solid fa-diagram-project\"></i> " + diagnostic.message, "warn");
+          });
         }
         const results = compilation.ok ? evaluate(unit, source) : checks.map(function () { return false; });
         const forbiddenFailures = (config.forbidden || []).filter(function (rule) {
@@ -1640,17 +1705,17 @@
         checks.forEach(function (_check, index) { setRequirement(index, false); });
       };
 
-      if ((unit === 7 || unit === 13 || unit === 15) && global.TelemarkProject) {
+      if (global.TelemarkProject) {
         const editor = document.getElementById("sim-code-editor");
-        const options = config.starterFiles
-          ? {
-              initialFiles: config.starterFiles.map(function (file, index) {
-                return index === 0 ? {name: file.name, source: editor.value} : file;
-              }),
-              addMissingInitialFiles: true
-            }
-          : undefined;
-        global.TelemarkProject.attach(editor, null, options);
+        projectOptions.initialFiles = projectOptions.initialFiles.map(function (file) {
+          return file.name === projectOptions.preferredActiveFile
+            ? {name: file.name, source: editor.value}
+            : file;
+        });
+        cumulativeProject = global.TelemarkProject.attach(editor, null, projectOptions);
+        global.onChallengeComplete = function () {
+          cumulativeProject.saveSnapshot(projectOptions.stage);
+        };
       }
       clearHints();
       checks.forEach(function (_check, index) { setRequirement(index, false); });
@@ -1661,6 +1726,9 @@
   const selectedUnit = Number(script && script.dataset ? script.dataset.unit : 0);
   global.TelemarkMasteryChallenge = Object.freeze({
     configs: CONFIGS,
+    decodeProjectKey: DECODE_PROJECT_KEY,
+    decodeProjectFiles: DECODE_FILE_STAGES,
+    decodeProjectOptions: decodeProjectOptions,
     robotProfiles: ROBOT_PROFILES,
     robotProfileForUnit: robotProfileForUnit,
     cadSourceUnitFor: cadSourceUnitFor,

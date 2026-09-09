@@ -322,6 +322,16 @@
   background: var(--code-bg, #05080d);
   font-size: 12px;
 }
+.telemark-project-snapshot-preview {
+  min-height: 180px;
+  white-space: pre;
+}
+.telemark-project-snapshot-status {
+  min-height: 21px;
+  margin: 5px 0 0;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 12px;
+}
 @media (hover: none) {
   .telemark-project-new { opacity: .6; }
   .telemark-project-tab-delete { opacity: .65; pointer-events: auto; }
