@@ -602,6 +602,46 @@
     .sim-success-banner.visible {
       display: block;
     }
+    .sim-grading-review-button {
+      width: 100%;
+      margin: 8px 0 0;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--panel-soft);
+      color: var(--text-secondary);
+      font: 700 0.76rem/1.2 var(--font-ui);
+      cursor: pointer;
+    }
+    .sim-grading-review-button:hover,
+    .sim-grading-review-button:focus-visible {
+      border-color: var(--active);
+      color: var(--active);
+    }
+    .sim-grading-dialog {
+      width: min(680px, calc(100vw - 28px));
+      max-height: min(78vh, 760px);
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--text-primary);
+      box-shadow: 0 22px 80px rgba(0, 0, 0, 0.5);
+      font-family: var(--font-ui);
+    }
+    .sim-grading-dialog::backdrop { background: rgba(0, 0, 0, 0.68); }
+    .sim-grading-dialog-inner { padding: 18px; }
+    .sim-grading-dialog h2 { margin: 0 0 5px; color: var(--active); font-size: 1.05rem; }
+    .sim-grading-dialog-intro { margin: 0 0 14px; color: var(--text-secondary); font-size: 0.82rem; }
+    .sim-grading-options { display: grid; gap: 9px; max-height: 50vh; overflow: auto; }
+    .sim-grading-option { padding: 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel-soft); }
+    .sim-grading-option-title { display: block; margin-bottom: 7px; font-size: 0.82rem; font-weight: 700; }
+    .sim-grading-choice-row { display: flex; flex-wrap: wrap; gap: 12px; }
+    .sim-grading-choice-row label { display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem; cursor: pointer; }
+    .sim-grading-evidence { margin-top: 6px; color: var(--text-secondary); font-size: 0.73rem; }
+    .sim-grading-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .sim-grading-dialog-actions button { padding: 7px 11px; border: 1px solid var(--border); border-radius: 5px; background: var(--panel-soft); color: var(--text-primary); cursor: pointer; }
+    .sim-grading-dialog-actions button:last-child { border-color: var(--active); color: var(--active); }
     @keyframes sim-banner-in {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -1642,6 +1682,7 @@
         <div class="sim-fault-description" id="sim-fault-description"></div>
       </div>
       <div id="sim-requirements-list"></div>
+      <button type="button" class="sim-grading-review-button" id="sim-grading-review-button">Review grading</button>
       <div class="sim-success-banner" id="sim-success-banner"><i class="fa-solid fa-circle-check"></i> Challenge Complete!</div>
     `;
     challengeCard.appendChild(challengeBody);
@@ -4349,11 +4390,174 @@
   // ========================================================================
 
   let challengeRequirements = [];
+  let challengeRequirementStates = [];
   let challengeCompleteCallback = null;
   let challengeHintRules = [];
   let challengeWasComplete = false;
   let challengeFaultModes = [];
   let activeFaultId = "";
+  let challengeCompilationOk = null;
+  let challengeCompilationEvidence = "";
+  let challengeGradingScope = "";
+  const GRADING_OVERRIDE_STORAGE_KEY = "telemark:grading-overrides:v1";
+
+  function requirementId(requirement, index) {
+    if (requirement && typeof requirement === "object" && requirement.id) {
+      return String(requirement.id);
+    }
+    const label = typeof requirement === "string" ? requirement : requirement && requirement.label || "requirement";
+    const slug = String(label).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+    return "legacy-" + index + "-" + (slug || "requirement");
+  }
+
+  function normalizeRequirement(requirement, index) {
+    return {
+      id: requirementId(requirement, index),
+      label: typeof requirement === "string" ? requirement : String(requirement && requirement.label || "Requirement " + (index + 1)),
+    };
+  }
+
+  function gradingScopeFor(config) {
+    const project = config.projectKey || "legacy-project";
+    const lesson = config.lessonId || (window.location && window.location.pathname) || "simulator";
+    return project + "::" + lesson;
+  }
+
+  function readGradingOverrides() {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(GRADING_OVERRIDE_STORAGE_KEY) || "{}");
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function writeGradingOverrides(overrides) {
+    try {
+      window.localStorage.setItem(GRADING_OVERRIDE_STORAGE_KEY, JSON.stringify(overrides));
+    } catch (_) {
+      // Storage can be unavailable in embedded/private contexts; grading still works for this page.
+    }
+  }
+
+  function storedOverride(id) {
+    const scope = readGradingOverrides()[challengeGradingScope] || {};
+    return scope[id] === "done" || scope[id] === "not-done" ? scope[id] : "auto";
+  }
+
+  function saveOverride(id, choice) {
+    const all = readGradingOverrides();
+    const scope = Object.assign({}, all[challengeGradingScope] || {});
+    if (choice === "auto") delete scope[id];
+    else scope[id] = choice;
+    if (Object.keys(scope).length) all[challengeGradingScope] = scope;
+    else delete all[challengeGradingScope];
+    writeGradingOverrides(all);
+  }
+
+  function effectiveRequirement(state) {
+    if (challengeCompilationOk === false) return false;
+    if (state.manual === "not-done") return false;
+    if (state.automatic) return true;
+    return state.manual === "done" && challengeCompilationOk === true;
+  }
+
+  function renderRequirement(index) {
+    const state = challengeRequirementStates[index];
+    const reqEl = document.getElementById("sim-req-" + index);
+    if (!state || !reqEl) return;
+    state.effective = effectiveRequirement(state);
+    const check = reqEl.querySelector(".sim-check");
+    if (check) check.className = "sim-check " + (state.effective ? "pass" : "fail");
+  }
+
+  function compileCurrentChallenge() {
+    try {
+      const editor = document.getElementById("sim-code-editor") || document.getElementById("code-editor");
+      const source = editor && editor.__telemarkProject ? editor.__telemarkProject.source() : editor && editor.value || "";
+      const result = compileStudentSource(source);
+      challengeCompilationOk = Boolean(result.ok);
+      challengeCompilationEvidence = result.ok ? "Project compiles." : String(result.diagnostics && result.diagnostics[0] && result.diagnostics[0].message || "Project does not compile.");
+    } catch (error) {
+      challengeCompilationOk = false;
+      challengeCompilationEvidence = String(error && error.message || "Project does not compile.");
+    }
+  }
+
+  function gradingEvidence(state) {
+    if (challengeCompilationOk === false) return "Compile error: " + challengeCompilationEvidence;
+    if (state.manual === "done" && !state.automatic) return "Marked done after a successful project compile.";
+    if (state.manual === "not-done") return "Manually marked not done.";
+    return state.evidence || (state.automatic ? "Automatic grading passed." : "Automatic grading has not passed yet.");
+  }
+
+  function closeGradingDialog(dialog) {
+    if (!dialog) return;
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  }
+
+  function renderGradingDialog() {
+    let dialog = document.getElementById("sim-grading-dialog");
+    if (!dialog) {
+      const host = document.body || document.documentElement;
+      if (!host) return null;
+      dialog = document.createElement("dialog");
+      dialog.id = "sim-grading-dialog";
+      dialog.className = "sim-grading-dialog";
+      dialog.setAttribute("aria-labelledby", "sim-grading-dialog-title");
+      host.appendChild(dialog);
+    }
+    dialog.innerHTML = '<div class="sim-grading-dialog-inner">'
+      + '<h2 id="sim-grading-dialog-title">Review grading</h2>'
+      + '<p class="sim-grading-dialog-intro">Use Auto normally. Choose Done when correct work was missed, or Not done when an automatic pass is incorrect. Compile errors cannot be overridden.</p>'
+      + '<div class="sim-grading-options">'
+      + challengeRequirementStates.map(function (state, index) {
+        const name = "sim-grading-choice-" + index;
+        return '<section class="sim-grading-option" data-criterion-id="' + escHTML(state.id) + '">'
+          + '<span class="sim-grading-option-title">' + escHTML(state.label) + '</span>'
+          + '<div class="sim-grading-choice-row" role="radiogroup" aria-label="Review ' + escHTML(state.label) + '">'
+          + [
+              ["auto", "Auto"],
+              ["done", "Done"],
+              ["not-done", "Not done"],
+            ].map(function (choice) {
+              return '<label><input type="radio" name="' + name + '" value="' + choice[0] + '" data-requirement-index="' + index + '"'
+                + (state.manual === choice[0] ? ' checked' : '') + '> ' + choice[1] + '</label>';
+            }).join("")
+          + '</div><div class="sim-grading-evidence" id="sim-grading-evidence-' + index + '">' + escHTML(gradingEvidence(state)) + '</div></section>';
+      }).join("")
+      + '</div><div class="sim-grading-dialog-actions">'
+      + '<button type="button" id="sim-grading-reset">Reset all to Auto</button>'
+      + '<button type="button" id="sim-grading-close">Close</button>'
+      + '</div></div>';
+
+    dialog.onchange = function (event) {
+      const input = event.target && event.target.closest && event.target.closest("[data-requirement-index]");
+      if (!input) return;
+      window.setRequirementOverride(Number(input.dataset.requirementIndex), input.value);
+    };
+    const reset = dialog.querySelector("#sim-grading-reset");
+    if (reset) reset.onclick = function () {
+      challengeRequirementStates.forEach(function (state) {
+        state.manual = "auto";
+        saveOverride(state.id, "auto");
+      });
+      challengeRequirementStates.forEach(function (_state, index) { renderRequirement(index); });
+      checkAllRequirements();
+      renderGradingDialog();
+    };
+    const close = dialog.querySelector("#sim-grading-close");
+    if (close) close.onclick = function () { closeGradingDialog(dialog); };
+    return dialog;
+  }
+
+  function openGradingDialog() {
+    const dialog = renderGradingDialog();
+    if (!dialog) return;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
 
   /**
    * setChallenge(title, description, requirements)
@@ -4385,7 +4589,20 @@
         + escHTML(config.successMessage || "Challenge Complete!");
     }
 
-    challengeRequirements = config.requirements || [];
+    challengeRequirements = (config.requirements || []).map(normalizeRequirement);
+    challengeGradingScope = gradingScopeFor(config);
+    challengeCompilationOk = null;
+    challengeCompilationEvidence = "";
+    challengeRequirementStates = challengeRequirements.map(function (requirement) {
+      return {
+        id: requirement.id,
+        label: requirement.label,
+        automatic: false,
+        manual: storedOverride(requirement.id),
+        effective: false,
+        evidence: "",
+      };
+    });
     challengeCompleteCallback = typeof config.onComplete === "function"
       ? config.onComplete
       : null;
@@ -4398,10 +4615,16 @@
       challengeRequirements.forEach(function (req, idx) {
         const div = el("div", { className: "sim-req", id: "sim-req-" + idx });
         div.innerHTML =
-          '<span class="sim-check fail"><i class="fa-solid fa-check"></i></span> ' + escHTML(req);
+          '<span class="sim-check fail"><i class="fa-solid fa-check"></i></span> ' + escHTML(req.label);
         reqList.appendChild(div);
       });
     }
+    const review = document.getElementById("sim-grading-review-button");
+    if (review) {
+      review.hidden = challengeRequirements.length === 0;
+      review.onclick = openGradingDialog;
+    }
+    renderGradingDialog();
   };
 
   window.setFaultModes = function (faultModes) {
@@ -4475,28 +4698,58 @@
   /**
    * setRequirement(index, passed) — turns requirement green or red.
    */
-  window.setRequirement = function (index, passed) {
-    const reqEl = document.getElementById("sim-req-" + index);
-    if (!reqEl) return;
-    const check = reqEl.querySelector(".sim-check");
-    if (check) {
-      check.className = "sim-check " + (passed ? "pass" : "fail");
-    }
-
-    // Check if all requirements are met
+  window.setRequirement = function (index, passed, evidence) {
+    const state = challengeRequirementStates[index];
+    if (!state) return;
+    state.automatic = Boolean(passed);
+    state.evidence = evidence == null ? state.evidence : String(evidence);
+    if (state.manual === "done" && challengeCompilationOk === null) compileCurrentChallenge();
+    renderRequirement(index);
     checkAllRequirements();
+  };
+
+  window.setChallengeCompilation = function (passed, evidence) {
+    challengeCompilationOk = Boolean(passed);
+    challengeCompilationEvidence = evidence == null ? "" : String(evidence);
+    challengeRequirementStates.forEach(function (_state, index) { renderRequirement(index); });
+    checkAllRequirements();
+    const dialog = document.getElementById("sim-grading-dialog");
+    if (dialog && dialog.hasAttribute("open")) renderGradingDialog();
+  };
+
+  window.setRequirementOverride = function (index, choice) {
+    const state = challengeRequirementStates[index];
+    if (!state || ["auto", "done", "not-done"].indexOf(choice) < 0) return;
+    if (choice === "done") compileCurrentChallenge();
+    state.manual = choice;
+    saveOverride(state.id, choice);
+    challengeRequirementStates.forEach(function (_state, stateIndex) { renderRequirement(stateIndex); });
+    checkAllRequirements();
+    renderGradingDialog();
+  };
+
+  window.resetRequirementOverrides = function () {
+    challengeRequirementStates.forEach(function (state, index) {
+      state.manual = "auto";
+      saveOverride(state.id, "auto");
+      renderRequirement(index);
+    });
+    checkAllRequirements();
+    renderGradingDialog();
+  };
+
+  window.getRequirementState = function (index) {
+    const state = challengeRequirementStates[index];
+    return state ? Object.assign({}, state) : null;
   };
 
   function checkAllRequirements() {
     let allPass = true;
     for (let i = 0; i < challengeRequirements.length; i++) {
-      const reqEl = document.getElementById("sim-req-" + i);
-      if (reqEl) {
-        const check = reqEl.querySelector(".sim-check");
-        if (!check || !check.classList.contains("pass")) {
-          allPass = false;
-          break;
-        }
+      const state = challengeRequirementStates[i];
+      if (!state || !state.effective) {
+        allPass = false;
+        break;
       }
     }
 

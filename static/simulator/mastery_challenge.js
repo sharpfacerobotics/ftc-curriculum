@@ -642,12 +642,12 @@ public class FullAutonomous extends LinearOpMode {
       stageFiles: ["Drivetrain.java", "CompetitionTeleOp.java"],
       inputs: ["left_stick_x", "left_stick_y", "right_stick_x"],
       checks: [
-        ["Keep and map four drivetrain motors", /class\s+Drivetrain[\s\S]*?(?:DcMotor\s+\w+[\s\S]*?){4}/, /class\s+Drivetrain[\s\S]*?(?:hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class[\s\S]*?){4}/],
+        ["Keep and map four drivetrain motors", /class\s+Drivetrain[\s\S]*?(?:DcMotor\s+\w+[\s\S]*?){4}/, /class\s+Drivetrain[\s\S]*?(?:\w+\s*\.\s*get\s*\(\s*DcMotor\.class[\s\S]*?){4}/],
         ["Apply a joystick deadzone", /Math\s*\.\s*abs\s*\([^)]*\)\s*[<>]=?\s*(?:0?\.\d+|(?:RobotConfig\s*\.\s*)?[A-Z][A-Z0-9_]*)/],
-        ["Calculate four mecanum wheel values", /(?:frontLeft|leftFront)\s*=\s*[^;]+/, /(?:frontRight|rightFront)\s*=\s*[^;]+/, /(?:backLeft|leftBack)\s*=\s*[^;]+/, /(?:backRight|rightBack)\s*=\s*[^;]+/],
-        ["Normalize wheel power to the available range", /Math\s*\.\s*max\s*\(/, /Math\s*\.\s*abs\s*\(/],
+        ["Calculate four mecanum wheel values", /class\s+Drivetrain[\s\S]*?(?:void|double\s*\[\s*\])\s+\w*(?:drive|mecanum)\w*\s*\(/i],
+        ["Normalize wheel power to the available range", /(?:Math\s*\.\s*(?:max|min|abs)|Range\s*\.\s*clip)\s*\(/],
         ["Send power to all four motors", /setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\([^)]*\)[\s\S]*?setPower\s*\(/],
-        ["Delegate gamepad1 drive axes from CompetitionTeleOp", /class\s+CompetitionTeleOp[\s\S]*?drivetrain\s*\.\s*drive\s*\([^;]*gamepad1\s*\.\s*left_stick_y[^;]*gamepad1\s*\.\s*left_stick_x[^;]*gamepad1\s*\.\s*right_stick_x/]
+        ["Delegate gamepad1 drive axes from CompetitionTeleOp", /class\s+CompetitionTeleOp[\s\S]*?\w+\s*\.\s*\w*(?:drive|mecanum)\w*\s*\([^;]*gamepad1\s*\./i]
       ]
     },
     5: {
@@ -658,10 +658,10 @@ public class FullAutonomous extends LinearOpMode {
       stageFiles: ["Intake.java", "Transfer.java", "CompetitionTeleOp.java"],
       inputs: ["right_bumper", "left_bumper"],
       checks: [
-        ["Map private intake and transfer motors in init(HMap)", /class\s+Intake[\s\S]*?private\s+DcMotor[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class/, /class\s+Transfer[\s\S]*?private\s+DcMotor[\s\S]*?hardwareMap\s*\.\s*get\s*\(\s*DcMotor\.class/],
+        ["Map private intake and transfer motors in init(HMap)", /class\s+Intake[\s\S]*?private\s+DcMotor[\s\S]*?\w+\s*\.\s*get\s*\(\s*DcMotor\.class/, /class\s+Transfer[\s\S]*?private\s+DcMotor[\s\S]*?\w+\s*\.\s*get\s*\(\s*DcMotor\.class/],
         ["Give Intake collect, reverse, and stop commands", /class\s+Intake[\s\S]*?void\s+collect\s*\(/, /class\s+Intake[\s\S]*?void\s+reverse\s*\(/, /class\s+Intake[\s\S]*?void\s+stop\s*\(/],
         ["Give Transfer forward, reverse, and stop commands", /class\s+Transfer[\s\S]*?void\s+forward\s*\(/, /class\s+Transfer[\s\S]*?void\s+reverse\s*\(/, /class\s+Transfer[\s\S]*?void\s+stop\s*\(/],
-        ["Use an if / else-if / else control chain", /\bif\s*\(/, /\belse\s+if\s*\(/, /\belse\b/],
+        ["Use clear conditional control logic", /(?:\bif\s*\(|\bswitch\s*\(|\?[^:]+:)/],
         ["Run both mechanisms forward and reverse from the bumpers", /gamepad1\s*\.\s*right_bumper[\s\S]*?(?:intake|transfer)\s*\./, /gamepad1\s*\.\s*left_bumper[\s\S]*?(?:reverse|stop)/]
       ]
     },
@@ -757,7 +757,7 @@ public class FullAutonomous extends LinearOpMode {
         ["Track a maximum capacity of three", /class\s+ArtifactSensors[\s\S]*?(?:<\s*3|MAX\w*\s*=\s*3)/],
         ["Update stored count from sensor transitions", /class\s+ArtifactSensors[\s\S]*?void\s+update\s*\([^)]*\)[\s\S]*?(?:\+\+|--|\+=|-=)/],
         ["Expose storage and capacity state", /class\s+ArtifactSensors[\s\S]*?boolean\s+hasCapacity\s*\(/],
-        ["Interlock intake or transfer when storage is full", /hasCapacity\s*\(\s*\)[\s\S]*?(?:intake|transfer)\s*\./],
+        ["Interlock intake or transfer when storage is full", /hasCapacity\s*\(\s*\)/, /(?:intake|transfer)\s*\./],
         ["Launch only when an artifact is ready", /(?:hasArtifact|isReady|readyToLaunch|storedArtifacts\s*>\s*0)[\s\S]*?launcher\s*\.\s*launch\s*\(/]
       ]
     },
@@ -837,8 +837,63 @@ public class FullAutonomous extends LinearOpMode {
     }
   };
 
+  function criterionAstRule(unit, index) {
+    const rules = {
+      "2:0": {classes: [{name: "CompetitionTeleOp", methods: ["init"]}]},
+      "2:1": {classes: [{name: "CompetitionTeleOp", methods: ["start"]}]},
+      "2:2": {classes: [{name: "CompetitionTeleOp", methods: ["loop"]}]},
+      "2:3": {classes: [{name: "CompetitionTeleOp", methods: ["stop"]}]},
+      "3:0": {classes: [{name: "RobotConfig", modifiers: ["final"]}]},
+      "3:1": {classes: [{name: "RobotConfig", fields: [{type: "String", static: true, final: true}]}]},
+      "4:0": {classes: [{name: "Drivetrain", methods: ["init"]}]},
+      "4:4": {classes: [{name: "Drivetrain", calls: ["setPower"]}]},
+      "4:5": {classes: [{name: "CompetitionTeleOp", methods: ["loop"]}]},
+      "5:1": {classes: [{name: "Intake", methods: ["collect", "reverse", "stop"]}]},
+      "5:2": {classes: [{name: "Transfer", methods: ["forward", "reverse", "stop"]}]},
+      "7:0": {classes: [
+        {name: "Drivetrain", methods: ["init"]}, {name: "Intake", methods: ["init"]},
+        {name: "Transfer", methods: ["init"]}, {name: "Launcher", methods: ["init"]},
+        {name: "ArtifactSensors", methods: ["init"]}
+      ]},
+      "9:0": {classes: [{name: "Launcher", fields: [{type: "Servo", modifiers: ["private"]}]}]},
+      "10:0": {classes: [{name: "Launcher", fields: [{type: "DcMotorEx"}]}]},
+      "10:1": {classes: [{name: "Launcher", calls: ["setMode"]}]},
+      "10:2": {classes: [{name: "Launcher", calls: ["setVelocityPIDFCoefficients"]}]},
+      "10:3": {classes: [{name: "Launcher", calls: ["setVelocity"]}]},
+      "10:4": {classes: [{name: "Launcher", calls: ["getVelocity"]}]},
+      "11:3": {classes: [{name: "ArtifactSensors", methods: ["hasCapacity"]}]},
+      "13:0": {classes: [{name: "PoweredMechanism", methods: ["setPower", "stop"], fields: [{type: "DcMotor", modifiers: ["protected"]}]}]},
+      "13:1": {anyClass: {names: ["Intake", "Transfer", "Launcher"], superClass: "PoweredMechanism"}},
+      "13:2": {classes: [{name: "RobotHardware"}]},
+      "14:0": {classes: [{name: "Vision", methods: ["init"]}]},
+      "15:7": {classes: [{name: "FullAutonomous", fields: [{type: "RobotHardware"}]}]}
+    };
+    return rules[unit + ":" + index] || null;
+  }
+
+  function criterionDescriptor(unit, check, index) {
+    const fixtureIds = {
+      "2:0": ["telemetry-init"],
+      "2:2": ["telemetry-loop"],
+      "4:2": ["mecanum-drive"],
+      "5:4": ["intake-transfer-controls"],
+      "9:2": ["launcher-trigger-edge"],
+      "11:4": ["storage-full-interlock"]
+    };
+    return Object.freeze({
+      id: "unit-" + String(unit).padStart(2, "0") + "-criterion-" + String(index + 1).padStart(2, "0"),
+      label: check[0],
+      structural: Object.freeze({patterns: Object.freeze(check.slice(1)), ast: criterionAstRule(unit, index)}),
+      behavioralFixtures: Object.freeze(fixtureIds[unit + ":" + index] || []),
+      diagnostic: "Not yet demonstrated: " + check[0] + "."
+    });
+  }
+
   Object.keys(DECODE_STAGE_CONFIGS).forEach(function (unit) {
     Object.assign(CONFIGS[unit], DECODE_STAGE_CONFIGS[unit]);
+    CONFIGS[unit].checks = CONFIGS[unit].checks.map(function (check, index) {
+      return criterionDescriptor(Number(unit), check, index);
+    });
     delete CONFIGS[unit].starter;
     delete CONFIGS[unit].starterFiles;
   });
@@ -1790,99 +1845,26 @@ public class FullAutonomous extends LinearOpMode {
     const config = CONFIGS[unit];
     if (!config) return [];
     if (!config.registration) return config.checks.slice();
-    const registrationCheck = config.registration === "autonomous"
-      ? [
-          "Keep FullAutonomous registered as an FTC autonomous OpMode",
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:LinearOpMode|\*)\s*;/,
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:Autonomous|\*)\s*;/,
-          /@Autonomous\s*\([^)]*\)/,
-          /\bclass\s+FullAutonomous\s+extends\s+LinearOpMode\b/,
-        ]
-      : [
-          "Keep CompetitionTeleOp registered as an iterative FTC TeleOp",
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:OpMode|\*)\s*;/,
-          /import\s+com\.qualcomm\.robotcore\.eventloop\.opmode\.(?:TeleOp|\*)\s*;/,
-          /@TeleOp\s*\([^)]*\)/,
-          /\bclass\s+CompetitionTeleOp\s+extends\s+OpMode\b/,
-        ];
-    return [registrationCheck].concat(config.checks);
-  }
-
-  // Run an isolated, deterministic hardware fixture; never move the student's robot.
-  function evaluateHardwareProject(source) {
-    const results = checksForUnit(7).map(() => false);
-    const code = sourceWithoutComments(source);
-    results[0] = checksForUnit(7)[0].slice(1).every(p => p.test(code));
-    const java = global.TelemarkJava;
-    if (!java) return results;
-    let digitalState = true;
-    let voltageReads = 0;
-    const mappings = [];
-    const runtime = java.createRuntime({
-      gamepad1: {left_stick_y: 0},
-      getDigitalState: () => digitalState,
-      getVoltage: () => { voltageReads++; return 1.65; }
+    const autonomous = config.registration === "autonomous";
+    const className = autonomous ? "FullAutonomous" : "CompetitionTeleOp";
+    const annotation = autonomous ? "Autonomous" : "TeleOp";
+    const parent = autonomous ? "LinearOpMode" : "OpMode";
+    const registrationCheck = Object.freeze({
+      id: "unit-" + String(unit).padStart(2, "0") + "-registration",
+      label: autonomous
+        ? "Keep FullAutonomous registered as an FTC autonomous OpMode"
+        : "Keep CompetitionTeleOp registered as an iterative FTC TeleOp",
+      structural: Object.freeze({
+        patterns: Object.freeze([
+          new RegExp("import\\s+com\\.qualcomm\\.robotcore\\.eventloop\\.opmode\\.(?:" + parent + "|\\*)\\s*;"),
+          new RegExp("import\\s+com\\.qualcomm\\.robotcore\\.eventloop\\.opmode\\.(?:" + annotation + "|\\*)\\s*;"),
+        ]),
+        ast: {classes: [{name: className, superClass: parent, annotations: [annotation], modifiers: ["public"]}]}
+      }),
+      behavioralFixtures: Object.freeze([]),
+      diagnostic: className + " needs its public @" + annotation + " registration and " + parent + " inheritance."
     });
-    const expected = {mechanism: 'DcMotor', mechanism_limit: 'DigitalChannel', mechanism_pot: 'AnalogInput'};
-    const get = runtime.hardwareMap.get;
-    runtime.hardwareMap.get = function (type, name) {
-      if (expected[name] !== type) throw new Error('Hardware configuration name or type mismatch: ' + name);
-      mappings.push({type, name});
-      return get(type, name);
-    };
-    const program = java.compile(source, runtime, {loopLimit: 1000});
-    if (!program.ok || program.kind !== 'iterative') return results;
-    const main = program.ast.classes.find(c => c.name === program.className);
-    const helpers = program.ast.classes.filter(c => c !== main);
-    const mechanism = helpers.find(c => c.methods.some(m => m.name === 'init' && /\binit\s*\(\s*(?:final\s+)?HardwareMap\s+\w+\s*\)/.test(sourceWithoutComments(source.slice(c.bodyStart, c.bodyEnd))) && m.params.length === 1));
-    const init = main.methods.find(m => m.name === 'init');
-    const loop = main.methods.find(m => m.name === 'loop');
-    results[2] = Boolean(mechanism);
-    results[3] = Boolean(mechanism && /\binit\s*\(\s*(?:final\s+)?HardwareMap\s+\w+\s*\)/.test(code));
-    // Accept constants in the mechanism or a separate config class, with any identifier spelling.
-    const constants = program.ast.classes.flatMap(c => c.fields.filter(f => f.static && f.final && f.type === 'String' && f.initializer).map(f => ({owner: c.name, name: f.name})));
-    const mappingBodies = helpers.flatMap(c => c.methods).map(m => m.body).join('\n');
-    results[1] = ['DcMotor', 'DigitalChannel', 'AnalogInput'].every(type => constants.some(f =>
-      new RegExp('\\.\\s*get\\s*\\(\\s*' + type + '\\s*\\.\\s*class\\s*,\\s*(?:' + f.owner + '\\s*\\.\\s*)?' + f.name + '\\s*\\)').test(mappingBodies)
-    ));
-    const delegatesInit = Boolean(init && /\.\s*init\s*\(\s*hardwareMap\s*\)/.test(init.body));
-    const delegatesLoop = Boolean(loop && /\.\s*\w+\s*\(/.test(loop.body) && /gamepad1\s*\./.test(loop.body));
-    try {
-      if (!program.methods.init || !program.methods.loop) return results;
-      program.methods.init();
-      const initMappings = mappings.length;
-      const mappedOnce = name => mappings.filter(m => m.name === name).length === 1;
-      results[4] = mappedOnce('mechanism');
-      const limit = runtime.devices.get('DigitalChannel:mechanism_limit');
-      results[5] = mappedOnce('mechanism_limit') && limit._state.mode === 'INPUT';
-      if (program.methods.init_loop) program.methods.init_loop();
-      if (program.methods.start) program.methods.start();
-      const motor = runtime.devices.get('DcMotor:mechanism');
-      const outputs = [];
-      for (const input of [-0.7, 0, 0.7]) {
-        runtime.gamepad1.left_stick_y = input;
-        digitalState = true;
-        program.methods.loop();
-        outputs.push(motor ? motor.getPower() : NaN);
-      }
-      results[6] = mappedOnce('mechanism_pot') && voltageReads > 0;
-      results[8] = delegatesLoop && outputs.every(Number.isFinite) && Math.abs(outputs[0]) > 0 && outputs[1] === 0 && outputs[0] * outputs[2] < 0;
-      const blocked = [];
-      for (const input of [-0.7, 0.7]) {
-        runtime.gamepad1.left_stick_y = input;
-        digitalState = false;
-        program.methods.loop();
-        blocked.push(motor ? motor.getPower() : NaN);
-      }
-      // A limit may block both directions or only travel toward the switch.
-      results[9] = results[8] && blocked.some(power => power === 0);
-      if (program.methods.stop) program.methods.stop();
-      results[7] = delegatesInit && initMappings === 3 && mappings.length === initMappings;
-      if (!results[7]) results[4] = results[5] = results[6] = false;
-    } catch (_) {
-      return results;
-    }
-    return results;
+    return [registrationCheck].concat(config.checks);
   }
 
   function namedClassBody(code, className) {
@@ -1906,24 +1888,194 @@ public class FullAutonomous extends LinearOpMode {
       && !/\b(?:DcMotor|DcMotorEx|CRServo|Servo|IMU)\s+\w+/.test(opModeBody);
   }
 
-  function evaluate(unit, source) {
+  function astMatches(ast, rule) {
+    if (!rule) return true;
+    function classMatches(spec) {
+      const classNode = (ast.classes || []).find(function (candidate) { return candidate.name === spec.name; });
+      if (!classNode) return false;
+      if (spec.superClass && classNode.superClass !== spec.superClass) return false;
+      if ((spec.modifiers || []).some(function (modifier) { return (classNode.modifiers || []).indexOf(modifier) < 0; })) return false;
+      if ((spec.annotations || []).some(function (annotation) { return (classNode.annotations || []).indexOf(annotation) < 0; })) return false;
+      if ((spec.methods || []).some(function (name) { return !(classNode.methods || []).some(function (method) { return method.name === name; }); })) return false;
+      const calls = (classNode.methods || []).reduce(function (all, method) { return all.concat(method.calls || []); }, []);
+      if ((spec.calls || []).some(function (name) { return !calls.some(function (call) { return call.name === name; }); })) return false;
+      return (spec.fields || []).every(function (fieldSpec) {
+        return (classNode.fields || []).some(function (field) {
+          if (fieldSpec.type && field.type !== fieldSpec.type) return false;
+          if (fieldSpec.static != null && field.static !== fieldSpec.static) return false;
+          if (fieldSpec.final != null && field.final !== fieldSpec.final) return false;
+          return (fieldSpec.modifiers || []).every(function (modifier) { return (field.modifiers || []).indexOf(modifier) >= 0; });
+        });
+      });
+    }
+    if (!(rule.classes || []).every(classMatches)) return false;
+    if (rule.anyClass) {
+      return (ast.classes || []).some(function (classNode) {
+        return rule.anyClass.names.indexOf(classNode.name) >= 0
+          && classNode.superClass === rule.anyClass.superClass;
+      });
+    }
+    return true;
+  }
+
+  function createGradingRuntime() {
+    const rows = [];
+    const runtime = global.TelemarkJava.createRuntime({
+      onTelemetryUpdate: function (data) { rows.push.apply(rows, data || []); }
+    });
+    runtime.__gradingRows = rows;
+    return runtime;
+  }
+
+  function prepareFixture(program, runtime) {
+    resetFixtureGamepad(runtime);
+    if (runtime.__gradingRows) runtime.__gradingRows.length = 0;
+    if (runtime.devices && typeof runtime.devices.clear === "function") runtime.devices.clear();
+    if (typeof runtime.resetRuntime === "function") runtime.resetRuntime();
+    if (program.methods.init) program.methods.init();
+    if (program.methods.start) program.methods.start();
+  }
+
+  function resetFixtureGamepad(runtime) {
+    ["left_stick_x", "left_stick_y", "right_stick_x", "right_stick_y", "left_trigger", "right_trigger"].forEach(function (key) {
+      runtime.gamepad1[key] = 0;
+    });
+    ["a", "b", "x", "y", "left_bumper", "right_bumper", "dpad_up", "dpad_down", "dpad_left", "dpad_right"].forEach(function (key) {
+      runtime.gamepad1[key] = false;
+    });
+    Object.keys(runtime.gamepad1 || {}).forEach(function (key) {
+      runtime.gamepad1[key] = typeof runtime.gamepad1[key] === "boolean" ? false : 0;
+    });
+  }
+
+  function runBehavioralFixture(id, program, runtime) {
+    try {
+      prepareFixture(program, runtime);
+      const rows = runtime.__gradingRows || [];
+      if (id === "telemetry-init") {
+        runtime.updateTelemetry();
+        return rows.length > 0;
+      }
+      if (!program.methods.loop) return false;
+      resetFixtureGamepad(runtime);
+      if (id === "telemetry-loop") {
+        rows.length = 0;
+        runtime.gamepad1.left_stick_y = 0.42;
+        program.methods.loop();
+        runtime.updateTelemetry();
+        return rows.length > 0;
+      }
+      if (id === "mecanum-drive") {
+        const names = ["leftFront", "rightFront", "leftBack", "rightBack"];
+        const motors = names.map(function (name) { return runtime.devices.get("DcMotor:" + name); });
+        if (motors.some(function (motor) { return !motor; })) return false;
+        function drive(input) {
+          resetFixtureGamepad(runtime);
+          Object.assign(runtime.gamepad1, input);
+          program.methods.loop();
+          return motors.map(function (motor) { return motor.getPower(); });
+        }
+        const forward = drive({left_stick_y: -1});
+        const strafe = drive({left_stick_x: 1});
+        const turn = drive({right_stick_x: 1});
+        const combined = drive({left_stick_y: -1, left_stick_x: 1, right_stick_x: 1});
+        const moves = function (values) { return values.every(Number.isFinite) && values.some(function (value) { return Math.abs(value) > 0.05; }); };
+        return moves(forward) && forward.every(function (value) { return value * forward[0] > 0; })
+          && moves(strafe) && strafe[0] * strafe[1] < 0 && strafe[0] * strafe[2] < 0 && strafe[0] * strafe[3] > 0
+          && moves(turn) && turn[0] * turn[1] < 0 && turn[0] * turn[2] > 0 && turn[1] * turn[3] > 0
+          && Math.max.apply(Math, combined.map(Math.abs)) <= 1.0001;
+      }
+      if (id === "intake-transfer-controls") {
+        runtime.gamepad1.right_bumper = true;
+        program.methods.loop();
+        const intake = runtime.devices.get("DcMotor:intake");
+        const transfer = runtime.devices.get("DcMotor:transfer");
+        const forward = intake && transfer && intake.getPower() > 0 && transfer.getPower() > 0;
+        resetFixtureGamepad(runtime);
+        runtime.gamepad1.left_bumper = true;
+        program.methods.loop();
+        const reverse = intake && transfer && intake.getPower() < 0 && transfer.getPower() < 0;
+        resetFixtureGamepad(runtime);
+        program.methods.loop();
+        return Boolean(forward && reverse && intake.getPower() === 0 && transfer.getPower() === 0);
+      }
+      if (id === "launcher-trigger-edge") {
+        program.methods.loop();
+        const servoEntry = Array.from(runtime.devices.entries()).find(function (entry) { return entry[0].indexOf("Servo:") === 0; });
+        if (!servoEntry) return false;
+        const resting = servoEntry[1].getPosition();
+        runtime.gamepad1.a = true;
+        program.methods.loop();
+        return servoEntry[1].getPosition() !== resting;
+      }
+      if (id === "storage-full-interlock") {
+        Array.from(runtime.devices.entries()).forEach(function (entry) {
+          if (entry[0].indexOf("DigitalChannel:") === 0 && entry[1]._setState) entry[1]._setState(false);
+        });
+        runtime.gamepad1.right_bumper = true;
+        program.methods.loop();
+        const motors = [runtime.devices.get("DcMotor:intake"), runtime.devices.get("DcMotor:transfer")].filter(Boolean);
+        return motors.length === 2 && motors.every(function (motor) { return motor.getPower() === 0; });
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function grade(unit, source, compilation, runtime) {
     const code = sourceWithoutComments(source);
-    const results = checksForUnit(unit).map(function (check) {
-      return check.slice(1).every(function (pattern) {
+    const gradingRuntime = runtime || createGradingRuntime();
+    const program = compilation || global.TelemarkJava.compile(source, gradingRuntime, {loopLimit: 2000});
+    const criteria = checksForUnit(unit);
+    if (!program.ok) {
+      const message = program.diagnostics && program.diagnostics[0] && program.diagnostics[0].message || "The complete Java project must compile.";
+      return criteria.map(function (criterion) {
+        return {id: criterion.id, label: criterion.label, automatic: false, evidence: message};
+      });
+    }
+    const results = criteria.map(function (criterion) {
+      const patternsPass = criterion.structural.patterns.every(function (pattern) {
         pattern.lastIndex = 0;
         return pattern.test(code);
       });
+      const astPass = patternsPass && astMatches(program.ast, criterion.structural.ast);
+      const failedFixtures = [];
+      const behaviorPass = astPass && criterion.behavioralFixtures.every(function (fixture) {
+        const passed = runBehavioralFixture(fixture, program, gradingRuntime);
+        if (!passed) failedFixtures.push(fixture);
+        return passed;
+      });
+      let evidence = "Automatic structural and behavioral checks passed.";
+      if (!patternsPass || !astPass) evidence = criterion.diagnostic;
+      else if (!behaviorPass) evidence = "Behavior check did not pass: " + failedFixtures.join(", ") + ". " + criterion.diagnostic;
+      return {
+        id: criterion.id,
+        label: criterion.label,
+        automatic: Boolean(patternsPass && astPass && behaviorPass),
+        evidence: evidence
+      };
     });
     if (unit === 7) {
-      results[results.length - 1] = !/hardwareMap\s*\.\s*get\s*\(/.test(namedClassBody(code, "CompetitionTeleOp"));
+      const passed = !/hardwareMap\s*\.\s*get\s*\(/.test(namedClassBody(code, "CompetitionTeleOp"));
+      results[results.length - 1].automatic = passed;
+      if (!passed) results[results.length - 1].evidence = "CompetitionTeleOp still maps hardware directly; delegate mapping to subsystem init(HardwareMap) methods.";
     }
     if (unit === 13) {
-      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "CompetitionTeleOp"));
+      const passed = hasNoRawMechanismAccess(namedClassBody(code, "CompetitionTeleOp"));
+      results[results.length - 1].automatic = passed;
+      if (!passed) results[results.length - 1].evidence = "CompetitionTeleOp must coordinate RobotHardware without declaring or mapping raw mechanisms.";
     }
     if (unit === 15) {
-      results[results.length - 1] = hasNoRawMechanismAccess(namedClassBody(code, "FullAutonomous"));
+      const passed = hasNoRawMechanismAccess(namedClassBody(code, "FullAutonomous"));
+      results[results.length - 1].automatic = passed;
+      if (!passed) results[results.length - 1].evidence = "FullAutonomous must coordinate RobotHardware without declaring or mapping raw mechanisms.";
     }
     return results;
+  }
+
+  function evaluate(unit, source, compilation, runtime) {
+    return grade(unit, source, compilation, runtime).map(function (result) { return result.automatic; });
   }
 
   function injectChallengeStyles() {
@@ -2063,7 +2215,9 @@ public class FullAutonomous extends LinearOpMode {
       setChallenge({
         title: config.title,
         scenario: config.scenario,
-        requirements: checks.map(function (check) { return check[0]; }),
+        requirements: checks.map(function (criterion) { return {id: criterion.id, label: criterion.label}; }),
+        projectKey: DECODE_PROJECT_KEY,
+        lessonId: projectOptions.stage.id,
         successMessage: "All challenge checks passed. Review the simulator behavior before continuing to the next unit."
       });
       setBadges([
@@ -2080,7 +2234,12 @@ public class FullAutonomous extends LinearOpMode {
       function validate() {
         clearHints();
         const source = getCode();
-        const compilation = global.TelemarkSimulatorBase.compileStudentSource(source);
+        const gradingRuntime = createGradingRuntime();
+        const compilation = global.TelemarkSimulatorBase.compileStudentSource(source, gradingRuntime, {loopLimit: 2000});
+        const compilationMessage = compilation.ok ? "Project compiles." : String(compilation.diagnostics[0] && compilation.diagnostics[0].message || "Unable to compile Java");
+        if (typeof global.setChallengeCompilation === "function") {
+          global.setChallengeCompilation(compilation.ok, compilationMessage);
+        }
         if (!compilation.ok) {
           const diagnostic = compilation.diagnostics[0] || {};
           const message = String(diagnostic.message || "Unable to compile Java").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -2091,14 +2250,18 @@ public class FullAutonomous extends LinearOpMode {
             addHint("<i class=\"fa-solid fa-diagram-project\"></i> " + diagnostic.message, "warn");
           });
         }
-        const results = compilation.ok ? evaluate(unit, source) : checks.map(function () { return false; });
+        const graded = grade(unit, source, compilation, gradingRuntime);
+        const results = graded.map(function (result) { return result.automatic; });
         const forbiddenFailures = (config.forbidden || []).filter(function (rule) {
           rule[1].lastIndex = 0;
           return rule[1].test(sourceWithoutComments(source));
         });
 
         results.forEach(function (passed, index) {
-          setRequirement(index, passed && forbiddenFailures.length === 0);
+          const evidence = forbiddenFailures.length
+            ? forbiddenFailures.map(function (rule) { return rule[0]; }).join(" ")
+            : graded[index].evidence;
+          setRequirement(index, passed && forbiddenFailures.length === 0, evidence);
         });
         forbiddenFailures.forEach(function (rule) {
           addHint("<i class=\"fa-solid fa-triangle-exclamation\"></i> " + rule[0], "error");
@@ -2174,6 +2337,7 @@ public class FullAutonomous extends LinearOpMode {
     cadSourceUnitFor: cadSourceUnitFor,
     checksForUnit: checksForUnit,
     createChallengeRobot: createChallengeRobot,
+    grade: grade,
     evaluate: evaluate,
     install: install
   });

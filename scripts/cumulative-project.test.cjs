@@ -156,6 +156,15 @@ const activeFiles = {
 for (let unit = 2; unit <= 15; unit += 1) {
   assert.equal(mastery.configs[unit].starter, undefined, `Unit ${unit} must not expose a throwaway mastery starter`);
   assert.equal(mastery.configs[unit].starterFiles, undefined, `Unit ${unit} must not expose legacy mastery files`);
+  const criteria = Array.from(mastery.checksForUnit(unit));
+  assert.equal(new Set(criteria.map(criterion => criterion.id)).size, criteria.length, `Unit ${unit} criterion IDs must be unique`);
+  criteria.forEach((criterion) => {
+    assert.match(criterion.id, new RegExp(`^unit-${String(unit).padStart(2, '0')}-`));
+    assert.ok(criterion.label.length > 8);
+    assert.ok(Array.isArray(criterion.structural.patterns));
+    assert.ok(Array.isArray(criterion.behavioralFixtures));
+    assert.ok(criterion.diagnostic.length > 12);
+  });
   const options = mastery.decodeProjectOptions(unit, mastery.configs[unit]);
   assert.equal(options.key, projectKey);
   assert.equal(options.stage.id, `unit-${String(unit).padStart(2, '0')}/mastery-coding-challenge`);

@@ -142,12 +142,12 @@ assert.equal(
   const challengeDocument = {currentScript: {dataset: {unit: '0'}}};
   new Function('window', 'document', masteryChallengeRuntime)(challengeWindow, challengeDocument);
   const challengeApi = challengeWindow.TelemarkMasteryChallenge;
-  const unit4DeadzoneCheck = challengeApi.configs[4].checks.find(([label]) =>
-    label.toLowerCase().includes('deadzone'),
+  const unit4DeadzoneCheck = challengeApi.configs[4].checks.find((criterion) =>
+    criterion.label.toLowerCase().includes('deadzone'),
   );
   assert.ok(unit4DeadzoneCheck, 'Unit 4 challenge needs a deadzone check');
   assert.ok(
-    unit4DeadzoneCheck.slice(1).every((pattern) =>
+    unit4DeadzoneCheck.structural.patterns.every((pattern) =>
       pattern.test('if (Math.abs(forward) < DEADZONE) forward = 0;'),
     ),
     'Unit 4 deadzone check should accept the named constant taught by the lesson',

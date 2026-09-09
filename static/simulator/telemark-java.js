@@ -256,8 +256,7 @@
           } else imports.push({path, token: start});
         }
         const classes = ast.classes.map(c => {
-          const before = tokens.filter(t => t.end <= c.start);
-          const publicClass = before.at(-1)?.value === 'public' || before.slice(-3).some(t => t.value === 'public') && before.at(-1)?.value === 'final';
+          const publicClass = (c.modifiers || []).includes('public');
           if (publicClass && file.name.split('/').pop() !== c.name + '.java') throw new TelemarkJavaError('Public class ' + c.name + ' must be in ' + c.name + '.java.', {line: 1});
           return {...c, public: publicClass, qualifiedName: packageName ? packageName + '.' + c.name : c.name};
         });
@@ -446,11 +445,19 @@
       if (close < 0) throw new TelemarkJavaError(`Class ${name.value} is missing '}'`, name);
       const bodyStart = tokens[cursor].end;
       const bodyEnd = tokens[close].start;
+      let declarationStart = i;
+      while (declarationStart > 0 && ![";", "{", "}"].includes(tokens[declarationStart - 1].value)) declarationStart -= 1;
+      const declarationTokens = tokens.slice(declarationStart, i);
       classes.push({
         type: "ClassDeclaration",
         name: name.value,
         superClass,
-        start: tokens[i].start,
+        modifiers: declarationTokens.filter((token) => MODIFIERS.has(token.value)).map((token) => token.value),
+        annotations: declarationTokens.reduce((names, token, index) => {
+          if (token.value === "@" && declarationTokens[index + 1]?.type === "identifier") names.push(declarationTokens[index + 1].value);
+          return names;
+        }, []),
+        start: declarationTokens[0]?.start ?? tokens[i].start,
         end: tokens[close].end,
         bodyStart,
         bodyEnd,
@@ -486,6 +493,7 @@
 
       const isStatic = statement.some((part) => part.value === "static");
       const isFinal = statement.some((part) => part.value === "final");
+      const modifiers = statement.filter((part) => MODIFIERS.has(part.value)).map((part) => part.value);
       const useful = statement.filter((part) => !MODIFIERS.has(part.value));
       statement = [];
       const assignment = useful.findIndex((part) => part.value === "=");
@@ -523,6 +531,7 @@
           type: useful[0]?.value || "Object",
           static: isStatic,
           final: isFinal,
+          modifiers,
           initialValue: literalValue(initializer),
           initializer: initializerSource,
           line: nameToken.line,
@@ -587,6 +596,10 @@
       if (tokens[bodyOpen]?.value !== "{") continue;
       const bodyClose = matchingToken(tokens, bodyOpen);
       if (bodyClose < 0) throw new TelemarkJavaError(`Method ${nameToken.value} is missing '}'`, nameToken);
+      let declarationStart = i - 1;
+      while (declarationStart > 0 && ![";", "{", "}"].includes(tokens[declarationStart - 1].value)) declarationStart -= 1;
+      const declarationTokens = tokens.slice(declarationStart, i - 1);
+      const bodyTokens = tokens.slice(bodyOpen + 1, bodyClose);
       methods.push({
         type: "MethodDeclaration",
         name: nameToken.value,
@@ -596,6 +609,12 @@
           return parts;
         }, [[]]).filter(p => p.length).map(p => p.filter(v => v !== 'final').slice(0, -1).join('')),
         static: tokens.slice(Math.max(0, i - 5), i - 1).some(t => t.value === 'static'),
+        modifiers: declarationTokens.filter((token) => MODIFIERS.has(token.value)).map((token) => token.value),
+        annotations: declarationTokens.reduce((names, token, index) => {
+          if (token.value === "@" && declarationTokens[index + 1]?.type === "identifier") names.push(declarationTokens[index + 1].value);
+          return names;
+        }, []),
+        calls: extractMethodCalls(bodyTokens),
         body: source.slice(tokens[bodyOpen].end, tokens[bodyClose].start),
         bodyStart: tokens[bodyOpen].end,
         bodyLine: sourceLocation(source, tokens[bodyOpen].end).line,
@@ -606,6 +625,23 @@
       i = bodyClose;
     }
     return methods;
+  }
+
+  function extractMethodCalls(tokens) {
+    const calls = [];
+    for (let index = 0; index < tokens.length - 1; index += 1) {
+      const token = tokens[index];
+      if (token.type !== "identifier" || tokens[index + 1]?.value !== "(" || CONTROL_WORDS.has(token.value)) continue;
+      const qualified = tokens[index - 1]?.value === "." && tokens[index - 2]?.type === "identifier";
+      calls.push({
+        type: "MethodInvocation",
+        name: token.value,
+        qualifier: qualified ? tokens[index - 2].value : null,
+        line: token.line,
+        column: token.column,
+      });
+    }
+    return calls;
   }
 
   function parseParameters(tokens) {

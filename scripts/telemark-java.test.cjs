@@ -75,6 +75,31 @@ function testClassesAndInheritance() {
   assert.equal(program.scope.measured, 7);
 }
 
+function testStructuralMetadata() {
+  const ast = TelemarkJava.parse(`
+    @TeleOp(name="Metadata")
+    public final class MetadataTest extends OpMode {
+      private static final String NAME = "motor";
+      private DcMotor motor;
+      @Override public void init() {
+        motor = hardwareMap.get(DcMotor.class, NAME);
+        motor.setPower(0.5);
+      }
+    }
+  `);
+  const classNode = ast.classes[0];
+  assert.deepEqual(classNode.modifiers, ['public', 'final']);
+  assert.deepEqual(classNode.annotations, ['TeleOp']);
+  assert.equal(classNode.superClass, 'OpMode');
+  assert.deepEqual(classNode.fields[0].modifiers, ['private', 'static', 'final']);
+  assert.deepEqual(classNode.methods[0].modifiers, ['public']);
+  assert.deepEqual(classNode.methods[0].annotations, ['Override']);
+  assert.deepEqual(classNode.methods[0].calls.map((call) => [call.qualifier, call.name]), [
+    ['hardwareMap', 'get'],
+    ['motor', 'setPower'],
+  ]);
+}
+
 function testEnumsAndSwitch() {
   const program = compile(`
     enum State { READY, RUNNING, DONE }
@@ -670,6 +695,7 @@ async function main() {
   testIterativeExecution();
   testArraysAndEnhancedFor();
   testClassesAndInheritance();
+  testStructuralMetadata();
   testEnumsAndSwitch();
   testHardwareAndTelemetry();
   testJavaMathHelpers();

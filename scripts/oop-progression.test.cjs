@@ -154,7 +154,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 }
 
 const masterySource = read('static/simulator/mastery_challenge.js');
-const masteryContext = {window: {}, document: {currentScript: {dataset: {unit: '0'}}}};
+const masteryContext = {window: {TelemarkJava}, document: {currentScript: {dataset: {unit: '0'}}}};
 vm.runInNewContext(masterySource, masteryContext, {filename: 'mastery_challenge.js'});
 const cumulativeFiles = masteryContext.window.TelemarkMasteryChallenge
   .decodeProjectOptions(13, masteryContext.window.TelemarkMasteryChallenge.configs[13])
@@ -164,8 +164,8 @@ assert.ok(cumulativeFiles.includes('RobotHardware.java'));
 assert.ok(cumulativeFiles.includes('CompetitionTeleOp.java'));
 assert.ok(!cumulativeFiles.includes('Lift.java'), 'the DECODE project remains lift-free');
 assert.ok(!cumulativeFiles.includes('MotorMechanism.java'), 'the DECODE parent is PoweredMechanism');
-const coordinationOnly = `class CompetitionTeleOp { private final RobotHardware robot = new RobotHardware(); }`;
-const inlineHardware = `class CompetitionTeleOp { private final RobotHardware robot = new RobotHardware(); private DcMotor duplicatedMotor; }`;
+const coordinationOnly = `class RobotHardware {} class CompetitionTeleOp extends OpMode { private final RobotHardware robot = new RobotHardware(); void loop() {} }`;
+const inlineHardware = `class RobotHardware {} class CompetitionTeleOp extends OpMode { private final RobotHardware robot = new RobotHardware(); private DcMotor duplicatedMotor; void loop() {} }`;
 assert.equal(masteryContext.window.TelemarkMasteryChallenge.evaluate(13, coordinationOnly).at(-1), true);
 assert.equal(masteryContext.window.TelemarkMasteryChallenge.evaluate(13, inlineHardware).at(-1), false);
 

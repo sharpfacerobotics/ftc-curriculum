@@ -41,12 +41,12 @@ const source = files.join('\n');
 const evaluate = code => Array.from(context.TelemarkMasteryChallenge.evaluate(7, code));
 const projectFiles=files.map((source,i)=>({name:['Test.java','LinearSlide.java','Config.java'][i],source}));
 const stage7Source = `
-class Drivetrain { void init(HardwareMap hardwareMap) { hardwareMap.get(DcMotor.class, "leftFront"); } }
+class Drivetrain { void init(HardwareMap hardwareMap) { hardwareMap.get(DcMotor.class, "leftFront"); } void drive() {} }
 class Intake { void init(HardwareMap hardwareMap) { hardwareMap.get(DcMotor.class, "intake"); } }
 class Transfer { void init(HardwareMap hardwareMap) { hardwareMap.get(DcMotor.class, "transfer"); } }
 class Launcher { private DcMotor flywheel; void init(HardwareMap hardwareMap) { flywheel = hardwareMap.get(DcMotor.class, "launcher"); } }
 class ArtifactSensors { private int storedArtifacts; void init(HardwareMap hardwareMap) { hardwareMap.get(DigitalChannel.class, "artifact_entry"); } boolean hasCapacity() { return storedArtifacts < 3; } }
-class CompetitionTeleOp { Drivetrain drivetrain = new Drivetrain(); void init() { drivetrain.init(hardwareMap); } void loop() { if (gamepad1.right_bumper) drivetrain.drive(); } }
+class CompetitionTeleOp extends OpMode { Drivetrain drivetrain = new Drivetrain(); void init() { drivetrain.init(hardwareMap); } void loop() { if (gamepad1.right_bumper) drivetrain.drive(); } }
 `;
 assert.deepEqual(evaluate(stage7Source), Array(6).fill(true), 'all DECODE subsystems own their Unit 7 hardware mapping');
 assert.equal(evaluate(stage7Source.replace('drivetrain.init(hardwareMap);', 'hardwareMap.get(DcMotor.class, "leftFront");'))[5], false, 'CompetitionTeleOp cannot map raw hardware');

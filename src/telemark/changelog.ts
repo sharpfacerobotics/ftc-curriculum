@@ -35,6 +35,7 @@ export const CHANGELOG: readonly ChangeEntry[] = [
       'Use packages, imports, helper classes, and shared constants across one project.',
       'Carry the same CompetitionTeleOp and subsystem code through every mastery stage from Unit 2 to Unit 15.',
       'Preview, copy, and export read-only snapshots from earlier passing stages.',
+      'Review each grading result and choose Auto, Done, or Not done when the automatic judge needs correction.',
       'See Java annotations highlighted and complete @TeleOp, @Autonomous, and @Override as you type.',
       'Get case-sensitive suggestions for FTC SDK types and the classes and methods you write.',
       'Read plain-language definitions of foundational Java keywords in Unit 0.',
